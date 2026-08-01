@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deleted Students — Kanyadet School</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.firebase.com/libs/firebaseui/2.5.1/firebaseui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://kanyadet-school-admin.web.app/css/swalOnly.css">
+
+    <style>
+        :root {
+            --navy:    #0d1f35;
+            --navy-mid:#152d4a;
+            --navy-lt: #1e4080;
+            --navy-glass: rgba(13,31,53,.85);
+            --gold:    #f0a500;
+            --gold-lt: #fbbf24;
+            --gold-dim: rgba(240,165,0,.15);
+            --surface: #ffffff;
+            --surface2: #f6f8fb;
+            --surface3: #eef1f7;
+            --cream:   #f4f6fa;
+            --slate:   #64748b;
+            --slate-lt:#94a3b8;
+            --text:    #0f172a;
+            --text2:   #475569;
+            --border:  #e2e8f0;
+            --border2: #cbd5e1;
+            --success: #059669;
+            --success-lt:#d1fae5;
+            --danger:  #dc2626;
+            --danger-lt:#fee2e2;
+            --info:    #0284c7;
+            --info-lt: #e0f2fe;
+            --radius:  10px;
+            --radius-lg:16px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+            --shadow:  0 4px 16px rgba(13,31,53,.09);
+            --shadow-lg:0 12px 40px rgba(13,31,53,.16);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+
+        /* TOPBAR */
+        .topbar { background: var(--navy); padding: 0 1.75rem; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,.06); box-shadow: 0 1px 0 rgba(255,255,255,.04), var(--shadow-lg); }
+        .topbar-brand { display: flex; align-items: center; gap: .875rem; }
+        .topbar-logo { width: 36px; height: 36px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(240,165,0,.5)); }
+        .topbar-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 800; color: #fff; line-height: 1.1; }
+        .topbar-sub { font-size: .65rem; color: rgba(255,255,255,.4); font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+        .topbar-right { display: flex; align-items: center; gap: .75rem; }
+        #user-id-display { font-size: .82rem; color: rgba(255,255,255,.7); font-weight: 500; display: flex; align-items: center; gap: .5rem; }
+        #user-id-display img { width: 32px !important; height: 32px !important; border-radius: 50% !important; border: 2px solid var(--gold); display: inline-block; }
+
+        /* BUTTONS */
+        button { cursor: pointer !important; }
+        .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem 1rem; border-radius: 8px; font-size: .83rem; font-weight: 600; cursor: pointer !important; border: none; transition: all .18s ease; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+        .btn-primary { background: var(--navy-lt); color: #fff; }
+        .btn-primary:hover { background: var(--navy-mid); box-shadow: 0 4px 12px rgba(30,64,128,.35); transform: translateY(-1px); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover { background: #b91c1c; transform: translateY(-1px); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-success:hover { background: #047857; transform: translateY(-1px); }
+        .btn-gold { background: var(--gold); color: var(--navy); font-weight: 700; }
+        .btn-gold:hover { background: var(--gold-lt); transform: translateY(-1px); }
+        .btn-ghost { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.15); }
+        .btn-ghost:hover { background: rgba(255,255,255,.18); }
+        .btn-outline { background: transparent; color: var(--navy-lt); border: 1.5px solid var(--border2); }
+        .btn-outline:hover { background: var(--navy-lt); color: #fff; border-color: var(--navy-lt); }
+        .btn-sm { padding: .35rem .75rem; font-size: .78rem; border-radius: 6px; }
+        #sign-out-btn { background: rgba(255,255,255,.08); color: rgba(255,255,255,.85); border: 1px solid rgba(255,255,255,.12); }
+        #sign-out-btn:hover { background: rgba(255,255,255,.15); }
+
+        /* LAYOUT */
+        .page-wrap { max-width: 1480px; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; }
+
+        /* SIGN-IN */
+        #sign-in-section { min-height: 70vh; display: flex !important; align-items: center; justify-content: center; }
+        .signin-card { background: var(--surface); border-radius: 20px; box-shadow: var(--shadow-lg); padding: 2.75rem 2.25rem; width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border); }
+        .signin-card h2 { font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 800; color: var(--navy); margin-bottom: .4rem; }
+        .signin-card p { color: var(--slate); font-size: .88rem; margin-bottom: 2rem; }
+        .signin-card .btn { width: 100%; justify-content: center; padding: .8rem 1.5rem; font-size: .92rem; border-radius: 10px; margin-bottom: .6rem; }
+
+        /* CARDS */
+        .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; }
+        .card-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--surface); }
+        .card-title { font-size: .92rem; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: .55rem; }
+        .card-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--danger); color: #fff; flex-shrink: 0; }
+
+        /* FORM FIELDS */
+        input[type="text"], select { width: 100%; padding: .55rem .8rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: .87rem; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--surface); transition: border-color .15s, box-shadow .15s; outline: none; }
+        input[type="text"]:focus, select:focus { border-color: var(--navy-lt); box-shadow: 0 0 0 3px rgba(30,64,128,.1); }
+
+        /* TOOLBAR */
+        .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding: .875rem 1.25rem; background: var(--surface); border-bottom: 1px solid var(--border); }
+        .toolbar-title { font-weight: 700; font-size: .92rem; color: var(--navy); }
+        .search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 300px; }
+        .search-wrap svg { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); color: var(--slate-lt); pointer-events: none; }
+        #search-input { padding-left: 2.1rem; }
+
+        /* TAB TOOLBAR */
+        .tab-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding: .6rem 1.25rem; background: var(--surface2); border-bottom: 1px solid var(--border); }
+        .tab-toolbar-btn { display: inline-flex; align-items: center; gap: .35rem; padding: .32rem .75rem; border-radius: 6px; font-size: .75rem; font-weight: 600; font-family: 'DM Sans', sans-serif; background: var(--surface); border: 1.5px solid var(--border); color: var(--text2); cursor: pointer; transition: all .15s; white-space: nowrap; }
+        .tab-toolbar-btn:hover { background: var(--surface3); border-color: var(--border2); }
+        .tab-toolbar-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+        .tab-count-badge { margin-left: auto; font-size: .75rem; font-weight: 700; color: var(--slate); background: var(--surface3); border: 1px solid var(--border); border-radius: 20px; padding: .2rem .75rem; }
+
+        /* TABULATOR THEME */
+        #tabulator-table { border: none !important; font-family: 'DM Sans', sans-serif !important; background: transparent !important; }
+        #tabulator-table .tabulator-header { background: var(--navy) !important; border: none !important; }
+        #tabulator-table .tabulator-col { background: var(--navy) !important; border-right: 1px solid rgba(255,255,255,.07) !important; }
+        #tabulator-table .tabulator-col:hover { background: var(--navy-mid) !important; }
+        #tabulator-table .tabulator-col-title { color: rgba(255,255,255,.9) !important; font-weight: 600 !important; font-size: .73rem !important; letter-spacing: .04em; }
+        #tabulator-table .tabulator-col .tabulator-col-sorter .tabulator-arrow { border-bottom-color: rgba(255,255,255,.5) !important; }
+        #tabulator-table .tabulator-col.tabulator-col-sorter-element .tabulator-col-sorter .tabulator-arrow { border-bottom-color: var(--gold) !important; }
+        #tabulator-table .tabulator-row { border-bottom: 1px solid var(--border) !important; transition: background .1s; cursor: pointer; }
+        #tabulator-table .tabulator-row:nth-child(even) { background: var(--surface2) !important; }
+        #tabulator-table .tabulator-row:hover { background: #e8effa !important; }
+        #tabulator-table .tabulator-cell { padding: .6rem .9rem !important; color: var(--text2) !important; font-size: .82rem !important; border-right: none !important; }
+        #tabulator-table .tabulator-frozen { background: inherit !important; }
+        #tabulator-table .tabulator-frozen.tabulator-frozen-left { border-right: 2px solid var(--border2) !important; }
+        #tabulator-table .tabulator-col.tabulator-frozen { background: var(--navy) !important; }
+        #tabulator-table .tabulator-footer { background: var(--surface2) !important; border-top: 1px solid var(--border) !important; padding: .6rem 1rem !important; }
+        #tabulator-table .tabulator-footer .tabulator-paginator { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; justify-content: center; }
+        #tabulator-table .tabulator-footer .tabulator-page, #tabulator-table .tabulator-footer button[data-page] { padding: .3rem .65rem !important; border-radius: 6px !important; font-family: 'DM Sans', sans-serif !important; font-size: .78rem !important; font-weight: 600 !important; border: 1.5px solid var(--border) !important; background: var(--surface) !important; color: var(--text2) !important; cursor: pointer; transition: all .15s; }
+        #tabulator-table .tabulator-footer .tabulator-page:hover:not([disabled]) { background: var(--navy) !important; color: #fff !important; border-color: var(--navy) !important; }
+        #tabulator-table .tabulator-footer .tabulator-page.active { background: var(--navy) !important; color: #fff !important; border-color: var(--navy) !important; }
+        #tabulator-table .tabulator-footer .tabulator-page[disabled] { opacity: .4; cursor: not-allowed; }
+        #tabulator-table .tabulator-footer .tabulator-page-size { border: 1.5px solid var(--border) !important; border-radius: 6px !important; font-family: 'DM Sans', sans-serif !important; font-size: .78rem !important; padding: .3rem .5rem !important; }
+        #tabulator-table .tabulator-footer .tabulator-counter { font-size: .75rem !important; color: var(--slate) !important; font-weight: 600; }
+        #tabulator-table .tabulator-col-resize-handle { background: rgba(255,255,255,.15) !important; }
+        #tabulator-table .tabulator-row.tabulator-group { background: var(--gold-dim) !important; border-bottom: 2px solid var(--gold) !important; padding: .5rem 1rem !important; font-weight: 700 !important; }
+        #tabulator-table .tabulator-row.tabulator-group span { color: var(--gold) !important; }
+        #tabulator-table .tabulator-header-filter input, #tabulator-table .tabulator-header-filter select { background: rgba(255,255,255,.1) !important; border: 1px solid rgba(255,255,255,.2) !important; color: #fff !important; border-radius: 4px !important; font-size: .72rem !important; padding: .25rem .45rem !important; font-family: 'DM Sans', sans-serif !important; width: 100% !important; }
+        #tabulator-table .tabulator-header-filter input::placeholder { color: rgba(255,255,255,.4) !important; }
+        #tabulator-table .tabulator-cell.tabulator-editing { padding: .3rem !important; }
+        #tabulator-table .tabulator-cell.tabulator-editing input { border: 2px solid var(--navy-lt) !important; border-radius: 6px !important; padding: .3rem .5rem !important; font-family: 'DM Sans', sans-serif !important; font-size: .82rem !important; }
+        #tabulator-table .tabulator-tableholder::-webkit-scrollbar { height: 7px; width: 7px; }
+        #tabulator-table .tabulator-tableholder::-webkit-scrollbar-track { background: var(--surface2); }
+        #tabulator-table .tabulator-tableholder::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+        /* ACTION BUTTONS */
+        .action-wrap { display: flex; gap: .35rem; align-items: center; }
+        .btn-edit { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .65rem; border-radius: 6px; border: none; background: var(--navy); color: #fff; font-size: .75rem; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all .15s; }
+        .btn-edit:hover { background: var(--navy-lt); transform: translateY(-1px); }
+        .btn-restore { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .65rem; border-radius: 6px; border: none; background: var(--success); color: #fff; font-size: .75rem; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all .15s; }
+        .btn-restore:hover { background: #047857; transform: translateY(-1px); }
+        .btn-del { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--danger-lt); color: var(--danger); cursor: pointer; transition: all .15s; }
+        .btn-del:hover { background: var(--danger); color: #fff; }
+
+        /* STUDENT IMAGE */
+        .student-img { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; border: 2px solid var(--border); display: block; }
+
+        /* KPI CARDS */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .85rem; margin-bottom: 1.25rem; }
+        .kpi-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 1rem 1.15rem; box-shadow: var(--shadow-sm); }
+        .kpi-label { font-size: .71rem; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .35rem; }
+        .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--navy); line-height: 1; }
+        .kpi-sub { font-size: .72rem; color: var(--slate-lt); margin-top: .2rem; }
+
+        /* STATS */
+        #stats-section { margin-bottom: 1.25rem; }
+        .stats-dist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .85rem; }
+        .dist-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 1rem; box-shadow: var(--shadow-sm); }
+        .dist-card h3 { font-size: .82rem; font-weight: 700; color: var(--navy); margin-bottom: .75rem; }
+        .dist-bar-row { margin-bottom: .55rem; }
+        .dist-bar-label { display: flex; justify-content: space-between; font-size: .75rem; color: var(--text2); margin-bottom: .2rem; font-weight: 500; }
+        .dist-bar-track { background: var(--surface3); border-radius: 4px; height: 7px; overflow: hidden; }
+        .dist-bar-fill { height: 7px; border-radius: 4px; transition: width .4s ease; }
+
+        /* MODAL */
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(13,31,53,.55); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+        .modal-backdrop.hidden { display: none; }
+        .modal-box { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 2rem; width: 100%; max-width: 460px; border: 1px solid var(--border); }
+        .modal-box-wide { max-width: 860px; }
+        .modal-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 800; color: var(--navy); margin-bottom: 1.25rem; text-align: center; }
+        .export-fmt-btn { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.4rem; border-radius: 8px; font-size: .88rem; font-weight: 700; border: 2px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif; }
+        .export-fmt-btn:hover { border-color: var(--navy-lt); background: var(--navy-lt); color: #fff; transform: translateY(-1px); }
+        .warning-banner { background: #fffbeb; border: 1.5px solid var(--gold); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; font-size: .85rem; color: var(--navy); }
+        .section-label { font-size: .72rem; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .75rem; text-align: center; }
+
+        /* EDIT DRAWER */
+        #edit-drawer-overlay { position: fixed; inset: 0; background: rgba(13,31,53,.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity .22s ease; }
+        #edit-drawer-overlay.open { opacity: 1; pointer-events: all; }
+        #edit-drawer { background: var(--surface); border-radius: 18px; box-shadow: 0 24px 64px rgba(13,31,53,.3); width: 100%; max-width: 640px; max-height: 88vh; display: flex; flex-direction: column; transform: scale(.96); transition: transform .22s ease; border: 1px solid var(--border); }
+        #edit-drawer-overlay.open #edit-drawer { transform: scale(1); }
+        .drawer-header { background: var(--navy); padding: 1.25rem 1.5rem; border-radius: 18px 18px 0 0; display: flex; align-items: center; justify-content: space-between; }
+        .drawer-avatar { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 2px solid rgba(255,255,255,.2); flex-shrink: 0; }
+        .drawer-header-title { font-size: .95rem; font-weight: 700; color: #fff; }
+        .drawer-header-sub { font-size: .75rem; color: rgba(255,255,255,.5); margin-top: .15rem; }
+        .drawer-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: rgba(255,255,255,.12); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+        .drawer-close:hover { background: rgba(255,255,255,.22); }
+        .drawer-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
+        .drawer-body::-webkit-scrollbar { width: 6px; }
+        .drawer-body::-webkit-scrollbar-track { background: var(--surface2); }
+        .drawer-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+        .drawer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; }
+        .drawer-field { display: flex; flex-direction: column; gap: .25rem; }
+        .drawer-field label { font-size: .7rem; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: .06em; }
+        .drawer-field input { padding: .5rem .75rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: .85rem; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--surface); outline: none; transition: border-color .15s; }
+        .drawer-field input:focus { border-color: var(--navy-lt); box-shadow: 0 0 0 3px rgba(30,64,128,.1); }
+        .drawer-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: .75rem; align-items: center; }
+        .drawer-save-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: .4rem; padding: .7rem 1.25rem; background: var(--navy); color: #fff; border: none; border-radius: 9px; font-size: .88rem; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background .15s; }
+        .drawer-save-btn:hover { background: var(--navy-lt); }
+        .drawer-cancel-btn { padding: .7rem 1.25rem; background: transparent; color: var(--slate); border: 1.5px solid var(--border); border-radius: 9px; font-size: .88rem; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all .15s; }
+        .drawer-cancel-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+        /* LOADER */
+        #loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 500; background: rgba(255,255,255,.5); backdrop-filter: blur(40px); }
+
+        /* PDF MODAL */
+        .modal-student-image { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 2px solid var(--border); }
+
+        /* Auth state */
+        #main_container { display: none !important; }
+        body.user-logged-in  #sign-in-section { display: none !important; }
+        body.user-logged-out #data-section    { display: none !important; }
+        body.user-logged-out #sign-in-section { display: flex !important; }
+        .hidden { display: none !important; }
+
+        @keyframes spin { to { transform: rotate(360deg) } }
+        @media (max-width: 640px) {
+            .drawer-grid { grid-template-columns: 1fr; }
+            #edit-drawer { border-radius: 14px; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="main_container" style="display:none;"></div>
+
+<!-- Loader -->
+<div id="loader">
+    <div style="position:relative;width:56px;height:56px;">
+        <div style="position:absolute;inset:0;border-radius:50%;border:4px solid var(--border);"></div>
+        <div style="position:absolute;inset:0;border-radius:50%;border:4px solid transparent;border-top-color:var(--navy-lt);animation:spin .8s linear infinite;"></div>
+    </div>
+</div>
+
+<!-- Navigation modal -->
+<div id="linkModal" class="modal-backdrop hidden" style="z-index:1100;">
+    <div id="modalContent" style="background:var(--surface);border-radius:var(--radius-lg);padding:2rem;max-width:500px;width:100%;box-shadow:var(--shadow-lg);"></div>
+</div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+    <div class="topbar-brand">
+        <img src="../images/logo.png" alt="Logo" class="topbar-logo" onerror="this.style.display='none'">
+        <div>
+            <div class="topbar-title">Kanyadet School</div>
+            <div class="topbar-sub">Deleted Students Database</div>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <span id="user-id-display"></span>
+        <a href="./Active-Students-Database.html" target="_blank" rel="noopener" class="auth-qlink auth-qlink-1" style="display: inline-block; background: linear-gradient(135deg, #e52d27 0%, #b31010 100%); color: #ffffff; padding: 8px 20px; text-decoration: none; border-radius: 8px; font-family: system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(179, 16, 16, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.2s ease; margin-right: 12px;">
+  <div class="auth-qlink-dot"></div>📄 Active students<span class="auth-qlink-arrow" style="margin-left: 6px;">→</span>
+</a>
+
+        <button id="sign-out-btn" class="btn btn-ghost hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/></svg>
+            Sign Out
+        </button>
+    </div>
+</header>
+
+<!-- PAGE WRAP -->
+<div class="page-wrap">
+
+    <!-- SIGN-IN SECTION -->
+    <div id="sign-in-section">
+        <div class="signin-card">
+            <div style="width:60px;height:60px;border-radius:50%;background:var(--danger);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <h2>Deleted Students</h2>
+            <p>Sign in to access deleted student records</p>
+            <button id="sign-in-google-btn" class="btn btn-primary" style="width:100%;justify-content:center;padding:.85rem;font-size:.95rem;border-radius:10px;margin-bottom:.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Continue with Google
+            </button>
+            <button id="sign-in-fingerprint-btn" class="btn btn-outline" style="width:100%;justify-content:center;padding:.85rem;font-size:.95rem;border-radius:10px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/></svg>
+                Sign in with Fingerprint
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN DATA SECTION -->
+    <main id="data-section" class="hidden">
+
+        <!-- KPI CARDS -->
+        <div class="kpi-grid" id="kpi-grid" style="display:none;"></div>
+
+        <!-- STATS -->
+        <section id="stats-section"></section>
+
+        <!-- TABLE CARD -->
+        <div class="card">
+            <!-- Main Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar-title">Deleted Student Records</div>
+                <div class="search-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input id="search-input" type="text" placeholder="Search students…" onfocus="this.select()">
+                </div>
+                <select id="grade-filter-select" style="width:auto;padding:.45rem .75rem;min-width:120px;">
+                    <option value="">All Grades</option>
+                </select>
+                <div style="display:flex;align-items:center;gap:.4rem;">
+                    <span style="font-size:.75rem;font-weight:600;color:var(--slate);">Rows:</span>
+                    <select id="students-per-page" style="width:auto;padding:.42rem .65rem;">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="500">500</option>
+                    </select>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:.4rem;">
+                    <button id="print-all-btn" class="btn btn-outline btn-sm hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Export All
+                    </button>
+                    <button id="print-grade-btn" class="btn btn-outline btn-sm hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Export Grade
+                    </button>
+                    <button id="delete-grade-btn" class="btn btn-danger btn-sm hidden" title="Permanently delete all in selected grade">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9z" clip-rule="evenodd"/></svg>
+                        Delete Grade
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabulator Toolbar -->
+            <div class="tab-toolbar">
+                <button class="tab-toolbar-btn" id="tab-toggle-filters">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+                    Col Filters
+                </button>
+                <button class="tab-toolbar-btn" id="tab-toggle-group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    Group by Grade
+                </button>
+                <button class="tab-toolbar-btn" id="tab-toggle-cols">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+                    Columns
+                </button>
+                <button class="tab-toolbar-btn" id="tab-freeze-cols">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M5.5 8.5l6.5 3.5-6.5 3.5M18.5 8.5L12 12l6.5 3.5"/></svg>
+                    Freeze Name
+                </button>
+                <button class="tab-toolbar-btn" id="tab-fit-cols">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    Fit Cols
+                </button>
+                <button class="tab-toolbar-btn" id="tab-clear-filters">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    Clear Filters
+                </button>
+                <span class="tab-count-badge" id="tab-count-badge">0 students</span>
+            </div>
+
+            <div id="tabulator-table"></div>
+        </div>
+
+    </main>
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Message modal -->
+<div id="message-modal" class="modal-backdrop hidden">
+    <div class="modal-box" style="max-width:360px;text-align:center;">
+        <div style="width:48px;height:48px;border-radius:50%;background:#eef3f9;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="var(--navy-lt)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <p id="modal-text" style="color:var(--text);font-size:.92rem;font-weight:500;margin-bottom:1.25rem;"></p>
+        <button id="close-modal-btn" class="btn btn-primary" style="width:100%;justify-content:center;">OK</button>
+    </div>
+</div>
+
+<!-- RESTORE MODAL -->
+<div id="restore-modal" class="modal-backdrop hidden">
+    <div class="modal-box" style="max-width:480px;">
+        <div style="text-align:center;margin-bottom:1.25rem;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#dcfce7;border:2px solid var(--success);display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="var(--success)" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+            </div>
+            <div class="modal-title" style="margin-bottom:.25rem;">Restore Student?</div>
+            <p id="restore-modal-subtitle" style="font-size:.85rem;color:var(--slate);"></p>
+        </div>
+
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:1rem;margin-bottom:1.1rem;">
+            <p style="font-size:.82rem;color:#14532d;margin-bottom:.5rem;"><strong>✅ Restored to:</strong></p>
+            <code id="restore-path-label" style="font-size:.78rem;background:rgba(0,0,0,.07);padding:.2rem .5rem;border-radius:4px;color:#14532d;display:block;margin-bottom:.5rem;"></code>
+            <p style="font-size:.78rem;color:#166534;">The deletion timestamp and log are removed from the record.</p>
+        </div>
+
+        <div style="display:flex;gap:.75rem;">
+            <button id="restore-confirm-btn" class="btn btn-success" style="flex:1;justify-content:center;padding:.7rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                Yes, Restore
+            </button>
+            <button id="restore-cancel-btn" class="btn btn-outline" style="padding:.7rem 1.25rem;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- PERMANENT DELETE MODAL -->
+<div id="perm-delete-modal" class="modal-backdrop hidden">
+    <div class="modal-box" style="max-width:480px;">
+        <div style="text-align:center;margin-bottom:1.25rem;">
+            <div style="width:52px;height:52px;border-radius:50%;background:var(--danger-lt);border:2px solid var(--danger);display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="var(--danger)" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <div class="modal-title" style="margin-bottom:.25rem;">Permanently Delete?</div>
+            <p id="perm-delete-modal-subtitle" style="font-size:.85rem;color:var(--slate);"></p>
+        </div>
+
+        <div style="background:var(--danger-lt);border:1.5px solid #fca5a5;border-radius:10px;padding:1rem;margin-bottom:1.1rem;font-size:.83rem;color:#7f1d1d;">
+            <strong>⚠ This cannot be undone.</strong> The record will be gone from Firebase entirely — no backup exists.
+        </div>
+
+        <div style="display:flex;gap:.75rem;">
+            <button id="perm-delete-confirm-btn" class="btn btn-danger" style="flex:1;justify-content:center;padding:.7rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9z" clip-rule="evenodd"/></svg>
+                Delete Forever
+            </button>
+            <button id="perm-delete-cancel-btn" class="btn btn-outline" style="padding:.7rem 1.25rem;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE GRADE MODAL -->
+<div id="delete-grade-modal" class="modal-backdrop hidden">
+    <div class="modal-box" style="max-width:480px;">
+        <div style="text-align:center;margin-bottom:1.25rem;">
+            <div style="width:52px;height:52px;border-radius:50%;background:var(--danger-lt);border:2px solid var(--danger);display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="var(--danger)" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <div class="modal-title" style="margin-bottom:.25rem;" id="delete-grade-modal-title">Delete Grade?</div>
+            <p id="delete-grade-modal-subtitle" style="font-size:.85rem;color:var(--slate);"></p>
+        </div>
+
+        <div style="background:var(--danger-lt);border:1.5px solid #fca5a5;border-radius:10px;padding:1rem;margin-bottom:1.1rem;font-size:.83rem;color:#7f1d1d;">
+            <strong>⚠ This cannot be undone.</strong> All records in this grade will be permanently removed from Firebase with no backup.
+        </div>
+
+        <div style="display:flex;gap:.75rem;">
+            <button id="delete-grade-confirm-btn" class="btn btn-danger" style="flex:1;justify-content:center;padding:.7rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9z" clip-rule="evenodd"/></svg>
+                <span id="delete-grade-confirm-label">Delete Forever</span>
+            </button>
+            <button id="delete-grade-cancel-btn" class="btn btn-outline" style="padding:.7rem 1.25rem;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Export modal -->
+<div id="print-modal" class="modal-backdrop hidden">
+    <div class="modal-box">
+        <div class="modal-title">Export Options</div>
+        <p id="export-context-info" style="text-align:center;font-size:.85rem;color:var(--navy-lt);font-weight:600;margin-bottom:1rem;"></p>
+        <p class="section-label">Choose Format</p>
+        <div style="display:flex;justify-content:center;gap:.75rem;margin-bottom:1.25rem;">
+            <button id="print-excel-btn" class="export-fmt-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Excel
+            </button>
+            <button id="print-pdf-btn" class="export-fmt-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                PDF
+            </button>
+            <button id="print-word-btn" class="export-fmt-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Word
+            </button>
+        </div>
+        <button id="close-print-modal-btn" class="btn btn-outline" style="width:100%;justify-content:center;">Cancel</button>
+    </div>
+</div>
+
+<!-- PDF Viewer Modal -->
+<div id="pdf-modal-backdrop" class="modal-backdrop hidden" style="align-items:center;">
+    <div class="modal-box" style="max-width:860px;padding:1.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <div style="display:flex;align-items:center;gap:1rem;">
+                <img id="pdf-modal-student-image" class="modal-student-image" src="" alt="Student Image" onerror="this.src='./student_images/default.jpg'">
+                <div>
+                    <div id="pdf-modal-student-name" style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--navy);"></div>
+                    <div style="font-size:.8rem;color:var(--slate);">Birth Certificate</div>
+                </div>
+            </div>
+            <button id="close-pdf-modal-btn" style="width:36px;height:36px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div style="width:100%;min-height:400px;height:70vh;">
+            <iframe id="pdf-iframe" style="width:100%;height:100%;border-radius:8px;border:none;" src=""></iframe>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT DRAWER -->
+<div id="edit-drawer-overlay">
+    <div id="edit-drawer">
+        <div class="drawer-header">
+            <div style="display:flex;align-items:center;gap:.9rem;">
+                <img id="drawer-avatar" src="" alt="" class="drawer-avatar" onerror="this.src='./student_images/default.jpg'">
+                <div>
+                    <div class="drawer-header-title">Edit Deleted Record</div>
+                    <div class="drawer-header-sub" id="drawer-student-label">—</div>
+                </div>
+            </div>
+            <button class="drawer-close" id="drawer-close-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="drawer-body" id="drawer-body"></div>
+        <div class="drawer-footer">
+            <button class="drawer-save-btn" id="drawer-save-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                Save Changes
+            </button>
+            <button class="drawer-cancel-btn" id="drawer-cancel-btn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- External scripts -->
+<script src="https://kanyadet-school-admin.web.app/js/GoogleAuthfireBase.js"></script>
+<!-- <script src="https://kanyadet-school-admin.web.app/js/GoogleAuthmain.js"></script> -->
+<script src="./image-popup.js"></script>
+<script src="./js/image-popup.js"></script>
+<script src="https://kanyadet-school-admin.web.app/Report-Cards/js/Toggle.js"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, set, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const sanitizedAppId = appId.replace(/\./g, '_');
+const customFirebaseConfig = {
+    apiKey: "AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE",
+    authDomain: "kanyadet-school-admin.firebaseapp.com",
+    projectId: "kanyadet-school-admin",
+    databaseURL: "https://kanyadet-school-admin-default-rtdb.firebaseio.com",
+    storageBucket: "kanyadet-school-admin.firebasestorage.app",
+    messagingSenderId: "409708360032",
+    appId: "1:409708360032:web:a21d63e8cb5fa1ecabee05",
+    measurementId: "G-Y4C0ZRRL52"
+};
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : customFirebaseConfig;
+
+let db, auth, userId = null;
+let studentsData = [];
+let tabulatorTable = null;
+let colFiltersVisible = false;
+let groupingEnabled = false;
+let nameColFrozen = false;
+let studentsPerPage = 10;
+
+// ── DOM REFS ──
+const modal        = document.getElementById('message-modal');
+const modalText    = document.getElementById('modal-text');
+const closeModalBtn = document.getElementById('close-modal-btn');
+const userIdDisplay = document.getElementById('user-id-display');
+const loader       = document.getElementById('loader');
+const signInSection = document.getElementById('sign-in-section');
+const dataSection  = document.getElementById('data-section');
+const signOutBtn   = document.getElementById('sign-out-btn');
+const gradeFilterSelect = document.getElementById('grade-filter-select');
+const searchInput  = document.getElementById('search-input');
+const statsSection = document.getElementById('stats-section');
+const kpiGrid      = document.getElementById('kpi-grid');
+const printAllBtn  = document.getElementById('print-all-btn');
+const printGradeBtn = document.getElementById('print-grade-btn');
+const deleteGradeBtn = document.getElementById('delete-grade-btn');
+const printModal   = document.getElementById('print-modal');
+const closePrintModalBtn = document.getElementById('close-print-modal-btn');
+const printExcelBtn = document.getElementById('print-excel-btn');
+const printPdfBtn  = document.getElementById('print-pdf-btn');
+const printWordBtn = document.getElementById('print-word-btn');
+const pdfModalBackdrop = document.getElementById('pdf-modal-backdrop');
+const pdfIframe    = document.getElementById('pdf-iframe');
+const closePdfModalBtn = document.getElementById('close-pdf-modal-btn');
+const pdfModalStudentImage = document.getElementById('pdf-modal-student-image');
+const pdfModalStudentName  = document.getElementById('pdf-modal-student-name');
+const studentsPerPageSelect = document.getElementById('students-per-page');
+const tabCountBadge = document.getElementById('tab-count-badge');
+
+const showModal = (msg) => {
+    modalText.textContent = msg;
+    modal.classList.remove('hidden');
+};
+closeModalBtn.addEventListener('click', () => modal.classList.add('hidden'));
+modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
+closePrintModalBtn.addEventListener('click', () => printModal.classList.add('hidden'));
+closePdfModalBtn.addEventListener('click', () => { pdfModalBackdrop.classList.add('hidden'); pdfIframe.src = ''; });
+
+// ── RESTORE MODAL ──
+const restoreModal       = document.getElementById('restore-modal');
+const restoreSubtitle    = document.getElementById('restore-modal-subtitle');
+const restorePathLabel   = document.getElementById('restore-path-label');
+const restoreConfirmBtn  = document.getElementById('restore-confirm-btn');
+const restoreCancelBtn   = document.getElementById('restore-cancel-btn');
+let _pendingRestoreId    = null;
+
+restoreCancelBtn.addEventListener('click', () => { restoreModal.classList.add('hidden'); _pendingRestoreId = null; });
+restoreModal.addEventListener('click', e => { if (e.target === restoreModal) { restoreModal.classList.add('hidden'); _pendingRestoreId = null; } });
+
+restoreConfirmBtn.addEventListener('click', async () => {
+    const id = _pendingRestoreId;
+    if (!id) return;
+    restoreModal.classList.add('hidden');
+    _pendingRestoreId = null;
+    const student = studentsData.find(s => s.id === id);
+    const name = student?.['Official Student Name'] || student?.['Assessment No'] || id;
+    try {
+        const deletedRef = ref(db, `Deletedstudents/${sanitizedAppId}/artifacts/${id}`);
+        const activeRef  = ref(db, `artifacts/${sanitizedAppId}/students/${id}`);
+        const snap = await get(deletedRef);
+        if (!snap.exists()) { showModal('Record not found in deleted database.'); return; }
+        const { deletedAt, deletedBy, _prevGrade, _promotedAt, _promotedBy, ...cleanData } = snap.val();
+        await set(activeRef, cleanData);
+        await remove(deletedRef);
+        studentsData = studentsData.filter(s => s.id !== id);
+        if (tabulatorTable) tabulatorTable.deleteRow(id);
+        updateGradeFilter();
+        updateKPI(studentsData);
+        showModal(`${name} restored to Active Students.`);
+    } catch(e) { showModal(`Error: ${e.message}`); }
+});
+
+// ── PERM DELETE MODAL ──
+const permDeleteModal      = document.getElementById('perm-delete-modal');
+const permDeleteSubtitle   = document.getElementById('perm-delete-modal-subtitle');
+const permDeleteConfirmBtn = document.getElementById('perm-delete-confirm-btn');
+const permDeleteCancelBtn  = document.getElementById('perm-delete-cancel-btn');
+let _pendingDeleteId       = null;
+
+permDeleteCancelBtn.addEventListener('click', () => { permDeleteModal.classList.add('hidden'); _pendingDeleteId = null; });
+permDeleteModal.addEventListener('click', e => { if (e.target === permDeleteModal) { permDeleteModal.classList.add('hidden'); _pendingDeleteId = null; } });
+
+permDeleteConfirmBtn.addEventListener('click', async () => {
+    const id = _pendingDeleteId;
+    if (!id) return;
+    permDeleteModal.classList.add('hidden');
+    _pendingDeleteId = null;
+    const student = studentsData.find(s => s.id === id);
+    const name = student?.['Official Student Name'] || student?.['Assessment No'] || id;
+    try {
+        await remove(ref(db, `Deletedstudents/${sanitizedAppId}/artifacts/${id}`));
+        studentsData = studentsData.filter(s => s.id !== id);
+        if (tabulatorTable) tabulatorTable.deleteRow(id);
+        updateGradeFilter();
+        updateKPI(studentsData);
+        showModal(`${name} permanently deleted.`);
+    } catch(e) { showModal(`Error: ${e.message}`); }
+});
+
+// ── DELETE GRADE MODAL ──
+const deleteGradeModal      = document.getElementById('delete-grade-modal');
+const deleteGradeModalTitle = document.getElementById('delete-grade-modal-title');
+const deleteGradeModalSub   = document.getElementById('delete-grade-modal-subtitle');
+const deleteGradeConfirmBtn = document.getElementById('delete-grade-confirm-btn');
+const deleteGradeConfirmLbl = document.getElementById('delete-grade-confirm-label');
+const deleteGradeCancelBtn  = document.getElementById('delete-grade-cancel-btn');
+let _pendingDeleteGrade     = null;
+
+deleteGradeCancelBtn.addEventListener('click', () => { deleteGradeModal.classList.add('hidden'); _pendingDeleteGrade = null; });
+deleteGradeModal.addEventListener('click', e => { if (e.target === deleteGradeModal) { deleteGradeModal.classList.add('hidden'); _pendingDeleteGrade = null; } });
+
+deleteGradeConfirmBtn.addEventListener('click', async () => {
+    const grade = _pendingDeleteGrade;
+    if (!grade) return;
+    deleteGradeModal.classList.add('hidden');
+    _pendingDeleteGrade = null;
+    const toDelete = studentsData.filter(s => s.Grade === grade);
+    try {
+        await Promise.all(toDelete.map(s => remove(ref(db, `Deletedstudents/${sanitizedAppId}/artifacts/${s.id}`))));
+        studentsData = studentsData.filter(s => s.Grade !== grade);
+        gradeFilterSelect.value = '';
+        renderStudents(studentsData);
+        updateGradeFilter();
+        deleteGradeBtn.classList.add('hidden');
+        printGradeBtn.classList.add('hidden');
+        showModal(`${toDelete.length} records in ${grade} permanently deleted.`);
+    } catch(e) { showModal(`Error: ${e.message}`); }
+});
+
+window.openLocalPDF = (assessmentNo, studentName) => {
+    if (!assessmentNo) return;
+    const pdfPath = `https://kanyadet-school-admin.web.app/New-Students-Database/birth_certificates/${assessmentNo}.pdf`;
+    const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(pdfPath)}&embedded=true`;
+    pdfModalStudentName.textContent = studentName || assessmentNo;
+    pdfModalStudentImage.src = studentName
+        ? `https://kanyadet-school-admin.web.app/New-Students-Database/student_images/${encodeURIComponent(studentName)}.jpg`
+        : 'https://kanyadet-school-admin.web.app/New-Students-Database/student_images/default.jpg';
+    pdfIframe.src = googleDocsUrl;
+    pdfModalBackdrop.classList.remove('hidden');
+};
+pdfModalBackdrop.addEventListener('click', e => { if (e.target === pdfModalBackdrop) { pdfModalBackdrop.classList.add('hidden'); pdfIframe.src = ''; } });
+
+// ── FIREBASE ──
+const app = initializeApp(firebaseConfig);
+db   = getDatabase(app);
+auth = getAuth(app);
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        userId = user.uid;
+        userIdDisplay.innerHTML = '';
+        const email = user.email || '';
+        let name = email.split('@')[0].replace(/[^a-zA-Z]/g, '');
+        name = name.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\b\w/g, c => c.toUpperCase());
+        userIdDisplay.textContent = name || user.displayName || email;
+        if (user.photoURL) {
+            const img = document.createElement('img');
+            img.src = user.photoURL;
+            img.alt = 'User';
+            userIdDisplay.prepend(img);
+        }
+        document.body.classList.add('user-logged-in');
+        document.body.classList.remove('user-logged-out');
+        signOutBtn.classList.remove('hidden');
+        dataSection.classList.remove('hidden');
+        printAllBtn.classList.remove('hidden');
+        loader.classList.remove('hidden');
+
+        const studentsRef = ref(db, `Deletedstudents/${sanitizedAppId}/artifacts`);
+        onValue(studentsRef, (snapshot) => {
+            const data = snapshot.val();
+            studentsData = data
+                ? Object.entries(data)
+                    .map(([id, val]) => ({ id, ...val }))
+                    .sort((a, b) => (parseFloat(a['Assessment No']) || Infinity) - (parseFloat(b['Assessment No']) || Infinity))
+                : [];
+            updateGradeFilter();
+            renderStudents(studentsData);
+            loader.classList.add('hidden');
+        }, (err) => { showModal(`Error: ${err.message}`); loader.classList.add('hidden'); });
+    } else {
+        userId = null;
+        document.body.classList.add('user-logged-out');
+        document.body.classList.remove('user-logged-in');
+        signOutBtn.classList.add('hidden');
+        dataSection.classList.add('hidden');
+        loader.classList.add('hidden');
+        studentsData = [];
+        if (tabulatorTable) { tabulatorTable.destroy(); tabulatorTable = null; }
+        kpiGrid.style.display = 'none';
+        statsSection.innerHTML = '';
+    }
+});
+
+document.getElementById('sign-in-google-btn').addEventListener('click', async () => {
+    try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { showModal('Sign-in failed: ' + e.message); }
+});
+document.getElementById('sign-in-fingerprint-btn').addEventListener('click', async () => {
+    try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { showModal('Sign-in failed: ' + e.message); }
+});
+signOutBtn.addEventListener('click', () => signOut(auth));
+
+// ── GRADE FILTER ──
+const updateGradeFilter = () => {
+    const grades = [...new Set(studentsData.map(s => s.Grade).filter(Boolean))].sort();
+    const current = gradeFilterSelect.value;
+    gradeFilterSelect.innerHTML = '<option value="">All Grades</option>';
+    grades.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g; opt.textContent = g;
+        if (g === current) opt.selected = true;
+        gradeFilterSelect.appendChild(opt);
+    });
+    if (grades.length > 0) {
+        deleteGradeBtn.classList.remove('hidden');
+        printGradeBtn.classList.remove('hidden');
+    }
+};
+
+// ── KPI ──
+const updateKPI = (students) => {
+    const total   = students.length;
+    const grades  = new Set(students.map(s => s.Grade).filter(Boolean)).size;
+    const male    = students.filter(s => (s.Gender||'').toLowerCase() === 'male').length;
+    const female  = students.filter(s => (s.Gender||'').toLowerCase() === 'female').length;
+    const deleted = students.filter(s => s.deletedAt).length;
+    kpiGrid.innerHTML = `
+        <div class="kpi-card"><div class="kpi-label">Total Deleted</div><div class="kpi-value" style="color:var(--danger);">${total}</div><div class="kpi-sub">archived records</div></div>
+        <div class="kpi-card"><div class="kpi-label">Grades</div><div class="kpi-value">${grades}</div><div class="kpi-sub">unique grades</div></div>
+        <div class="kpi-card"><div class="kpi-label">Male</div><div class="kpi-value">${male}</div><div class="kpi-sub">${total > 0 ? Math.round(male/total*100) : 0}% of total</div></div>
+        <div class="kpi-card"><div class="kpi-label">Female</div><div class="kpi-value">${female}</div><div class="kpi-sub">${total > 0 ? Math.round(female/total*100) : 0}% of total</div></div>
+        <div class="kpi-card"><div class="kpi-label">With Timestamp</div><div class="kpi-value">${deleted}</div><div class="kpi-sub">deletion logged</div></div>
+    `;
+    kpiGrid.style.display = 'grid';
+};
+
+// ── ANALYTICS ──
+const updateAnalytics = (students) => {
+    if (!students || students.length === 0) { statsSection.innerHTML = ''; return; }
+    const barHTML = (label, dist, color) => {
+        const total = Object.values(dist).reduce((a,b) => a+b, 0);
+        const rows = Object.keys(dist).length > 0
+            ? Object.entries(dist).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `
+                <div class="dist-bar-row">
+                    <div class="dist-bar-label"><span>${k}</span><span>${v}</span></div>
+                    <div class="dist-bar-track"><div class="dist-bar-fill" style="width:${total>0?v/total*100:0}%;background:${color};"></div></div>
+                </div>`).join('')
+            : `<p style="font-size:.78rem;color:var(--slate-lt);text-align:center;padding:.5rem 0;">No data</p>`;
+        return `<div class="dist-card"><h3>${label}</h3>${rows}</div>`;
+    };
+    const gradeDist = {}, classDist = {}, genderDist = {}, deletedByDist = {};
+    students.forEach(s => {
+        if (s.Grade)      gradeDist[s.Grade]     = (gradeDist[s.Grade]||0)+1;
+        if (s['Class'])   classDist[s['Class']]  = (classDist[s['Class']]||0)+1;
+        if (s.Gender)     genderDist[s.Gender]   = (genderDist[s.Gender]||0)+1;
+        if (s.deletedBy)  deletedByDist[s.deletedBy] = (deletedByDist[s.deletedBy]||0)+1;
+    });
+    statsSection.innerHTML = `<div class="stats-dist-grid" style="margin-bottom:1.25rem;">
+        ${barHTML('Grade Distribution', gradeDist, 'var(--danger)')}
+        ${barHTML('Graduation Year', classDist, 'var(--success)')}
+        ${barHTML('Gender Distribution', genderDist, '#a855f7')}
+        ${barHTML('Deleted By', deletedByDist, 'var(--navy-lt)')}
+    </div>`;
+};
+
+// ── ORDERED HEADERS ──
+const getOrderedHeaders = (students) => {
+    const allKeys = new Set();
+    students.forEach(s => Object.keys(s).forEach(k => allKeys.add(k)));
+    const priority = ['Grade', 'Assessment No', 'Official Student Name', 'UPI', 'Gender'];
+    const others = Array.from(allKeys).filter(k => k !== 'id' && !priority.includes(k)).sort();
+    return [...priority.filter(k => allKeys.has(k)), ...others];
+};
+
+// ── COUNT BADGE ──
+const updateCountBadge = () => {
+    if (!tabulatorTable) return;
+    try { const c = tabulatorTable.getDataCount('active'); tabCountBadge.textContent = `${c} student${c!==1?'s':''}`; } catch(e) {}
+};
+
+// ── RENDER ──
+const renderStudents = (students) => {
+    updateKPI(students);
+    updateAnalytics(students);
+
+    const headers = getOrderedHeaders(students);
+
+    const columns = [
+        {
+            title: 'Actions', field: '_actions', frozen: true, headerSort: false, resizable: false, width: 145,
+            formatter: (cell) => {
+                const d = cell.getRow().getData();
+                return `<div class="action-wrap">
+                    <button class="btn-edit" onclick="window._editRow('${d.id}')">
+                        <svg xmlns='http://www.w3.org/2000/svg' width='11' height='11' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2.5'><path stroke-linecap='round' stroke-linejoin='round' d='M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z'/></svg>
+                        
+                    </button>
+                    <button class="btn-restore" onclick="window._restoreRow('${d.id}')">
+                        <svg xmlns='http://www.w3.org/2000/svg' width='11' height='11' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2.5'><path stroke-linecap='round' stroke-linejoin='round' d='M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6'/></svg>
+                        Undo
+                    </button>
+                    <button class="btn-del" onclick="window._delRow('${d.id}')" title="Permanently delete">
+                        <svg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9z' clip-rule='evenodd'/></svg>
+                    </button>
+                </div>`;
+            }
+        },
+        {
+            title: 'Photo', field: '_img', headerSort: false, resizable: false, width: 60, headerFilter: false,
+            formatter: (cell) => {
+                const d = cell.getRow().getData();
+                const name = d['Official Student Name'] ? encodeURIComponent(d['Official Student Name']) : '';
+                return `<img src="${name?`https://kanyadet-school-admin.web.app/New-Students-Database/student_images/${name}.jpg`:'./student_images/default.jpg'}" class="student-img" onerror="this.src='./student_images/default.jpg'">`;
+            }
+        },
+        ...headers.map(h => ({
+            title: h, field: h,
+            frozen: nameColFrozen && h === 'Official Student Name',
+            headerFilter: colFiltersVisible ? 'input' : false,
+            headerFilterPlaceholder: `Filter ${h}…`,
+            headerSort: true, minWidth: 100,
+            formatter: (cell) => {
+                const v = cell.getValue();
+                // Highlight deletion metadata fields
+                if (h === 'deletedAt' && v) return `<span style="color:var(--danger);font-size:.75rem;">${new Date(v).toLocaleDateString()}</span>`;
+                if (h === 'deletedBy' && v) return `<span style="color:var(--slate);font-size:.75rem;">${v}</span>`;
+                return v || '-';
+            },
+            tooltip: true,
+        }))
+    ];
+
+    const rowData = students.map(s => {
+        const row = { id: s.id, _actions: '', _img: '' };
+        headers.forEach(h => { row[h] = s[h] !== undefined ? s[h] : ''; });
+        return row;
+    });
+
+    if (tabulatorTable) { tabulatorTable.destroy(); tabulatorTable = null; }
+
+    tabulatorTable = new Tabulator('#tabulator-table', {
+        data: rowData,
+        columns,
+        index: 'id',
+        layout: 'fitDataFill',
+        height: 'calc(100vh - 380px)',
+        minHeight: 320,
+        pagination: true,
+        paginationMode: 'local',
+        paginationSize: studentsPerPage,
+        paginationSizeSelector: [10, 25, 50, 100, 200, 500],
+        paginationCounter: 'rows',
+        paginationButtonCount: 5,
+        columnDefaults: { headerSortTristate: true },
+        movableColumns: true,
+        groupBy: groupingEnabled ? 'Grade' : '',
+        groupHeader: (value, count) =>
+            `<span style="font-weight:700">${value||'No Grade'}</span>&nbsp;<span style="font-size:.74rem;opacity:.7">${count} student${count!==1?'s':''}</span>`,
+        groupToggleElement: 'header',
+        groupStartOpen: true,
+        rowClick: (e, row) => {
+            if (e.target.closest('.action-wrap')) return;
+            const d = row.getData();
+            window.openLocalPDF(d['Assessment No'], d['Official Student Name'] || '');
+        },
+        dataFiltered: updateCountBadge,
+        dataSorted: updateCountBadge,
+        pageLoaded: updateCountBadge,
+        tableBuilt: updateCountBadge,
+    });
+};
+
+// ── SEARCH & GRADE FILTER ──
+const applyFilters = () => {
+    const grade = gradeFilterSelect.value;
+    const term  = searchInput.value.toLowerCase();
+    let filtered = studentsData;
+    if (grade) filtered = filtered.filter(s => s.Grade === grade);
+    if (term)  filtered = filtered.filter(s => Object.values(s).some(v => String(v).toLowerCase().includes(term)));
+    renderStudents(filtered);
+    deleteGradeBtn.classList.toggle('hidden', !grade);
+    printGradeBtn.classList.toggle('hidden', !grade);
+};
+searchInput.addEventListener('input', applyFilters);
+gradeFilterSelect.addEventListener('change', applyFilters);
+studentsPerPageSelect.addEventListener('change', (e) => {
+    studentsPerPage = parseInt(e.target.value);
+    if (tabulatorTable) tabulatorTable.setPageSize(studentsPerPage);
+});
+
+// ── TABULATOR TOOLBAR ──
+document.getElementById('tab-toggle-filters').addEventListener('click', function() {
+    colFiltersVisible = !colFiltersVisible;
+    this.classList.toggle('active', colFiltersVisible);
+    applyFilters();
+});
+document.getElementById('tab-toggle-group').addEventListener('click', function() {
+    groupingEnabled = !groupingEnabled;
+    this.classList.toggle('active', groupingEnabled);
+    applyFilters();
+});
+document.getElementById('tab-toggle-cols').addEventListener('click', () => {
+    if (!tabulatorTable) return;
+    const cols = tabulatorTable.getColumns().filter(c => !['_actions','_img','Grade','Assessment No','Official Student Name'].includes(c.getField()));
+    const anyHidden = cols.some(c => !c.isVisible());
+    cols.forEach(c => anyHidden ? c.show() : c.hide());
+});
+document.getElementById('tab-freeze-cols').addEventListener('click', function() {
+    nameColFrozen = !nameColFrozen;
+    this.classList.toggle('active', nameColFrozen);
+    applyFilters();
+});
+document.getElementById('tab-fit-cols').addEventListener('click', () => {
+    if (tabulatorTable) tabulatorTable.redraw(true);
+});
+document.getElementById('tab-clear-filters').addEventListener('click', () => {
+    searchInput.value = '';
+    gradeFilterSelect.value = '';
+    if (tabulatorTable) tabulatorTable.clearFilter(true);
+    renderStudents(studentsData);
+    deleteGradeBtn.classList.add('hidden');
+    printGradeBtn.classList.add('hidden');
+});
+
+// ── EDIT DRAWER ──
+const editDrawer       = document.getElementById('edit-drawer-overlay');
+const drawerBody       = document.getElementById('drawer-body');
+const drawerLabel      = document.getElementById('drawer-student-label');
+const drawerSaveBtn    = document.getElementById('drawer-save-btn');
+const drawerCancelBtn  = document.getElementById('drawer-cancel-btn');
+const drawerCloseBtn   = document.getElementById('drawer-close-btn');
+const drawerAvatar     = document.getElementById('drawer-avatar');
+let drawerCurrentId    = null;
+
+const openDrawer  = () => { editDrawer.classList.add('open'); document.body.style.overflow = 'hidden'; };
+const closeDrawer = () => { editDrawer.classList.remove('open'); document.body.style.overflow = ''; drawerCurrentId = null; };
+drawerCloseBtn.addEventListener('click', closeDrawer);
+drawerCancelBtn.addEventListener('click', closeDrawer);
+editDrawer.addEventListener('click', e => { if (e.target === editDrawer) closeDrawer(); });
+
+window._editRow = (id) => {
+    const student = studentsData.find(s => s.id === id);
+    if (!student) return;
+    drawerCurrentId = id;
+    const name = student['Official Student Name'] || '';
+    drawerLabel.textContent = name || student['Assessment No'] || id;
+    drawerAvatar.src = name
+        ? `https://kanyadet-school-admin.web.app/New-Students-Database/student_images/${encodeURIComponent(name)}.jpg`
+        : './student_images/default.jpg';
+    const priorityFields = ['Assessment No', 'Official Student Name', 'Grade', 'Class', 'Gender', 'UPI'];
+    const fields = Object.entries(student).filter(([k]) => k !== 'id');
+    const ordered = [
+        ...priorityFields.filter(k => fields.find(([fk]) => fk === k)),
+        ...fields.filter(([k]) => !priorityFields.includes(k)).map(([k]) => k)
+    ];
+    drawerBody.innerHTML = `<div class="drawer-grid">${ordered.map(fieldKey => {
+        const val = student[fieldKey] !== undefined ? student[fieldKey] : '';
+        const isReq = fieldKey === 'Assessment No';
+        return `<div class="drawer-field">
+            <label>${fieldKey}${isReq?' *':''}</label>
+            <input type="text" data-field="${fieldKey}" value="${String(val).replace(/"/g,'&quot;')}" ${isReq?'style="border-color:var(--gold);"':''}>
+        </div>`;
+    }).join('')}</div>`;
+    openDrawer();
+};
+
+drawerSaveBtn.addEventListener('click', async () => {
+    if (!drawerCurrentId || drawerSaveBtn.classList.contains('saving')) return;
+    const inputs = drawerBody.querySelectorAll('input[data-field]');
+    const updatedData = {};
+    inputs.forEach(inp => { updatedData[inp.dataset.field] = inp.value.trim(); });
+    if (!updatedData['Assessment No']) { showModal('"Assessment No" cannot be empty.'); return; }
+    drawerSaveBtn.classList.add('saving');
+    drawerSaveBtn.textContent = 'Saving…';
+    try {
+        await update(ref(db, `Deletedstudents/${sanitizedAppId}/artifacts/${drawerCurrentId}`), updatedData);
+        const idx = studentsData.findIndex(s => s.id === drawerCurrentId);
+        if (idx !== -1) studentsData[idx] = { id: drawerCurrentId, ...updatedData };
+        closeDrawer();
+        showModal('Record updated successfully!');
+        applyFilters();
+    } catch(e) { showModal(`Error: ${e.message}`); }
+    finally {
+        drawerSaveBtn.classList.remove('saving');
+        drawerSaveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Save Changes`;
+    }
+});
+
+// ── RESTORE ROW ──
+window._restoreRow = (id) => {
+    const student = studentsData.find(s => s.id === id);
+    const name = student?.['Official Student Name'] || student?.['Assessment No'] || 'this student';
+    restoreSubtitle.textContent = `${name} will be moved back to Active Students.`;
+    restorePathLabel.textContent = `artifacts / ${sanitizedAppId} / students`;
+    _pendingRestoreId = id;
+    restoreModal.classList.remove('hidden');
+};
+
+// ── PERMANENT DELETE ROW ──
+window._delRow = (id) => {
+    const student = studentsData.find(s => s.id === id);
+    const name = student?.['Official Student Name'] || student?.['Assessment No'] || 'this student';
+    permDeleteSubtitle.textContent = `${name} will be permanently and irreversibly deleted.`;
+    _pendingDeleteId = id;
+    permDeleteModal.classList.remove('hidden');
+};
+
+// ── DELETE GRADE ──
+deleteGradeBtn.addEventListener('click', () => {
+    const grade = gradeFilterSelect.value;
+    if (!grade) { showModal('Select a grade first.'); return; }
+    const count = studentsData.filter(s => s.Grade === grade).length;
+    deleteGradeModalTitle.textContent = `Delete ${grade} Forever?`;
+    deleteGradeModalSub.textContent   = `${count} student${count !== 1 ? 's' : ''} will be permanently removed from Firebase.`;
+    deleteGradeConfirmLbl.textContent = `Delete ${grade} Forever`;
+    _pendingDeleteGrade = grade;
+    deleteGradeModal.classList.remove('hidden');
+});
+
+// ── EXPORT ──
+const getExportData = () => {
+    const grade = gradeFilterSelect.value;
+    return grade ? studentsData.filter(s => s.Grade === grade) : studentsData;
+};
+
+printAllBtn.addEventListener('click', () => {
+    const count = studentsData.length;
+    document.getElementById('export-context-info').textContent = `All Grades — ${count} deleted students`;
+    printModal.classList.remove('hidden');
+});
+printGradeBtn.addEventListener('click', () => {
+    const grade = gradeFilterSelect.value || 'All Grades';
+    document.getElementById('export-context-info').textContent = `${grade} — ${getExportData().length} students`;
+    printModal.classList.remove('hidden');
+});
+
+printExcelBtn.addEventListener('click', () => {
+    const data = getExportData();
+    if (!data.length) { showModal('No data to export.'); return; }
+    const headers = getOrderedHeaders(data);
+    const rows = data.map(s => { const r = {}; headers.forEach(h => r[h] = s[h]||''); return r; });
+    const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Deleted Students');
+    XLSX.writeFile(wb, `deleted_students_${gradeFilterSelect.value||'all'}.xlsx`);
+    printModal.classList.add('hidden');
+});
+
+printPdfBtn.addEventListener('click', async () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape');
+    const data = getExportData();
+    const grade = gradeFilterSelect.value || 'All Grades';
+    const essentialCols = ['Assessment No', 'Official Student Name', 'UPI', 'Gender', 'Grade', 'Class', 'deletedAt', 'deletedBy'];
+    const headers = essentialCols.filter(c => data.some(s => s[c]));
+    const body = data.map(s => headers.map(h => String(s[h]||'-')));
+    const addHeader = () => {
+        const pw = doc.internal.pageSize.width;
+        doc.setFillColor(220, 38, 38);
+        doc.rect(0, 0, pw, 18, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14); doc.setFont(undefined, 'bold');
+        doc.text('KANYADET SCHOOL — Deleted Students', 14, 11);
+        doc.setFontSize(9); doc.setFont(undefined, 'normal');
+        doc.text(`${grade} · ${data.length} records · ${new Date().toLocaleDateString()}`, pw-14, 11, { align: 'right' });
+    };
+    doc.autoTable({ head: [headers], body, startY: 22, styles: { fontSize: 8, cellPadding: 2.5 }, headStyles: { fillColor: [220,38,38], textColor: [255,255,255], fontStyle: 'bold' }, alternateRowStyles: { fillColor: [246,248,251] }, margin: { top:22, right:10, bottom:18, left:10 }, didDrawPage: addHeader });
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i=1; i<=totalPages; i++) { doc.setPage(i); const pw=doc.internal.pageSize.width, ph=doc.internal.pageSize.height; doc.setFontSize(8); doc.setTextColor(100,116,139); doc.text(`Page ${i} of ${totalPages}`, pw/2, ph-8, { align:'center' }); }
+    doc.save(`deleted_students_${grade}_${new Date().toISOString().split('T')[0]}.pdf`);
+    printModal.classList.add('hidden');
+});
+
+printWordBtn.addEventListener('click', () => {
+    const { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType } = window.docx;
+    const data = getExportData();
+    if (!data.length) { showModal('No data to export.'); return; }
+    const headers = getOrderedHeaders(data);
+    const headerRow = new TableRow({ children: headers.map(h => new TableCell({ children: [new Paragraph({ text: h, bold: true })] })) });
+    const dataRows = data.map(s => new TableRow({ children: headers.map(h => new TableCell({ children: [new Paragraph(String(s[h]||'-'))] })) }));
+    const table = new Table({ rows: [headerRow, ...dataRows], width: { size:100, type: WidthType.PERCENTAGE } });
+    const d = new Document({ sections: [{ children: [new Paragraph({ text: `Deleted Students — ${gradeFilterSelect.value||'All Grades'}`, heading:'Heading1' }), new Paragraph({ text:'' }), table] }] });
+    Packer.toBlob(d).then(blob => {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `deleted_students_${gradeFilterSelect.value||'all'}.docx`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    });
+    printModal.classList.add('hidden');
+});
+
+</script>
+</body>
+</html>
