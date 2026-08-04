@@ -1,0 +1,10 @@
+﻿Soft conflicts of Junior TM2NEW.fet
+Generated with FET 7.7.6 on 6/30/26 9:37 AM
+
+Number of broken soft constraints: 0
+Total soft conflicts: 0
+
+Soft conflicts list (in decreasing order):
+
+
+End of file.

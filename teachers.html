@@ -158,7 +158,7 @@ body::after{
     radial-gradient(circle at 10% 8%, rgba(22,160,133,.13), transparent 26%),
     linear-gradient(120deg, rgba(255,255,255,.12), transparent 60%);
 }
-a{color:inherit;}
+a{color:inherit;text-decoration:none;}
 ::-webkit-scrollbar{width:9px;height:9px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:8px;}
@@ -326,6 +326,9 @@ a{color:inherit;}
 .analytics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:20px;align-items:stretch;}
 .analytics-grid .card{margin-bottom:0;}
 .analytics-list{display:grid;gap:10px;}
+.analytics-list-scroll{max-height:150px;overflow-y:auto;padding-right:4px;}
+.analytics-list-scroll::-webkit-scrollbar{width:5px;}
+.analytics-list-scroll::-webkit-scrollbar-thumb{background:rgba(41,128,185,.25);border-radius:999px;}
 .analytics-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);} 
 .analytics-row:last-child{border-bottom:none;}
 .analytics-row .analytics-name{font-size:12px;font-weight:800;color:var(--text);}
@@ -357,6 +360,13 @@ a{color:inherit;}
 @media(max-width:1024px){.grid-60-40{grid-template-columns:1fr 1fr;}}
 @media(max-width:1200px){.grid-2,.grid-3{grid-template-columns:1fr;}}
 @media(max-width:900px){.grid-2,.grid-3,.grid-60-40{grid-template-columns:1fr;}}
+.msg-layout{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:stretch;height:560px;min-width:0;}
+.msg-card{margin-bottom:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+@media(max-width:700px){
+  .msg-layout{grid-template-columns:1fr;height:auto;}
+  .msg-layout .msg-card:first-child{height:180px;}
+  .msg-layout .msg-card:last-child{height:420px;}
+}
 .table-wrap{overflow-x:auto;border-radius:var(--radius-md);border:1px solid var(--border);}
 .data-table{width:100%;border-collapse:collapse;font-size:12px;}
 .data-table thead tr{background:rgba(41,128,185,.1);border-bottom:1px solid var(--border);}
@@ -740,7 +750,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
   GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, setPersistence,
-  browserLocalPersistence
+  indexedDBLocalPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, onSnapshot,
@@ -769,7 +779,9 @@ try{
   auth = getAuth(app);
   fs   = getFirestore(app);
   rtdb = getDatabase(app);
-  setPersistence(auth, browserLocalPersistence).catch(()=>{});
+  setPersistence(auth, indexedDBLocalPersistence).catch(()=>{
+    setPersistence(auth, browserLocalPersistence).catch(()=>{});
+  });
 }catch(initErr){
   console.error('Firebase failed to initialize:', initErr);
   const bl = document.getElementById('boot-loader');
@@ -788,7 +800,6 @@ function gShortJS(raw){
 window._gShort = gShortJS;
 
 const DB_STUDENTS_PATH = 'Results/default-app-id/students';
-const ARTIFACT_STUDENTS_PATH = 'artifacts/default-app-id/students';
 const ANNOUNCEMENTS_PATH = 'announcements';
 const ATTENDANCE_PATH = 'attendance';        // attendance/{grade}/{yyyy-mm-dd} = {studentKey:'present'|'absent'|'late', ...}
 const TIMETABLE_PATH  = 'timetables';        // timetables/{grade} = {mon:[...],tue:[...]...}  (legacy per-grade view)
@@ -1121,7 +1132,13 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
   window._currentUser = user;
-  const profile = await loadProfile(user.uid);
+  // These two reads are independent (profile doc vs. config doc), so run them
+  // concurrently instead of back-to-back — previously this was two sequential
+  // round-trips before anything but the boot loader appeared.
+  const [profile, authorized] = await Promise.all([
+    loadProfile(user.uid),
+    isEmailAuthorizedForTeachersPortal(user.email)
+  ]);
   if(!profile){
     setErr('login-error','This account has no teacher profile set up yet. Ask your admin to add you.');
     await signOut(auth);
@@ -1133,7 +1150,6 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  const authorized = await isEmailAuthorizedForTeachersPortal(user.email);
   if(!authorized){
     setErr('login-error','This email is not authorized to access this portal. Please contact the administrator.');
     await signOut(auth);
@@ -1226,7 +1242,117 @@ document.getElementById('msg-bell-btn').addEventListener('click', ()=>navTo('mes
 /* ══════════════════════════════════════════
    DASHBOARD
 ══════════════════════════════════════════ */
+// ── Dashboard perf caches ──────────────────────────────────────────────
+// The dashboard used to re-download the entire school student dataset (two
+// full RTDB tree reads, done one-after-another) plus a fresh attendance read
+// per grade/day EVERY time the view was opened — that's what made it feel
+// like it "took forever". These caches let a repeat visit within the TTL
+// paint instantly from memory while the first visit still fetches in
+// parallel instead of sequentially.
+// Dashboard reads student data purely from the Results path — the
+// artifacts-path read (and the Disability/Medical/Admissions analytics that
+// depended on it) has been dropped entirely. All dashboard analytics below
+// are now derived only from fields that actually exist on Results records.
+let __dashResultsSnapCache = null; // { snap, at }
+const DASH_STUDENTS_CACHE_TTL = 3 * 60 * 1000; // 3 min — student roster rarely changes minute-to-minute
+function getDashResultsSnap(){
+  if(__dashResultsSnapCache && (Date.now() - __dashResultsSnapCache.at) < DASH_STUDENTS_CACHE_TTL){
+    return Promise.resolve(__dashResultsSnapCache.snap);
+  }
+  return rtGet(ref(rtdb, DB_STUDENTS_PATH)).then(snap => {
+    __dashResultsSnapCache = { snap, at: Date.now() };
+    return snap;
+  });
+}
+// Kept for the other call sites (fetchRoster, roster view) that only need the roster.
+async function getDashStudentsSnaps(){
+  const resultsSnap = await getDashResultsSnap();
+  return { resultsSnap };
+}
+const __dashAttendanceCache = new Map(); // key -> { result, at }
+const DASH_ATTENDANCE_CACHE_TTL = 60 * 1000; // 1 min — short, since attendance can change live
+async function getDashCachedAttendance(grade, dayKey){
+  const cacheKey = `${encodeURIComponent(grade)}::${dayKey}`;
+  const hit = __dashAttendanceCache.get(cacheKey);
+  if(hit && (Date.now() - hit.at) < DASH_ATTENDANCE_CACHE_TTL) return hit.result;
+  const snap = await rtGet(ref(rtdb, `${ATTENDANCE_PATH}/${encodeURIComponent(grade)}/${dayKey}`));
+  let present = 0, total = 0;
+  if(snap.exists()){
+    Object.values(snap.val()).forEach(v => { total++; if(v === 'present') present++; });
+  }
+  const result = { present, total };
+  __dashAttendanceCache.set(cacheKey, { result, at: Date.now() });
+  return result;
+}
+// Shared cache for the Firestore `users` collection — Messages and Timetable
+// each re-fetched the full staff list from scratch on every open before this.
+let __usersCollCache = null; // { docs: [{id, data}], at }
+const USERS_CACHE_TTL = 3 * 60 * 1000;
+async function getCachedUsersColl(){
+  if(__usersCollCache && (Date.now() - __usersCollCache.at) < USERS_CACHE_TTL) return __usersCollCache.docs;
+  const snap = await getDocs(collection(fs, 'users'));
+  const docs = [];
+  snap.forEach(d => docs.push({ id: d.id, data: d.data() }));
+  __usersCollCache = { docs, at: Date.now() };
+  return docs;
+}
+
+// ── Dashboard instant-revisit cache ────────────────────────────────────
+// Previously, leaving the dashboard and clicking back rebuilt the whole view
+// from scratch — hero + skeleton loaders, charts destroyed and recreated,
+// even though the underlying data was still fresh in the caches above. That
+// made an already-loaded dashboard visibly "reload" on every revisit.
+// Fix: when we leave the dashboard, detach its actual live DOM (charts and
+// all — not a re-parsed HTML string, so canvases keep their drawn content)
+// into an in-memory fragment instead of letting navTo() destroy it. If the
+// user comes back within the freshness window, we reattach that exact
+// fragment instantly instead of re-rendering.
+let __dashDomCache = null; // { frag: DocumentFragment, at: number }
+const DASH_DOM_CACHE_TTL = DASH_STUDENTS_CACHE_TTL; // same window as the data it reflects
+
+function detachAreaChildren(area){
+  const frag = document.createDocumentFragment();
+  while(area.firstChild) frag.appendChild(area.firstChild);
+  return frag;
+}
+
+// Recent-announcements panel is live data, so it's always re-subscribed —
+// on both the fresh render path and the instant-restore path — rather than
+// being part of the cached snapshot.
+function attachDashAnnouncementsListener(){
+  return onValue(ref(rtdb, ANNOUNCEMENTS_PATH), (snap)=>{
+    const items = [];
+    if(snap.exists()) snap.forEach(c=>{ items.push({id:c.key, ...c.val()}); });
+    const myUidD = (window._currentUser||{}).uid;
+    const visible = items.filter(a => !a.targetUid || a.targetUid === myUidD || isAdmin());
+    visible.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    const kpiAnn = document.getElementById('kpi-ann');
+    if(kpiAnn) kpiAnn.textContent = visible.length;
+    const top = visible.slice(0,4);
+    const dashAnn = document.getElementById('dash-ann');
+    if(dashAnn) dashAnn.innerHTML = top.length ? top.map(a=>`
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="font-weight:800;font-size:12.5px;color:var(--text);">${esc(a.title||'Untitled')} ${a.targetUid ? '<span class="badge badge-purple" style="margin-left:4px;">'+(a.targetUid===myUidD?'For you':'Targeted')+'</span>' : ''}</div>
+        <div style="font-size:11.5px;color:var(--text2);margin-top:2px;">${esc((a.body||'').slice(0,90))}${(a.body||'').length>90?'…':''}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${esc(a.createdBy||'Admin')} · ${timeAgo(a.createdAt)}</div>
+      </div>`).join('') : `<div class="empty-state"><div class="es-sub">No announcements yet.</div></div>`;
+  }, {onlyOnce:false});
+}
+
 VIEW_RENDERERS['dashboard'] = async function(area){
+  // Instant-restore path: if we rendered the dashboard within the last few
+  // minutes and haven't touched it since, put the exact same DOM back
+  // (charts included) instead of rebuilding from a skeleton state.
+  if(__dashDomCache && (Date.now() - __dashDomCache.at) < DASH_DOM_CACHE_TTL){
+    area.innerHTML = '';
+    area.appendChild(__dashDomCache.frag);
+    __dashDomCache = null; // the fragment's contents just moved into the live DOM
+    const restoredAnnUnsub = attachDashAnnouncementsListener();
+    return function cleanup(){
+      restoredAnnUnsub && restoredAnnUnsub();
+      __dashDomCache = { frag: detachAreaChildren(area), at: Date.now() };
+    };
+  }
   const p = me(); const grades = myGrades();
   area.innerHTML = `
     <div class="dashboard-hero">
@@ -1274,12 +1400,12 @@ VIEW_RENDERERS['dashboard'] = async function(area){
         </div>
       </div>
       <div class="card">
-        <div class="card-hdr"><div class="card-title">Admissions Trend</div><span class="badge badge-orange" id="dash-admission-label">Yearly intake</span></div>
-        <div class="analytics-chart-box" id="dash-admission-wrap">
-          <div class="chart-loader-overlay"><span class="mini-spin"></span><span>Loading admission trend…</span></div>
-          <canvas id="dash-admission-chart"></canvas>
+        <div class="card-hdr"><div class="card-title">Subject Performance</div><span class="badge badge-orange" id="dash-subject-label">Average score</span></div>
+        <div class="analytics-chart-box" id="dash-subject-wrap">
+          <div class="chart-loader-overlay"><span class="mini-spin"></span><span>Loading subject performance…</span></div>
+          <canvas id="dash-subject-chart"></canvas>
         </div>
-        <div class="analytics-insight" id="dash-admission-summary"></div>
+        <div class="analytics-insight" id="dash-subject-summary"></div>
       </div>
       <div class="card">
         <div class="card-hdr"><div class="card-title">Gender Mix</div><span class="badge badge-purple" id="dash-gender-label">Live split</span></div>
@@ -1290,8 +1416,28 @@ VIEW_RENDERERS['dashboard'] = async function(area){
         <div class="analytics-insight" id="dash-gender-summary"></div>
       </div>
       <div class="card">
-        <div class="card-hdr"><div class="card-title">Disability Mix</div><span class="badge badge-red" id="dash-disability-label">Health profile</span></div>
-        <div class="analytics-list" id="dash-disability-mix">
+        <div class="card-hdr"><div class="card-title">Top Performers</div><span class="badge badge-red" id="dash-top-performers-label">School-wide</span></div>
+        <div class="analytics-list analytics-list-scroll" id="dash-top-performers">
+          <div class="analytics-list-loader">
+            <div class="skeleton-line long"></div>
+            <div class="skeleton-line mid"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Performance by Grade</div><span class="badge badge-orange" id="dash-grade-performance-label">Average score</span></div>
+        <div class="analytics-list analytics-list-scroll" id="dash-grade-performance">
+          <div class="analytics-list-loader">
+            <div class="skeleton-line long"></div>
+            <div class="skeleton-line mid"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">School-wide Enrollment by Grade</div><span class="badge badge-blue" id="dash-enrollment-label">All grades</span></div>
+        <div class="analytics-list analytics-list-scroll" id="dash-grade-enrollment">
           <div class="analytics-list-loader">
             <div class="skeleton-line long"></div>
             <div class="skeleton-line mid"></div>
@@ -1305,6 +1451,7 @@ VIEW_RENDERERS['dashboard'] = async function(area){
       <div class="kpi-card"><div class="kpi-icon">🧑‍🎓</div><div class="kpi-val" id="kpi-students">—</div><div class="kpi-label">My Students</div></div>
       <div class="kpi-card"><div class="kpi-icon">✅</div><div class="kpi-val" id="kpi-attendance">—</div><div class="kpi-label">Present Today</div></div>
       <div class="kpi-card"><div class="kpi-icon">📢</div><div class="kpi-val" id="kpi-ann">—</div><div class="kpi-label">Announcements</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🪪</div><div class="kpi-val" id="kpi-data-quality">—</div><div class="kpi-label">Records Missing ID</div></div>
     </div>
     <div class="grid-60-40">
       <div>
@@ -1366,69 +1513,52 @@ VIEW_RENDERERS['dashboard'] = async function(area){
   const gradeMix = [];
   const trendLabels = [];
   const trendRates = [];
-  const admissionLabels = [];
-  const admissionCounts = [];
-  const admissionYearMap = new Map();
-  const attendanceCache = new Map();
   const gradeCountMap = {};
-  const disabilityMix = {};
-  const disabilityDetailMap = {};
-  const medicalMix = {};
+  // Subject-score analytics — derived purely from whatever numeric, non-meta
+  // fields exist on a Results record, so this adapts automatically if the
+  // subject list changes (e.g. different subjects per grade level) instead
+  // of hardcoding a subject name list.
+  const RESULTS_META_FIELDS = new Set([
+    'Assessment No','Class','Closing Date','Gender','Grade','Official Student Name',
+    'Opening Date','Position','Remarks','Term','UPI'
+  ]);
+  const subjectTotals = {}; // subject -> { sum, count }
+  const gradeScoreTotals = {}; // short grade -> { sum, count } of per-record average score
+  const studentBestScore = new Map(); // identity -> { name, grade, avg } — keeps each student's best sitting
+  let missingIdCount = 0; // students with neither Assessment No nor UPI on their record
   const genderCounts = { male:0, female:0, other:0 };
-  const normalizeBucketLabel = (value) => {
-    const raw = String(value ?? 'None').trim();
-    if(!raw || raw === 'N/A' || raw === '—') return 'None';
-    const clean = raw.replace(/\.+$/g, '').trim();
-    const normalized = clean.toLowerCase();
-    if(normalized === 'none' || normalized === 'n/a' || normalized === 'na') return 'None';
-    return clean || 'None';
+  const getCachedAttendance = getDashCachedAttendance;
+  const setChartLoaded = (wrapId) => {
+    const wrap = document.getElementById(wrapId);
+    if(wrap) wrap.classList.add('is-loaded');
   };
-  const admissionDateKeys = [
-    'Date of Admission','Date Admitted','Admission Date','AdmissionDate','Admission date','DateAdmitted',
-    'date of admission','date admitted','admission_date','admissionDate','date_admitted','Date_Arrival',
-    'DateOfAdmission','date','Date','AdmissionYear','admissionYear'
-  ];
-  const parseAdmissionYear = (value)=>{
-    if(value === undefined || value === null || value === '') return null;
-    const raw = String(value).trim();
-    if(!raw || raw === 'N/A' || raw === '—') return null;
-    const yearMatch = raw.match(/(19|20)\d{2}/);
-    if(yearMatch) return Number(yearMatch[0]);
-    const slashMatch = raw.match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{4})/);
-    if(slashMatch) return Number(slashMatch[3]);
-    const d = new Date(raw);
-    if(!Number.isNaN(d.getTime())) return d.getFullYear();
-    return null;
+  // Results is a per-exam-sitting table — a real student export showed an
+  // average of ~3.7 rows per student (one per term), so raw row counts
+  // overstate headcount-style analytics by that much. studentIdentityKey()
+  // gives a stable per-student key (Assessment No, falling back to UPI,
+  // falling back to name) so gender/enrollment/data-quality counts reflect
+  // unique students instead of exam sittings.
+  const studentIdentityKey = (rec) => {
+    const an = String(rec?.['Assessment No'] || '').trim();
+    if(an && !/^-+$/.test(an) && !/^pending/i.test(an)) return 'AN:' + an;
+    const upi = String(rec?.UPI || '').trim();
+    if(upi && !/^-+$/.test(upi)) return 'UPI:' + upi;
+    return 'NAME:' + String(rec?.['Official Student Name'] || '').trim().toUpperCase();
   };
-  const pickAdmissionDate = (rec)=>{
-    for(const key of admissionDateKeys){
-      const year = parseAdmissionYear(rec[key]);
-      if(year) return year;
-    }
-    return null;
-  };
-  const getCachedAttendance = async (grade, dayKey)=>{
-    const cacheKey = `${encodeURIComponent(grade)}::${dayKey}`;
-    if(attendanceCache.has(cacheKey)) return attendanceCache.get(cacheKey);
-    const snap = await rtGet(ref(rtdb, `${ATTENDANCE_PATH}/${encodeURIComponent(grade)}/${dayKey}`));
-    let present = 0, total = 0;
-    if(snap.exists()){
-      Object.values(snap.val()).forEach(v => { total++; if(v === 'present') present++; });
-    }
-    const result = { present, total };
-    attendanceCache.set(cacheKey, result);
-    return result;
-  };
+  const resultsSnapPromise = getDashResultsSnap();
+
   try{
-    const resultsSnap = await rtGet(ref(rtdb, DB_STUDENTS_PATH));
-    const artifactSnap = await rtGet(ref(rtdb, ARTIFACT_STUDENTS_PATH));
+    const resultsSnap = await resultsSnapPromise;
     const seenIds = new Set();
     const rosterByGrade = new Map();
+    const genderCountedIds = new Set();
+    const gradeEnrollmentSeen = new Set(); // "identity|shortGrade" — one vote per student per grade
     if(resultsSnap.exists()){
       const val = resultsSnap.val();
       Object.entries(val).forEach(([key, rec])=>{
         const g = gShortJS(rec && rec['Grade']);
         const gradeKey = String(g || '').trim();
+        const identity = studentIdentityKey(rec);
         if(gradeKey){
           const list = rosterByGrade.get(gradeKey) || [];
           list.push({
@@ -1442,10 +1572,47 @@ VIEW_RENDERERS['dashboard'] = async function(area){
         if(grades.some(mg => g.toLowerCase() === String(mg).toLowerCase())){
           seenIds.add(rec['Assessment No'] || rec['UPI'] || rec['Official Student Name']);
         }
-        const gender = String(rec?.Gender || rec?.gender || '').trim().toLowerCase();
-        if(gender === 'male' || gender === 'm') genderCounts.male++;
-        else if(gender === 'female' || gender === 'f') genderCounts.female++;
-        else if(gender) genderCounts.other++;
+        if(!genderCountedIds.has(identity)){
+          genderCountedIds.add(identity);
+          const gender = String(rec?.Gender || rec?.gender || '').trim().toLowerCase();
+          if(gender === 'male' || gender === 'm') genderCounts.male++;
+          else if(gender === 'female' || gender === 'f') genderCounts.female++;
+          else if(gender) genderCounts.other++;
+          if(!rec?.['Assessment No'] && !rec?.UPI) missingIdCount++;
+        }
+        if(gradeKey){
+          const enrollKey = identity + '|' + gradeKey;
+          if(!gradeEnrollmentSeen.has(enrollKey)){
+            gradeEnrollmentSeen.add(enrollKey);
+            gradeCountMap[gradeKey] = (gradeCountMap[gradeKey] || 0) + 1;
+          }
+        }
+        // Subject/grade performance — any non-meta field with a numeric
+        // value on this record is treated as a subject score.
+        let scoreSum = 0, scoreCount = 0;
+        Object.entries(rec || {}).forEach(([field, fv]) => {
+          if(RESULTS_META_FIELDS.has(field)) return;
+          const num = Number(fv);
+          if(fv === '' || fv === null || fv === undefined || !Number.isFinite(num)) return;
+          const bucket = subjectTotals[field] || (subjectTotals[field] = { sum:0, count:0 });
+          bucket.sum += num; bucket.count++;
+          scoreSum += num; scoreCount++;
+        });
+        if(scoreCount){
+          const avgScore = scoreSum / scoreCount;
+          if(gradeKey){
+            const gBucket = gradeScoreTotals[gradeKey] || (gradeScoreTotals[gradeKey] = { sum:0, count:0 });
+            gBucket.sum += avgScore; gBucket.count++;
+          }
+          const prevBest = studentBestScore.get(identity);
+          if(!prevBest || avgScore > prevBest.avg){
+            studentBestScore.set(identity, {
+              name: rec['Official Student Name'] || '—',
+              grade: gradeKey || '—',
+              avg: avgScore
+            });
+          }
+        }
       });
       for(const [grade, list] of Array.from(rosterByGrade.entries())){
         list.sort((a,b)=> (a.name||'').localeCompare(b.name||''));
@@ -1461,30 +1628,10 @@ VIEW_RENDERERS['dashboard'] = async function(area){
         rosterByGrade.set(grade, dedup);
       }
     }
-    if(artifactSnap.exists()){
-      const val = artifactSnap.val();
-      const artifactRecords = Object.values(val || {});
-      artifactRecords.forEach(rec=>{
-        const grade = String(rec?.Grade || rec?.CurrentGrade || 'N/A').trim() || 'N/A';
-        const disability = normalizeBucketLabel(rec?.Disability || rec?.Dissability || 'None');
-        const medical = normalizeBucketLabel(rec?.['Medical Condition'] || rec?.MedicalCondition || 'None');
-        const row = {
-          name: String(rec?.['Official Student Name'] || rec?.Name || rec?.['Student Name'] || '—').trim() || '—',
-          grade,
-          gender: String(rec?.Gender || rec?.gender || '—').trim() || '—',
-          assessment: String(rec?.['Assessment No'] || rec?.UPI || rec?.id || '—').trim() || '—'
-        };
-        gradeCountMap[grade] = (gradeCountMap[grade] || 0) + 1;
-        disabilityMix[disability] = (disabilityMix[disability] || 0) + 1;
-        medicalMix[medical] = (medicalMix[medical] || 0) + 1;
-        if(!disabilityDetailMap[disability]) disabilityDetailMap[disability] = [];
-        disabilityDetailMap[disability].push(row);
-        const year = pickAdmissionDate(rec || {});
-        if(year) admissionYearMap.set(String(year), (admissionYearMap.get(String(year)) || 0) + 1);
-      });
-    }
     totalAssignedStudents = seenIds.size || 0;
     document.getElementById('kpi-students').textContent = totalAssignedStudents || '0';
+    const dqEl = document.getElementById('kpi-data-quality');
+    if(dqEl) dqEl.textContent = missingIdCount;
 
     const todayGradeStats = await Promise.all(grades.map(async (g) => {
       const roster = rosterByGrade.get(g) || [];
@@ -1509,70 +1656,11 @@ VIEW_RENDERERS['dashboard'] = async function(area){
         </div>
       `).join('');
     }
-    const setChartLoaded = (wrapId) => {
-      const wrap = document.getElementById(wrapId);
-      if(wrap) wrap.classList.add('is-loaded');
-    };
     const topGrade = gradeMix.slice().sort((a,b)=>b.rate-a.rate)[0];
     document.getElementById('dash-coverage-label').textContent = coverage + '%';
     document.getElementById('hero-school-pulse').textContent = coverage >= 85 ? 'High coverage' : coverage >= 70 ? 'Stable coverage' : 'Needs attention';
     document.getElementById('hero-top-grade').textContent = topGrade ? `${topGrade.grade} · ${topGrade.rate}%` : '—';
     document.getElementById('hero-school-status').textContent = `School status: ${coverage >= 85 ? 'Strong' : coverage >= 70 ? 'Stable' : 'Needs attention'}`;
-
-    const admissionEntries = Array.from(admissionYearMap.entries()).sort(([a],[b]) => Number(a) - Number(b));
-    admissionLabels.length = 0;
-    admissionCounts.length = 0;
-    admissionEntries.forEach(([year, count]) => {
-      admissionLabels.push(year);
-      admissionCounts.push(count);
-    });
-
-    const disabilityEntries = Object.entries(disabilityMix).sort((a,b) => b[1]-a[1]);
-    const disabilityHolder = document.getElementById('dash-disability-mix');
-    if(disabilityHolder){
-      disabilityHolder.innerHTML = disabilityEntries.length
-        ? disabilityEntries.map(([name, count]) => `
-            <button type="button" class="analytics-row" data-disability="${String(name).replace(/"/g,'&quot;')}" style="width:100%;text-align:left;border:none;background:transparent;cursor:pointer;padding:0;">
-              <div>
-                <div class="analytics-name">${esc(name)}</div>
-                <div class="analytics-meta">${count} students</div>
-              </div>
-              <div class="badge badge-red">${count}</div>
-            </button>
-          `).join('')
-        : `<div class="empty-state"><div class="es-sub">No disability data in the active student dataset yet.</div></div>`;
-      disabilityHolder.addEventListener('click', (event) => {
-        const trigger = event.target.closest('button[data-disability]');
-        if(!trigger) return;
-        const selected = trigger.getAttribute('data-disability');
-        if(selected !== null) window.openDisabilityDetails(selected);
-      });
-    }
-
-    window.__disabilityDetailMap = disabilityDetailMap;
-    window.openDisabilityDetails = function(name){
-      const records = (window.__disabilityDetailMap && window.__disabilityDetailMap[name]) || [];
-      const items = records.slice(0, 12).map((rec) => `
-        <div class="analytics-row" style="padding:10px 0;">
-          <div>
-            <div class="analytics-name">${esc(rec.name)}</div>
-            <div class="analytics-meta">${esc(rec.grade)} • ${esc(rec.gender)} • ${esc(rec.assessment)}</div>
-          </div>
-        </div>
-      `).join('');
-      openModal(`
-        <div class="modal-hdr">
-          <h3>Disability details · ${esc(name)}</h3>
-          <button class="modal-close" onclick="closeModal()">✕</button>
-        </div>
-        <div class="modal-body">
-          <div class="analytics-list">${items || `<div class="empty-state"><div class="es-sub">No roster is attached to this disability bucket yet.</div></div>`}</div>
-        </div>
-        <div class="modal-ftr">
-          <button class="btn btn-outline" onclick="closeModal()">Close</button>
-        </div>
-      `);
-    };
 
     const genderCanvas = document.getElementById('dash-gender-chart');
     if(genderCanvas && typeof Chart !== 'undefined'){
@@ -1600,37 +1688,61 @@ VIEW_RENDERERS['dashboard'] = async function(area){
       }
     }
 
-    const admissionCanvas = document.getElementById('dash-admission-chart');
-    if(admissionCanvas && typeof Chart !== 'undefined'){
-      const admissionChartLabels = admissionLabels.slice();
-      const admissionChartCounts = admissionCounts.slice();
-      const totalAdmissions = admissionChartCounts.reduce((a,b)=>a+b, 0);
-      const peakYear = admissionChartCounts.length ? Math.max(...admissionChartCounts) : 0;
-      const latestYear = admissionChartLabels.length ? admissionChartLabels[admissionChartLabels.length - 1] : '—';
-      const trendDelta = admissionChartCounts.length > 1
-        ? admissionChartCounts[admissionChartCounts.length - 1] - admissionChartCounts[0]
-        : 0;
-      const admissionSummary = document.getElementById('dash-admission-summary');
-      if(admissionSummary){
-        admissionSummary.innerHTML = `
-          <span class="analytics-pill"><strong>${totalAdmissions}</strong> total</span>
-          <span class="analytics-pill"><strong>${latestYear}</strong> latest</span>
-          <span class="analytics-pill"><strong>${trendDelta >= 0 ? '+' : ''}${trendDelta}</strong> vs first</span>
+    // School-wide Enrollment by Grade — from gradeCountMap (Results-sourced,
+    // deduped per student per grade), covering every grade in the school,
+    // not just the ones this teacher is assigned to.
+    const enrollmentEntries = Object.entries(gradeCountMap).sort((a,b) => b[1]-a[1]);
+    const maxEnrollment = enrollmentEntries.length ? Math.max(...enrollmentEntries.map(([,c])=>c)) : 0;
+    const enrollmentHolder = document.getElementById('dash-grade-enrollment');
+    if(enrollmentHolder){
+      enrollmentHolder.innerHTML = enrollmentEntries.length
+        ? enrollmentEntries.map(([grade, count]) => `
+            <div class="analytics-row">
+              <div>
+                <div class="analytics-name">${esc(grade)}</div>
+                <div class="analytics-meta">${count} students</div>
+                <div class="analytics-bar"><span style="width:${maxEnrollment ? Math.max(8, Math.round(count / maxEnrollment * 100)) : 8}%"></span></div>
+              </div>
+              <div class="badge badge-blue">${count}</div>
+            </div>
+          `).join('')
+        : `<div class="empty-state"><div class="es-sub">No enrollment data in the active student dataset yet.</div></div>`;
+    }
+  }catch(e){ document.getElementById('kpi-students').textContent = '—'; }
+
+  // Results-path performance analytics — subjectTotals, gradeScoreTotals and
+  // studentBestScore were already accumulated in the Results-path pass
+  // above, so this is pure rendering with no second fetch.
+  try{
+    const subjectEntries = Object.entries(subjectTotals)
+      .map(([name, { sum, count }]) => [name, count ? sum / count : 0])
+      .sort((a,b) => b[1]-a[1]);
+
+    const subjectCanvas = document.getElementById('dash-subject-chart');
+    if(subjectCanvas && typeof Chart !== 'undefined'){
+      const subjectLabels = subjectEntries.map(([name]) => name);
+      const subjectAverages = subjectEntries.map(([,avg]) => Math.round(avg * 10) / 10);
+      const overallAvg = subjectAverages.length ? subjectAverages.reduce((a,b)=>a+b,0) / subjectAverages.length : 0;
+      const topSubject = subjectEntries.length ? subjectEntries[0][0] : '—';
+      const weakSubject = subjectEntries.length ? subjectEntries[subjectEntries.length-1][0] : '—';
+      const subjectSummary = document.getElementById('dash-subject-summary');
+      if(subjectSummary){
+        subjectSummary.innerHTML = `
+          <span class="analytics-pill"><strong>${overallAvg.toFixed(1)}</strong> overall avg</span>
+          <span class="analytics-pill"><strong>${esc(topSubject)}</strong> strongest</span>
+          <span class="analytics-pill"><strong>${esc(weakSubject)}</strong> weakest</span>
         `;
       }
-      if(window.__dashAdmissionChart) window.__dashAdmissionChart.destroy();
-      setChartLoaded('dash-admission-wrap');
-      const trendGradient = admissionCanvas.getContext('2d').createLinearGradient(0, 0, 0, 160);
-      trendGradient.addColorStop(0, 'rgba(245, 158, 11, 0.62)');
-      trendGradient.addColorStop(1, 'rgba(245, 158, 11, 0.07)');
-      window.__dashAdmissionChart = new Chart(admissionCanvas, {
+      if(window.__dashSubjectChart) window.__dashSubjectChart.destroy();
+      setChartLoaded('dash-subject-wrap');
+      window.__dashSubjectChart = new Chart(subjectCanvas, {
         type:'bar',
         data:{
-          labels: admissionChartLabels,
+          labels: subjectLabels,
           datasets:[{
-            label:'Admissions by year',
-            data: admissionChartCounts,
-            backgroundColor: admissionChartCounts.map((_, i) => i === admissionChartCounts.length - 1 ? '#f59e0b' : '#f8c471'),
+            label:'Average score',
+            data: subjectAverages,
+            backgroundColor: subjectAverages.map((v, i) => i === 0 ? '#f59e0b' : '#f8c471'),
             borderRadius: 8,
             borderSkipped:false
           }]
@@ -1640,15 +1752,51 @@ VIEW_RENDERERS['dashboard'] = async function(area){
           maintainAspectRatio:false,
           plugins:{ legend:{ display:false } },
           scales:{
-            x:{ grid:{ display:false }, ticks:{ color:'#6a91b2', font:{ size:10 } } },
+            x:{ grid:{ display:false }, ticks:{ color:'#6a91b2', font:{ size:9 } } },
             y:{ beginAtZero:true, grid:{ color:'rgba(41,128,185,.10)' }, ticks:{ precision:0, color:'#6a91b2', font:{ size:10 } } }
           }
         }
       });
     }
-  }catch(e){ document.getElementById('kpi-students').textContent = '—'; }
 
-  // today's attendance %
+    const topPerformers = Array.from(studentBestScore.values())
+      .sort((a,b) => b.avg - a.avg)
+      .slice(0, 8);
+    const topPerformersHolder = document.getElementById('dash-top-performers');
+    if(topPerformersHolder){
+      topPerformersHolder.innerHTML = topPerformers.length
+        ? topPerformers.map(s => `
+            <div class="analytics-row">
+              <div>
+                <div class="analytics-name">${esc(s.name)}</div>
+                <div class="analytics-meta">${esc(s.grade)}</div>
+              </div>
+              <div class="badge badge-red">${s.avg.toFixed(1)}</div>
+            </div>
+          `).join('')
+        : `<div class="empty-state"><div class="es-sub">No scored records in the active Results dataset yet.</div></div>`;
+    }
+
+    const gradePerfEntries = Object.entries(gradeScoreTotals)
+      .map(([grade, { sum, count }]) => [grade, count ? sum / count : 0])
+      .sort((a,b) => b[1]-a[1]);
+    const maxGradeAvg = Math.max(1, ...gradePerfEntries.map(([,avg]) => avg));
+    const gradePerfHolder = document.getElementById('dash-grade-performance');
+    if(gradePerfHolder){
+      gradePerfHolder.innerHTML = gradePerfEntries.length
+        ? gradePerfEntries.map(([grade, avg]) => `
+            <div class="analytics-row">
+              <div>
+                <div class="analytics-name">${esc(grade)}</div>
+                <div class="analytics-meta">${avg.toFixed(1)} avg score</div>
+                <div class="analytics-bar"><span style="width:${Math.max(8, Math.round(avg / maxGradeAvg * 100))}%"></span></div>
+              </div>
+              <div class="badge badge-orange">${avg.toFixed(1)}</div>
+            </div>
+          `).join('')
+        : `<div class="empty-state"><div class="es-sub">No scored records in the active Results dataset yet.</div></div>`;
+    }
+  }catch(e){ console.warn('Dashboard performance analytics unavailable', e); }
   try{
     const todayAttendance = await Promise.all(grades.map(async (g) => getCachedAttendance(g, todayStr())));
     const present = todayAttendance.reduce((sum, item) => sum + item.present, 0);
@@ -1715,20 +1863,10 @@ VIEW_RENDERERS['dashboard'] = async function(area){
     }
   }catch(e){ console.warn('Dashboard trend analytics unavailable', e); }
 
-  // announcements
-  onValue(ref(rtdb, ANNOUNCEMENTS_PATH), (snap)=>{
-    const items = [];
-    if(snap.exists()) snap.forEach(c=>items.push({id:c.key, ...c.val()}));
-    items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    document.getElementById('kpi-ann').textContent = items.length;
-    const top = items.slice(0,4);
-    document.getElementById('dash-ann').innerHTML = top.length ? top.map(a=>`
-      <div style="padding:10px 0;border-bottom:1px solid var(--border);">
-        <div style="font-weight:800;font-size:12.5px;color:var(--text);">${esc(a.title||'Untitled')}</div>
-        <div style="font-size:11.5px;color:var(--text2);margin-top:2px;">${esc((a.body||'').slice(0,90))}${(a.body||'').length>90?'…':''}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${esc(a.createdBy||'Admin')} · ${timeAgo(a.createdAt)}</div>
-      </div>`).join('') : `<div class="empty-state"><div class="es-sub">No announcements yet.</div></div>`;
-  }, {onlyOnce:false});
+  // announcements — capture unsub so navTo() can tear this down on view switch;
+  // previously this was fire-and-forget, so every dashboard visit stacked a new
+  // live listener on top of the old ones instead of replacing it.
+  const dashAnnUnsub = attachDashAnnouncementsListener();
 
   // today's timetable — reads the teacher's own row from the new per-teacher
   // timetable (teacherTimetables/{section}/{teacherKey}/days), matched against
@@ -1757,6 +1895,11 @@ VIEW_RENDERERS['dashboard'] = async function(area){
     <div class="table-wrap"><table class="data-table"><thead><tr><th>Time</th><th>Grade</th><th>Subject</th></tr></thead><tbody>
       ${rows.map(r=>`<tr><td>${esc(r.time||'—')}</td><td>${esc(r.grade)}</td><td>${esc(r.subject||'—')}</td></tr>`).join('')}
     </tbody></table></div>` : `<div class="empty-state"><div class="es-icon">🗓️</div><div class="es-sub">No timetable set for today yet.</div></div>`;
+
+  return function cleanup(){
+    dashAnnUnsub && dashAnnUnsub();
+    __dashDomCache = { frag: detachAreaChildren(area), at: Date.now() };
+  };
 };
 
 /* ══════════════════════════════════════════
@@ -1850,7 +1993,7 @@ function myGrades2(){
 }
 
 async function fetchRoster(grade, snapOverride){
-  const snap = snapOverride || await rtGet(ref(rtdb2, DB_STUDENTS_PATH2));
+  const snap = snapOverride || (await getDashStudentsSnaps()).resultsSnap;
   const out = [];
   if(snap.exists()){
     const val = snap.val();
@@ -1928,6 +2071,7 @@ VR2['attendance'] = async function(area){
       <div class="card-hdr"><div class="card-title">Tap each student to cycle Present → Late → Absent</div>
         <div><span class="badge badge-green" id="att-present-count">0 present</span> <span class="badge badge-orange" id="att-late-count">0 late</span> <span class="badge badge-red" id="att-absent-count">0 absent</span></div>
       </div>
+      <input type="text" class="f-input" id="att-search" placeholder="🔍 Search students…" style="width:100%;max-width:280px;margin-bottom:12px;">
       <div class="att-grid" id="att-grid"><div class="empty-state"><div class="es-icon">⏳</div></div></div>
     </div>
     <div class="card">
@@ -1965,6 +2109,16 @@ VR2['attendance'] = async function(area){
       });
     });
     updateCounts();
+    applyAttSearch();
+  }
+  function applyAttSearch(){
+    const searchEl = document.getElementById('att-search');
+    const q = (searchEl && searchEl.value || '').trim().toLowerCase();
+    document.querySelectorAll('#att-grid .att-cell').forEach(cell=>{
+      const rec = roster.find(r=>r.key===cell.dataset.key);
+      const name = ((rec && rec.name) || '').toLowerCase();
+      cell.style.display = (!q || name.includes(q)) ? '' : 'none';
+    });
   }
   function updateCounts(){
     const vals = Object.values(state);
@@ -1974,19 +2128,20 @@ VR2['attendance'] = async function(area){
   }
   async function loadChart(){
     const g = document.getElementById('att-grade').value;
-    const labels = [], rates = [];
-    for(let i=6;i>=0;i--){
-      const d = new Date(); d.setDate(d.getDate()-i);
-      const ds = d.toISOString().slice(0,10);
-      labels.push(d.toLocaleDateString('en-GB',{weekday:'short'}));
+    const days = Array.from({length:7}, (_, idx) => {
+      const d = new Date(); d.setDate(d.getDate() - (6 - idx));
+      return { label: d.toLocaleDateString('en-GB',{weekday:'short'}), key: d.toISOString().slice(0,10) };
+    });
+    // Fire all 7 day lookups at once (through the shared cache) instead of
+    // awaiting them one-by-one — that sequential loop was the "forever" wait.
+    const results = await Promise.all(days.map(async ({key}) => {
       try{
-        const snap = await rtGet(ref(rtdb2, `${ATTENDANCE_PATH2}/${encodeURIComponent(g)}/${ds}`));
-        if(snap.exists()){
-          const vals = Object.values(snap.val());
-          rates.push(vals.length ? Math.round(vals.filter(v=>v==='present').length/vals.length*100) : null);
-        } else rates.push(null);
-      }catch(e){ rates.push(null); }
-    }
+        const { present, total } = await getDashCachedAttendance(g, key);
+        return total ? Math.round(present/total*100) : null;
+      }catch(e){ return null; }
+    }));
+    const labels = days.map(d => d.label);
+    const rates = results;
     const ctx = document.getElementById('att-chart');
     if(window._attChartInstance) window._attChartInstance.destroy();
     window._attChartInstance = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'% Present', data:rates, borderColor:'#2980b9', backgroundColor:'rgba(41,128,185,.15)', tension:.35, fill:true, spanGaps:true }] },
@@ -1995,6 +2150,7 @@ VR2['attendance'] = async function(area){
 
   document.getElementById('att-grade').addEventListener('change', ()=>{ loadDayGrid(); loadChart(); });
   document.getElementById('att-date').addEventListener('change', loadDayGrid);
+  document.getElementById('att-search').addEventListener('input', applyAttSearch);
   document.getElementById('att-save-btn').addEventListener('click', async ()=>{
     const g = document.getElementById('att-grade').value;
     const d = document.getElementById('att-date').value;
@@ -2007,8 +2163,7 @@ VR2['attendance'] = async function(area){
     finally{ btn.disabled=false; btn.textContent='💾 Save Attendance'; }
   });
 
-  await loadDayGrid();
-  await loadChart();
+  await Promise.all([loadDayGrid(), loadChart()]);
 };
 const DB_STUDENTS_PATH3 = DB_STUDENTS_PATH, TIMETABLE_PATH3 = TIMETABLE_PATH, ANNOUNCEMENTS_PATH3 = ANNOUNCEMENTS_PATH;
 const VR3 = window._VIEW_RENDERERS = window._VIEW_RENDERERS || {};
@@ -2041,7 +2196,7 @@ VR3['gradebook'] = async function(area){
   if(!grades.length){ body.innerHTML = `<div class="empty-state"><div class="es-icon">📝</div><div class="es-sub">No classes assigned yet.</div></div>`; return; }
   body.innerHTML = `<div class="empty-state"><div class="es-icon">⏳</div></div>`;
   try{
-    const snap = await rtGet(ref(rtdb, DB_STUDENTS_PATH3));
+    const { resultsSnap: snap } = await getDashStudentsSnaps();
     const bySubject = {};
     if(snap.exists()){
       Object.values(snap.val()).forEach(rec=>{
@@ -2106,25 +2261,26 @@ VR3['timetable'] = async function(area){
     const conf = TT_SECTIONS[section];
     const namesMap = new Map(); // lower-case name -> display name, real accounts take priority
     // Real teacher accounts (Firestore users/, same source as index.html/KSS)
-    // whose assignedGrades/assignedGrade fall inside this section's grade range.
-    try{
-      const snap = await getDocs(collection(fs, 'users'));
-      snap.forEach(d=>{
-        const u = d.data();
+    // whose assignedGrades/assignedGrade fall inside this section's grade range,
+    // and any teacher already added manually to this section's timetable —
+    // fetched in parallel instead of one-after-another.
+    const [usersResult, ttResult] = await Promise.allSettled([
+      getCachedUsersColl(),
+      rtGet(ref(rtdb, `${TEACHER_TT_PATH}/${section}`))
+    ]);
+    if(usersResult.status === 'fulfilled'){
+      usersResult.value.forEach(({data:u})=>{
         if(!u || !u.name || u.disabled) return;
         const uGrades = (Array.isArray(u.assignedGrades) && u.assignedGrades.length) ? u.assignedGrades : (u.assignedGrade ? [u.assignedGrade] : []);
         const inSection = uGrades.some(g => conf.grades.some(sg => sg.toLowerCase() === String(g).toLowerCase()));
         if(inSection) namesMap.set(u.name.toLowerCase(), u.name);
       });
-    }catch(e){}
-    // Any teacher already added manually to this section's timetable (e.g. no
-    // portal account yet) is kept too, so existing entries never disappear.
-    try{
-      const snap2 = await rtGet(ref(rtdb, `${TEACHER_TT_PATH}/${section}`));
-      if(snap2.exists()) Object.values(snap2.val()).forEach(t=>{
+    }
+    if(ttResult.status === 'fulfilled' && ttResult.value.exists()){
+      Object.values(ttResult.value.val()).forEach(t=>{
         if(t && t.name && !namesMap.has(t.name.toLowerCase())) namesMap.set(t.name.toLowerCase(), t.name);
       });
-    }catch(e){}
+    }
     const names = Array.from(namesMap.values()).sort((a,b)=>a.localeCompare(b));
     const mineOpt = myName ? names.find(n=>namesMatch4(n, myName)) : null;
     if(!admin && myName){
@@ -2250,20 +2406,26 @@ VR3['timetable'] = async function(area){
 ══════════════════════════════════════════ */
 VR3['announcements'] = async function(area){
   const admin = isAdmin3();
+  const myUid3 = (window._currentUser||{}).uid;
   area.innerHTML = `
     <div class="sec-hdr"><h2>Announcements</h2>
       ${admin ? `<button class="btn btn-blue btn-sm" id="ann-new-btn">+ New Announcement</button>` : ''}
     </div>
     <div id="ann-list"><div class="empty-state"><div class="es-icon">⏳</div></div></div>`;
   document.getElementById('ann-dot').style.display = 'none';
+  // A targeted announcement (targetUid set) is only visible to that teacher
+  // and to admins (who need to see/manage everything they've sent). Everyone
+  // else only sees broadcasts (no targetUid).
+  const visibleToMe3 = (a) => !a.targetUid || a.targetUid === myUid3 || admin;
   const unsub = onValue(ref(rtdb, ANNOUNCEMENTS_PATH3), (snap)=>{
     const items = [];
-    if(snap.exists()) snap.forEach(c=>items.push({id:c.key, ...c.val()}));
-    items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    document.getElementById('ann-list').innerHTML = items.length ? items.map(a=>`
+    if(snap.exists()) snap.forEach(c=>{ items.push({id:c.key, ...c.val()}); });
+    const visible = items.filter(visibleToMe3);
+    visible.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    document.getElementById('ann-list').innerHTML = visible.length ? visible.map(a=>`
       <div class="card">
         <div class="card-hdr"><div class="card-title">${esc3(a.title||'Untitled')}</div>
-          <div>${a.type ? `<span class="badge badge-blue">${esc3(a.type)}</span>` : ''} ${admin ? `<button class="btn btn-xs btn-red" onclick="_annDelete('${a.id}')">Delete</button>` : ''}</div>
+          <div>${a.targetUid ? `<span class="badge badge-purple">${a.targetUid===myUid3 ? 'Just for you' : ('For '+esc3(a.targetName||'one teacher'))}</span>` : ''} ${a.type ? `<span class="badge badge-blue">${esc3(a.type)}</span>` : ''} ${admin ? `<button class="btn btn-xs btn-red" onclick="_annDelete('${a.id}')">Delete</button>` : ''}</div>
         </div>
         <div style="font-size:12.5px;color:var(--text2);line-height:1.6;white-space:pre-wrap;">${esc3(a.body||'')}</div>
         <div style="font-size:10.5px;color:var(--text3);margin-top:10px;">${esc3(a.createdBy||'Admin')} · ${timeAgo3(a.createdAt)}</div>
@@ -2274,9 +2436,19 @@ VR3['announcements'] = async function(area){
     if(r.isConfirmed){ await rtRemove(ref(rtdb, `${ANNOUNCEMENTS_PATH3}/${id}`)); toast('Deleted.', 'success'); }
   };
   if(admin){
-    document.getElementById('ann-new-btn').addEventListener('click', ()=>{
+    document.getElementById('ann-new-btn').addEventListener('click', async ()=>{
+      // Recipient list: "All Staff" plus every teacher, pulled from the shared
+      // cached users list rather than a fresh Firestore query.
+      let recipients = [];
+      try{ recipients = (await getCachedUsersColl()).filter(({id,data:u})=>id!==myUid3 && u && u.name && !u.disabled); }catch(e){}
       openModal(`<div class="modal-hdr"><h3>New Announcement</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
         <div class="modal-body">
+          <div class="f-group"><label class="f-label">Recipient</label>
+            <select class="f-select" id="ann-target">
+              <option value="">All Staff</option>
+              ${recipients.map(({id,data:u})=>`<option value="${id}" data-name="${esc3(u.name)}">${esc3(u.name)}</option>`).join('')}
+            </select>
+          </div>
           <div class="f-group"><label class="f-label">Title</label><input class="f-input" id="ann-title"></div>
           <div class="f-group"><label class="f-label">Type</label><select class="f-select" id="ann-type"><option value="General">General</option><option value="Urgent">Urgent</option><option value="Event">Event</option><option value="Reminder">Reminder</option></select></div>
           <div class="f-group"><label class="f-label">Message</label><textarea class="f-textarea" id="ann-body"></textarea></div>
@@ -2286,11 +2458,16 @@ VR3['announcements'] = async function(area){
         const title = document.getElementById('ann-title').value.trim();
         const body = document.getElementById('ann-body').value.trim();
         const type = document.getElementById('ann-type').value;
+        const targetSel = document.getElementById('ann-target');
+        const targetUid = targetSel.value || null;
+        const targetName = targetUid ? targetSel.selectedOptions[0].dataset.name : null;
         if(!title || !body){ toast('Title and message are required.', 'warning'); return; }
         try{
           const newRef = push(ref(rtdb, ANNOUNCEMENTS_PATH3));
-          await rtSet(newRef, { title, body, type, createdBy: (window._profile||{}).name || 'Admin', createdByUid: window._currentUser.uid, createdAt: Date.now() });
-          toast('Announcement posted.', 'success'); closeModal();
+          const payload = { title, body, type, createdBy: (window._profile||{}).name || 'Admin', createdByUid: window._currentUser.uid, createdAt: Date.now() };
+          if(targetUid){ payload.targetUid = targetUid; payload.targetName = targetName; }
+          await rtSet(newRef, payload);
+          toast(targetUid ? `Announcement sent to ${targetName}.` : 'Announcement posted.', 'success'); closeModal();
         }catch(e){ toast('Could not post: '+e.message, 'error'); }
       });
     });
@@ -2312,15 +2489,15 @@ function chatId(a,b){ return [a,b].sort().join('_'); }
 VR4['messages'] = async function(area){
   document.getElementById('msg-dot').style.display = 'none';
   area.innerHTML = `
-    <div class="grid-2" style="grid-template-columns:280px 1fr;align-items:stretch;min-height:560px;">
-      <div class="card" style="margin-bottom:0;display:flex;flex-direction:column;">
+    <div class="msg-layout">
+      <div class="card msg-card">
         <div class="card-hdr"><div class="card-title">Staff</div></div>
-        <div id="msg-contact-list" style="overflow-y:auto;flex:1;"><div class="empty-state"><div class="es-icon">⏳</div></div></div>
+        <div id="msg-contact-list" style="overflow-y:auto;flex:1;min-height:0;"><div class="empty-state"><div class="es-icon">⏳</div></div></div>
       </div>
-      <div class="card" style="margin-bottom:0;display:flex;flex-direction:column;">
+      <div class="card msg-card">
         <div id="msg-thread-hdr" class="card-hdr"><div class="card-title">Select a colleague</div></div>
-        <div id="msg-thread" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:6px 2px;"></div>
-        <div id="msg-input-row" style="display:none;gap:8px;margin-top:10px;">
+        <div id="msg-thread" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:6px 2px;min-height:0;"></div>
+        <div id="msg-input-row" style="display:none;gap:8px;margin-top:10px;flex-shrink:0;">
           <input class="f-input" id="msg-input" placeholder="Type a message…" style="flex:1;">
           <button class="btn btn-blue" id="msg-send-btn">Send</button>
         </div>
@@ -2330,9 +2507,9 @@ VR4['messages'] = async function(area){
   let activePeer = null, chatUnsub = null;
 
   try{
-    const snap = await getDocs(collection(fs,'users'));
+    const docs = await getCachedUsersColl();
     const contacts = [];
-    snap.forEach(d=>{ if(d.id !== myUid){ const v = d.data(); if(!v.disabled) contacts.push({uid:d.id, ...v}); } });
+    docs.forEach(({id, data:v}) => { if(id !== myUid && !v.disabled) contacts.push({uid:id, ...v}); });
     contacts.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
     document.getElementById('msg-contact-list').innerHTML = contacts.length ? contacts.map(c=>`
       <div class="chat-list-item" data-uid="${c.uid}">
@@ -2360,7 +2537,7 @@ VR4['messages'] = async function(area){
     threadEl.innerHTML = `<div class="empty-state"><div class="es-icon">⏳</div></div>`;
     chatUnsub = onValue(ref(rtdb, 'messages/' + cid), (snap)=>{
       const msgs = [];
-      if(snap.exists()) snap.forEach(c=>msgs.push({id:c.key, ...c.val()}));
+      if(snap.exists()) snap.forEach(c=>{ msgs.push({id:c.key, ...c.val()}); });
       msgs.sort((a,b)=>(a.ts||0)-(b.ts||0));
       threadEl.innerHTML = msgs.length ? msgs.map(m=>`
         <div class="msg-bubble ${m.senderUid===myUid?'mine':'theirs'}">${esc4(m.text||'')}<div class="msg-time">${timeAgo4(m.ts)}</div></div>
@@ -2493,9 +2670,12 @@ function namesMatch4(a, b){
 function parsePeriod4(key){
   const months = { January:0,February:1,March:2,April:3,May:4,June:5,
                     July:6,August:7,September:8,October:9,November:10,December:11 };
-  const normalized = String(key || '').trim().replace(/_/g, ' ').replace(/\s+/g, ' ');
-  const [mon, yr] = normalized.split(' ');
-  return new Date(parseInt(yr)||2000, months[mon] ?? 0, 1).getTime();
+  const str = String(key || '');
+  const yrMatch = str.match(/\b(20\d{2}|19\d{2})\b/);
+  const yr = yrMatch ? parseInt(yrMatch[1]) : 2000;
+  const monEntry = Object.keys(months).find(m => new RegExp('\\b'+m+'\\b', 'i').test(str));
+  const mon = monEntry ? months[monEntry] : 0;
+  return new Date(yr, mon, 1).getTime();
 }
 function periodTitle4(key){
   const normalized = String(key || '').trim().replace(/_/g, ' ').replace(/\s+/g, ' ');
@@ -2518,17 +2698,10 @@ VR4['welfare'] = async function(area){
 
   const myNorm = normName4((window._profile||{}).name || '');
   let periods = [];
-  let activePeriodKey = null;
   try{
-    const [snap, metaSnap] = await Promise.all([
-      rtGet(ref(rtdb, 'lunch')),
-      rtGet(ref(rtdb, 'lunch/_meta/activePeriod')),
-    ]);
+    const snap = await rtGet(ref(rtdb, 'lunch'));
     if(snap.exists()){
       periods = Object.keys(snap.val()).filter(k=>k!=='_meta').sort((a,b)=>parsePeriod4(b)-parsePeriod4(a));
-    }
-    if(metaSnap.exists()){
-      activePeriodKey = String(metaSnap.val()||'').replace(/\s+/g,'_');
     }
   }catch(e){}
   if(!periods.length){
@@ -2537,9 +2710,9 @@ VR4['welfare'] = async function(area){
     return;
   }
   periodSel.innerHTML = periods.map(p=>`<option value="${esc4(p)}">${esc4(periodTitle4(p))}</option>`).join('');
-  // Default to the admin's actual current period title (lunch/_meta/activePeriod)
-  // when available, so the teacher lands on the same period the admin is working in.
-  const defaultPeriod = (activePeriodKey && periods.includes(activePeriodKey)) ? activePeriodKey : periods[0];
+  // Default to the latest month with data (by actual parsed date, ignores stale activePeriod meta)
+  const defaultPeriod = periods.reduce((latest, k) =>
+    (!latest || parsePeriod4(k) > parsePeriod4(latest)) ? k : latest, '') || periods[0];
   periodSel.value = defaultPeriod;
 
   async function loadPeriod(period){

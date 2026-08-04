@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanyadet Timetables</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b1f3a;
+    --navy-deep:#071527;
+    --navy-soft:#12294d;
+    --gold:#c9a24b;
+    --gold-soft:#e6c878;
+    --paper:#f7f5f0;
+    --ink:#1b2333;
+    --muted:#8ea0bd;
+    --line:rgba(201,162,75,0.18);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(201,162,75,0.10), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, rgba(201,162,75,0.06), transparent 55%),
+      var(--navy-deep);
+    color:var(--paper);
+    font-family:'DM Sans', sans-serif;
+    min-height:100vh;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    padding:56px 6vw 40px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color:var(--gold-soft);
+    font-weight:600;
+    margin-bottom:14px;
+  }
+  h1{
+    font-family:'Playfair Display', serif;
+    font-weight:800;
+    font-size:clamp(32px,4.5vw,54px);
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+  h1 em{
+    font-style:italic;
+    color:var(--gold);
+  }
+  header p.sub{
+    color:var(--muted);
+    max-width:560px;
+    font-size:15px;
+    line-height:1.6;
+    margin:0;
+  }
+
+  .toolbar{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-top:28px;
+  }
+  .search-wrap{
+    position:relative;
+    flex:1;
+    min-width:220px;
+    max-width:420px;
+  }
+  .search-wrap input{
+    width:100%;
+    padding:12px 16px 12px 40px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,0.04);
+    color:var(--paper);
+    font-family:'DM Sans',sans-serif;
+    font-size:14px;
+    outline:none;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .search-wrap input:focus{
+    border-color:var(--gold);
+    background:rgba(255,255,255,0.06);
+  }
+  .search-wrap svg{
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    opacity:.5;
+  }
+  .status-pill{
+    font-size:12px;
+    padding:7px 13px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .status-pill.ok{color:var(--gold-soft); border-color:rgba(201,162,75,0.35);}
+
+  /* ---------- Sections ---------- */
+  main{padding:48px 6vw 80px;}
+  .section{margin-bottom:56px;}
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:22px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:14px;
+  }
+  .section-title{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+  }
+  .section-title .tag{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-weight:700;
+    font-size:26px;
+    color:var(--gold-soft);
+  }
+  .section-title .path{
+    font-size:12px;
+    color:var(--muted);
+    font-family:monospace;
+    letter-spacing:0.02em;
+  }
+  .count{
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:16px;
+  }
+
+  .card{
+    display:block;
+    text-decoration:none;
+    color:inherit;
+    background:linear-gradient(155deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px 20px 18px;
+    position:relative;
+    overflow:hidden;
+    transition:transform .18s ease, border-color .18s ease, background .18s ease;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(160px 100px at 100% 0%, rgba(201,162,75,0.14), transparent 70%);
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .card:hover{
+    transform:translateY(-3px);
+    border-color:rgba(201,162,75,0.45);
+    background:linear-gradient(155deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+  }
+  .card:hover::before{opacity:1;}
+  .card:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:2px;
+  }
+  .card-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .badge-row{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .badge{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:4px 9px;
+    border-radius:6px;
+    background:rgba(201,162,75,0.14);
+    color:var(--gold-soft);
+    border:1px solid rgba(201,162,75,0.25);
+    white-space:nowrap;
+  }
+  .badge-alt{
+    background:rgba(255,255,255,0.05);
+    color:var(--muted);
+    border-color:var(--line);
+  }
+  .file-icon{
+    width:34px;height:34px;
+    border-radius:8px;
+    background:var(--navy-soft);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    border:1px solid var(--line);
+  }
+  .card-name{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size:17px;
+    line-height:1.3;
+    margin:0 0 6px;
+    word-break:break-word;
+  }
+  .card-file{
+    font-family:monospace;
+    font-size:11px;
+    color:var(--muted);
+    word-break:break-all;
+  }
+  .card-arrow{
+    position:absolute;
+    right:18px;
+    bottom:16px;
+    opacity:0;
+    transform:translateX(-4px);
+    transition:opacity .18s ease, transform .18s ease;
+    color:var(--gold);
+  }
+  .card:hover .card-arrow{opacity:1; transform:translateX(0);}
+
+  .empty, .error-box{
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+    padding:32px 24px;
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.7;
+  }
+  .error-box code{
+    display:block;
+    margin-top:10px;
+    background:rgba(0,0,0,0.3);
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:12px;
+    color:var(--gold-soft);
+    text-align:left;
+    overflow-x:auto;
+  }
+
+  footer{
+    padding:24px 6vw 40px;
+    border-top:1px solid var(--line);
+    color:var(--muted);
+    font-size:12px;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  footer a{color:var(--gold-soft); text-decoration:none;}
+
+  @media (prefers-reduced-motion: reduce){
+    .card, .card::before, .card-arrow{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Kanyadet Primary &amp; Junior School</div>
+  <h1>Timetable <em>Directory</em></h1>
+  <p class="sub">A live index of every timetable on file — Primary and Junior Secondary — pulled straight from <code>timetables/pri/</code> and <code>timetables/js/</code>.</p>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="text" placeholder="Search timetables…" autocomplete="off">
+    </div>
+    <span class="status-pill" id="statusPill">Scanning folders…</span>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="section-pri">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="tag">Primary</span>
+        <span class="path">./timetables/pri/</span>
+      </div>
+      <span class="count" id="count-pri"></span>
+    </div>
+    <div class="grid" id="grid-pri"></div>
+  </section>
+
+  <section class="section" id="section-js">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="tag">Junior Secondary</span>
+        <span class="path">./timetables/js/</span>
+      </div>
+      <span class="count" id="count-js"></span>
+    </div>
+    <div class="grid" id="grid-js"></div>
+  </section>
+</main>
+
+<footer>
+  <span>Kanyadet Timetable Index</span>
+  <span id="lastMode">—</span>
+</footer>
+
+<script>
+/* ==========================================================================
+   CONFIG
+   Discovery order: GitHub Contents API -> directory listing -> manifest.json
+   -> hardcoded fallback below. On GitHub Pages, the API is what actually
+   works — edit GITHUB.owner/repo below if this isn't the right repo.
+   ========================================================================== */
+// These match the real FET export naming convention:
+// "<Institution prefix>_<category>_<days|time>_<horizontal|vertical>.html"
+//
+// EDIT THIS if FET renames the export (e.g. after regenerating the timetable
+// with a different institution name in FET's settings). This is the only
+// thing that usually needs changing here.
+const FET_PREFIX = {
+  pri: "Primary TM2",
+  js:  "Junior TM2NEW"
+};
+
+function fetExportSet(prefix){
+  const categories = ["activities","activity_tags","teachers_statistics","buildings","classes","rooms","students","groups","subgroups","teachers"];
+  const axes = ["days","time"];
+  const orientations = ["horizontal","vertical"];
+  const files = [];
+  categories.forEach(cat => {
+    axes.forEach(axis => {
+      orientations.forEach(orient => {
+        files.push(`${prefix}_${cat}_${axis}_${orient}.html`);
+      });
+    });
+  });
+  return files;
+}
+
+const FALLBACK_FILES = {
+  pri:  fetExportSet(FET_PREFIX.pri),
+  js:   fetExportSet(FET_PREFIX.js)
+};
+
+// GitHub repo this page is served from — used to list real folder contents
+// via the GitHub Contents API (works on GitHub Pages, unlike a plain fetch
+// of the folder, since GH Pages serves no directory listings).
+// Set to null/"" to skip this method entirely.
+const GITHUB = {
+  owner: "kanyadetschool",
+  repo: "kanyadetschool.github.io",
+  branches: ["main", "master"]   // tried in order
+};
+
+const FOLDERS = {
+  pri: { path: "./timetables/pri/", gridId: "grid-pri", countId: "count-pri", label: "Primary" },
+  js:  { path: "./timetables/js/",  gridId: "grid-js",  countId: "count-js",  label: "Junior Secondary" }
+};
+
+let ALL_FILES = { pri: [], js: [] };
+let MODE = { pri: null, js: null }; // 'listing' | 'manifest' | 'fallback'
+
+/* ---------- Discovery ---------- */
+
+// 0) Ask GitHub itself what's in the folder, via the Contents API.
+// Public repos need no auth; CORS is enabled on api.github.com.
+// Docs: https://docs.github.com/en/rest/repos/contents
+async function tryGithubApi(folderPath){
+  if(!GITHUB.owner || !GITHUB.repo) throw new Error("github api not configured");
+  const cleanPath = folderPath.replace(/^\.?\/+/, "").replace(/\/+$/, ""); // "./timetables/pri/" -> "timetables/pri"
+  let lastErr = null;
+  for(const branch of GITHUB.branches){
+    try{
+      const url = `https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/contents/${cleanPath}?ref=${branch}`;
+      const res = await fetch(url, { headers: { "Accept": "application/vnd.github+json" } });
+      if(!res.ok){
+        // 404 = wrong branch or wrong path, try next branch. 403 = rate-limited.
+        lastErr = new Error(`github api ${res.status}`);
+        continue;
+      }
+      const data = await res.json();
+      if(!Array.isArray(data)) throw new Error("not a folder");
+      const files = data
+        .filter(item => item.type === "file" && item.name.toLowerCase().endsWith(".html"))
+        .map(item => item.name);
+      if(files.length === 0) throw new Error("no html files in folder");
+      return files;
+    }catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error("github api failed");
+}
+
+// 1) Try parsing the folder URL itself as a directory listing (Apache / python -m http.server style)
+async function tryDirectoryListing(folderPath){
+  const res = await fetch(folderPath, { cache: "no-store" });
+  if(!res.ok) throw new Error("no listing");
+  const text = await res.text();
+  const doc = new DOMParser().parseFromString(text, "text/html");
+  const links = Array.from(doc.querySelectorAll("a"))
+    .map(a => a.getAttribute("href"))
+    .filter(Boolean)
+    .filter(href => href.toLowerCase().endsWith(".html"))
+    .map(href => href.split("/").pop());
+  if(links.length === 0) throw new Error("no html links found");
+  return [...new Set(links)];
+}
+
+// 2) Try a manifest.json inside the folder: ["grade1.html","grade2.html", ...]
+async function tryManifest(folderPath){
+  const res = await fetch(folderPath + "manifest.json", { cache: "no-store" });
+  if(!res.ok) throw new Error("no manifest");
+  const data = await res.json();
+  if(!Array.isArray(data) || data.length === 0) throw new Error("empty manifest");
+  return data.filter(f => f.toLowerCase().endsWith(".html"));
+}
+
+async function discover(key){
+  const folder = FOLDERS[key];
+  try{
+    const files = await tryGithubApi(folder.path);
+    MODE[key] = "github";
+    return files;
+  }catch(e){}
+  try{
+    const files = await tryDirectoryListing(folder.path);
+    MODE[key] = "listing";
+    return files;
+  }catch(e){}
+  try{
+    const files = await tryManifest(folder.path);
+    MODE[key] = "manifest";
+    return files;
+  }catch(e){}
+  MODE[key] = "fallback";
+  return FALLBACK_FILES[key] || [];
+}
+
+/* ---------- Rendering ---------- */
+
+const CATEGORY_LABELS = {
+  activities:    "Activities",
+  activity_tags: "Activity Tags",
+  buildings:     "Buildings",
+  classes:       "Classes",
+  rooms:         "Rooms",
+  students:      "Students",
+  subgroups:     "Subgroups",
+  teachers:      "Teachers"
+};
+const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS);
+
+// Parses FET's export naming convention:
+// "<Institution ...>_<category>_<days|time>_<horizontal|vertical>.html"
+// Falls back gracefully for files that don't match (e.g. custom names).
+function parseFetName(name){
+  const base = name.replace(/\.html?$/i, "");
+  const catPattern = CATEGORY_ORDER.slice().sort((a,b)=>b.length-a.length).join("|");
+  const re = new RegExp(`_(${catPattern})_(days|time)_(horizontal|vertical)$`, "i");
+  const m = base.match(re);
+  if(!m) return null;
+  return {
+    category: m[1].toLowerCase(),
+    axis: m[2].toLowerCase(),
+    orientation: m[3].toLowerCase()
+  };
+}
+
+function titleFromFilename(name){
+  const parsed = parseFetName(name);
+  if(parsed) return CATEGORY_LABELS[parsed.category] || parsed.category;
+  const base = name.replace(/\.html?$/i, "");
+  const spaced = base.replace(/[_-]+/g, " ").trim();
+  return spaced.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function fileIcon(){
+  return `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+  </svg>`;
+}
+
+function arrowIcon(){
+  return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+}
+
+function renderGrid(key){
+  const folder = FOLDERS[key];
+  const grid = document.getElementById(folder.gridId);
+  const countEl = document.getElementById(folder.countId);
+  const files = ALL_FILES[key];
+
+  countEl.textContent = files.length ? `${files.length} file${files.length===1?"":"s"}` : "";
+
+  if(files.length === 0){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      No timetables found in <code>${folder.path}</code> yet.<br>
+      Add files there, or list them in <strong>FALLBACK_FILES.${key}</strong> at the top of the script.
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = files.map(name => {
+    const href = folder.path + name.split("/").map(encodeURIComponent).join("/");
+    const parsed = parseFetName(name);
+    const badges = parsed
+      ? `<span class="badge">${parsed.axis === "days" ? "By Day" : "By Time"}</span>
+         <span class="badge badge-alt">${parsed.orientation === "horizontal" ? "Horiz." : "Vert."}</span>`
+      : `<span class="badge">${folder.label}</span>`;
+    return `
+    <a class="card" href="${href}" target="_blank" rel="noopener">
+      <div class="card-top">
+        <div class="file-icon">${fileIcon()}</div>
+        <div class="badge-row">${badges}</div>
+      </div>
+      <p class="card-name">${titleFromFilename(name)}</p>
+      <div class="card-file">${name}</div>
+      <div class="card-arrow">${arrowIcon()}</div>
+    </a>`;
+  }).join("");
+}
+
+function applySearch(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  document.querySelectorAll(".card").forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(q) ? "" : "none";
+  });
+  ["pri","js"].forEach(key=>{
+    const grid = document.getElementById(FOLDERS[key].gridId);
+    const visible = Array.from(grid.querySelectorAll(".card")).some(c => c.style.display !== "none");
+    const section = document.getElementById("section-"+key);
+    if(grid.children.length && grid.querySelector(".empty")){ section.style.display=""; return; }
+    section.style.display = (grid.children.length && !visible) ? "none" : "";
+  });
+}
+
+function updateStatusPill(){
+  const pill = document.getElementById("statusPill");
+  const modes = Object.values(MODE);
+  const total = ALL_FILES.pri.length + ALL_FILES.js.length;
+  const usingLive = modes.includes("listing") || modes.includes("manifest");
+  pill.textContent = `${total} timetable${total===1?"":"s"} found`;
+  pill.classList.toggle("ok", total > 0);
+
+  document.getElementById("lastMode").textContent =
+    `pri: ${MODE.pri || "—"} · js: ${MODE.js || "—"}`;
+}
+
+/* ---------- Init ---------- */
+
+async function init(){
+  const [pri, js] = await Promise.all([discover("pri"), discover("js")]);
+  ALL_FILES.pri = pri;
+  ALL_FILES.js = js;
+  renderGrid("pri");
+  renderGrid("js");
+  updateStatusPill();
+}
+
+document.getElementById("search").addEventListener("input", applySearch);
+init();
+</script>
+
+</body>
+</html>

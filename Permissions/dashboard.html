@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - TSC Kenya</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .filter-btn { transition: all 0.2s; }
+        .filter-btn.active-filter[data-filter="all"] { background: #8B1538 !important; color: white !important; border-color: #8B1538 !important; }
+        .filter-btn.active-filter[data-filter="pending"] { background: #e65100 !important; color: white !important; border-color: #e65100 !important; }
+        .filter-btn.active-filter[data-filter="approved"] { background: #2e7d32 !important; color: white !important; border-color: #2e7d32 !important; }
+        .filter-btn.active-filter[data-filter="rejected"] { background: #c62828 !important; color: white !important; border-color: #c62828 !important; }
+        .filter-btn.active-filter[data-filter="deleted"] { background: #555 !important; color: white !important; border-color: #555 !important; }
+        .filter-btn:hover { opacity: 0.85; }
+        /* Notification panel must not block page when hidden */
+        .notification-panel:not(.active) { pointer-events: none !important; }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="gradient-mesh min-h-screen">
+    <div class="dashboard">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <div class="navbar-logo">
+                 <img src="../images/logo.png" alt="">
+
+                </div>
+                <div class="navbar-title">
+                    <h1>Teachers Portal</h1>
+                    <p>Teacher Dashboard</p>
+                </div>
+            </div>
+            <div class="navbar-user">
+                <div class="user-avatar" id="userAvatar">
+                    <img src="" alt="User" id="userPhoto" style="display: none;">
+                    <div class="avatar-placeholder" id="avatarPlaceholder">T</div>
+                </div>
+                <div class="user-info">
+                    <p>Welcome back,</p>
+                    <strong id="userName">Teacher</strong>
+                    <span id="userEmail" class="user-email"></span>
+                </div>
+                <button class="btn-secondary" onclick="openModal('profile')" style="padding: 0.625rem 1.25rem; margin-right: 0.5rem;">
+                    ⚙️ Profile
+                </button>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
+            </div>
+        </nav>
+
+        <div class="dashboard-container">
+            <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <h2>Your Dashboard</h2>
+                <p>Manage your leave applications and track requests</p>
+                <!-- Add to header area -->
+<div class="notification-bell" onclick="toggleNotificationPanel()" style="position: relative; cursor: pointer;">
+    <span style="font-size: 1.5rem;">🔔</span>
+    <span id="notificationBadge" style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; display: none; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;"></span>
+</div>
+
+
+
+
+<!-- Messages Trigger Button (put this where you want it visible, e.g. header or sidebar) -->
+<button id="openMessagesBtn" class="messages-trigger-btn">
+  ✉️ Messages
+  <span id="messagesBadge" class="unread-badge" style="display: none;">0</span>
+</button>
+
+<!-- Messages Modal (pop-up) -->
+<div id="messagesModal" class="messages-modal">
+  <div class="modal-backdrop" onclick="closeMessagesModal()"></div>
+  
+  <div class="modal-content messages-modal-content">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>Messages</h2>
+      <button class="close-btn" onclick="closeMessagesModal()" aria-label="Close">×</button>
+    </div>
+
+    <!-- Chat Wrapper -->
+    <div class="chat-wrapper">
+      <!-- Thread List (shown by default) -->
+      <div id="threadsList" class="threads-view"></div>
+
+      <!-- Active Chat View (hidden until thread selected) -->
+      <div id="threadView" class="chat-view" style="display: none;">
+        <div class="chat-header">
+          <button class="back-btn" onclick="closeThread()">← Back</button>
+          <h3 id="chatPartnerName">Chat</h3>
+        </div>
+
+        <div id="messagesContainer" class="messages-container"></div>
+
+        <div class="chat-input-area">
+          <input 
+            id="messageInput" 
+            type="text" 
+            placeholder="Type your message..." 
+            autocomplete="off"
+            onkeypress="if(event.key === 'Enter') sendMessage()"
+          />
+          <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Add notification panel -->
+<div id="notificationPanel" class="notification-panel" style="display:none;">
+    <div class="notification-header" style="padding: 1rem; background: #8B1538;  border-radius:15px 15px 0 0; color: white; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">Notifications</h3>
+            <button onclick="toggleNotificationPanel()" style="background: transparent; color: rgb(236, 234, 234); border: none; font-size: 2.5rem; cursor: pointer;">×</button>
+        
+    </div>
+    <div style="display: flex; gap: 0.5rem; position: absolute; right: 0;">
+            <button onclick="markAllNotificationsAsRead()" style="background:  #8B1538; color: #fff; border: 1px solid white; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
+                ✓ Mark All Read
+            </button>
+            <button onclick="clearAllNotifications()" style="background:  #8B1538; color: #fff; border: 1px solid white; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
+                🗑️ Clear All
+            </button>
+        </div>
+        <br>
+        <div id="notificationBanner" class="notification-banner" style="display: none; z-index: 99999999; width: 80%;">
+                    <span id="notificationText"></span>
+                    <button onclick="closeNotification()" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1.2rem; margin-left: auto;">&times;</button>
+                </div>
+    <div id="notificationList" style="max-height: 500px; overflow-y: auto;"></div>
+    
+</div>
+                
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Requests</h3>
+                    <div class="stat-value" id="totalRequests">0</div>
+                    <div class="stat-change">All time</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending</h3>
+                    <div class="stat-value" id="pendingRequests">0</div>
+                    <div class="stat-change">Awaiting approval</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Approved</h3>
+                    <div class="stat-value" id="approvedRequests">0</div>
+                    <div class="stat-change positive">This month</div>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="openModal('leave-balance')">
+                    <h3>Sick Leave Days</h3>
+                    <div class="stat-value" id="sickLeaveDays">0</div>
+                    <div class="stat-change">Remaining this year</div>
+                    <small style="color: var(--tsc-maroon); font-weight: 600; margin-top: 0.5rem; display: block;">📊 View Details</small>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="requestDetailsModal" class="modal">
+       <div class="modal-content">
+           <!-- Content will be dynamically inserted here by JavaScript -->
+       </div>
+   </div>
+
+
+
+
+            <!-- Leave Balance Summary -->
+            <div class="leave-summary-card" style="display: none;" id="leaveSummaryCard">
+                <h3>📊 Leave Balance Summary - <span id="leaveYear">2024</span></h3>
+                <div class="leave-balance-grid">
+                    <div class="balance-item">
+                        <span class="balance-label">Annual Leave (TSC Policy: 42 days/year)</span>
+                        <div class="balance-bar">
+                            <div class="balance-fill annual" id="annualLeaveBar" style="width: 0%"></div>
+                        </div>
+                        <span class="balance-text"><span id="annualUsed">0</span> / 42 days used</span>
+                        <small style="color: #666; font-style: italic; margin-top: 0.25rem; display: block;">
+                            Must be taken during school holidays
+                        </small>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-label">Sick Leave (No limit - with medical certificate)</span>
+                        <div class="balance-bar">
+                            <div class="balance-fill" id="sickLeaveBar" style="width: 0%"></div>
+                        </div>
+                        <span class="balance-text"><span id="sickUsed">0</span> days used this year</span>
+                        <small style="color: #f57c00; margin-top: 0.25rem; display: block;">
+                            ⚠️ After 6 months: 50% salary | After 12 months: removed from service
+                        </small>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-label">Maternity Leave (90 days - 3 months)</span>
+                        <div class="balance-bar">
+                            <div class="balance-fill maternity" id="maternityLeaveBar" style="width: 0%"></div>
+                        </div>
+                        <span class="balance-text"><span id="maternityUsed">0</span> / 90 days used</span>
+                        <small style="color: #666; font-style: italic; margin-top: 0.25rem; display: block;">
+                            Exclusive of annual leave
+                        </small>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-label">Paternity Leave (10 days within spouse's maternity period)</span>
+                        <div class="balance-bar">
+                            <div class="balance-fill paternity" id="paternityLeaveBar" style="width: 0%"></div>
+                        </div>
+                        <span class="balance-text"><span id="paternityUsed">0</span> / 10 days used</span>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-label">Compassionate Leave (15 days/year)</span>
+                        <div class="balance-bar">
+                            <div class="balance-fill compassionate" id="compassionateLeaveBar" style="width: 0%"></div>
+                        </div>
+                        <span class="balance-text"><span id="compassionateUsed">0</span> / 15 days used</span>
+                        <small style="color: #666; font-style: italic; margin-top: 0.25rem; display: block;">
+                            Bereavement, sickness or hospitalization of dependants
+                        </small>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-label">Adoption Leave (45 days - pre-adoptive)</span>
+                        <div class="balance-bar">
+                            <div class="balance-fill adoption" id="adoptionLeaveBar" style="width: 0%"></div>
+                        </div>
+                        <span class="balance-text"><span id="adoptionUsed">0</span> / 45 days used</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="upcomingRemindersContainer" style="display:none;"></div>
+
+            <div class="quick-actions">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                    <h3>Submit New Request</h3>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <button class="btn-secondary" onclick="loadTemplate()" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
+                            📋 Load Template
+                        </button>
+                        <button class="btn-secondary" onclick="openModal('calendar')" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
+                            📅 View Calendar
+                        </button>
+                        <button class="btn-secondary" onclick="repeatLastRequest()" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
+                            🔄 Repeat Last
+                        </button>
+                    </div>
+                </div>
+                <div class="actions-grid">
+                    <div class="action-card" onclick="openModal('permission')">
+                        <div class="action-icon">📋</div>
+                        <h4>Permission Request</h4>
+                        <p>Request permission to attend to personal matters during work hours</p>
+                    </div>
+                    <div class="action-card" onclick="openModal('sick-leave')">
+                        <div class="action-icon">🏥</div>
+                        <h4>Sick Leave</h4>
+                        <p>Apply for sick leave with supporting medical documentation</p>
+                    </div>
+                    <div class="action-card" onclick="openModal('court-summon')">
+                        <div class="action-icon">⚖️</div>
+                        <h4>Court Summon</h4>
+                        <p>Notify administration of court attendance requirement</p>
+                    </div>
+                    <div class="action-card" onclick="openModal('other')">
+                        <div class="action-icon">📄</div>
+                        <h4>Other Request</h4>
+                        <p>Submit other types of administrative requests</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="requests-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                    <h3>Recent Requests</h3>
+                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="searchRequests" placeholder="Search requests..." style="padding: 0.5rem 1rem; border: 2px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+                        <button class="btn-secondary" onclick="exportToCSV()" style="padding: 0.5rem 1rem; white-space: nowrap;">
+                            📥 Export CSV
+                        </button>
+                    </div>
+                </div>
+                <!-- Status filter row -->
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+                    <button class="filter-btn active-filter" data-filter="all" onclick="setStatusFilter('all')" style="padding: 0.35rem 1rem; border-radius: 20px; border: 1px solid #8B1538; background: #8B1538; color: white; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">All</button>
+                    <button class="filter-btn" data-filter="pending" onclick="setStatusFilter('pending')" style="padding: 0.35rem 1rem; border-radius: 20px; border: 1px solid #ff9800; background: white; color: #e65100; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">⏳ Pending</button>
+                    <button class="filter-btn" data-filter="approved" onclick="setStatusFilter('approved')" style="padding: 0.35rem 1rem; border-radius: 20px; border: 1px solid #4caf50; background: white; color: #2e7d32; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">✅ Approved</button>
+                    <button class="filter-btn" data-filter="rejected" onclick="setStatusFilter('rejected')" style="padding: 0.35rem 1rem; border-radius: 20px; border: 1px solid #f44336; background: white; color: #c62828; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">❌ Rejected</button>
+                    <button class="filter-btn" data-filter="deleted" onclick="setStatusFilter('deleted')" style="padding: 0.35rem 1rem; border-radius: 20px; border: 1px solid #9e9e9e; background: white; color: #555; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">🗑️ Deleted</button>
+                </div>
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 2rem; color: #999;">
+                                No requests yet. Submit your first request above.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="paginationContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permission Request Modal -->
+    <div id="permissionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Permission Request</h3>
+                <button class="modal-close" onclick="closeModal('permission')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="permissionForm">
+                    <div class="form-group">
+                        <label for="permissionDate">Date</label>
+                        <input type="date" id="permissionDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="permissionTime">Time Period</label>
+                        <select id="permissionTime" required>
+                            <option value="">Select time period</option>
+                            <option value="morning">Morning (8:00 AM - 12:00 PM)</option>
+                            <option value="afternoon">Afternoon (1:00 PM - 5:00 PM)</option>
+                            <option value="full-day">Full Day</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="permissionReason">Reason for Permission</label>
+                        <textarea id="permissionReason" rows="4" required placeholder="Please provide detailed reason for your permission request"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('permission')">Cancel</button>
+                <button class="btn-submit" onclick="submitRequest('permission')">Submit Request</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sick Leave Modal -->
+    <div id="sickLeaveModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sick Leave Application</h3>
+                <button class="modal-close" onclick="closeModal('sick-leave')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="sickLeaveForm">
+                    <div class="form-group">
+                        <label for="sickLeaveStartDate">Start Date</label>
+                        <input type="date" id="sickLeaveStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sickLeaveEndDate">End Date</label>
+                        <input type="date" id="sickLeaveEndDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sickLeaveDiagnosis">Medical Condition/Diagnosis</label>
+                        <textarea id="sickLeaveDiagnosis" rows="3" required placeholder="Brief description of medical condition"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="sickLeaveDoctorName">Doctor's Name</label>
+                        <input type="text" id="sickLeaveDoctorName" required placeholder="Name of attending physician">
+                    </div>
+                    <div class="form-group">
+                        <label for="sickLeaveDocumentNumber">Medical Certificate Number</label>
+                        <input type="text" id="sickLeaveDocumentNumber" required placeholder="Certificate/document number">
+                    </div>
+                    <div class="form-group">
+                        <label for="sickLeaveDelegate">Delegate Teacher (Optional)</label>
+                        <input type="text" id="sickLeaveDelegate" placeholder="Name of teacher covering your classes">
+                        <small style="color: #666; margin-top: 0.5rem; display: block;">
+                            Recommended: Assign a colleague to handle urgent matters
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sickLeaveNotifyDelegate">
+                            <span>Notify delegate teacher via system</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('sick-leave')">Cancel</button>
+                <button class="btn-submit" onclick="submitRequest('sick-leave')">Submit Application</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Court Summon Modal -->
+    <div id="courtSummonModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Court Summon Notification</h3>
+                <button class="modal-close" onclick="closeModal('court-summon')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="courtSummonForm">
+                    <div class="form-group">
+                        <label for="courtDate">Court Attendance Date</label>
+                        <input type="date" id="courtDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courtName">Court Name/Location</label>
+                        <input type="text" id="courtName" required placeholder="e.g., Nairobi High Court">
+                    </div>
+                    <div class="form-group">
+                        <label for="caseNumber">Case Number</label>
+                        <input type="text" id="caseNumber" required placeholder="Enter case number">
+                    </div>
+                    <div class="form-group">
+                        <label for="courtReason">Nature of Case</label>
+                        <textarea id="courtReason" rows="4" required placeholder="Brief description of the case"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="summonDocument">Summon Document Number</label>
+                        <input type="text" id="summonDocument" required placeholder="Official summon reference number">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('court-summon')">Cancel</button>
+                <button class="btn-submit" onclick="submitRequest('court-summon')">Submit Notification</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Other Request Modal -->
+    <div id="otherModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Other Request</h3>
+                <button class="modal-close" onclick="closeModal('other')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="otherForm">
+                    <div class="form-group">
+                        <label for="otherType">Request Type</label>
+                        <select id="otherType" required>
+                            <option value="">Select request type</option>
+                            <option value="annual">📚 Annual Leave (42 days/year)</option>
+                            <option value="maternity">🤰 Maternity Leave (120 days)</option>
+                            <option value="paternity">👨‍👶 Paternity Leave (21 days)</option>
+                            <option value="adoption">👶 Pre-Adoptive Leave (45 days)</option>
+                            <option value="study">📖 Study Leave (Variable)</option>
+                            <option value="compassionate">💐 Compassionate Leave (7-14 days)</option>
+                            <option value="special">🎯 Special Leave (TSC events/duties)</option>
+                            <option value="unpaid">📋 Unpaid Leave</option>
+                            <option value="diplomatic">✈️ Leave for Diplomatic Spouse</option>
+                            <option value="transfer">🔄 Transfer Request</option>
+                            <option value="other">📄 Other</option>
+                        </select>
+                        <small style="color: #666; margin-top: 0.5rem; display: block; font-size: 0.85rem;">
+                            Select from TSC-approved leave categories
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="otherStartDate">Start Date</label>
+                        <input type="date" id="otherStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="otherEndDate">End Date (if applicable)</label>
+                        <input type="date" id="otherEndDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="otherReason">Detailed Reason</label>
+                        <textarea id="otherReason" rows="5" required placeholder="Provide detailed information about your request"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="otherDocuments">Supporting Documents (if any)</label>
+                        <input type="text" id="otherDocuments" placeholder="List any supporting documents you will provide">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('other')">Cancel</button>
+                <button class="btn-submit" onclick="submitRequest('other')">Submit Request</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Settings Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Profile Settings</h3>
+                <button class="modal-close" onclick="closeModal('profile')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label for="profileName">Display Name</label>
+                        <input type="text" id="profileName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileTSC">TSC Number</label>
+                        <input type="text" id="profileTSC" placeholder="Your TSC number">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileEmail">Email (Read-only)</label>
+                        <input type="email" id="profileEmail" readonly style="background: #f5f5f5; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="emailNotifications">
+                            <span>Receive email notifications for request updates</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('profile')">Cancel</button>
+                <button class="btn-submit" onclick="updateProfile()">Update Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Balance Modal -->
+    <div id="leaveBalanceModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3>📊 Detailed Leave Balance</h3>
+                <button class="modal-close" onclick="closeModal('leave-balance')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="leaveBalanceContent">
+                    <p style="text-align: center; color: #666;">Loading leave balance...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('leave-balance')">Close</button>
+                <button class="btn-submit" onclick="exportLeaveReport()">📥 Export Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar View Modal -->
+    <div id="calendarModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3>📅 Leave Calendar - <span id="calendarYear">2024</span></h3>
+                <button class="modal-close" onclick="closeModal('calendar')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+                    <button class="btn-secondary" onclick="changeCalendarMonth(-1)">← Previous</button>
+                    <h4 id="calendarMonthYear" style="color: var(--tsc-maroon);">January 2024</h4>
+                    <button class="btn-secondary" onclick="changeCalendarMonth(1)">Next →</button>
+                </div>
+                <div id="calendarGrid" class="calendar-grid">
+                    <!-- Calendar will be generated here -->
+                </div>
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                    <h5 style="margin-bottom: 0.75rem;">Legend:</h5>
+                    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 20px; height: 20px; background: #4caf50; border-radius: 4px;"></div>
+                            <span>Approved Leave</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 20px; height: 20px; background: #ff9800; border-radius: 4px;"></div>
+                            <span>Pending Leave</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 20px; height: 20px; background: #f44336; border-radius: 4px;"></div>
+                            <span>Rejected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('calendar')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📎 Upload Supporting Documents</h3>
+                <button class="modal-close" onclick="closeModal('upload')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: #666;">Upload supporting documents for your request (medical certificates, court summons, etc.)</p>
+                <div class="form-group">
+                    <label for="documentTitle">Document Title</label>
+                    <input type="text" id="documentTitle" placeholder="e.g., Medical Certificate">
+                </div>
+                <div class="form-group">
+                    <label for="documentFile">Select File</label>
+                    <input type="file" id="documentFile" accept=".pdf,.jpg,.jpeg,.png" style="padding: 0.75rem; border: 2px dashed var(--border-color); border-radius: 8px; width: 100%;">
+                    <small style="color: #666; margin-top: 0.5rem; display: block;">Supported: PDF, JPG, PNG (Max 5MB)</small>
+                </div>
+                <div id="uploadProgress" style="display: none; margin-top: 1rem;">
+                    <div style="background: #f5f5f5; height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div id="uploadProgressBar" style="background: var(--tsc-maroon); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <p id="uploadStatus" style="text-align: center; margin-top: 0.5rem; color: #666;"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('upload')">Cancel</button>
+                <button class="btn-submit" onclick="uploadDocument()">Upload Document</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="dashboard.js"></script>
+    
+</body>
+</html>

@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanyadet Pri &amp; Junior School — Admin Biodata Editor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+<style>
+  :root{
+    --paper:#F5F1E8;
+    --gold:#B8860B;
+    --gold-dark:#8B6914;
+    --gold-darker:#A67C00;
+    --ink:#2b2620;
+    --line:#4b5563;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background:#e7e2d5;
+    display:flex;
+    justify-content:center;
+    padding:40px 16px;
+    color:var(--ink);
+  }
+  .wrapper{
+    width:100%;
+    max-width:900px;
+    background:var(--paper);
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+    position:relative;
+    overflow:hidden;
+  }
+  .content{
+    padding:48px 48px 130px 48px;
+    position:relative;
+    z-index:2;
+  }
+  .top-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:16px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand-badge{
+    width:56px;height:56px;border-radius:50%;
+    background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:20px;
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+  .brand-text{line-height:1.2;}
+  .brand-text strong{display:block;color:var(--gold-dark);font-size:15px;letter-spacing:.03em;}
+  .brand-text span{font-size:11px;color:#7a7262;letter-spacing:.08em;text-transform:uppercase;}
+  .org-info{text-align:right;font-size:12.5px;line-height:1.5;}
+  .org-info .name{font-weight:700;font-size:14px;}
+  .header-right{display:flex;align-items:flex-start;gap:16px;}
+  .photo-box{
+    width:92px;height:112px;flex-shrink:0;border:2px solid var(--gold-darker);
+    border-radius:4px;background:#fff;overflow:hidden;position:relative;
+  }
+  .photo-box img{width:100%;height:100%;object-fit:cover;display:block;}
+
+  .rule{height:3px;width:100%;background:var(--gold-darker);margin-bottom:8px;}
+  .form-code{color:var(--gold);font-weight:700;font-size:13px;margin-bottom:4px;}
+  h1.title{
+    text-align:center;font-size:24px;letter-spacing:.05em;
+    color:var(--gold);font-weight:700;margin:4px 0 18px;
+  }
+  .divider{border-bottom:1px solid #333;margin:0 32px 24px;}
+
+  h2.section{
+    text-align:center;font-size:19px;font-weight:700;color:var(--gold);
+    margin-bottom:18px;
+  }
+  .note{
+    display:flex;align-items:center;gap:8px;
+    background:#fdf8e8;border:1px dashed var(--gold);
+    border-radius:6px;padding:10px 14px;margin-bottom:20px;
+    font-size:13px;color:#6b5b1e;
+  }
+  .admin-tag{
+    font-size:10.5px;background:#8b0000;color:#fff;padding:1px 7px;
+    border-radius:20px;font-weight:700;letter-spacing:.03em;margin-left:6px;
+  }
+
+  .field-row{display:flex;gap:24px;margin-bottom:16px;}
+  .field{display:flex;align-items:flex-end;gap:8px;flex:1;font-size:15px;}
+  .field.wide{flex:1.6;}
+  .field label{white-space:nowrap;color:var(--ink);display:flex;align-items:center;}
+  .field input, .field select{
+    flex:1;background:transparent;border:none;
+    border-bottom:1.5px dotted var(--line);
+    outline:none;padding:2px 4px 6px;font-size:15px;
+    font-family:inherit;color:var(--ink);min-width:50px;
+  }
+  .field input:focus, .field select:focus{border-bottom-color:var(--gold);}
+  .field input.filled, .field select.filled{ color:#1a1a1a; }
+  .field input.changed{border-bottom-color:#8b0000;border-bottom-width:2px;}
+
+  .declaration-text{font-size:14.5px;line-height:1.6;margin-bottom:18px;text-align:justify;}
+
+  .submit-btn{
+    position:fixed;bottom:28px;right:28px;z-index:50;
+    background:#8b0000;color:#fff;border:none;
+    padding:14px 22px;border-radius:8px;font-size:15px;font-weight:700;
+    cursor:pointer;box-shadow:0 8px 24px rgba(139,0,0,.4);
+    display:flex;align-items:center;gap:8px;
+  }
+  .submit-btn:hover{background:#a30000;}
+  .submit-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .print-btn{
+    position:fixed;bottom:28px;right:250px;z-index:50;
+    background:var(--gold-dark);color:#fff;border:none;
+    padding:14px 22px;border-radius:8px;font-size:15px;font-weight:700;
+    cursor:pointer;box-shadow:0 8px 24px rgba(139,105,20,.4);
+    display:flex;align-items:center;gap:8px;
+  }
+  .print-btn:hover{background:var(--gold-darker);}
+  .print-btn:disabled{opacity:.6;cursor:not-allowed;}
+
+  .back-btn{
+    position:fixed;bottom:28px;left:28px;z-index:50;
+    background:transparent;color:var(--gold-dark);border:1.5px solid var(--gold-dark);
+    padding:14px 22px;border-radius:8px;font-size:15px;font-weight:700;
+    cursor:pointer;display:flex;align-items:center;gap:8px;
+  }
+  .back-btn:hover{background:var(--gold-dark);color:#fff;}
+
+  .waves{
+    position:absolute;left:0;bottom:0;width:100%;height:120px;z-index:1;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'%3E%3Cpath d='M0,60 C320,120 420,0 720,40 C1020,80 1120,20 1440,60 L1440,120 L0,120 Z' fill='%23A67C00' opacity='0.9'/%3E%3Cpath d='M0,80 C400,140 600,20 900,60 C1200,100 1300,40 1440,80 L1440,120 L0,120 Z' fill='%238B6914'/%3E%3C/svg%3E");
+    background-size:100% 100%;background-repeat:no-repeat;
+  }
+
+  .toast{
+    position:fixed;top:20px;left:50%;transform:translateX(-50%);
+    background:#2b2620;color:#fff;padding:10px 18px;border-radius:6px;
+    font-size:13.5px;opacity:0;transition:opacity .3s ease;z-index:300;
+    display:flex;align-items:center;gap:8px;
+  }
+  .toast.show{opacity:1;}
+  .toast.success{background:#1f6b3a;}
+  .toast.error{background:#8b0000;}
+
+  /* ---------- Auth gate ---------- */
+  #gateOverlay{
+    position:fixed;inset:0;z-index:300;
+    background:#e7e2d5;
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  #gateOverlay.hidden{display:none;}
+  .gate-card{
+    background:var(--paper);border-radius:8px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+    padding:40px 44px;max-width:420px;width:100%;text-align:center;
+  }
+  .gate-card h2{color:var(--gold-dark);margin:0 0 6px;font-size:20px;letter-spacing:.02em;}
+  .gate-card p.lead{font-size:13px;color:#6b5b1e;margin:0 0 22px;line-height:1.5;}
+  .gate-msg{
+    font-size:12.5px;border-radius:6px;padding:9px 12px;margin-bottom:14px;display:none;text-align:left;
+  }
+  .gate-msg.error{background:#fbe3e3;color:#8b0000;display:block;}
+  .gate-btn{
+    width:100%;background:#fff;color:#3c4043;border:1.5px solid #ccc;border-radius:6px;
+    padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .gate-btn:hover{background:#f5f5f5;}
+  .gate-btn:disabled{opacity:.6;cursor:not-allowed;}
+  .gate-btn svg{width:18px;height:18px;}
+  .gate-note{font-size:11.5px;color:#8a7f66;margin-top:16px;line-height:1.5;}
+  .spinner{width:14px;height:14px;border:2px solid rgba(60,64,67,.3);border-top-color:#3c4043;border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  #signedInBar{
+    position:fixed;top:0;left:0;right:0;z-index:60;
+    background:var(--ink);color:#fff;font-size:12.5px;
+    padding:6px 16px;display:none;justify-content:space-between;align-items:center;
+  }
+  #signedInBar button{
+    background:none;border:1px solid #fff;color:#fff;border-radius:4px;
+    padding:3px 10px;font-size:11.5px;cursor:pointer;
+  }
+
+  /* ---------- Filter / picker panel ---------- */
+  #pickerView{display:none;}
+  .picker-bar{
+    display:flex;gap:16px;margin-bottom:18px;flex-wrap:wrap;
+  }
+  .picker-field{flex:1;min-width:180px;}
+  .picker-field label{display:block;font-size:12.5px;font-weight:600;color:#6b5b1e;margin-bottom:6px;}
+  .picker-field select, .picker-field input{
+    width:100%;padding:9px 11px;border:1.5px solid var(--gold);border-radius:6px;
+    font-size:14px;font-family:inherit;outline:none;background:#fff;
+  }
+  .result-count{font-size:12.5px;color:#6b5b1e;margin-bottom:10px;}
+  .result-list{
+    display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;
+    border:1px solid #ddd2b0;border-radius:8px;padding:8px;background:#fffdf6;
+  }
+  .result-row{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:9px 12px;border-radius:6px;cursor:pointer;font-size:13.5px;
+    border:1px solid transparent;
+  }
+  .result-row:hover{background:#fdf3d8;border-color:var(--gold);}
+  .result-row .r-name{font-weight:700;color:var(--ink);}
+  .result-row .r-meta{color:#6b5b1e;font-size:12px;}
+  .result-empty{padding:24px;text-align:center;color:#8a7f66;font-size:13px;}
+  .pagination-bar{
+    display:flex;align-items:center;justify-content:center;gap:16px;margin-top:14px;
+  }
+  .page-btn{
+    background:#fff;border:1.5px solid var(--gold);color:var(--gold-dark);
+    padding:7px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .page-btn:hover:not(:disabled){background:#fdf3d8;}
+  .page-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .page-indicator{font-size:12.5px;color:#6b5b1e;font-weight:600;}
+
+  @media(max-width:600px){
+    .content{padding:28px 20px 130px;}
+    .field-row{flex-direction:column;gap:14px;}
+    .org-info{font-size:11px;}
+    .photo-box{width:64px;height:78px;}
+    .header-right{gap:10px;}
+    .submit-btn{right:16px;bottom:16px;padding:12px 16px;font-size:13px;}
+    .print-btn{right:16px;bottom:76px;padding:12px 16px;font-size:13px;}
+    .back-btn{left:16px;bottom:16px;padding:12px 16px;font-size:13px;}
+    .gate-card{padding:28px 24px;}
+    .picker-bar{flex-direction:column;}
+  }
+
+  /* ---------- FLATPICKR THEME OVERRIDES ---------- */
+  .flatpickr-calendar{box-shadow:0 12px 32px rgba(0,0,0,.22);border-radius:8px;}
+  .flatpickr-months .flatpickr-month{background:var(--gold-dark);border-radius:8px 8px 0 0;color:#fff;}
+  .flatpickr-current-month .flatpickr-monthDropdown-months{background:var(--gold-dark);color:#fff;}
+  .flatpickr-current-month input.cur-year{color:#fff;}
+  .flatpickr-weekdays{background:var(--gold-dark);}
+  span.flatpickr-weekday{background:var(--gold-dark);color:rgba(255,255,255,.8);}
+  .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month{color:#fff;fill:#fff;}
+  .flatpickr-day.selected, .flatpickr-day.selected:hover{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700;}
+  .flatpickr-day.today{border-color:var(--gold);}
+  .flatpickr-day:hover{background:#f3e9cf;}
+
+  /* ---------- Print ---------- */
+  @media print{
+    body{background:#fff;padding:0;}
+    #gateOverlay, #signedInBar, .note, .submit-btn, .print-btn, .back-btn, .toast, #pickerView{display:none !important;}
+    .wrapper{box-shadow:none;max-width:100%;display:block !important;}
+    .content{padding:24px 40px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============ Google Sign-In + Advancedadmin gate ============ -->
+<div id="gateOverlay">
+  <div class="gate-card" id="signinCard">
+    <h2>Kanyadet Pri &amp; Junior School</h2>
+    <p class="lead">Admin sign-in required. Sign in with your Google account to search and update student biodata.</p>
+    <div class="gate-msg error" id="signinMsg"></div>
+    <button class="gate-btn" id="googleSigninBtn">
+      <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.9 14.1-5.1l-6.5-5.5C29.5 35.4 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.7 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.5l6.5 5.5C41.5 35.6 44 30.1 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+      <span id="googleSigninLabel">Sign in with Google</span>
+    </button>
+    <div class="gate-note">Access is restricted to Advanced Admin accounts only.</div>
+  </div>
+</div>
+
+<div id="signedInBar">
+  <span id="signedInEmail"></span>
+  <button id="signOutBtn">Sign out</button>
+</div>
+
+<!-- ============ Filter / picker panel ============ -->
+<div class="wrapper" id="pickerView">
+  <div class="content" style="padding-bottom:60px;">
+    <div class="top-row">
+      <div class="brand">
+        <div class="brand-badge">KS</div>
+        <div class="brand-text">
+          <strong>KANYADET PRI &amp; JUNIOR SCHOOL</strong>
+          <span>Admin Biodata Editor</span>
+        </div>
+      </div>
+      <div class="org-info">
+        <div class="name">Kanyadet Primary &amp; Junior School</div>
+        <div>P.O. Box 45, 40139 Akala</div>
+        <div>Kenya</div>
+      </div>
+    </div>
+    <div class="rule"></div>
+    <h1 class="title">FIND A STUDENT <span class="admin-tag">ADMIN</span></h1>
+    <div class="divider"></div>
+
+    <div class="picker-bar">
+      <div class="picker-field">
+        <label for="filterGrade">Filter by Grade</label>
+        <select id="filterGrade"><option value="">All Grades</option></select>
+      </div>
+      <div class="picker-field">
+        <label for="filterClass">Filter by Class</label>
+        <select id="filterClass"><option value="">All Classes</option></select>
+      </div>
+      <div class="picker-field" style="flex:2;">
+        <label for="filterName">Type Name to Search</label>
+        <input type="text" id="filterName" placeholder="Start typing a student's name...">
+      </div>
+    </div>
+
+    <div class="result-count" id="resultCount">Loading students…</div>
+    <div class="result-list" id="resultList"></div>
+    <div class="pagination-bar" id="paginationBar" style="display:none;">
+      <button type="button" class="page-btn" id="prevPageBtn">&#8592; Prev</button>
+      <span class="page-indicator" id="pageIndicator"></span>
+      <button type="button" class="page-btn" id="nextPageBtn">Next &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Edit form (all fields editable) ============ -->
+<div class="wrapper" id="wrapper" style="display:none;">
+  <div class="content">
+
+    <div class="top-row">
+      <div class="brand">
+        <div class="brand-badge">KS</div>
+        <div class="brand-text">
+          <strong>KANYADET PRI &amp; JUNIOR SCHOOL</strong>
+          <span>Admin Biodata Editor</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="org-info">
+          <div class="name">Kanyadet Primary &amp; Junior School</div>
+          <div>P.O. Box 45, 40139 Akala</div>
+          <div>Kenya</div>
+        </div>
+        <div class="photo-box">
+          <img id="studentPhoto" alt="Student photo" src="./student_images/default.jpg">
+        </div>
+      </div>
+    </div>
+
+    <div class="rule"></div>
+    <div class="form-code">KPJS.1</div>
+    <h1 class="title">STUDENT BIODATA FORM <span class="admin-tag">ADMIN EDIT</span></h1>
+    <div class="divider"></div>
+
+    <form id="enrollForm">
+      <h2 class="section">SECTION A: OFFICIAL RECORD</h2>
+
+      <div class="note">
+        <span>All fields below are editable by admins. Changes are logged to the audit trail.</span>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Grade:</label>
+          <input type="text" id="grade" data-field="Grade">
+        </div>
+        <div class="field">
+          <label>Class:</label>
+          <input type="text" id="klass" data-field="Class">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field wide">
+          <label>Official Student Name:</label>
+          <input type="text" id="fullName" data-field="Official Student Name">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Assessment No:</label>
+          <input type="text" id="assessmentNo" data-field="Assessment No">
+        </div>
+        <div class="field">
+          <label>UPI:</label>
+          <input type="text" id="upi" data-field="UPI">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Date of Birth:</label>
+          <input type="text" id="dob" data-field="DOB" placeholder="Select date of birth">
+        </div>
+        <div class="field">
+          <label>Gender:</label>
+          <input type="text" id="gender" data-field="Gender">
+        </div>
+      </div>
+
+      <h2 class="section" style="margin-top:36px;">SECTION B: CONTACT DETAILS</h2>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Mobile No:</label>
+          <input type="tel" id="mobile" data-field="Mobile No">
+        </div>
+        <div class="field">
+          <label>Email Address:</label>
+          <input type="email" id="email" data-field="Email Address">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Parent/Guardian Name:</label>
+          <input type="text" id="guardianName" data-field="Parent/Guardian Name">
+        </div>
+        <div class="field">
+          <label>Parent/Guardian Phone:</label>
+          <input type="tel" id="guardianPhone" data-field="Parent/Guardian Phone">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field wide">
+          <label>Home Address:</label>
+          <input type="text" id="homeAddress" data-field="Home Address">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Emergency Contact Name:</label>
+          <input type="text" id="emName" data-field="Emergency Contact Name">
+        </div>
+        <div class="field">
+          <label>Emergency Contact Phone:</label>
+          <input type="tel" id="emPhone" data-field="Emergency Contact Phone">
+        </div>
+      </div>
+
+      <h2 class="section" style="margin-top:36px;">SECTION C: FOR OFFICIAL USE ONLY</h2>
+      <table style="width:100%;border-collapse:collapse;border:2px solid #000;font-size:14.5px;margin-top:6px;">
+        <tr>
+          <td style="width:50%;border:2px solid #000;padding:12px;">Reviewed by (Admin): <span id="reviewedByLine" style="border-bottom:1px solid #666;display:inline-block;min-width:60%;"></span></td>
+          <td style="width:50%;border:2px solid #000;padding:12px;">Date Reviewed: <span id="reviewedDateLine" style="border-bottom:1px solid #666;display:inline-block;min-width:60%;"></span></td>
+        </tr>
+      </table>
+
+    </form>
+  </div>
+
+  <div class="waves"></div>
+</div>
+
+<button type="button" class="back-btn" id="backBtn" style="display:none;">&#8592; Back to List</button>
+<button type="button" class="print-btn" id="printBtn" style="display:none;">
+  <span>&#128438;</span> Print / Save as PDF
+</button>
+<button type="button" class="submit-btn" id="submitBtn" style="display:none;">
+  <span>&#9993;</span> Save Changes
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    flatpickr('#dob', {
+      dateFormat: 'Y-m-d',
+      altInput: true,
+      altFormat: 'j F Y',
+      maxDate: 'today',
+      minDate: '1990-01-01',
+      allowInput: true,
+      disableMobile: false,
+      static: true
+    });
+  });
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ── Same Firebase project as the Active Students admin dashboard ──
+const firebaseConfig = {
+  apiKey: "AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE",
+  authDomain: "kanyadet-school-admin.firebaseapp.com",
+  projectId: "kanyadet-school-admin",
+  databaseURL: "https://kanyadet-school-admin-default-rtdb.firebaseio.com",
+  storageBucket: "kanyadet-school-admin.firebasestorage.app",
+  messagingSenderId: "409708360032",
+  appId: "1:409708360032:web:a21d63e8cb5fa1ecabee05",
+  measurementId: "G-Y4C0ZRRL52"
+};
+const appId = 'default-app-id';
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+const firestoreDb = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+const STUDENTS_PATH = `artifacts/${appId}/students`;
+const AUDIT_PATH = `artifacts/${appId}/AuditLog`;
+
+// All fields the admin form writes back (locked-for-students fields included)
+const ALL_FIELDS = ['Grade','Class','Official Student Name','Assessment No','UPI','DOB','Gender',
+  'Mobile No','Email Address','Parent/Guardian Name','Parent/Guardian Phone','Home Address',
+  'Emergency Contact Name','Emergency Contact Phone'];
+
+let allStudents = [];      // [{id, ...fields}]
+let byGrade = new Map();   // Grade -> [students]  (built once, avoids re-scanning the full roster per filter)
+let byClass = new Map();   // Class -> [students]
+let currentId = null;
+let currentRecord = null;
+let originalValues = {};
+let currentUserEmail = '';
+
+const PAGE_SIZE = 20;
+let currentPage = 1;
+let lastFiltered = [];     // cached result of the current filter, sliced per page
+let filterDebounceTimer = null;
+
+const $ = (id) => document.getElementById(id);
+
+// ── Student photo — served from the school's static image folder, same convention
+// as Active-Students-Database.html: ./student_images/{Grade}/{Name}.jpg ──
+function _photoPath(name, grade){
+  const n = encodeURIComponent((name || '').toString().trim());
+  if(!n) return '';
+  const g = encodeURIComponent((grade || '').toString().trim());
+  return g ? `./student_images/${g}/${n}.jpg` : `./student_images/${n}.jpg`;
+}
+const toast = (msg, type='') => {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.classList.remove('show'), 2600);
+};
+
+// Rebuilds the Grade/Class lookup indexes from the current in-memory roster.
+// Called on initial load, and again after any save that could have changed
+// a student's Grade/Class so the indexes never go stale.
+function rebuildIndexes(){
+  byGrade = new Map();
+  byClass = new Map();
+  for(const s of allStudents){
+    const g = s['Grade'] || '';
+    const c = s['Class'] || '';
+    if(g){ if(!byGrade.has(g)) byGrade.set(g, []); byGrade.get(g).push(s); }
+    if(c){ if(!byClass.has(c)) byClass.set(c, []); byClass.get(c).push(s); }
+  }
+}
+
+async function logChange(id, field, oldVal, newVal, byEmail){
+  try{
+    const ts = Date.now();
+    await set(ref(db, `${AUDIT_PATH}/${id}/${ts}`), {
+      field,
+      oldVal: oldVal || '—',
+      newVal: newVal || '—',
+      changedAt: ts,
+      changedBy: `Admin update (${byEmail})`
+    });
+  }catch(e){ console.warn('Could not write audit log', e); }
+}
+
+// ---------- Google Sign-In ----------
+$('googleSigninBtn').addEventListener('click', async () => {
+  const btn = $('googleSigninBtn');
+  const msg = $('signinMsg');
+  msg.style.display = 'none';
+  btn.disabled = true;
+  $('googleSigninLabel').innerHTML = '<span class="spinner"></span> Signing in…';
+  try{
+    await signInWithPopup(auth, googleProvider);
+  }catch(err){
+    console.error(err);
+    msg.textContent = 'Google sign-in failed or was cancelled. Please try again.';
+    msg.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+    $('googleSigninLabel').textContent = 'Sign in with Google';
+  }
+});
+
+$('signOutBtn').addEventListener('click', async () => {
+  try{ await signOut(auth); }catch(e){ console.warn('Sign-out error', e); }
+});
+
+function lockOut(message){
+  $('gateOverlay').classList.remove('hidden');
+  $('signinCard').style.display = 'block';
+  $('signedInBar').style.display = 'none';
+  $('pickerView').style.display = 'none';
+  $('wrapper').style.display = 'none';
+  $('backBtn').style.display = 'none';
+  $('printBtn').style.display = 'none';
+  $('submitBtn').style.display = 'none';
+  if(message){
+    const msg = $('signinMsg');
+    msg.textContent = message;
+    msg.style.display = 'block';
+  }
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if(!user){
+    currentId = null; currentRecord = null; originalValues = {}; allStudents = [];
+    lockOut();
+    return;
+  }
+
+  // ── Advanced Admin gate — mirrors Active-Students-Database.html ──
+  let allowed = false;
+  try{
+    const userDocSnap = await getDoc(doc(firestoreDb, 'users', user.uid));
+    allowed = userDocSnap.exists() && userDocSnap.data().Advancedadmin === true;
+  }catch(err){
+    console.error('[AdvancedAdmin] Profile check failed:', err);
+    allowed = false;
+  }
+  if(!allowed){
+    await signOut(auth);
+    lockOut('Access restricted to Advanced Admins only.');
+    return;
+  }
+
+  currentUserEmail = user.email || user.displayName || 'unknown';
+  $('gateOverlay').classList.add('hidden');
+  $('signedInEmail').textContent = currentUserEmail;
+  $('signedInBar').style.display = 'flex';
+  $('pickerView').style.display = 'block';
+  await loadAllStudents();
+});
+
+// ---------- Load all students once, then build in-memory indexes ----------
+// NOTE: for this ordered query to be fast at scale, add an .indexOn rule in the
+// Firebase console for this path, e.g.:
+//   "artifacts": { "default-app-id": { "students": { ".indexOn": ["Grade", "Class", "Official Student Name", "Assessment No"] } } }
+// Without that rule, Realtime Database still works but falls back to an in-memory
+// scan on the server for every orderByChild query once the roster grows large.
+async function loadAllStudents(){
+  $('resultCount').textContent = 'Loading students…';
+  try{
+    const snap = await get(ref(db, STUDENTS_PATH));
+    const data = snap.exists() ? snap.val() : {};
+    allStudents = Object.entries(data).map(([id, val]) => ({ id, ...val }))
+      .sort((a, b) => String(a['Official Student Name'] || '').localeCompare(String(b['Official Student Name'] || '')));
+
+    // Build indexes once so filtering never re-scans the full roster
+    rebuildIndexes();
+
+    const grades = [...byGrade.keys()].sort();
+    const classes = [...byClass.keys()].sort();
+    $('filterGrade').innerHTML = '<option value="">All Grades</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
+    $('filterClass').innerHTML = '<option value="">All Classes</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+
+    currentPage = 1;
+    renderResults();
+  }catch(err){
+    console.error(err);
+    $('resultCount').textContent = 'Could not load students: ' + (err.code || err.message || 'unknown error') + ' — please refresh and try again.';
+  }
+}
+
+// ---------- Live filter: uses the Grade/Class indexes as the starting set, then paginates ----------
+function getFilteredCandidates(){
+  const grade = $('filterGrade').value;
+  const klass = $('filterClass').value;
+  const nameQuery = $('filterName').value.trim().toLowerCase();
+
+  // Start from the smallest relevant index instead of scanning the whole roster
+  let candidates;
+  if(grade && klass){
+    const gradeSet = new Set(byGrade.get(grade) || []);
+    candidates = (byClass.get(klass) || []).filter(s => gradeSet.has(s));
+  } else if(grade){
+    candidates = byGrade.get(grade) || [];
+  } else if(klass){
+    candidates = byClass.get(klass) || [];
+  } else {
+    candidates = allStudents;
+  }
+
+  if(nameQuery){
+    candidates = candidates.filter(s => String(s['Official Student Name'] || '').toLowerCase().includes(nameQuery));
+  }
+  return candidates;
+}
+
+function renderResults(){
+  lastFiltered = getFilteredCandidates();
+  const total = lastFiltered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if(currentPage > totalPages) currentPage = totalPages;
+
+  $('resultCount').textContent = `${total} student${total === 1 ? '' : 's'} found`;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = lastFiltered.slice(start, start + PAGE_SIZE);
+
+  const list = $('resultList');
+  if(!total){
+    list.innerHTML = '<div class="result-empty">No matching students. Try adjusting the filters.</div>';
+  } else {
+    list.innerHTML = pageItems.map(s => `
+      <div class="result-row" data-id="${s.id}">
+        <span class="r-name">${(s['Official Student Name'] || 'Unnamed')}</span>
+        <span class="r-meta">${[s['Grade'], s['Class'], s['Assessment No'] ? 'Assessment No ' + s['Assessment No'] : ''].filter(Boolean).join(' · ')}</span>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.result-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const student = allStudents.find(s => s.id === row.dataset.id);
+        if(student) openEditForm(student);
+      });
+    });
+  }
+
+  // Pagination controls
+  const bar = $('paginationBar');
+  if(total > PAGE_SIZE){
+    bar.style.display = 'flex';
+    $('pageIndicator').textContent = `Page ${currentPage} of ${totalPages}`;
+    $('prevPageBtn').disabled = currentPage <= 1;
+    $('nextPageBtn').disabled = currentPage >= totalPages;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+$('prevPageBtn').addEventListener('click', () => { currentPage--; renderResults(); });
+$('nextPageBtn').addEventListener('click', () => { currentPage++; renderResults(); });
+
+function resetPageAndRender(){
+  currentPage = 1;
+  renderResults();
+}
+
+$('filterGrade').addEventListener('change', resetPageAndRender);
+$('filterClass').addEventListener('change', resetPageAndRender);
+$('filterName').addEventListener('input', () => {
+  // Debounce so fast typing doesn't re-filter/re-render on every keystroke
+  clearTimeout(filterDebounceTimer);
+  filterDebounceTimer = setTimeout(resetPageAndRender, 180);
+});
+
+// ---------- Open the edit form for a picked student ----------
+function openEditForm(rec){
+  currentId = rec.id;
+  currentRecord = rec;
+  originalValues = {};
+
+  document.querySelectorAll('#enrollForm [data-field]').forEach(inp => {
+    const field = inp.dataset.field;
+    const val = rec[field] ?? '';
+    inp.value = val;
+    originalValues[field] = val;
+    inp.classList.remove('changed');
+    if(val) inp.classList.add('filled');
+  });
+
+  $('reviewedByLine').textContent = currentUserEmail;
+  $('reviewedDateLine').textContent = new Date().toLocaleDateString();
+
+  const photoImg = $('studentPhoto');
+  const photoSrc = _photoPath(rec['Official Student Name'], rec['Grade']) || './student_images/default.jpg';
+  photoImg.onerror = () => { photoImg.onerror = null; photoImg.src = './student_images/default.jpg'; };
+  photoImg.src = photoSrc;
+
+  $('pickerView').style.display = 'none';
+  $('wrapper').style.display = 'block';
+  $('backBtn').style.display = 'flex';
+  $('printBtn').style.display = 'flex';
+  $('submitBtn').style.display = 'flex';
+}
+
+document.querySelectorAll('#enrollForm [data-field]').forEach(inp => {
+  inp.addEventListener('input', () => {
+    const field = inp.dataset.field;
+    inp.classList.toggle('changed', inp.value.trim() !== String(originalValues[field] ?? '').trim());
+    if(inp.value.trim()) inp.classList.add('filled');
+  });
+});
+
+$('backBtn').addEventListener('click', () => {
+  currentId = null; currentRecord = null; originalValues = {};
+  $('wrapper').style.display = 'none';
+  $('backBtn').style.display = 'none';
+  $('printBtn').style.display = 'none';
+  $('submitBtn').style.display = 'none';
+  $('pickerView').style.display = 'block';
+  renderResults();
+});
+
+// ---------- Save changes ----------
+$('submitBtn').addEventListener('click', async () => {
+  if(!currentId){
+    toast('Pick a student first.', 'error');
+    return;
+  }
+
+  const inputs = document.querySelectorAll('#enrollForm [data-field]');
+  const updates = {};
+  const changes = [];
+  inputs.forEach(inp => {
+    const field = inp.dataset.field;
+    const newVal = inp.value.trim();
+    const oldVal = String(originalValues[field] ?? '').trim();
+    if(newVal !== oldVal){
+      updates[field] = newVal;
+      changes.push({ field, oldVal, newVal });
+    }
+  });
+
+  if(!changes.length){
+    toast('No changes to save.');
+    return;
+  }
+
+  const btn = $('submitBtn');
+  btn.disabled = true;
+  try{
+    await update(ref(db, `${STUDENTS_PATH}/${currentId}`), updates);
+    for(const c of changes){
+      await logChange(currentId, c.field, c.oldVal, c.newVal, currentUserEmail);
+      originalValues[c.field] = c.newVal;
+      // keep the in-memory list in sync so re-opening from the picker shows fresh data
+      const idx = allStudents.findIndex(s => s.id === currentId);
+      if(idx !== -1) allStudents[idx][c.field] = c.newVal;
+    }
+    if(changes.some(c => c.field === 'Grade' || c.field === 'Class')){
+      rebuildIndexes();
+      // Refresh the Grade/Class dropdown options in case a new value was introduced
+      const grades = [...byGrade.keys()].sort();
+      const classes = [...byClass.keys()].sort();
+      $('filterGrade').innerHTML = '<option value="">All Grades</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
+      $('filterClass').innerHTML = '<option value="">All Classes</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+    document.querySelectorAll('#enrollForm [data-field].changed').forEach(i => i.classList.remove('changed'));
+    toast('Student record updated successfully.', 'success');
+  }catch(err){
+    console.error(err);
+    toast('Could not save changes — please try again.', 'error');
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+// ---------- Print / Save as PDF (captures the on-screen form exactly as-is into a real PDF) ----------
+async function downloadPdf(){
+  const target = $('wrapper');
+
+  // Make sure the printed values match what's currently typed/selected — html2canvas
+  // paints from the DOM attribute, so sync it from the live value first.
+  target.querySelectorAll('input').forEach(el => el.setAttribute('value', el.value));
+
+  const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#F5F1E8', useCORS: true });
+  const imgData = canvas.toDataURL('image/png');
+  const { jsPDF } = window.jspdf;
+
+  // A4 at 72dpi points
+  const a4Width = 595.28;
+  const a4Height = 841.89;
+  const imgWidth = a4Width;
+  const imgHeight = canvas.height * imgWidth / canvas.width;
+
+  if(imgHeight <= a4Height){
+    // Content fits on one page — size that page to the content height itself
+    // (still A4 width) instead of forcing the full A4 height, which is what
+    // was leaving blank space below the form.
+    const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: [a4Width, imgHeight] });
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    var finalPdf = pdf;
+  } else {
+    // Content genuinely spans multiple pages — paginate across true A4 pages.
+    const pdf = new jsPDF('p', 'pt', 'a4');
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= a4Height;
+    while(heightLeft > 0){
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= a4Height;
+    }
+    var finalPdf = pdf;
+  }
+
+  const studentName = ($('fullName')?.value || 'Student').trim().replace(/[^a-z0-9]+/gi, '_') || 'Student';
+  finalPdf.save(`Biodata_${studentName}.pdf`);
+}
+
+$('printBtn').addEventListener('click', async () => {
+  const btn = $('printBtn');
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Preparing PDF…';
+  try{
+    await downloadPdf();
+  }catch(err){
+    console.error(err);
+    toast('Could not generate PDF — please try again.', 'error');
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Print Report</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/toggle.css">
+    <link rel="shortcut icon" href="./default001.jpg" type="image/x-icon">
+        <script src="https://cdn.tailwindcss.com"></script>
+
+  
+</head>
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+
+            <h1><img src="logo.png" alt="" class="logo"> Termly Report Cards for All Students
+                 <p> 🎓Track and manage student result slips with ease</p>
+            </h1>
+                       <!-- Toggle Button (just the icon button) -->
+<button id="toggleBtn" class="fixed bottom-6 z-50 right-6 flex items-center justify-center w-16 h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+</button>
+
+<!-- Modal wrapper (empty, JS will fill content) -->
+<div id="linkModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900 bg-opacity-70 hidden ">
+    <div id="modalContent" class="bg-white rounded-2xl p-6 md:p-8 shadow-2xl max-w-lg w-full transform h-[80vh]">
+        <!-- JS will inject modal content here -->
+    </div>
+</div>
+        </div>
+
+        <div class="auth-section">
+            <div id="user-info">Please sign in to access the system</div>
+
+            <div id="grade-filter-notice" style="
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 10px 20px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+">
+    📚 Displaying all students...
+</div>
+
+
+            <div>
+                <button id="google-sign-in-btn">🔐 Sign in with Google</button>
+                <button id="sign-out-btn">🚪 Sign Out</button>
+            </div>
+           
+             
+
+        </div>
+
+
+
+
+        <!-- ══════════════════════════════════════════════════════════
+             TERM SELECTOR — Choose 1–3 terms to appear in report cards
+             ══════════════════════════════════════════════════════════ -->
+        <div id="term-selector-bar" style="
+            background: #f8f9fa;
+            border-top: 2px solid #e0e0e0;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 14px 24px;
+            display: none;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        ">
+            <!-- Label -->
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                <span style="font-size:22px;">📊</span>
+                <div>
+                    <div style="color:#2c3e50;font-weight:800;font-size:12px;letter-spacing:1.8px;text-transform:uppercase;">Report Card Grades</div>
+                    <div style="color:#7f8c8d;font-size:11px;margin-top:2px;">Select 2–3 grade nodes to merge into one report card</div>
+                </div>
+            </div>
+
+            <!-- Term chips -->
+            <div id="term-chips" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+
+            <!-- Live counter badge -->
+            <div id="term-count-badge" style="
+                margin-left:auto;
+                background:linear-gradient(135deg,#3498db 0%,#2980b9 100%);
+                color:white;font-size:12px;font-weight:800;
+                padding:7px 16px;border-radius:20px;letter-spacing:.4px;
+                white-space:nowrap;box-shadow:0 3px 10px rgba(52,152,219,.3);
+                transition:all .3s ease;
+            ">0 Terms Selected</div>
+
+            <!-- Validation warning -->
+            <div id="term-validation-msg" style="
+                display:none;width:100%;
+                background:#fdecea;border:1px solid #f5b7b1;
+                color:#c0392b;font-size:12px;font-weight:700;
+                padding:7px 14px;border-radius:8px;margin-top:2px;
+            ">⚠️ You must keep at least 1 term selected.</div>
+        </div>
+
+        <style>
+            .term-chip {
+                display:flex;align-items:center;gap:8px;
+                border:2px solid var(--chip-color, #bdc3c7);border-radius:30px;
+                padding:8px 18px;cursor:pointer;user-select:none;
+                background:white;
+                transition:background .22s,border-color .22s,transform .15s,box-shadow .22s;
+            }
+            .term-chip:hover { transform:translateY(-2px); }
+            .term-chip.tc-active {
+                background:color-mix(in srgb, var(--chip-color, #2980b9) 16%, white) !important;
+                box-shadow:0 0 0 3px color-mix(in srgb, var(--chip-color, #2980b9) 18%, transparent);
+            }
+            .term-chip .chip-tick { color:var(--chip-color, #2980b9);font-weight:900;font-size:13px; }
+            .term-chip:not(.tc-active) .chip-tick { display:none; }
+            .term-chip.tc-active .chip-tick { display:inline; }
+            .term-chip span.chip-label { color:var(--chip-color, #2c3e50);font-weight:600;font-size:13px; }
+        </style>
+
+        <div class="controls">
+            
+            <div class="control-group">
+                <label for="grade-filter">📚 Filter by Grade</label>
+                <select id="grade-filter">
+                    <option value="">All Grades</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="field-filter">📋 Missing Field</label>
+                <select id="field-filter" disabled>
+                    <option value="">Select Field...</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="search-input">🔍 Search Students</label>
+                <input type="text" id="search-input" placeholder="Search by name, UPI, phone...">
+            </div>
+
+            <div class="control-group">
+                <label for="items-per-page">📄 Items Per Page</label>
+                <select id="items-per-page">
+                    <option value="10">10 per page</option>
+                    <option value="25">25 per page</option>
+                    <option value="50">50 per page</option>
+                    <option value="100">100 per page</option>
+                </select>
+            </div>
+        </div>
+
+
+        <div id="print-area">
+           <div class="report-header">
+               <div id="report-summary">No data loaded yet</div>
+               <button class="export-btn" onclick="exportMissingDataToPdf()">📥 Export to PDF</button>
+           </div>
+           
+
+            <div class="table-container">
+                <table id="missing-data-table">
+                    <thead>
+                        <tr>
+                        <th>SN</th>
+                        <th>Grade</th>
+                            <th>Student Name</th>
+                            <th>Assessment No</th>
+                            <th>UPI</th>
+                            <th>Term</th>
+                            <th id="missing-field-header">Missing Field Value</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #7f8c8d;">
+                                Sign in to load student data
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-section">
+                <div id="pagination-info"></div>
+                <div id="pagination-controls"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        window.firebaseImports = {
+            initializeApp,
+            getDatabase,
+            ref,
+            onValue,
+            update,
+            getAuth,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged
+        };
+
+        // ── CRITICAL FIX ──────────────────────────────────────────────────────
+        // ES modules execute asynchronously, so window.firebaseImports is NOT
+        // ready when the regular <script> below runs.  We signal readiness here
+        // and let the app script wait for this event before initialising.
+        window.dispatchEvent(new Event('firebaseImportsReady'));
+        // ─────────────────────────────────────────────────────────────────────
+    </script>
+
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Your Application Script -->
+    <script src="./js/Termly-ReportsRmks.js"></script>
+</body>
+</html>

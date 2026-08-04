@@ -1,0 +1,31 @@
+name: Supabase Heartbeat
+
+on:
+  schedule:
+    - cron: '0 3 * * 1,4'   # Every Monday & Thursday at 3:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Storage
+        run: |
+          echo "Pinging Supabase Storage to keep project active..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            "https://lnswbbabxfhdujktoabf.supabase.co/storage/v1/object/list/${BUCKET_NAME}" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"limit": 1, "prefix": ""}')
+          echo "Response code: $response"
+          if [ "$response" -ge 200 ] && [ "$response" -lt 300 ]; then
+            echo "✅ Heartbeat successful"
+          else
+            echo "❌ Heartbeat failed with status $response"
+            exit 1
+          fi
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          BUCKET_NAME: ${{ vars.SUPABASE_BUCKET_NAME || 'birth-certificates' }}

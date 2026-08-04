@@ -1,0 +1,13 @@
+# Live photo uploads — these land here at runtime and should NOT be committed.
+# Render's persistent Disk (or your VPS's normal filesystem) keeps this folder
+# around across deploys/restarts; Git doesn't need to know about its contents.
+/student_images/*
+!/student_images/.gitkeep
+
+# Put any photos you DO want committed (e.g. the ones you already have today)
+# into student_images_seed/ instead — server.js copies them into student_images/
+# automatically the first time it boots against an empty disk.
+
+node_modules/
+.env
+*.log

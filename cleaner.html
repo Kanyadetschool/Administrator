@@ -1,0 +1,3260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanyadet — Database Field Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.12.0/tsparticles.slim.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<style>
+:root {
+  --cyan:#00d4ff; --blue:#2980b9; --purple:#8b5cf6;
+  --green:#10b981; --red:#ef4444; --amber:#f59e0b; --orange:#f97316;
+  --r:16px; --rm:12px; --rs:9px;
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"] {
+  --bg:#060b14; --card:rgba(10,18,30,.92); --card2:rgba(8,15,26,.88);
+  --text:#e2f0ff; --text2:#7eb8d4; --text3:#3a6880;
+  --border:rgba(0,212,255,.12); --border2:rgba(0,212,255,.22);
+  --topbar:rgba(4,9,18,.88); --input:rgba(14,24,40,.95);
+  --shadow:0 4px 24px rgba(0,0,0,.6),0 0 0 1px rgba(0,212,255,.06);
+  --shadow-h:0 12px 48px rgba(0,0,0,.8),0 0 0 1px rgba(0,212,255,.18);
+}
+[data-theme="light"] {
+  --bg:#f0f6fb; --card:#fff; --card2:#f4f8fc;
+  --text:#0d2035; --text2:#3a6080; --text3:#7aabc5;
+  --border:rgba(41,128,185,.18); --border2:rgba(41,128,185,.35);
+  --topbar:rgba(240,246,251,.92); --input:#f4f8fc;
+  --shadow:0 2px 14px rgba(41,128,185,.08);
+  --shadow-h:0 8px 28px rgba(41,128,185,.14);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden;
+  transition:background .4s,color .4s;
+}
+
+/* ── BG layers ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at -10% -5%, rgba(0,212,255,.09) 0%,transparent 55%),
+    radial-gradient(ellipse 70% 55% at 110% 105%,rgba(139,92,246,.08) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 45% at 50% 50%, rgba(41,128,185,.05) 0%,transparent 65%);
+  animation:auroraDrift 18s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift{
+  0%{opacity:1;filter:hue-rotate(0deg);}
+  50%{opacity:.85;filter:hue-rotate(8deg);}
+  100%{opacity:1;filter:hue-rotate(4deg);}
+}
+[data-theme="light"] body::before{animation:none;opacity:.5;}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.007) 2px,rgba(0,212,255,.007) 4px);
+}
+[data-theme="light"] body::after{display:none;}
+#tsparticles{position:fixed;inset:0;z-index:0;pointer-events:none;}
+[data-theme="light"] #tsparticles{opacity:.3;}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  background:var(--topbar);
+  backdrop-filter:blur(24px) saturate(180%);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  padding:0 28px;min-height:64px;gap:8px;
+  transition:background .4s;
+}
+.topbar::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#00d4ff,#8b5cf6,#14b8a6,#00d4ff);
+  background-size:200% 100%;
+  animation:topbarShimmer 4s linear infinite;
+}
+@keyframes topbarShimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-logo{
+  width:40px;height:40px;border-radius:10px;
+  background:linear-gradient(135deg,#2980b9,#1a5276);
+  border:1.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;overflow:hidden;
+}
+.brand-logo img{width:100%;height:100%;object-fit:cover;border-radius:9px;}
+.brand-name{
+  font-size:15px;font-weight:800;letter-spacing:-.02em;
+  background:linear-gradient(90deg,#e2f0ff 30%,#00d4ff 50%,#e2f0ff 70%);
+  background-size:200% 100%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:brandShimmer 5s ease-in-out infinite;
+}
+[data-theme="light"] .brand-name{background:none;-webkit-text-fill-color:#0d2035;color:#0d2035;}
+@keyframes brandShimmer{0%,100%{background-position:200% 0;}50%{background-position:-200% 0;}}
+.brand-sub{font-size:10px;color:rgba(0,212,255,.55);font-weight:600;letter-spacing:.04em;margin-top:1px;}
+[data-theme="light"] .brand-sub{color:#3a6080;}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+/* theme toggle */
+.theme-toggle{
+  width:54px;height:28px;border-radius:14px;
+  background:rgba(0,212,255,.08);border:1.5px solid rgba(0,212,255,.2);
+  cursor:pointer;position:relative;display:flex;align-items:center;padding:3px;
+  transition:all .3s var(--spring);flex-shrink:0;
+  box-shadow:0 0 12px rgba(0,212,255,.1),inset 0 0 8px rgba(0,212,255,.05);
+}
+[data-theme="light"] .theme-toggle{background:rgba(41,128,185,.1);border-color:rgba(41,128,185,.22);box-shadow:none;}
+.theme-toggle::after{
+  content:'';width:20px;height:20px;border-radius:50%;
+  background:linear-gradient(135deg,#00d4ff,#2980b9);
+  transition:transform .38s var(--spring);transform:translateX(0);
+  box-shadow:0 0 10px rgba(0,212,255,.5),0 2px 6px rgba(0,0,0,.4);
+}
+[data-theme="light"] .theme-toggle::after{background:linear-gradient(135deg,#2980b9,#1a5276);transform:translateX(26px);box-shadow:0 2px 6px rgba(0,0,0,.2);}
+.theme-icon{position:absolute;font-size:11px;line-height:1;transition:opacity .25s;pointer-events:none;}
+.theme-icon.moon{left:7px;opacity:1;}
+.theme-icon.sun{right:6px;opacity:.3;}
+[data-theme="light"] .theme-icon.moon{opacity:.3;}
+[data-theme="light"] .theme-icon.sun{opacity:1;}
+.theme-toggle:hover{transform:scale(1.08);border-color:rgba(0,212,255,.4);}
+
+/* user pill */
+.user-pill{
+  display:flex;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:40px;padding:4px 14px 4px 5px;
+  font-size:12px;color:var(--text);font-weight:600;
+  transition:all .3s;
+}
+.user-av{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#f97316,#f59e0b);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#fff;flex-shrink:0;
+  overflow:hidden;
+}
+.user-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+
+/* btns */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:var(--rs);border:none;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;font-weight:700;transition:all .2s;
+  position:relative;overflow:hidden;white-space:nowrap;
+}
+.btn::after{
+  content:'';position:absolute;top:0;left:-110%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
+  transition:left .4s ease;pointer-events:none;
+}
+.btn:hover::after{left:110%;}
+.btn-cyan{background:linear-gradient(135deg,#00d4ff,#2980b9);color:#fff;box-shadow:0 4px 16px rgba(0,212,255,.3);}
+.btn-cyan:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,212,255,.45);}
+.btn-red{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;box-shadow:0 4px 16px rgba(239,68,68,.3);}
+.btn-red:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(239,68,68,.45);}
+.btn-green{background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 4px 16px rgba(16,185,129,.3);}
+.btn-green:hover{transform:translateY(-2px);}
+.btn-ghost{background:transparent;border:1.5px solid var(--border2);color:var(--text2);}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
+.btn:active{transform:scale(.97) translateY(0);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none !important;}
+
+/* ── MAIN ── */
+.main{max-width:1200px;margin:0 auto;padding:32px 24px 80px;position:relative;z-index:1;}
+
+/* ── CARDS ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);box-shadow:var(--shadow);
+  backdrop-filter:blur(12px) saturate(160%);
+  -webkit-backdrop-filter:blur(12px) saturate(160%);
+  transition:box-shadow .3s,border-color .3s;
+  animation:cardIn .4s var(--ease) both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.card:hover{box-shadow:var(--shadow-h);border-color:var(--border2);}
+.card-header{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:linear-gradient(135deg,rgba(0,212,255,.04) 0%,transparent 60%);
+  border-radius:var(--r) var(--r) 0 0;
+}
+.card-title{font-size:16px;font-weight:800;letter-spacing:-.02em;}
+.card-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.card-body{padding:24px;}
+
+/* ── AUTH SCREEN ── */
+#auth-screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:calc(100vh - 64px);gap:24px;text-align:center;
+  position:relative;z-index:1;padding:40px 20px;
+}
+[data-theme="dark"] #auth-screen::after{
+  content:'';position:fixed;width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,255,.07) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:authOrb 6s ease-in-out infinite;pointer-events:none;
+}
+@keyframes authOrb{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.7;}50%{transform:translate(-50%,-52%) scale(1.15);opacity:1;}}
+.auth-card{
+  background:rgba(8,15,28,.88);border:1px solid rgba(0,212,255,.18);
+  border-radius:20px;padding:48px;max-width:420px;width:100%;
+  box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px rgba(0,212,255,.1);
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  animation:authEntrance .55s var(--spring) both, authCardGlow 5s ease-in-out 1s infinite;
+  backdrop-filter:blur(20px);position:relative;z-index:1;
+}
+[data-theme="light"] .auth-card{
+  background:#fff;border-color:rgba(41,128,185,.15);
+  box-shadow:0 8px 40px rgba(41,128,185,.12);
+  animation:authEntrance .55s var(--spring) both;
+}
+@keyframes authEntrance{from{opacity:0;transform:scale(.9) translateY(24px);}to{opacity:1;transform:scale(1) translateY(0);}}
+@keyframes authCardGlow{
+  0%,100%{box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px rgba(0,212,255,.1),0 0 60px rgba(0,212,255,.04);}
+  50%{box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px rgba(139,92,246,.2),0 0 60px rgba(139,92,246,.08);}
+}
+.auth-icon{font-size:52px;animation:float 4s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(0,212,255,.4));}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.auth-title{
+  font-size:26px;font-weight:800;letter-spacing:-.03em;
+  background:linear-gradient(135deg,#e2f0ff 0%,#00d4ff 50%,#8b5cf6 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+[data-theme="light"] .auth-title{-webkit-text-fill-color:#0d2035;background:none;color:#0d2035;}
+.auth-sub{color:var(--text2);font-size:13px;line-height:1.7;max-width:320px;}
+.auth-warning{
+  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);
+  border-left:4px solid #f59e0b;border-radius:10px;padding:12px 16px;
+  font-size:12px;color:var(--amber);line-height:1.6;text-align:left;width:100%;
+}
+[data-theme="light"] .auth-warning{background:rgba(245,158,11,.07);color:#92400e;}
+
+/* ── LOADER ── */
+#loader{
+  position:fixed;inset:0;z-index:9999;background:var(--bg);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+}
+.ld-ring-wrap{position:relative;width:80px;height:80px;z-index:1;}
+.ld-outer,.ld-inner{position:absolute;border-radius:50%;border:2px solid transparent;}
+.ld-outer{inset:0;border-top-color:#00d4ff;border-right-color:rgba(0,212,255,.3);animation:spin .9s linear infinite;box-shadow:0 0 16px rgba(0,212,255,.3);}
+.ld-inner{inset:12px;border-bottom-color:#8b5cf6;border-left-color:rgba(139,92,246,.3);animation:spin 1.3s linear infinite reverse;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ld-logo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;animation:ldPulse 2s ease-in-out infinite;}
+@keyframes ldPulse{0%,100%{opacity:1;transform:scale(1);filter:drop-shadow(0 0 20px rgba(0,212,255,.4));}50%{opacity:.7;transform:scale(.88);filter:drop-shadow(0 0 8px rgba(0,212,255,.15));}}
+.ld-bar{width:180px;height:2px;background:rgba(0,212,255,.1);border-radius:2px;overflow:hidden;position:relative;z-index:1;}
+.ld-fill{height:100%;background:linear-gradient(90deg,transparent,#00d4ff,#8b5cf6,transparent);animation:ldLoad 1.6s ease-in-out infinite;}
+@keyframes ldLoad{0%{transform:translateX(-100%);}100%{transform:translateX(300%);}}
+.ld-text{font-size:12px;color:rgba(0,212,255,.5);font-weight:600;letter-spacing:.14em;text-transform:uppercase;z-index:1;}
+[data-theme="light"] .ld-text{color:var(--text2);text-transform:none;letter-spacing:normal;}
+
+/* ── NOTIF ── */
+#notif-area{position:fixed;top:76px;right:16px;z-index:9000;display:flex;flex-direction:column;gap:8px;max-width:340px;width:calc(100vw - 32px);}
+.notif{
+  padding:13px 16px;border-radius:12px;display:flex;align-items:flex-start;gap:10px;
+  font-size:12.5px;font-weight:600;line-height:1.5;cursor:pointer;
+  animation:notifIn .4s var(--spring) both;
+  background:rgba(8,15,28,.96);backdrop-filter:blur(20px);
+  border:1px solid var(--border2);
+  box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 20px rgba(0,212,255,.06);
+  transition:opacity .3s;
+}
+[data-theme="light"] .notif{background:#fff;border-color:rgba(41,128,185,.18);box-shadow:0 4px 20px rgba(41,128,185,.12);}
+.notif.success{border-color:rgba(16,185,129,.4);color:#34d399;}
+.notif.error{border-color:rgba(239,68,68,.4);color:#f87171;}
+.notif.info{border-color:rgba(0,212,255,.35);color:#00d4ff;}
+.notif.warning{border-color:rgba(245,158,11,.4);color:#fbbf24;}
+[data-theme="light"] .notif.success{color:#059669;}
+[data-theme="light"] .notif.error{color:#dc2626;}
+[data-theme="light"] .notif.info{color:#1a5276;}
+[data-theme="light"] .notif.warning{color:#92400e;}
+@keyframes notifIn{from{opacity:0;transform:translateX(80px) scale(.9);}to{opacity:1;transform:translateX(0) scale(1);}}
+
+/* ── STAT BAR ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px;}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--rm);
+  padding:18px 20px;box-shadow:var(--shadow);
+  transition:transform .2s var(--spring),box-shadow .2s,border-color .2s;
+  animation:statPop .4s var(--spring) both;
+}
+.stat-card:nth-child(1){animation-delay:.05s;}
+.stat-card:nth-child(2){animation-delay:.10s;}
+.stat-card:nth-child(3){animation-delay:.15s;}
+.stat-card:nth-child(4){animation-delay:.20s;}
+@keyframes statPop{from{opacity:0;transform:scale(.88) translateY(12px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-h);border-color:var(--border2);}
+.stat-icon{font-size:22px;margin-bottom:8px;}
+.stat-val{font-size:26px;font-weight:800;letter-spacing:-.03em;font-family:'JetBrains Mono',monospace;}
+.stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-top:3px;font-weight:700;}
+
+/* ── FIELD TABLE ── */
+.field-table-wrap{overflow-x:auto;}
+.field-table{width:100%;border-collapse:collapse;}
+.field-table th{
+  padding:11px 14px;text-align:left;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--cyan);
+  background:rgba(0,212,255,.06);border-bottom:2px solid rgba(0,212,255,.15);
+  white-space:nowrap;
+}
+[data-theme="light"] .field-table th{color:#1a5276;background:rgba(41,128,185,.06);border-bottom-color:rgba(41,128,185,.18);}
+.field-table td{
+  padding:10px 14px;font-size:12.5px;border-bottom:1px solid var(--border);
+  transition:background .15s;vertical-align:middle;
+}
+.field-table tr:last-child td{border-bottom:none;}
+.field-table tr:hover td{background:rgba(0,212,255,.03);}
+[data-theme="light"] .field-table tr:hover td{background:rgba(41,128,185,.03);}
+
+.field-name{
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+  color:var(--cyan);background:rgba(0,212,255,.07);
+  padding:3px 8px;border-radius:6px;border:1px solid rgba(0,212,255,.15);
+  display:inline-block;
+}
+[data-theme="light"] .field-name{color:#1a5276;background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.2);}
+
+.field-type{
+  font-size:11px;padding:2px 8px;border-radius:6px;font-weight:700;
+}
+.type-meta{background:rgba(139,92,246,.12);color:#c4b5fd;border:1px solid rgba(139,92,246,.25);}
+.type-score{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.25);}
+.type-text{background:rgba(0,212,255,.1);color:#00d4ff;border:1px solid rgba(0,212,255,.2);}
+[data-theme="light"] .type-meta{background:rgba(139,92,246,.08);color:#6d28d9;}
+[data-theme="light"] .type-score{background:rgba(16,185,129,.08);color:#059669;}
+[data-theme="light"] .type-text{background:rgba(41,128,185,.08);color:#1a5276;}
+
+.sample-val{
+  font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace;
+  max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.count-badge{
+  font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;
+  background:rgba(0,212,255,.08);color:var(--text2);
+}
+
+/* checkbox */
+.cb-wrap{display:flex;align-items:center;gap:8px;}
+.cb-wrap input[type="checkbox"]{
+  width:18px;height:18px;cursor:pointer;accent-color:#00d4ff;
+  border-radius:4px;
+}
+[data-theme="light"] .cb-wrap input[type="checkbox"]{accent-color:#2980b9;}
+
+/* select all bar */
+.select-bar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 16px;background:rgba(0,212,255,.04);
+  border:1px solid var(--border);border-radius:var(--rs);margin-bottom:16px;
+  font-size:13px;color:var(--text2);
+}
+[data-theme="light"] .select-bar{background:rgba(41,128,185,.04);}
+.select-count{font-weight:700;color:var(--cyan);}
+[data-theme="light"] .select-count{color:#1a5276;}
+
+/* ── CONFIRM DIALOG ── */
+.overlay{
+  position:fixed;inset:0;z-index:8000;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(10px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.overlay.open{display:flex;}
+.dialog{
+  background:rgba(8,15,28,.96);border:1px solid rgba(239,68,68,.3);
+  border-radius:20px;padding:36px;max-width:460px;width:100%;
+  box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px rgba(239,68,68,.1);
+  animation:dialogPop .4s var(--spring) both;
+  backdrop-filter:blur(20px);
+}
+[data-theme="light"] .dialog{background:#fff;border-color:rgba(239,68,68,.25);box-shadow:0 8px 40px rgba(0,0,0,.2);}
+@keyframes dialogPop{from{opacity:0;transform:scale(.85) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.dialog-icon{font-size:44px;margin-bottom:16px;}
+.dialog-title{font-size:20px;font-weight:800;color:#f87171;margin-bottom:8px;letter-spacing:-.02em;}
+[data-theme="light"] .dialog-title{color:#dc2626;}
+.dialog-body{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px;}
+.dialog-fields{
+  background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);
+  border-radius:10px;padding:12px 14px;margin-bottom:20px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:#f87171;
+  max-height:120px;overflow-y:auto;line-height:1.8;
+}
+[data-theme="light"] .dialog-fields{background:rgba(239,68,68,.04);color:#dc2626;}
+.dialog-actions{display:flex;gap:10px;justify-content:flex-end;}
+.type-input{
+  background:rgba(0,212,255,.04);border:1.5px solid var(--border2);border-radius:8px;
+  color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;
+  padding:9px 13px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;
+}
+.type-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.12);}
+[data-theme="light"] .type-input{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+.confirm-label{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600;}
+
+/* progress */
+.progress-bar-wrap{
+  width:100%;background:rgba(0,212,255,.1);border-radius:4px;height:6px;
+  margin:12px 0;overflow:hidden;
+}
+.progress-bar{height:100%;background:linear-gradient(90deg,#00d4ff,#8b5cf6);border-radius:4px;width:0%;transition:width .3s ease;}
+.progress-text{font-size:12px;color:var(--text2);text-align:center;}
+
+/* ── SEARCH ── */
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap input{
+  width:100%;padding:9px 12px 9px 36px;
+  background:var(--input);border:1.5px solid var(--border);
+  border-radius:var(--rs);color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.search-wrap input:focus{border-color:var(--border2);box-shadow:0 0 0 3px rgba(0,212,255,.08);}
+.search-wrap::before{content:'🔍';position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
+[data-theme="light"] .search-wrap input{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+
+/* ── empty state ── */
+.empty{text-align:center;padding:60px 20px;color:var(--text2);}
+.empty-icon{font-size:52px;opacity:.3;margin-bottom:14px;}
+
+/* ── section title ── */
+.section-title{
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--cyan);display:flex;align-items:center;gap:8px;margin-bottom:14px;
+}
+[data-theme="light"] .section-title{color:#1a5276;}
+.section-title::before{
+  content:'';display:inline-block;width:3px;height:14px;
+  background:linear-gradient(180deg,#00d4ff,#8b5cf6);border-radius:2px;
+}
+
+/* ── BULK EDIT GRADE ── */
+.grade-edit-grid{
+  display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;
+  margin-bottom:12px;
+}
+@media(max-width:700px){.grade-edit-grid{grid-template-columns:1fr;}}
+.field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:6px;}
+.grade-select,.grade-input-field{
+  width:100%;padding:9px 13px;
+  background:var(--input);border:1.5px solid var(--border);
+  border-radius:var(--rs);color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.grade-select:focus,.grade-input-field:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.12);}
+[data-theme="light"] .grade-select,[data-theme="light"] .grade-input-field{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+.grade-hint{font-size:11.5px;color:var(--text2);line-height:1.65;padding:10px 14px;background:rgba(0,212,255,.03);border:1px solid var(--border);border-radius:var(--rs);}
+
+/* grade confirm dialog – amber theme */
+#grade-overlay .dialog{border-color:rgba(245,158,11,.3);box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px rgba(245,158,11,.1);}
+#grade-overlay .dialog-title{color:#fbbf24;}
+[data-theme="light"] #grade-overlay .dialog{border-color:rgba(245,158,11,.3);}
+[data-theme="light"] #grade-overlay .dialog-title{color:#92400e;}
+
+/* th hover cue */
+.th-grade-edit{cursor:pointer;user-select:none;}
+.th-grade-edit:hover{color:var(--amber)!important;}
+
+/* ── UNIVERSAL FIELD EDITOR ── */
+.ufe-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;margin-bottom:12px;}
+@media(max-width:860px){.ufe-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.ufe-grid{grid-template-columns:1fr;}}
+.ufe-select,.ufe-input{
+  width:100%;padding:9px 13px;
+  background:var(--input);border:1.5px solid var(--border);
+  border-radius:var(--rs);color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.ufe-select:focus,.ufe-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.12);}
+[data-theme="light"] .ufe-select,[data-theme="light"] .ufe-input{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+.ufe-hint{font-size:11.5px;color:var(--text2);line-height:1.65;padding:10px 14px;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.15);border-radius:var(--rs);}
+.ufe-mode-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.ufe-mode-btn{
+  padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:transparent;color:var(--text2);font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .2s;font-family:'Plus Jakarta Sans',sans-serif;
+}
+.ufe-mode-btn.active{background:rgba(139,92,246,.18);border-color:rgba(139,92,246,.5);color:#c4b5fd;}
+[data-theme="light"] .ufe-mode-btn.active{background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.4);color:#6d28d9;}
+.ufe-mode-btn:hover{border-color:var(--border2);}
+
+/* ufe confirm dialog – purple theme */
+#ufe-overlay .dialog{border-color:rgba(139,92,246,.35);box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px rgba(139,92,246,.12);}
+#ufe-overlay .dialog-title{color:#c4b5fd;}
+[data-theme="light"] #ufe-overlay .dialog{border-color:rgba(139,92,246,.3);}
+[data-theme="light"] #ufe-overlay .dialog-title{color:#6d28d9;}
+
+/* ── BULK TERM REPLACE ── */
+.btr-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+@media(max-width:680px){.btr-row{grid-template-columns:1fr;}}
+.btr-select,.btr-input{width:100%;padding:9px 12px;background:var(--input);border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;}
+.btr-select:focus,.btr-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.12);}
+[data-theme="light"] .btr-select,[data-theme="light"] .btr-input{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+.btr-hint{font-size:11.5px;color:var(--text2);line-height:1.65;padding:10px 14px;background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.12);border-radius:var(--rs);margin-bottom:12px;}
+.btr-builder{background:rgba(0,212,255,.03);border:1px solid rgba(0,212,255,.12);border-radius:var(--rm);padding:16px;margin-bottom:12px;}
+.btr-builder-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--cyan);margin-bottom:12px;}
+[data-theme="light"] .btr-builder-title{color:#1a5276;}
+.btr-parts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:12px;}
+.btr-part{display:flex;flex-direction:column;gap:4px;}
+.btr-part-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);}
+.btr-preview-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.btr-preview{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;padding:8px 14px;border-radius:var(--rs);flex:1;min-width:0;background:rgba(16,185,129,.07);border:1.5px solid rgba(16,185,129,.25);color:#34d399;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+[data-theme="light"] .btr-preview{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.3);color:#059669;}
+.btr-preview.empty{color:var(--text3);border-color:var(--border);background:transparent;}
+.btr-as-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.btr-as-chip{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Plus Jakarta Sans',sans-serif;user-select:none;}
+.btr-as-chip.on{background:rgba(0,212,255,.15);border-color:rgba(0,212,255,.5);color:#00d4ff;}
+[data-theme="light"] .btr-as-chip.on{background:rgba(41,128,185,.1);border-color:rgba(41,128,185,.4);color:#1a5276;}
+.btr-as-chip:hover{border-color:var(--border2);}
+.btr-match-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:200px;overflow-y:auto;}
+.btr-match-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:var(--rs);background:rgba(255,255,255,.025);border:1px solid var(--border);font-size:12px;}
+[data-theme="light"] .btr-match-row{background:rgba(41,128,185,.03);}
+.btr-match-old{font-family:'JetBrains Mono',monospace;color:#f87171;font-size:11px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btr-match-arr{color:var(--text3);flex-shrink:0;}
+.btr-match-new{font-family:'JetBrains Mono',monospace;color:#34d399;font-size:11px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;}
+.btr-match-cnt{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(0,212,255,.08);color:var(--cyan);flex-shrink:0;}
+#btr-overlay .dialog{border-color:rgba(0,212,255,.35);box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px rgba(0,212,255,.12);max-width:540px;}
+#btr-overlay .dialog-title{color:#00d4ff;}
+[data-theme="light"] #btr-overlay .dialog{border-color:rgba(0,212,255,.3);}
+[data-theme="light"] #btr-overlay .dialog-title{color:#1a5276;}
+.btr-dlg-list{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;max-height:220px;overflow-y:auto;}
+.btr-dlg-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--rs);background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.1);font-size:11px;}
+.btr-dlg-old{font-family:'JetBrains Mono',monospace;color:#f87171;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btr-dlg-new{font-family:'JetBrains Mono',monospace;color:#34d399;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;}
+.btr-dlg-cnt{font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;background:rgba(0,212,255,.1);color:var(--cyan);flex-shrink:0;}
+
+/* ── MISSING SCORES ── */
+.ms-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.ms-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.ms-badge.danger{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);}
+.ms-badge.ok{background:rgba(16,185,129,.1);color:#34d399;border:1px solid rgba(16,185,129,.2);}
+.ms-badge.warn{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
+.ms-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.ms-table th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--cyan);background:rgba(0,212,255,.05);border-bottom:2px solid rgba(0,212,255,.12);white-space:nowrap;}
+[data-theme="light"] .ms-table th{color:#1a5276;background:rgba(41,128,185,.05);border-bottom-color:rgba(41,128,185,.15);}
+.ms-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.ms-table tr:last-child td{border-bottom:none;}
+.ms-table tr:hover td{background:rgba(239,68,68,.03);}
+.ms-missing-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;}
+.ms-missing-pill:hover{background:rgba(239,68,68,.2);transform:scale(1.05);}
+[data-theme="light"] .ms-missing-pill{color:#dc2626;}
+.ms-ok-pill{display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(16,185,129,.08);color:#34d399;border:1px solid rgba(16,185,129,.15);font-size:11px;}
+.ms-filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.ms-filter-chip{padding:5px 12px;border-radius:16px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Plus Jakarta Sans',sans-serif;}
+.ms-filter-chip.active{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#f87171;}
+[data-theme="light"] .ms-filter-chip.active{color:#dc2626;}
+.ms-filter-chip:hover{border-color:var(--border2);}
+.ms-score-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(0,212,255,.07);color:var(--text2);border:1px solid rgba(0,212,255,.1);margin:1px;}
+
+/* ── TERM DATE INJECTOR ── */
+.tdi-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;margin-bottom:12px;}
+@media(max-width:700px){.tdi-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:420px){.tdi-grid{grid-template-columns:1fr;}}
+.tdi-select{
+  width:100%;padding:9px 14px;background:var(--input);
+  border:1.5px solid var(--border);border-radius:var(--rs);
+  color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.tdi-select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+[data-theme="light"] .tdi-select{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+.tdi-hint{font-size:11.5px;color:var(--text2);line-height:1.65;padding:10px 14px;background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.12);border-radius:var(--rs);}
+.tdi-preview{font-size:12px;margin-top:10px;padding:10px 14px;border-radius:var(--rs);background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);color:var(--text2);line-height:1.8;}
+
+/* Flatpickr input wrapper */
+.tdi-fp-wrap{position:relative;}
+.tdi-fp-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;z-index:1;}
+.tdi-fp-input{
+  width:100%;padding:9px 14px 9px 36px;
+  background:var(--input);border:1.5px solid var(--border);
+  border-radius:var(--rs);color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;
+  outline:none;transition:border-color .2s,box-shadow .2s;cursor:pointer;
+}
+.tdi-fp-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+[data-theme="light"] .tdi-fp-input{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+
+/* ── Flatpickr dark theme overrides ── */
+[data-theme="dark"] .flatpickr-calendar{
+  background:rgba(8,15,28,.98)!important;
+  border:1.5px solid rgba(0,212,255,.25)!important;
+  border-radius:14px!important;
+  box-shadow:0 16px 48px rgba(0,0,0,.7),0 0 0 1px rgba(0,212,255,.08)!important;
+  font-family:'Plus Jakarta Sans',sans-serif!important;
+}
+[data-theme="dark"] .flatpickr-month{background:transparent!important;color:#e2f0ff!important;}
+[data-theme="dark"] .flatpickr-current-month{color:#e2f0ff!important;}
+[data-theme="dark"] .flatpickr-current-month .flatpickr-monthDropdown-months{
+  background:rgba(8,15,28,.98)!important;color:#e2f0ff!important;border-color:rgba(0,212,255,.2)!important;
+}
+[data-theme="dark"] .flatpickr-current-month input.cur-year{color:#e2f0ff!important;}
+[data-theme="dark"] .flatpickr-weekday{color:rgba(0,212,255,.6)!important;font-weight:700!important;}
+[data-theme="dark"] .flatpickr-day{color:#b0cfe0!important;border-radius:8px!important;}
+[data-theme="dark"] .flatpickr-day:hover{background:rgba(0,212,255,.15)!important;border-color:rgba(0,212,255,.3)!important;color:#00d4ff!important;}
+[data-theme="dark"] .flatpickr-day.today{border-color:rgba(0,212,255,.5)!important;color:#00d4ff!important;font-weight:800!important;}
+[data-theme="dark"] .flatpickr-day.selected,
+[data-theme="dark"] .flatpickr-day.selected:hover{
+  background:linear-gradient(135deg,#00d4ff,#2980b9)!important;
+  border-color:transparent!important;color:#fff!important;
+  box-shadow:0 2px 12px rgba(0,212,255,.4)!important;font-weight:800!important;
+}
+[data-theme="dark"] .flatpickr-day.prevMonthDay,
+[data-theme="dark"] .flatpickr-day.nextMonthDay{color:rgba(126,184,212,.25)!important;}
+[data-theme="dark"] .flatpickr-prev-month svg,
+[data-theme="dark"] .flatpickr-next-month svg{fill:#7eb8d4!important;}
+[data-theme="dark"] .flatpickr-prev-month:hover svg,
+[data-theme="dark"] .flatpickr-next-month:hover svg{fill:#00d4ff!important;}
+[data-theme="dark"] .numInputWrapper span.arrowUp:after{border-bottom-color:#7eb8d4!important;}
+[data-theme="dark"] .numInputWrapper span.arrowDown:after{border-top-color:#7eb8d4!important;}
+
+/* light theme overrides */
+[data-theme="light"] .flatpickr-calendar{
+  border-radius:14px!important;
+  box-shadow:0 8px 32px rgba(41,128,185,.18)!important;
+  font-family:'Plus Jakarta Sans',sans-serif!important;
+}
+[data-theme="light"] .flatpickr-day.selected,
+[data-theme="light"] .flatpickr-day.selected:hover{
+  background:linear-gradient(135deg,#2980b9,#1a5276)!important;
+  border-color:transparent!important;
+}
+
+/* ── UNDO BANNER ── */
+#undo-banner{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);
+  z-index:8500;display:flex;align-items:center;gap:12px;
+  background:rgba(8,15,28,.97);border:1.5px solid rgba(139,92,246,.45);
+  border-radius:14px;padding:13px 20px;
+  box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 0 1px rgba(139,92,246,.12);
+  backdrop-filter:blur(20px);font-size:13px;color:var(--text);
+  transition:transform .4s var(--spring),opacity .3s;opacity:0;min-width:320px;max-width:520px;
+}
+#undo-banner.show{transform:translateX(-50%) translateY(0);opacity:1;}
+[data-theme="light"] #undo-banner{background:#fff;border-color:rgba(139,92,246,.35);box-shadow:0 8px 28px rgba(139,92,246,.15);}
+.undo-msg{flex:1;font-weight:600;font-size:12.5px;color:var(--text2);}
+.undo-msg strong{color:var(--text);}
+.undo-btn{
+  padding:6px 14px;border-radius:8px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:800;
+  transition:all .2s;white-space:nowrap;flex-shrink:0;
+}
+.undo-btn:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(139,92,246,.4);}
+.undo-close{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 4px;flex-shrink:0;transition:color .2s;}
+.undo-close:hover{color:var(--text);}
+.undo-timer{width:100%;height:2px;background:rgba(139,92,246,.15);border-radius:2px;overflow:hidden;margin-top:10px;}
+.undo-timer-bar{height:100%;background:linear-gradient(90deg,#8b5cf6,#00d4ff);border-radius:2px;transition:width linear;}
+
+/* ── EXPORT CARD ── */
+.export-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;margin-bottom:12px;}
+@media(max-width:700px){.export-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:420px){.export-grid{grid-template-columns:1fr;}}
+.export-select{
+  width:100%;padding:9px 13px;background:var(--input);
+  border:1.5px solid var(--border);border-radius:var(--rs);
+  color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.export-select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+[data-theme="light"] .export-select{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+.export-hint{font-size:11.5px;color:var(--text2);line-height:1.65;padding:10px 14px;background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.15);border-radius:var(--rs);}
+.export-fmt-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.export-fmt-btn{
+  padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);
+  background:transparent;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+}
+.export-fmt-btn.active{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.4);color:#34d399;}
+[data-theme="light"] .export-fmt-btn.active{color:#059669;}
+.export-fmt-btn:hover:not(.active){border-color:var(--border2);}
+
+/* ── DUPLICATE DETECTOR ── */
+.dup-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.dup-table th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--cyan);background:rgba(0,212,255,.05);border-bottom:2px solid rgba(0,212,255,.12);white-space:nowrap;}
+[data-theme="light"] .dup-table th{color:#1a5276;background:rgba(41,128,185,.05);border-bottom-color:rgba(41,128,185,.15);}
+.dup-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.dup-table tr:last-child td{border-bottom:none;}
+.dup-table tr:hover td{background:rgba(239,68,68,.03);}
+.dup-count-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:10px;background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);font-size:11px;font-weight:800;}
+[data-theme="light"] .dup-count-badge{color:#dc2626;}
+.dup-keys{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:3px;}
+
+/* ── STUDENT RECORD EDITOR ── */
+.sre-search-wrap{position:relative;margin-bottom:14px;}
+.sre-search-wrap input{width:100%;padding:11px 16px 11px 40px;background:var(--input);border:1.5px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;}
+.sre-search-wrap input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+[data-theme="light"] .sre-search-wrap input{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+.sre-search-wrap::before{content:'🔍';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;}
+.sre-results{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--rs);margin-bottom:14px;display:none;}
+.sre-result-item{padding:10px 14px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.sre-result-item:last-child{border-bottom:none;}
+.sre-result-item:hover{background:rgba(0,212,255,.06);}
+[data-theme="light"] .sre-result-item:hover{background:rgba(41,128,185,.05);}
+.sre-result-name{font-size:13px;font-weight:700;color:var(--text);}
+.sre-result-meta{font-size:11px;color:var(--text2);}
+.sre-result-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid rgba(0,212,255,.15);white-space:nowrap;}
+
+/* record editor panel */
+.sre-editor{background:var(--card2);border:1px solid var(--border2);border-radius:var(--rm);padding:20px;display:none;}
+.sre-editor-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.sre-student-title{font-size:16px;font-weight:800;color:var(--text);}
+.sre-student-meta{font-size:12px;color:var(--text2);margin-top:2px;}
+.sre-fields-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px;}
+.sre-field-item{display:flex;flex-direction:column;gap:4px;}
+.sre-field-key{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);}
+.sre-field-val{padding:7px 10px;background:var(--input);border:1.5px solid var(--border);border-radius:7px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;}
+.sre-field-val:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+.sre-field-val.changed{border-color:var(--amber);background:rgba(245,158,11,.06);}
+.sre-field-val.missing{border-color:#ef4444;background:rgba(239,68,68,.07);}
+[data-theme="light"] .sre-field-val{background:#f4f8fc;border-color:rgba(41,128,185,.22);color:#0d2035;}
+.sre-save-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border);}
+.sre-change-count{font-size:12px;color:var(--amber);font-weight:700;}
+
+/* responsive */
+@media(max-width:640px){
+  .main{padding:16px 12px 60px;}
+  .topbar{padding:6px 14px;gap:6px;}
+  .topbar-right{width:100%;justify-content:flex-end;padding-bottom:6px;}
+  .brand-sub{display:none;}
+  .auth-card{padding:32px 24px;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:400px){
+  .user-pill span#user-name{display:none;}
+  #signout-btn{font-size:11px;padding:6px 10px;}
+}
+</style>
+</head>
+<body>
+
+<div id="tsparticles"></div>
+
+<div id="loader" style="display:flex;">
+  <div class="ld-ring-wrap">
+    <div class="ld-outer"></div>
+    <div class="ld-inner"></div>
+    <div class="ld-logo" id="ld-logo">🗃️</div>
+  </div>
+  <div class="ld-bar"><div class="ld-fill"></div></div>
+  <div class="ld-text">Connecting to database…</div>
+</div>
+
+<div id="notif-area"></div>
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo" id="brand-logo">🏫</div>
+    <div>
+      <div class="brand-name">Kanyadet School</div>
+      <div class="brand-sub">Database Field Manager</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+      <span class="theme-icon moon">🌙</span>
+      <span class="theme-icon sun">☀️</span>
+    </button>
+    <div class="user-pill" id="user-pill" style="display:none;">
+      <div class="user-av" id="user-av">?</div>
+      <span id="user-name">User</span>
+    </div>
+    <button class="btn btn-ghost" id="signout-btn" style="display:none;font-size:12px;padding:7px 14px;" onclick="doSignOut()">🚪 Sign Out</button>
+  </div>
+</header>
+
+<!-- ── AUTH ── -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-icon">🗃️</div>
+    <div class="auth-title">Field Manager</div>
+    <p class="auth-sub">Sign in with your authorised school Google account to manage database fields across all student records.</p>
+    <div class="auth-warning">
+      ⚠️ <strong>Admin access only.</strong> This tool permanently deletes fields from all student records in the database. Actions cannot be undone.
+    </div>
+    <button class="btn btn-cyan" style="width:100%;padding:13px;font-size:14px;justify-content:center;" onclick="doSignIn()" id="signin-btn">
+      🔐 Sign in with Google
+    </button>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashboard" style="display:none;">
+  <div class="main">
+
+    <!-- Stats row -->
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-val" id="stat-students" style="color:#00d4ff;">—</div>
+        <div class="stat-lbl">Total Records</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔑</div>
+        <div class="stat-val" id="stat-fields" style="color:#8b5cf6;">—</div>
+        <div class="stat-lbl">Unique Fields</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-val" id="stat-selected" style="color:#10b981;">0</div>
+        <div class="stat-lbl">Selected to Delete</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🗂️</div>
+        <div class="stat-val" id="stat-path" style="color:#f59e0b;font-size:12px;font-family:'JetBrains Mono',monospace;">—</div>
+        <div class="stat-lbl">DB Path</div>
+      </div>
+    </div>
+
+    <!-- ── STUDENT RECORD EDITOR ── -->
+    <div class="card" style="margin-bottom:20px;animation-delay:.03s;" id="sre-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🔎 Search & Edit Student Record</div>
+          <div class="card-sub">Search by student name, click a result to open and edit their full record for any term</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="sre-search-wrap">
+          <input type="text" id="sre-search-input" placeholder="Type student name…" oninput="sreSearch(this.value)" autocomplete="off">
+        </div>
+        <div class="sre-results" id="sre-results"></div>
+        <div class="sre-editor" id="sre-editor">
+          <div class="sre-editor-header">
+            <div>
+              <div class="sre-student-title" id="sre-name-title">—</div>
+              <div class="sre-student-meta" id="sre-meta-title">—</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-ghost" onclick="sreClear()" style="font-size:12px;padding:7px 12px;">✖ Close</button>
+            </div>
+          </div>
+          <div class="sre-fields-grid" id="sre-fields-grid"></div>
+          <div class="sre-save-bar">
+            <span class="sre-change-count" id="sre-change-count" style="display:none;"></span>
+            <button class="btn btn-green" id="sre-save-btn" onclick="sreSave()" disabled style="font-size:13px;">💾 Save Changes</button>
+            <button class="btn btn-ghost" onclick="sreReset()" style="font-size:12px;padding:7px 12px;">↺ Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MISSING SCORES DETECTOR ── -->
+    <div class="card" style="margin-bottom:20px;animation-delay:.04s;" id="ms-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">⚠️ Missing / Non-Numeric Scores</div>
+          <div class="card-sub">Detects students whose score fields are blank, non-numeric, or have suspicious values</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="msScan()" id="ms-scan-btn" style="font-size:12px;padding:8px 14px;">🔍 Scan Now</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="ms-content">
+          <div class="empty" style="padding:30px 20px;">
+            <div class="empty-icon" style="font-size:36px;">🔍</div>
+            <div style="color:var(--text2);font-size:13px;">Click "Scan Now" to detect students with missing or invalid scores</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── UNIVERSAL FIELD EDITOR ── -->
+    <div class="card" style="margin-bottom:20px;animation-delay:.06s;" id="ufe-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🛠️ Edit Any Field</div>
+          <div class="card-sub">Pick any field, choose a value to replace (or set all), and bulk-update across all records</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- Mode toggle -->
+        <div class="ufe-mode-row">
+          <button class="ufe-mode-btn active" id="ufe-mode-replace" onclick="ufeSetMode('replace')">🔁 Replace value</button>
+          <button class="ufe-mode-btn" id="ufe-mode-all" onclick="ufeSetMode('all')">📝 Set all records</button>
+          <button class="ufe-mode-btn" id="ufe-mode-rename" onclick="ufeSetMode('rename')">🏷️ Rename field key</button>
+        </div>
+        <!-- Controls grid -->
+        <div class="ufe-grid">
+          <div>
+            <div class="field-label">Field Name</div>
+            <select class="ufe-select" id="ufe-field-select" onchange="onUfeFieldChange()">
+              <option value="">— load data first —</option>
+            </select>
+          </div>
+          <div id="ufe-current-wrap">
+            <div class="field-label">Current Value (to replace)</div>
+            <select class="ufe-select" id="ufe-current-select" onchange="onUfeInputChange()" disabled>
+              <option value="">— pick a field first —</option>
+            </select>
+          </div>
+          <div>
+            <div class="field-label" id="ufe-new-label">New Value</div>
+            <input type="text" class="ufe-input" id="ufe-new-input" placeholder="Enter new value…" oninput="onUfeInputChange()" disabled>
+          </div>
+          <div>
+            <button class="btn btn-cyan" id="ufe-apply-btn" onclick="openUfeConfirm()" disabled style="height:40px;">🛠️ Apply</button>
+          </div>
+        </div>
+        <div class="ufe-hint" id="ufe-hint">Load data, choose a field, then set the value.</div>
+      </div>
+    </div>
+
+    <!-- ── BULK EDIT GRADE ── -->
+    <div class="card" style="margin-bottom:20px;animation-delay:.08s;" id="grade-edit-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">✏️ Bulk Edit Grade</div>
+          <div class="card-sub">Select an existing Grade value and replace it across all matching records</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="grade-edit-grid">
+          <div>
+            <div class="field-label">Current Grade (to replace)</div>
+            <select class="grade-select" id="grade-current-select" onchange="onGradeSelectChange()">
+              <option value="">— load data first —</option>
+            </select>
+          </div>
+          <div>
+            <div class="field-label">New Grade Value</div>
+            <input type="text" class="grade-input-field" id="grade-new-input" placeholder="e.g. Grade 7/2026/T2…" oninput="onGradeSelectChange()">
+          </div>
+          <div>
+            <button class="btn btn-green" id="grade-apply-btn" onclick="openGradeConfirm()" disabled>✏️ Apply</button>
+          </div>
+        </div>
+        <div class="grade-hint" id="grade-hint">Load data, then pick a Grade value to replace and type the new one.</div>
+      </div>
+    </div>
+
+    <!-- ── BULK MATCH & REPLACE TERM ── -->
+    <div class="card" style="margin-bottom:20px;animation-delay:.09s;" id="btr-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🔄 Bulk Replace Term Column</div>
+          <div class="card-sub">Select a Grade → pick existing Term values to replace → build the new Term pattern and apply in bulk</div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Step 1: select grade -->
+        <div class="btr-row">
+          <div>
+            <div class="field-label">① Select Grade</div>
+            <select class="btr-select" id="btr-grade-select" onchange="onBtrGradeChange()">
+              <option value="">— load data first —</option>
+            </select>
+          </div>
+          <div>
+            <div class="field-label">② Current Term values in this grade</div>
+            <select class="btr-select" id="btr-term-select" onchange="onBtrTermChange()" disabled>
+              <option value="">— pick a grade first —</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Step 2: pattern builder -->
+        <div class="btr-builder" id="btr-builder" style="display:none;">
+          <div class="btr-builder-title">🧩 Build New Term Pattern — e.g. <code style="font-size:11px;background:rgba(0,212,255,.1);padding:2px 6px;border-radius:4px;">Grade 5-2026-Mid-Term 1-As01</code></div>
+          <div class="btr-parts-grid">
+            <div class="btr-part">
+              <div class="btr-part-lbl">Grade Label</div>
+              <input class="btr-input" id="btr-p-grade" placeholder="e.g. Grade 5" oninput="btrUpdatePreview()">
+            </div>
+            <div class="btr-part">
+              <div class="btr-part-lbl">Year</div>
+              <input class="btr-input" id="btr-p-year" placeholder="e.g. 2026" oninput="btrUpdatePreview()">
+            </div>
+            <div class="btr-part">
+              <div class="btr-part-lbl">Term Type</div>
+              <select class="btr-select" id="btr-p-termtype" onchange="btrUpdatePreview()">
+                <option value="Term">Term</option>
+                <option value="Mid-Term">Mid-Term</option>
+                <option value="End-Term">End-Term</option>
+                <option value="opener">Opener</option>
+                <option value="">Custom ↓</option>
+              </select>
+            </div>
+            <div class="btr-part">
+              <div class="btr-part-lbl">Term Number</div>
+              <select class="btr-select" id="btr-p-termnum" onchange="btrUpdatePreview()">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+            <div class="btr-part" id="btr-custom-wrap" style="display:none;">
+              <div class="btr-part-lbl">Custom Term Type</div>
+              <input class="btr-input" id="btr-p-custom" placeholder="Custom term…" oninput="btrUpdatePreview()">
+            </div>
+          </div>
+          <!-- Assessment selector -->
+          <div class="btr-part-lbl" style="margin-bottom:6px;">③ Assessment suffixes to update (As01, ISDN001, or any value after the last "-")</div>
+          <div class="btr-as-row" id="btr-as-row"></div>
+          <!-- Preview -->
+          <div style="margin-top:14px;">
+            <div class="btr-part-lbl" style="margin-bottom:6px;">Live Preview (per selected assessment)</div>
+            <div class="btr-preview-wrap">
+              <div class="btr-preview empty" id="btr-preview">Fill in the fields above…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Match summary list -->
+        <div id="btr-match-section" style="display:none;">
+          <div class="btr-part-lbl" style="margin-bottom:8px;">📋 Planned replacements</div>
+          <div class="btr-match-list" id="btr-match-list"></div>
+          <button class="btn btn-cyan" id="btr-apply-btn" onclick="openBtrConfirm()" disabled>🔄 Apply All Replacements</button>
+        </div>
+
+        <div class="btr-hint" id="btr-hint">Select a Grade to get started.</div>
+      </div>
+    </div>
+
+    <!-- ── TERM DATE INJECTOR ── -->
+    <div class="card" style="margin-bottom:20px;animation-delay:.095s;" id="tdi-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">📅 Set Opening &amp; Closing Dates by Grade</div>
+          <div class="card-sub">Select a Grade — dates are written to every student across all terms in that grade</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="tdi-grid">
+          <div>
+            <div class="field-label">① Select Grade</div>
+            <select class="tdi-select" id="tdi-grade-select" onchange="onTdiGradeChange()">
+              <option value="">— load data first —</option>
+            </select>
+          </div>
+          <div>
+            <div class="field-label">② Closing Date</div>
+            <div class="tdi-fp-wrap">
+              <span class="tdi-fp-icon">📁</span>
+              <input type="text" class="tdi-fp-input" id="tdi-closing" placeholder="Pick closing date…" readonly>
+            </div>
+          </div>
+          <div>
+            <div class="field-label">③ Opening Date</div>
+            <div class="tdi-fp-wrap">
+              <span class="tdi-fp-icon">📂</span>
+              <input type="text" class="tdi-fp-input" id="tdi-opening" placeholder="Pick opening date…" readonly>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <button class="btn btn-cyan" id="tdi-apply-btn" onclick="openTdiConfirm()" disabled style="height:40px;width:100%;">📅 Apply Dates</button>
+          </div>
+        </div>
+        <div class="tdi-hint" id="tdi-hint">Select a Grade and enter both dates to continue.</div>
+        <div class="tdi-preview" id="tdi-preview" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- ── TDI CONFIRM DIALOG ── -->
+
+    <!-- ── DUPLICATE RECORDS DETECTOR ── -->
+    <div class="card" style="margin-bottom:20px;animation-delay:.097s;" id="dup-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🗂️ Duplicate Records Detector</div>
+          <div class="card-sub">Flags students who appear more than once with the same name and grade</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="dupScan()" id="dup-scan-btn" style="font-size:12px;padding:8px 14px;">🔍 Scan Now</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="dup-content">
+          <div class="empty" style="padding:30px 20px;">
+            <div class="empty-icon" style="font-size:36px;">🗂️</div>
+            <div style="color:var(--text2);font-size:13px;">Click "Scan Now" to detect duplicate student records</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CSV / EXCEL EXPORT ── -->
+    <div class="card" style="margin-bottom:20px;animation-delay:.098s;" id="export-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">📤 Export Records</div>
+          <div class="card-sub">Download all records or filter by Grade and/or Term as CSV or Excel</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="export-fmt-row">
+          <button class="export-fmt-btn active" id="exp-fmt-csv" onclick="expSetFmt('csv')">📄 CSV</button>
+          <button class="export-fmt-btn" id="exp-fmt-xlsx" onclick="expSetFmt('xlsx')">📊 Excel (.xlsx)</button>
+        </div>
+        <div class="export-grid">
+          <div>
+            <div class="field-label">Filter by Grade</div>
+            <select class="export-select" id="exp-grade-select" onchange="onExpChange()">
+              <option value="">— All Grades —</option>
+            </select>
+          </div>
+          <div>
+            <div class="field-label">Filter by Term</div>
+            <select class="export-select" id="exp-term-select" onchange="onExpChange()">
+              <option value="">— All Terms —</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <button class="btn btn-green" id="exp-download-btn" onclick="runExport()" style="height:40px;width:100%;">📥 Download</button>
+          </div>
+        </div>
+        <div class="export-hint" id="exp-hint">Select filters then download — leaving both blank exports everything.</div>
+      </div>
+    </div>
+
+    <!-- Fields card -->
+    <div class="card" style="animation-delay:.1s;">
+      <div class="card-header">
+        <div>
+          <div class="card-title">📋 Database Fields</div>
+          <div class="card-sub" id="fields-sub">Loading field inventory from all student records…</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-cyan" onclick="refreshData()" style="font-size:12px;padding:8px 14px;">🔄 Refresh</button>
+          <button class="btn btn-red" id="delete-btn" onclick="openConfirm()" disabled style="font-size:12px;padding:8px 14px;">🗑️ Delete Selected</button>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Select bar -->
+        <div class="select-bar">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-weight:600;">
+            <input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this.checked)" style="width:18px;height:18px;accent-color:#00d4ff;">
+            Select / Deselect All
+          </label>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+            <span class="select-count" id="sel-count-txt">0 selected</span>
+            <div class="search-wrap" style="min-width:180px;">
+              <input type="text" placeholder="Filter fields…" oninput="filterFields(this.value)" id="field-search">
+            </div>
+          </div>
+        </div>
+
+        <!-- Field type legend -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;font-size:11px;">
+          <span class="field-type type-meta">📌 Metadata</span>
+          <span class="field-type type-score">📊 Score / Number</span>
+          <span class="field-type type-text">💬 Text</span>
+          <span style="color:var(--text2);font-size:11px;margin-left:4px;">— hover a row for sample values</span>
+        </div>
+
+        <div class="field-table-wrap">
+          <table class="field-table">
+            <thead>
+              <tr>
+                <th style="width:40px;"></th>
+                <th>Field Name</th>
+                <th>Type</th>
+                <th>Coverage</th>
+                <th>Sample Value</th>
+                <th>Records with field</th>
+              </tr>
+            </thead>
+            <tbody id="field-tbody">
+              <tr><td colspan="6"><div class="empty"><div class="empty-icon">⏳</div>Loading…</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity log -->
+    <div class="card" style="margin-top:20px;animation-delay:.2s;">
+      <div class="card-header">
+        <div><div class="card-title">📜 Activity Log</div></div>
+        <button class="btn btn-ghost" onclick="clearLog()" style="font-size:11px;padding:6px 12px;">Clear</button>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div id="activity-log" style="max-height:220px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:16px 20px;line-height:1.9;color:var(--text2);">
+          <div style="color:var(--text3);">No actions yet.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── CONFIRM DIALOG ── -->
+<div class="overlay" id="confirm-overlay" onclick="if(event.target===this&&!_deleting)closeConfirm()">
+  <div class="dialog">
+    <div class="dialog-icon">⚠️</div>
+    <div class="dialog-title">Confirm Deletion</div>
+    <div class="dialog-body">
+      You are about to <strong>permanently delete</strong> the following fields from <strong id="dlg-count">—</strong> student records. This action <strong>cannot be undone</strong>.
+    </div>
+    <div class="dialog-fields" id="dlg-fields-list"></div>
+    <div class="confirm-label">Type <strong>DELETE</strong> to confirm:</div>
+    <input type="text" class="type-input" id="confirm-input" placeholder="Type DELETE here…" oninput="checkConfirmInput(this.value)" style="margin-bottom:16px;">
+    <div class="progress-bar-wrap" id="progress-wrap" style="display:none;">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="progress-text" id="progress-text"></div>
+    <div class="dialog-actions" style="margin-top:12px;">
+      <button class="btn btn-ghost" onclick="closeConfirm()" id="cancel-btn">Cancel</button>
+      <button class="btn btn-red" id="confirm-del-btn" disabled onclick="executeDelete()">🗑️ Delete Fields</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── BTR CONFIRM DIALOG ── -->
+<div class="overlay" id="btr-overlay" onclick="if(event.target===this&&!_btrSaving)closeBtrConfirm()">
+  <div class="dialog">
+    <div class="dialog-icon">🔄</div>
+    <div class="dialog-title">Confirm Term Replacements</div>
+    <div class="dialog-body">The following Term values in Grade <strong id="dlg-btr-grade">—</strong> will be replaced:</div>
+    <div class="btr-dlg-list" id="btr-dlg-list"></div>
+    <div class="progress-bar-wrap" id="btr-progress-wrap" style="display:none;">
+      <div class="progress-bar" id="btr-progress-bar"></div>
+    </div>
+    <div class="progress-text" id="btr-progress-text"></div>
+    <div class="dialog-actions" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeBtrConfirm()" id="btr-cancel-btn">Cancel</button>
+      <button class="btn btn-cyan" id="btr-confirm-btn" onclick="executeBtrUpdate()">🔄 Update Terms</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── GRADE EDIT CONFIRM DIALOG ── -->
+<div class="overlay" id="grade-overlay" onclick="if(event.target===this&&!_gradeSaving)closeGradeConfirm()">
+  <div class="dialog">
+    <div class="dialog-icon">✏️</div>
+    <div class="dialog-title">Confirm Grade Update</div>
+    <div class="dialog-body">
+      Replace <code id="dlg-grade-old" style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(239,68,68,.08);padding:2px 6px;border-radius:4px;">—</code> with <strong id="dlg-grade-new">—</strong> across <strong id="dlg-grade-count">—</strong> records. This overwrites the <strong>Grade</strong> field on every matching record.
+    </div>
+    <div class="progress-bar-wrap" id="grade-progress-wrap" style="display:none;">
+      <div class="progress-bar" id="grade-progress-bar"></div>
+    </div>
+    <div class="progress-text" id="grade-progress-text"></div>
+    <div class="dialog-actions" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeGradeConfirm()" id="grade-cancel-btn">Cancel</button>
+      <button class="btn btn-green" id="grade-confirm-btn" onclick="executeGradeUpdate()">✏️ Update Grades</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── UFE CONFIRM DIALOG ── -->
+<div class="overlay" id="ufe-overlay" onclick="if(event.target===this&&!_ufeSaving)closeUfeConfirm()">
+  <div class="dialog">
+    <div class="dialog-icon" id="ufe-dlg-icon">🛠️</div>
+    <div class="dialog-title" id="ufe-dlg-title">Confirm Field Update</div>
+    <div class="dialog-body" id="ufe-dlg-body">—</div>
+    <div class="progress-bar-wrap" id="ufe-progress-wrap" style="display:none;">
+      <div class="progress-bar" id="ufe-progress-bar"></div>
+    </div>
+    <div class="progress-text" id="ufe-progress-text"></div>
+    <div class="dialog-actions" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeUfeConfirm()" id="ufe-cancel-btn">Cancel</button>
+      <button class="btn btn-cyan" id="ufe-confirm-btn" onclick="executeUfeUpdate()">🛠️ Confirm Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TDI CONFIRM DIALOG ── -->
+<div class="overlay" id="tdi-overlay" onclick="if(event.target===this&&!_tdiSaving)closeTdiConfirm()">
+  <div class="dialog" style="max-width:500px;border-color:rgba(0,212,255,.35);">
+    <div class="dialog-icon">📅</div>
+    <div class="dialog-title" style="color:#00d4ff;">Confirm Date Assignment</div>
+    <div class="dialog-body" id="tdi-dlg-body">—</div>
+    <div style="margin:12px 0;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;padding:10px 14px;border-radius:8px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);font-size:13px;">
+        <span style="color:var(--text2);font-weight:600;">Opening Date</span>
+        <span id="tdi-dlg-opening" style="color:#34d399;font-family:'JetBrains Mono',monospace;font-weight:700;">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);font-size:13px;">
+        <span style="color:var(--text2);font-weight:600;">Closing Date</span>
+        <span id="tdi-dlg-closing" style="color:#f87171;font-family:'JetBrains Mono',monospace;font-weight:700;">—</span>
+      </div>
+    </div>
+    <div class="progress-bar-wrap" id="tdi-progress-wrap" style="display:none;">
+      <div class="progress-bar" id="tdi-progress-bar"></div>
+    </div>
+    <div class="progress-text" id="tdi-progress-text"></div>
+    <div class="dialog-actions" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeTdiConfirm()" id="tdi-cancel-btn">Cancel</button>
+      <button class="btn btn-cyan" id="tdi-confirm-btn" onclick="executeTdiUpdate()">📅 Write Dates</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SRE QUICK-FIX DIALOG (from missing scores) ── -->
+<div class="overlay" id="qfix-overlay" onclick="if(event.target===this)closeQfix()">
+  <div class="dialog" style="max-width:520px;border-color:rgba(245,158,11,.35);">
+    <div class="dialog-icon">✏️</div>
+    <div class="dialog-title" style="color:#fbbf24;" id="qfix-title">Fix Missing Score</div>
+    <div class="dialog-body" id="qfix-body">—</div>
+    <div id="qfix-fields" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;max-height:260px;overflow-y:auto;"></div>
+    <div class="progress-bar-wrap" id="qfix-progress-wrap" style="display:none;"><div class="progress-bar" id="qfix-progress-bar"></div></div>
+    <div class="progress-text" id="qfix-progress-text"></div>
+    <div class="dialog-actions" style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeQfix()" id="qfix-cancel-btn">Cancel</button>
+      <button class="btn btn-green" id="qfix-save-btn" onclick="executeQfix()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getDatabase, ref, get, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  window._fb = { initializeApp, getApps, getDatabase, ref, get, update, getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, getFirestore, doc, getDoc };
+  if(typeof window._fbReady==='function') window._fbReady();
+  else window._fbLoaded=true;
+</script>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const FB_CONFIG = {
+  apiKey:"AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE",
+  authDomain:"kanyadet-school-admin.firebaseapp.com",
+  databaseURL:"https://kanyadet-school-admin-default-rtdb.firebaseio.com",
+  projectId:"kanyadet-school-admin",
+  storageBucket:"kanyadet-school-admin.firebasestorage.app",
+  messagingSenderId:"409708360032",
+  appId:"1:409708360032:web:a21d63e8cb5fa1ecabee05"
+};
+const DB_PATHS = [
+  'Results/default-app-id/students',
+  'Results/students'
+];
+
+// ── STATE ────────────────────────────────────────────────────
+let db, auth, fb, firestoreDb;
+let allRecords = {};      // { firebaseKey: recordObj }
+let fieldStats = {};      // { fieldName: { count, samples, type } }
+let selectedFields = new Set();
+let _deleting = false;
+let _activePath = '';
+
+// ── THEME ────────────────────────────────────────────────────
+(()=>{
+  const saved = localStorage.getItem('kanyadet_dbcleaner_theme')||'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+})();
+function toggleTheme(){
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme')==='dark'?'light':'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('kanyadet_dbcleaner_theme', next);
+}
+
+// ── PARTICLES ────────────────────────────────────────────────
+function initParticles(){
+  if(!window.tsParticles) return;
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  tsParticles.load("tsparticles",{
+    fullScreen:{enable:false},fpsLimit:50,
+    particles:{
+      number:{value:dark?55:30,density:{enable:true,width:1920,height:1080}},
+      color:{value:dark?["#00d4ff","#8b5cf6","#14b8a6","#f59e0b","#ec4899","#3b82f6"]:["#2980b9","#27ae60","#8e44ad","#e67e22"]},
+      shape:{type:["circle","triangle"]},
+      opacity:{value:{min:.02,max:dark?.3:.15},animation:{enable:true,speed:.5,minimumValue:.02,sync:false}},
+      size:{value:{min:.8,max:dark?3:2}},
+      move:{enable:true,speed:{min:.2,max:dark?.7:.4},random:true,outModes:{default:"out"}},
+      links:{enable:dark,distance:120,color:"#00d4ff",opacity:.06,width:.8},
+      twinkle:{particles:{enable:true,frequency:.04,opacity:dark?.6:.25}}
+    },
+    interactivity:{events:{onHover:{enable:true,mode:"bubble"},onClick:{enable:true,mode:"push"},resize:true},
+      modes:{bubble:{distance:80,size:5,duration:.4,opacity:dark?.5:.2},push:{quantity:3}}},
+    detectRetina:true,background:{color:"transparent"}
+  });
+}
+setTimeout(initParticles, 300);
+
+// ── FIREBASE INIT ─────────────────────────────────────────────
+function _initFB(){
+  fb = window._fb;
+  const app = fb.getApps().length===0 ? fb.initializeApp(FB_CONFIG) : fb.getApps()[0];
+  db = fb.getDatabase(app);
+  auth = fb.getAuth(app);
+  firestoreDb = fb.getFirestore(app);
+  // Handle redirect result
+  fb.getRedirectResult(auth).catch(()=>{});
+  fb.onAuthStateChanged(auth, async user=>{
+    document.getElementById('loader').style.display='none';
+    if(user){
+      // ── Advanced Admin gate ──────────────────────────────────
+      // Only users whose Firestore users/{uid} doc has Advancedadmin === true
+      // may use this tool — mirrors the access-control pattern used across
+      // the rest of the Kanyadet admin suite. Matters even more here since
+      // this tool does bulk DB cleanup/deletion.
+      let allowed = false;
+      try {
+        const userDocSnap = await fb.getDoc(fb.doc(firestoreDb, 'users', user.uid));
+        allowed = userDocSnap.exists() && userDocSnap.data().Advancedadmin === true;
+      } catch(err) {
+        console.error('[AdvancedAdmin] Profile check failed:', err);
+        allowed = false;
+      }
+      if(!allowed){
+        log('⛔ Access restricted to Advanced Admins only.', 'error');
+        await fb.signOut(auth);
+        return; // onAuthStateChanged will re-fire with user=null and reset the UI
+      }
+      onSignedIn(user);
+    }
+    else onSignedOut();
+  });
+  tryLoadLogo();
+}
+window._fbReady = _initFB;
+if(window._fbLoaded) _initFB();
+
+// ── LOGO ─────────────────────────────────────────────────────
+function tryLoadLogo(){
+  const img = new Image();
+  img.src='./imgs/logo.png';
+  img.onload=()=>{
+    const w=document.getElementById('brand-logo');
+    if(w) w.innerHTML=`<img src="./imgs/logo.png" alt="Logo">`;
+    const ll=document.getElementById('ld-logo');
+    if(ll){ ll.style.fontSize='24px'; ll.innerHTML=`<img src="./imgs/logo.png" style="width:38px;height:38px;object-fit:cover;border-radius:8px;">`; }
+  };
+}
+
+// ── AUTH ─────────────────────────────────────────────────────
+function onSignedIn(user){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  document.getElementById('user-pill').style.display='flex';
+  document.getElementById('signout-btn').style.display='inline-flex';
+  document.getElementById('user-av').textContent=(user.displayName||user.email||'?')[0].toUpperCase();
+  if(user.photoURL){
+    const img=new Image(); img.src=user.photoURL;
+    img.onload=()=>{ document.getElementById('user-av').innerHTML=`<img src="${user.photoURL}">`; };
+  }
+  document.getElementById('user-name').textContent=user.displayName||user.email;
+  log(`✅ Signed in as ${user.email}`,'success');
+  loadData();
+}
+function onSignedOut(){
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('user-pill').style.display='none';
+  document.getElementById('signout-btn').style.display='none';
+}
+function doSignOut(){
+  fb.signOut(auth);
+  allRecords={}; fieldStats={}; selectedFields.clear();
+  notify('Signed out','info');
+}
+window.doSignOut=doSignOut;
+
+async function doSignIn(){
+  const btn=document.getElementById('signin-btn');
+  btn.textContent='⏳ Signing in…'; btn.disabled=true;
+  const provider=new fb.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:'select_account'});
+  try{
+    await fb.signInWithPopup(auth, provider);
+  } catch(e){
+    const blocked=['auth/popup-blocked','auth/popup-closed-by-user','auth/cancelled-popup-request'];
+    if(blocked.includes(e.code)){
+      try{ await fb.signInWithRedirect(auth,provider); return; }catch(e2){}
+    }
+    notify('Sign-in failed: '+e.message,'error');
+  } finally{
+    btn.textContent='🔐 Sign in with Google'; btn.disabled=false;
+  }
+}
+window.doSignIn=doSignIn;
+
+// ── DATA LOADING ──────────────────────────────────────────────
+async function loadData(){
+  document.getElementById('loader').style.display='flex';
+  document.getElementById('field-tbody').innerHTML=`<tr><td colspan="6"><div class="empty"><div class="empty-icon">⏳</div>Scanning database…</div></td></tr>`;
+  allRecords={}; fieldStats={}; selectedFields.clear();
+
+  let loaded=false;
+  for(const path of DB_PATHS){
+    try{
+      const snap = await fb.get(fb.ref(db, path));
+      const data = snap.val();
+      if(data && Object.keys(data).length>0){
+        Object.entries(data).forEach(([k,v])=>{ if(typeof v==='object'&&v!==null) allRecords[k]=v; });
+        _activePath=path;
+        loaded=true;
+        log(`📂 Loaded ${Object.keys(allRecords).length} records from ${path}`);
+        break;
+      }
+    } catch(e){ log(`⚠️ Could not read ${path}: ${e.message}`,'warning'); }
+  }
+
+  document.getElementById('loader').style.display='none';
+  if(!loaded){
+    notify('No records found. Check database path.','error');
+    document.getElementById('field-tbody').innerHTML=`<tr><td colspan="6"><div class="empty"><div class="empty-icon">📭</div><div>No records found</div></div></td></tr>`;
+    return;
+  }
+
+  analyseFields();
+  renderTable();
+  updateStats();
+  populateGradeSelect();
+  populateBtrGradeSelect();
+  populateUfeFieldSelect();
+  populateTdiTermSelect();
+  populateExportSelects();
+  document.getElementById('stat-path').textContent=_activePath;
+}
+window.refreshData=loadData;
+
+// ── FIELD ANALYSIS ────────────────────────────────────────────
+// Known metadata keys (never auto-mark as score)
+const META_KEYS=new Set(['id','Term','Grade','Class','Gender','UPI','Official Student Name',
+  'Assessment No','Position','Stream','Year','School','Remarks','Class Teacher',
+  'Opening Date','Closing Date','Total','Average','Points','Level','_firebaseId',
+  'AssessmentNo','Percentage','Perc Avrg','Teacher Remarks','Grade Level',
+  'Admission No','Date of Birth','Parent','Phone','Subject','Mark']);
+
+function classifyField(name, samples){
+  if(META_KEYS.has(name)||name.startsWith('_')) return 'meta';
+  // Check if values are mostly numeric
+  const nums=samples.filter(v=>{ const n=parseFloat(String(v).replace(/[^0-9.-]/g,'')); return !isNaN(n)&&n>=0&&n<=100; });
+  if(nums.length/Math.max(samples.length,1)>0.6) return 'score';
+  return 'text';
+}
+
+function analyseFields(){
+  fieldStats={};
+  const records=Object.values(allRecords);
+  records.forEach(rec=>{
+    Object.entries(rec).forEach(([k,v])=>{
+      if(k.startsWith('__')) return;
+      if(!fieldStats[k]) fieldStats[k]={count:0,samples:[],type:''};
+      fieldStats[k].count++;
+      if(fieldStats[k].samples.length<5 && v!==null && v!==undefined && String(v).trim()!==''){
+        fieldStats[k].samples.push(String(v).slice(0,50));
+      }
+    });
+  });
+  Object.entries(fieldStats).forEach(([k,v])=>{
+    v.type=classifyField(k,v.samples);
+    v.coverage=Math.round(v.count/records.length*100);
+  });
+}
+
+// ── RENDER TABLE ─────────────────────────────────────────────
+let _filterQuery='';
+function renderTable(){
+  const tbody=document.getElementById('field-tbody');
+  const allFields=Object.entries(fieldStats).sort((a,b)=>{
+    // Sort: meta first, then score, then text; within each by count desc
+    const order={meta:0,score:1,text:2};
+    const od=order[a[1].type]-order[b[1].type];
+    return od!==0?od:b[1].count-a[1].count;
+  });
+  const filtered=_filterQuery
+    ? allFields.filter(([k])=>k.toLowerCase().includes(_filterQuery.toLowerCase()))
+    : allFields;
+
+  if(!filtered.length){
+    tbody.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="empty-icon">🔍</div><div>No fields match filter</div></div></td></tr>`;
+    return;
+  }
+
+  const total=Object.keys(allRecords).length;
+  tbody.innerHTML=filtered.map(([name,stat])=>{
+    const checked=selectedFields.has(name);
+    const typeLabel=stat.type==='meta'?'📌 Metadata':stat.type==='score'?'📊 Score':'💬 Text';
+    const typeClass=`type-${stat.type}`;
+    const sample=stat.samples[0]||'—';
+    const pct=stat.coverage;
+    const barColor=pct>=80?'#10b981':pct>=50?'#f59e0b':'#ef4444';
+    return `<tr>
+      <td>
+        <div class="cb-wrap">
+          <input type="checkbox" data-field="${esc(name)}" ${checked?'checked':''} onchange="toggleField('${esc(name)}',this.checked)">
+        </div>
+      </td>
+      <td><span class="field-name">${esc(name)}</span></td>
+      <td><span class="field-type ${typeClass}">${typeLabel}</span></td>
+      <td style="min-width:120px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:${barColor};border-radius:3px;transition:width .6s ease;"></div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${barColor};min-width:34px;">${pct}%</span>
+        </div>
+      </td>
+      <td><span class="sample-val" title="${esc(sample)}">${esc(sample)}</span></td>
+      <td><span class="count-badge">${stat.count} / ${total}</span></td>
+    </tr>`;
+  }).join('');
+
+  updateSelectAllState();
+  updateStats();
+}
+
+function filterFields(q){
+  _filterQuery=q;
+  renderTable();
+}
+window.filterFields=filterFields;
+
+// ── SELECTION ─────────────────────────────────────────────────
+function toggleField(name,checked){
+  if(checked) selectedFields.add(name);
+  else selectedFields.delete(name);
+  updateStats();
+  updateSelectAllState();
+  document.getElementById('delete-btn').disabled=selectedFields.size===0;
+}
+window.toggleField=toggleField;
+
+function toggleSelectAll(checked){
+  const allFields=Object.entries(fieldStats).filter(([k])=>
+    !_filterQuery||k.toLowerCase().includes(_filterQuery.toLowerCase())
+  );
+  allFields.forEach(([k])=>{ checked?selectedFields.add(k):selectedFields.delete(k); });
+  renderTable();
+  document.getElementById('delete-btn').disabled=selectedFields.size===0;
+}
+window.toggleSelectAll=toggleSelectAll;
+
+function updateSelectAllState(){
+  const allVisible=Object.keys(fieldStats).filter(k=>
+    !_filterQuery||k.toLowerCase().includes(_filterQuery.toLowerCase())
+  );
+  const allChecked=allVisible.length>0&&allVisible.every(k=>selectedFields.has(k));
+  const someChecked=allVisible.some(k=>selectedFields.has(k));
+  const cb=document.getElementById('select-all-cb');
+  cb.checked=allChecked;
+  cb.indeterminate=!allChecked&&someChecked;
+  document.getElementById('sel-count-txt').textContent=`${selectedFields.size} selected`;
+  document.getElementById('stat-selected').textContent=selectedFields.size;
+}
+
+function updateStats(){
+  document.getElementById('stat-students').textContent=Object.keys(allRecords).length;
+  document.getElementById('stat-fields').textContent=Object.keys(fieldStats).length;
+  document.getElementById('stat-selected').textContent=selectedFields.size;
+  document.getElementById('fields-sub').textContent=
+    `${Object.keys(fieldStats).length} unique fields found across ${Object.keys(allRecords).length} records in ${_activePath||'—'}`;
+}
+
+// ── CONFIRM + DELETE ──────────────────────────────────────────
+function openConfirm(){
+  if(selectedFields.size===0) return;
+  const fields=[...selectedFields].sort();
+  document.getElementById('dlg-count').textContent=Object.keys(allRecords).length;
+  document.getElementById('dlg-fields-list').innerHTML=fields.map(f=>`• ${f}`).join('<br>');
+  document.getElementById('confirm-input').value='';
+  document.getElementById('confirm-del-btn').disabled=true;
+  document.getElementById('progress-wrap').style.display='none';
+  document.getElementById('progress-text').textContent='';
+  document.getElementById('confirm-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('confirm-input').focus(),300);
+}
+window.openConfirm=openConfirm;
+
+function closeConfirm(){
+  if(_deleting) return;
+  document.getElementById('confirm-overlay').classList.remove('open');
+}
+window.closeConfirm=closeConfirm;
+
+function checkConfirmInput(val){
+  document.getElementById('confirm-del-btn').disabled=val.trim()!=='DELETE';
+}
+window.checkConfirmInput=checkConfirmInput;
+
+async function executeDelete(){
+  if(_deleting) return;
+  _deleting=true;
+  document.getElementById('cancel-btn').disabled=true;
+  document.getElementById('confirm-del-btn').disabled=true;
+  document.getElementById('confirm-del-btn').textContent='⏳ Deleting…';
+  document.getElementById('progress-wrap').style.display='block';
+
+  const fields=[...selectedFields];
+  const keys=Object.keys(allRecords);
+  const total=keys.length;
+  let done=0, errors=0;
+
+  log(`🗑️ Starting deletion of [${fields.join(', ')}] from ${total} records…`,'warning');
+
+  // Process in batches of 50 for speed
+  const BATCH=50;
+  for(let i=0;i<keys.length;i+=BATCH){
+    const batch=keys.slice(i,i+BATCH);
+    const updates={};
+    batch.forEach(key=>{
+      fields.forEach(field=>{
+        updates[`${_activePath}/${key}/${field}`]=null; // null = delete in Firebase
+      });
+    });
+    try{
+      await fb.update(fb.ref(db), updates);
+      done+=batch.length;
+    } catch(e){
+      errors+=batch.length;
+      log(`❌ Batch error at record ${i}: ${e.message}`,'error');
+    }
+    // Update progress
+    const pct=Math.round(done/total*100);
+    document.getElementById('progress-bar').style.width=pct+'%';
+    document.getElementById('progress-text').textContent=`${done} / ${total} records updated (${pct}%)`;
+    // Small pause to keep UI responsive
+    await new Promise(r=>setTimeout(r,20));
+  }
+
+  _deleting=false;
+  document.getElementById('cancel-btn').disabled=false;
+  document.getElementById('confirm-overlay').classList.remove('open');
+
+  if(errors===0){
+    notify(`✅ Successfully deleted ${fields.length} field${fields.length>1?'s':''} from ${done} records!`,'success');
+    log(`✅ Deleted [${fields.join(', ')}] from ${done} records successfully.`,'success');
+  } else {
+    notify(`⚠️ Completed with ${errors} errors. Check the log.`,'warning');
+    log(`⚠️ Completed: ${done} ok, ${errors} errors.`,'warning');
+  }
+
+  // Clear selection and reload
+  selectedFields.clear();
+  await loadData();
+}
+window.executeDelete=executeDelete;
+
+// ── BULK GRADE EDIT ───────────────────────────────────────────
+let _gradeSaving = false;
+
+function populateGradeSelect(){
+  const grades = new Map(); // grade value → count
+  Object.values(allRecords).forEach(rec => {
+    const g = rec.Grade !== undefined && rec.Grade !== null ? String(rec.Grade).trim() : '';
+    if(g) grades.set(g, (grades.get(g)||0) + 1);
+  });
+  const sel = document.getElementById('grade-current-select');
+  if(grades.size === 0){
+    sel.innerHTML = '<option value="">— No Grade field found in records —</option>';
+    document.getElementById('grade-apply-btn').disabled = true;
+    document.getElementById('grade-hint').textContent = 'No Grade values found in the loaded records.';
+    return;
+  }
+  const sorted = [...grades.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+  sel.innerHTML = '<option value="">— Select current Grade to replace —</option>' +
+    sorted.map(([g,n])=>`<option value="${esc(g)}">${esc(g)} (${n} record${n!==1?'s':''})</option>`).join('');
+  onGradeSelectChange();
+}
+
+function onGradeSelectChange(){
+  const current = document.getElementById('grade-current-select').value;
+  const newVal  = document.getElementById('grade-new-input').value.trim();
+  const btn     = document.getElementById('grade-apply-btn');
+  const hint    = document.getElementById('grade-hint');
+
+  if(!current){
+    hint.textContent = 'Select which Grade value you want to replace.';
+    btn.disabled = true; return;
+  }
+  const count = Object.values(allRecords).filter(r=>String(r.Grade||'').trim()===current).length;
+  if(!newVal){
+    hint.innerHTML = `<strong style="color:var(--cyan);">${count} record${count!==1?'s':''}</strong> have Grade = "<em>${esc(current)}</em>". Enter the new Grade value above.`;
+    btn.disabled = true; return;
+  }
+  if(newVal === current){
+    hint.innerHTML = `⚠️ New value is the same as the current value — nothing would change.`;
+    btn.disabled = true; return;
+  }
+  hint.innerHTML = `Ready to replace <strong style="color:#f87171;">"${esc(current)}"</strong> → <strong style="color:#34d399;">"${esc(newVal)}"</strong> on <strong style="color:var(--cyan);">${count} record${count!==1?'s':''}</strong>.`;
+  btn.disabled = false;
+}
+window.onGradeSelectChange = onGradeSelectChange;
+
+function openGradeConfirm(){
+  const current = document.getElementById('grade-current-select').value;
+  const newVal  = document.getElementById('grade-new-input').value.trim();
+  if(!current || !newVal || newVal===current) return;
+  const count = Object.values(allRecords).filter(r=>String(r.Grade||'').trim()===current).length;
+  document.getElementById('dlg-grade-old').textContent   = current;
+  document.getElementById('dlg-grade-new').textContent   = newVal;
+  document.getElementById('dlg-grade-count').textContent = count;
+  document.getElementById('grade-progress-wrap').style.display = 'none';
+  document.getElementById('grade-progress-bar').style.width    = '0%';
+  document.getElementById('grade-progress-text').textContent   = '';
+  document.getElementById('grade-overlay').classList.add('open');
+}
+window.openGradeConfirm = openGradeConfirm;
+
+function closeGradeConfirm(){
+  if(_gradeSaving) return;
+  document.getElementById('grade-overlay').classList.remove('open');
+}
+window.closeGradeConfirm = closeGradeConfirm;
+
+async function executeGradeUpdate(){
+  if(_gradeSaving) return;
+  const current = document.getElementById('grade-current-select').value;
+  const newVal  = document.getElementById('grade-new-input').value.trim();
+  if(!current || !newVal) return;
+
+  _gradeSaving = true;
+  document.getElementById('grade-cancel-btn').disabled  = true;
+  document.getElementById('grade-confirm-btn').disabled = true;
+  document.getElementById('grade-confirm-btn').textContent = '⏳ Updating…';
+  document.getElementById('grade-progress-wrap').style.display = 'block';
+
+  const matchKeys = Object.entries(allRecords)
+    .filter(([,rec])=>String(rec.Grade||'').trim()===current)
+    .map(([k])=>k);
+
+  // Snapshot for undo
+  const undoUpdates = {};
+  matchKeys.forEach(k=>{ undoUpdates[`${_activePath}/${k}/Grade`] = current; });
+
+  const total = matchKeys.length;
+  let done = 0, errors = 0;
+  const BATCH = 50;
+  log(`✏️ Replacing Grade "${current}" → "${newVal}" on ${total} records…`, 'info');
+
+  for(let i=0; i<matchKeys.length; i+=BATCH){
+    const batch = matchKeys.slice(i, i+BATCH);
+    const updates = {};
+    batch.forEach(key=>{ updates[`${_activePath}/${key}/Grade`] = newVal; });
+    try{
+      await fb.update(fb.ref(db), updates);
+      done += batch.length;
+    } catch(e){
+      errors += batch.length;
+      log(`❌ Batch error at record ${i}: ${e.message}`, 'error');
+    }
+    const pct = Math.round(done/total*100);
+    document.getElementById('grade-progress-bar').style.width = pct+'%';
+    document.getElementById('grade-progress-text').textContent = `${done} / ${total} records updated (${pct}%)`;
+    await new Promise(r=>setTimeout(r,20));
+  }
+
+  _gradeSaving = false;
+  document.getElementById('grade-cancel-btn').disabled  = false;
+  document.getElementById('grade-confirm-btn').disabled = false;
+  document.getElementById('grade-confirm-btn').textContent = '✏️ Update Grades';
+  document.getElementById('grade-overlay').classList.remove('open');
+
+  if(errors===0){
+    notify(`✅ Grade updated to "${newVal}" on ${done} records!`, 'success');
+    log(`✅ Grade "${current}" → "${newVal}" set on ${done} records.`, 'success');
+    pushUndo(`Grade "${current}" → "${newVal}" on ${done} records`, undoUpdates);
+  } else {
+    notify(`⚠️ Completed with ${errors} errors. Check the log.`, 'warning');
+    log(`⚠️ Grade update done: ${done} ok, ${errors} errors.`, 'warning');
+  }
+
+  document.getElementById('grade-new-input').value = '';
+  await loadData(); // refresh → repopulates dropdown with new grade values
+}
+window.executeGradeUpdate = executeGradeUpdate;
+
+// ── BULK MATCH & REPLACE TERM ─────────────────────────────────
+let _btrSaving = false;
+let _btrGrade = '';
+// _btrPlan: array of { oldTerm, newTerm, keys[] }
+let _btrPlan = [];
+// selected assessment numbers (Set of strings like '01','02'…)
+let _btrSelAs = new Set();
+
+// Called after data loads
+function populateBtrGradeSelect(){
+  const grades = new Map();
+  Object.values(allRecords).forEach(rec => {
+    const g = String(rec.Grade||'').trim();
+    if(g) grades.set(g, (grades.get(g)||0)+1);
+  });
+  const sel = document.getElementById('btr-grade-select');
+  if(!grades.size){
+    sel.innerHTML = '<option value="">— No Grade field found —</option>';
+    return;
+  }
+  const sorted = [...grades.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+  sel.innerHTML = '<option value="">— Select a Grade —</option>' +
+    sorted.map(([g,n])=>`<option value="${esc(g)}">${esc(g)} (${n})</option>`).join('');
+  // reset dependents
+  document.getElementById('btr-term-select').innerHTML = '<option value="">— pick a grade first —</option>';
+  document.getElementById('btr-term-select').disabled = true;
+  document.getElementById('btr-builder').style.display = 'none';
+  document.getElementById('btr-match-section').style.display = 'none';
+  document.getElementById('btr-hint').textContent = 'Select a Grade to see its Term values.';
+}
+
+function onBtrGradeChange(){
+  _btrGrade = document.getElementById('btr-grade-select').value;
+  const termSel = document.getElementById('btr-term-select');
+  document.getElementById('btr-builder').style.display = 'none';
+  document.getElementById('btr-match-section').style.display = 'none';
+  _btrPlan = [];
+  _btrSelAs.clear();
+
+  if(!_btrGrade){
+    termSel.innerHTML = '<option value="">— pick a grade first —</option>';
+    termSel.disabled = true;
+    document.getElementById('btr-hint').textContent = 'Select a Grade to see its Term values.';
+    return;
+  }
+
+  // Collect all distinct Term values for this grade
+  const terms = new Map();
+  Object.values(allRecords).forEach(rec => {
+    if(String(rec.Grade||'').trim() === _btrGrade){
+      const t = String(rec.Term||'').trim();
+      if(t) terms.set(t, (terms.get(t)||0)+1);
+    }
+  });
+
+  if(!terms.size){
+    termSel.innerHTML = '<option value="">— No Term values in this grade —</option>';
+    termSel.disabled = true;
+    document.getElementById('btr-hint').innerHTML = `<strong style="color:var(--cyan);">${esc(_btrGrade)}</strong> has no Term values.`;
+    return;
+  }
+
+  const sorted = [...terms.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+  termSel.innerHTML = '<option value="">— select a Term to replace —</option>' +
+    sorted.map(([t,n])=>`<option value="${esc(t)}">${esc(t)} (${n})</option>`).join('');
+  termSel.disabled = false;
+
+  // Pre-fill grade label in builder from the grade value
+  const gradeLabel = _btrGrade.replace(/[\-\/]\d{4}.*/,'').trim(); // e.g. "Grade 5"
+  document.getElementById('btr-p-grade').value = gradeLabel;
+
+  document.getElementById('btr-hint').innerHTML =
+    `<strong style="color:var(--cyan);">${esc(_btrGrade)}</strong> has ${terms.size} distinct Term value${terms.size!==1?'s':''}. Pick one to replace.`;
+}
+window.onBtrGradeChange = onBtrGradeChange;
+
+// ── BTR helpers ──────────────────────────────────────────────
+// Strip ANY assessment suffix from a term string, returning { base, asNum, rawSuffix }
+// Handles any single-dash suffix: -As01, -ISDN001, -T2, -ABC etc.
+// Uses the full suffix token as the key, preserving original casing and format.
+function btrParseAs(term){
+  // Match a single "-" followed by a token that starts with a letter (avoids splitting on year numbers)
+  const m = term.match(/^(.*)-([A-Za-z][A-Za-z0-9]*)$/);
+  if(m) return { base: m[1], asNum: m[2], sep: '-', rawSuffix: m[2] };
+  return { base: term, asNum: null, sep: null, rawSuffix: null };
+}
+
+function onBtrTermChange(){
+  const termVal = document.getElementById('btr-term-select').value;
+  document.getElementById('btr-builder').style.display = termVal ? 'block' : 'none';
+  document.getElementById('btr-match-section').style.display = 'none';
+  _btrPlan = [];
+
+  if(!termVal) return;
+
+  // Parse the selected term
+  const parsed = btrParseAs(termVal);
+  const baseOfSelected = parsed.base;
+  const hasAs = parsed.asNum !== null;
+
+  // Scan all terms in this grade to find siblings sharing the same base
+  const sibling = new Map(); // asNum (string) → { oldTerm (exact), count }
+  Object.values(allRecords).forEach(rec => {
+    if(String(rec.Grade||'').trim() !== _btrGrade) return;
+    const t = String(rec.Term||'').trim();
+    if(!t) return;
+    const p = btrParseAs(t);
+    // normalise bases for comparison (trim, lowercase)
+    if(p.base.toLowerCase().replace(/\s+/g,' ') === baseOfSelected.toLowerCase().replace(/\s+/g,' ')){
+      const key = p.asNum !== null ? p.asNum : '__single__';
+      if(!sibling.has(key)) sibling.set(key, { oldTerm: t, count: 0, rawSuffix: p.rawSuffix });
+      sibling.get(key).count++;
+    }
+  });
+
+  // If nothing found via base match, fall back to exact match of the selected value
+  if(!sibling.size){
+    const cnt = Object.values(allRecords).filter(r =>
+      String(r.Grade||'').trim()===_btrGrade && String(r.Term||'').trim()===termVal
+    ).length;
+    sibling.set('__single__', { oldTerm: termVal, count: cnt });
+  }
+
+  // Build assessment chips
+  _btrSelAs.clear();
+  const asRow = document.getElementById('btr-as-row');
+  const nums = [...sibling.keys()].sort((a,b) => {
+    if(a==='__single__') return -1; if(b==='__single__') return 1;
+    return Number(a)-Number(b);
+  });
+
+  if(nums.length === 1 && nums[0] === '__single__'){
+    asRow.innerHTML = `<span style="font-size:12px;color:var(--text3);">No suffix detected — will replace the exact selected Term value.</span>`;
+    _btrSelAs.add('__single__');
+  } else {
+    asRow.innerHTML = nums.map(n => {
+      const sibEntry = sibling.get(n);
+      const label = n === '__single__' ? 'No suffix' : (sibEntry && sibEntry.rawSuffix ? sibEntry.rawSuffix : n);
+      const cnt = sibEntry ? sibEntry.count : 0;
+      return `<span class="btr-as-chip on" data-as="${esc(n)}" onclick="btrToggleAs('${esc(n)}',this)">${label} <span style="opacity:.6;font-size:10px;">(${cnt})</span></span>`;
+    }).join('');
+    nums.forEach(n => _btrSelAs.add(n));
+  }
+
+  // Store sibling map for use in btrUpdatePreview
+  window._btrSibling = sibling;
+
+  // Pre-fill builder from the base of the selected term
+  const yearPart = baseOfSelected.match(/\b(\d{4})\b/);
+  if(yearPart) document.getElementById('btr-p-year').value = yearPart[1];
+
+  const termTypeEl = document.getElementById('btr-p-termtype');
+  const termNumEl  = document.getElementById('btr-p-termnum');
+  const midM = baseOfSelected.match(/mid[-\s]?term\s*(\d)/i);
+  const endM = baseOfSelected.match(/end[-\s]?term\s*(\d)/i);
+  const opM  = baseOfSelected.match(/opener/i);
+  const terM = !midM && !endM && baseOfSelected.match(/\bterm\s*(\d)/i);
+
+  if(midM){ termTypeEl.value='Mid-Term'; termNumEl.value=midM[1]||'1'; }
+  else if(endM){ termTypeEl.value='End-Term'; termNumEl.value=endM[1]||'1'; }
+  else if(opM){ termTypeEl.value='opener'; }
+  else if(terM){ termTypeEl.value='Term'; termNumEl.value=terM[1]||'1'; }
+
+  btrHandleCustomType();
+  btrUpdatePreview();
+  document.getElementById('btr-hint').textContent = '';
+}
+window.onBtrTermChange = onBtrTermChange;
+
+function btrToggleAs(num, el){
+  if(_btrSelAs.has(num)){ _btrSelAs.delete(num); el.classList.remove('on'); }
+  else { _btrSelAs.add(num); el.classList.add('on'); }
+  btrUpdatePreview();
+}
+window.btrToggleAs = btrToggleAs;
+
+function btrHandleCustomType(){
+  const v = document.getElementById('btr-p-termtype').value;
+  document.getElementById('btr-custom-wrap').style.display = v==='' ? 'block' : 'none';
+}
+
+function btrBuildNewTerm(asNum){
+  const gradeLabel = document.getElementById('btr-p-grade').value.trim();
+  const year       = document.getElementById('btr-p-year').value.trim();
+  const typeVal    = document.getElementById('btr-p-termtype').value;
+  const termType   = typeVal === '' ? document.getElementById('btr-p-custom').value.trim() : typeVal;
+  const termNum    = document.getElementById('btr-p-termnum').value;
+
+  if(!gradeLabel || !year || !termType) return null;
+
+  let base = `${gradeLabel}-${year}-${termType}`;
+  if(termType !== 'opener') base += ` ${termNum}`;
+
+  if(asNum === '__single__') return base;
+  // Use the original raw suffix from the sibling map if available, else fallback
+  const sibData = window._btrSibling && window._btrSibling.get(asNum);
+  if(sibData && sibData.rawSuffix) return `${base}-${sibData.rawSuffix}`;
+  return `${base}-As${String(asNum).padStart(2,'0')}`;
+}
+
+function btrUpdatePreview(){
+  btrHandleCustomType();
+  const previewEl = document.getElementById('btr-preview');
+
+  const firstAs = [..._btrSelAs][0];
+  const sample = firstAs !== undefined ? btrBuildNewTerm(firstAs) : null;
+
+  if(!sample){
+    previewEl.textContent = 'Fill in the fields above…';
+    previewEl.classList.add('empty');
+  } else {
+    previewEl.textContent = sample;
+    previewEl.classList.remove('empty');
+  }
+
+  // Rebuild match plan using the EXACT old term strings from the sibling map
+  _btrPlan = [];
+  const termVal = document.getElementById('btr-term-select').value;
+  const sibling = window._btrSibling;
+  if(!termVal || !_btrSelAs.size || !sibling){ btrRenderMatchList(); return; }
+
+  _btrSelAs.forEach(asNum => {
+    const newTerm = btrBuildNewTerm(asNum);
+    if(!newTerm) return;
+    const sibData = sibling.get(asNum);
+    if(!sibData) return;
+    const oldTerm = sibData.oldTerm; // exact string from database
+
+    // Find matching keys by exact Term match
+    const keys = Object.entries(allRecords)
+      .filter(([,rec]) => String(rec.Grade||'').trim()===_btrGrade && String(rec.Term||'').trim()===oldTerm)
+      .map(([k])=>k);
+
+    // Always add to plan (even if same, so user sees it); enable button only when different
+    _btrPlan.push({ oldTerm, newTerm, keys, same: oldTerm === newTerm });
+  });
+
+  btrRenderMatchList();
+}
+window.btrUpdatePreview = btrUpdatePreview;
+
+function btrRenderMatchList(){
+  const section = document.getElementById('btr-match-section');
+  const list = document.getElementById('btr-match-list');
+  const btn = document.getElementById('btr-apply-btn');
+
+  if(!_btrPlan.length){
+    section.style.display = 'none';
+    btn.disabled = true;
+    return;
+  }
+
+  section.style.display = 'block';
+  list.innerHTML = _btrPlan.map(p =>
+    `<div class="btr-match-row" style="${p.same?'opacity:.4;':''}">
+      <span class="btr-match-old" title="${esc(p.oldTerm)}">${esc(p.oldTerm)}</span>
+      <span class="btr-match-arr">${p.same ? '=' : '→'}</span>
+      <span class="btr-match-new" title="${esc(p.newTerm)}">${esc(p.newTerm)}</span>
+      <span class="btr-match-cnt">${p.keys.length} rec${p.same?' (no change)':''}</span>
+    </div>`
+  ).join('');
+
+  const changeable = _btrPlan.filter(p => !p.same && p.keys.length > 0);
+  const totalRecords = changeable.reduce((s,p)=>s+p.keys.length, 0);
+  btn.disabled = changeable.length === 0;
+  document.getElementById('btr-hint').innerHTML =
+    changeable.length > 0
+    ? `<strong style="color:var(--cyan);">${changeable.length} Term value${changeable.length!==1?'s':''}</strong> will be replaced across <strong style="color:var(--cyan);">${totalRecords} record${totalRecords!==1?'s':''}</strong> in <em>${esc(_btrGrade)}</em>.`
+    : `⚠️ No changes detected — the new Term values match the existing ones. Adjust the pattern above.`;
+}
+
+function openBtrConfirm(){
+  if(!_btrPlan.length) return;
+  document.getElementById('dlg-btr-grade').textContent = _btrGrade;
+  const dlgList = document.getElementById('btr-dlg-list');
+  dlgList.innerHTML = _btrPlan.map(p =>
+    `<div class="btr-dlg-row">
+      <span class="btr-dlg-old">${esc(p.oldTerm)}</span>
+      <span style="color:var(--text3);flex-shrink:0;">→</span>
+      <span class="btr-dlg-new">${esc(p.newTerm)}</span>
+      <span class="btr-dlg-cnt">${p.keys.length}</span>
+    </div>`
+  ).join('');
+  document.getElementById('btr-progress-wrap').style.display = 'none';
+  document.getElementById('btr-progress-bar').style.width    = '0%';
+  document.getElementById('btr-progress-text').textContent   = '';
+  document.getElementById('btr-overlay').classList.add('open');
+}
+window.openBtrConfirm = openBtrConfirm;
+
+function closeBtrConfirm(){
+  if(_btrSaving) return;
+  document.getElementById('btr-overlay').classList.remove('open');
+}
+window.closeBtrConfirm = closeBtrConfirm;
+
+async function executeBtrUpdate(){
+  if(_btrSaving || !_btrPlan.length) return;
+  _btrSaving = true;
+  document.getElementById('btr-cancel-btn').disabled  = true;
+  document.getElementById('btr-confirm-btn').disabled = true;
+  document.getElementById('btr-confirm-btn').textContent = '⏳ Updating…';
+  document.getElementById('btr-progress-wrap').style.display = 'block';
+
+  // Flatten all keys across plan, skipping no-change entries
+  const allKeys = _btrPlan
+    .filter(p => !p.same && p.keys.length > 0)
+    .flatMap(p => p.keys.map(k => ({ key: k, newTerm: p.newTerm })));
+  const total = allKeys.length;
+  let done = 0, errors = 0;
+  const BATCH = 50;
+
+  log(`🔄 Replacing ${_btrPlan.length} Term value${_btrPlan.length!==1?'s':''} in Grade "${_btrGrade}" on ${total} records…`, 'info');
+
+  for(let i = 0; i < allKeys.length; i += BATCH){
+    const batch = allKeys.slice(i, i+BATCH);
+    const updates = {};
+    batch.forEach(({ key, newTerm }) => { updates[`${_activePath}/${key}/Term`] = newTerm; });
+    try{
+      await fb.update(fb.ref(db), updates);
+      done += batch.length;
+    } catch(e){
+      errors += batch.length;
+      log(`❌ Batch error at record ${i}: ${e.message}`, 'error');
+    }
+    const pct = Math.round(done/total*100);
+    document.getElementById('btr-progress-bar').style.width = pct+'%';
+    document.getElementById('btr-progress-text').textContent = `${done} / ${total} records updated (${pct}%)`;
+    await new Promise(r=>setTimeout(r,20));
+  }
+
+  _btrSaving = false;
+  document.getElementById('btr-cancel-btn').disabled  = false;
+  document.getElementById('btr-confirm-btn').disabled = false;
+  document.getElementById('btr-confirm-btn').textContent = '🔄 Update Terms';
+  document.getElementById('btr-overlay').classList.remove('open');
+
+  if(errors===0){
+    notify(`✅ Updated Term on ${done} records in ${_btrGrade}!`, 'success');
+    log(`✅ Term bulk replace done: ${done} records in Grade "${_btrGrade}".`, 'success');
+  } else {
+    notify(`⚠️ Completed with ${errors} errors. Check the log.`, 'warning');
+    log(`⚠️ Term update done: ${done} ok, ${errors} errors.`, 'warning');
+  }
+
+  _btrPlan = [];
+  await loadData();
+}
+window.executeBtrUpdate = executeBtrUpdate;
+
+// ── STUDENT RECORD EDITOR ─────────────────────────────────────
+let _sreKey = null;
+let _sreOriginal = {};
+let _sreChanges = {};
+
+function sreSearch(q){
+  const box = document.getElementById('sre-results');
+  if(!q || q.trim().length < 2){ box.style.display='none'; box.innerHTML=''; return; }
+  const lq = q.toLowerCase();
+  const NAME_KEYS = ['Official Student Name','Name','Student Name','name','FullName'];
+  const matches = Object.entries(allRecords).filter(([,rec])=>{
+    return NAME_KEYS.some(k=> rec[k] && String(rec[k]).toLowerCase().includes(lq));
+  }).slice(0,40);
+  if(!matches.length){
+    box.style.display='block';
+    box.innerHTML=`<div class="sre-result-item"><span style="color:var(--text3);font-size:13px;">No students found matching "${esc(q)}"</span></div>`;
+    return;
+  }
+  box.style.display='block';
+  box.innerHTML = matches.map(([key,rec])=>{
+    const nameKey = NAME_KEYS.find(k=>rec[k]) || 'name';
+    const name = esc(String(rec[nameKey]||'Unknown'));
+    const grade = esc(String(rec.Grade||rec.Class||''));
+    const term  = esc(String(rec.Term||''));
+    const meta  = [grade, term].filter(Boolean).join(' · ');
+    return `<div class="sre-result-item" onclick="sreOpen('${esc(key)}')">
+      <div>
+        <div class="sre-result-name">${name}</div>
+        ${meta?`<div class="sre-result-meta">${meta}</div>`:''}
+      </div>
+      <span class="sre-result-badge">${esc(key.slice(0,10))}…</span>
+    </div>`;
+  }).join('');
+}
+window.sreSearch = sreSearch;
+
+function isValidScore(v){
+  if(v===null||v===undefined||String(v).trim()==='') return false;
+  const n = parseFloat(String(v).replace(/[^0-9.-]/g,''));
+  return !isNaN(n);
+}
+
+function sreOpen(key){
+  _sreKey = key;
+  _sreChanges = {};
+  const rec = allRecords[key];
+  if(!rec){ notify('Record not found','error'); return; }
+  _sreOriginal = JSON.parse(JSON.stringify(rec));
+  document.getElementById('sre-results').style.display='none';
+  const NAME_KEYS=['Official Student Name','Name','Student Name','name','FullName'];
+  const nameKey = NAME_KEYS.find(k=>rec[k]) || Object.keys(rec)[0];
+  document.getElementById('sre-name-title').textContent = String(rec[nameKey]||'Unknown Student');
+  const grade=rec.Grade||rec.Class||''; const term=rec.Term||''; const yr=rec.Year||'';
+  document.getElementById('sre-meta-title').textContent = [grade,term,yr].filter(Boolean).join(' · ') || 'No metadata';
+  const sortedKeys = Object.keys(rec).sort((a,b)=>{
+    const ta = fieldStats[a]?.type||'text';
+    const tb = fieldStats[b]?.type||'text';
+    const o={score:0,meta:1,text:2};
+    return (o[ta]||2)-(o[tb]||2) || a.localeCompare(b);
+  });
+  const grid = document.getElementById('sre-fields-grid');
+  grid.innerHTML = sortedKeys.map(k=>{
+    const v = rec[k]!==null&&rec[k]!==undefined ? String(rec[k]) : '';
+    const isScore = fieldStats[k]?.type==='score';
+    const isMissing = isScore && !isValidScore(v);
+    const typeIcon = isScore ? '📊' : (fieldStats[k]?.type==='meta' ? '📌' : '💬');
+    return `<div class="sre-field-item">
+      <div class="sre-field-key">${typeIcon} ${esc(k)}</div>
+      <input class="sre-field-val${isMissing?' missing':''}" data-key="${esc(k)}" value="${esc(v)}"
+        oninput="sreFieldChanged('${esc(k)}',this.value,this)">
+    </div>`;
+  }).join('');
+  document.getElementById('sre-editor').style.display='block';
+  document.getElementById('sre-save-btn').disabled=true;
+  document.getElementById('sre-change-count').style.display='none';
+  // Scroll to editor
+  setTimeout(()=>document.getElementById('sre-card').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+window.sreOpen = sreOpen;
+
+function sreFieldChanged(key, val, input){
+  const orig = _sreOriginal[key]!==undefined ? String(_sreOriginal[key]) : '';
+  if(val !== orig){
+    _sreChanges[key] = val;
+    input.classList.add('changed'); input.classList.remove('missing');
+  } else {
+    delete _sreChanges[key];
+    input.classList.remove('changed');
+    const isScore = fieldStats[key]?.type==='score';
+    if(isScore && !isValidScore(val)) input.classList.add('missing');
+  }
+  const n = Object.keys(_sreChanges).length;
+  document.getElementById('sre-save-btn').disabled = n===0;
+  const cc = document.getElementById('sre-change-count');
+  if(n>0){ cc.style.display='inline'; cc.textContent=`${n} unsaved change${n!==1?'s':''}`; }
+  else { cc.style.display='none'; }
+}
+window.sreFieldChanged = sreFieldChanged;
+
+function sreReset(){ if(_sreKey) sreOpen(_sreKey); }
+window.sreReset = sreReset;
+
+function sreClear(){
+  _sreKey=null; _sreChanges={}; _sreOriginal={};
+  document.getElementById('sre-editor').style.display='none';
+  document.getElementById('sre-results').style.display='none';
+  document.getElementById('sre-search-input').value='';
+}
+window.sreClear = sreClear;
+
+async function sreSave(){
+  if(!_sreKey || !Object.keys(_sreChanges).length) return;
+  const btn = document.getElementById('sre-save-btn');
+  btn.disabled=true; btn.textContent='⏳ Saving…';
+  const updates = {};
+  Object.entries(_sreChanges).forEach(([k,v])=>{ updates[`${_activePath}/${_sreKey}/${k}`] = v==='' ? null : v; });
+  try{
+    await fb.update(fb.ref(db), updates);
+    const n = Object.keys(_sreChanges).length;
+    notify(`✅ Saved ${n} field${n!==1?'s':''} for this student!`,'success');
+    log(`✅ Updated ${n} field${n!==1?'s':''} on record ${_sreKey}.`,'success');
+    Object.entries(_sreChanges).forEach(([k,v])=>{
+      if(v===''||v===null) delete allRecords[_sreKey][k]; else allRecords[_sreKey][k]=v;
+    });
+    _sreChanges={};
+    sreOpen(_sreKey);
+  } catch(e){
+    notify('❌ Save failed: '+e.message,'error');
+    log('❌ Save error: '+e.message,'error');
+  }
+  btn.disabled=false; btn.textContent='💾 Save Changes';
+}
+window.sreSave = sreSave;
+
+// ── MISSING SCORES DETECTOR ────────────────────────────────────
+let _msFilter = 'all';
+let _msData   = [];
+
+function msScan(){
+  const btn = document.getElementById('ms-scan-btn');
+  btn.textContent='⏳ Scanning…'; btn.disabled=true;
+  const scoreFields = Object.keys(fieldStats).filter(k=>fieldStats[k].type==='score');
+  if(!scoreFields.length){
+    document.getElementById('ms-content').innerHTML=`<div class="empty" style="padding:30px 20px;"><div class="empty-icon" style="font-size:36px;">📊</div><div style="color:var(--text2);font-size:13px;">No score-type fields detected in the database.</div></div>`;
+    btn.textContent='🔍 Scan Now'; btn.disabled=false; return;
+  }
+  const NAME_KEYS=['Official Student Name','Name','Student Name','name','FullName'];
+  _msData = [];
+  Object.entries(allRecords).forEach(([key,rec])=>{
+    const nameKey = NAME_KEYS.find(k=>rec[k]);
+    const name = nameKey ? String(rec[nameKey]) : '(Unnamed)';
+    const missingFields=[], invalidFields=[];
+    scoreFields.forEach(f=>{
+      const v = rec[f];
+      if(v===undefined||v===null||String(v).trim()===''){
+        missingFields.push(f);
+      } else {
+        const n=parseFloat(String(v).replace(/[^0-9.-]/g,''));
+        if(isNaN(n)) invalidFields.push({field:f,value:String(v)});
+      }
+    });
+    if(missingFields.length||invalidFields.length){
+      _msData.push({key,name,grade:String(rec.Grade||rec.Class||'—'),term:String(rec.Term||'—'),missingFields,invalidFields,total:missingFields.length+invalidFields.length});
+    }
+  });
+  _msData.sort((a,b)=>b.total-a.total);
+  _msFilter='all';
+  msRender();
+  btn.textContent='🔄 Re-scan'; btn.disabled=false;
+  log(`⚠️ Scan: ${_msData.length} students with missing/invalid scores across ${scoreFields.length} score fields.`,'warning');
+}
+window.msScan = msScan;
+
+function msSetFilter(f){
+  _msFilter=f;
+  ['all','missing','invalid'].forEach(v=>{
+    const el=document.getElementById('ms-filter-'+v); if(el) el.classList.toggle('active', v===f);
+  });
+  msRender();
+}
+window.msSetFilter=msSetFilter;
+
+function msRender(){
+  const container=document.getElementById('ms-content');
+  if(!_msData.length){
+    container.innerHTML=`<div style="padding:20px;text-align:center;color:#34d399;font-weight:700;font-size:14px;">✅ All students have valid scores in every score field!</div>`;
+    return;
+  }
+  let rows = _msData;
+  if(_msFilter==='missing') rows=_msData.filter(r=>r.missingFields.length>0);
+  if(_msFilter==='invalid') rows=_msData.filter(r=>r.invalidFields.length>0);
+  const totalMissing = _msData.reduce((s,r)=>s+r.missingFields.length,0);
+  const totalInvalid = _msData.reduce((s,r)=>s+r.invalidFields.length,0);
+  container.innerHTML=`
+    <div class="ms-controls">
+      <span class="ms-badge danger">⚠️ ${_msData.length} student${_msData.length!==1?'s':''} affected</span>
+      <span class="ms-badge warn">❌ ${totalMissing} missing</span>
+      <span class="ms-badge warn">🔤 ${totalInvalid} non-numeric</span>
+    </div>
+    <div class="ms-filter-row">
+      <span style="font-size:11px;color:var(--text2);font-weight:700;">Filter:</span>
+      <button class="ms-filter-chip active" id="ms-filter-all" onclick="msSetFilter('all')">All (${_msData.length})</button>
+      <button class="ms-filter-chip" id="ms-filter-missing" onclick="msSetFilter('missing')">Missing (${_msData.filter(r=>r.missingFields.length).length})</button>
+      <button class="ms-filter-chip" id="ms-filter-invalid" onclick="msSetFilter('invalid')">Non-numeric (${_msData.filter(r=>r.invalidFields.length).length})</button>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="ms-table">
+      <thead><tr><th>Student</th><th>Grade · Term</th><th>Missing Fields</th><th>Invalid Values</th><th>Action</th></tr></thead>
+      <tbody>
+      ${rows.length===0
+        ?`<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3);">No results for this filter.</td></tr>`
+        :rows.map(r=>`<tr>
+          <td><strong style="font-size:13px;">${esc(r.name)}</strong></td>
+          <td><span class="sre-result-meta">${esc(r.grade)} · ${esc(r.term)}</span></td>
+          <td>${r.missingFields.length
+            ?r.missingFields.map(f=>`<span class="ms-missing-pill" title="Click to fix" onclick="msQuickFix('${esc(r.key)}','${esc(f)}')">❌ ${esc(f)}</span>`).join(' ')
+            :'<span class="ms-ok-pill">✓</span>'}</td>
+          <td>${r.invalidFields.length
+            ?r.invalidFields.map(({field,value})=>`<span class="ms-missing-pill" title="${esc(value)}" onclick="msQuickFix('${esc(r.key)}','${esc(field)}')">🔤 ${esc(field)}: <em>${esc(value)}</em></span>`).join(' ')
+            :'<span class="ms-ok-pill">✓</span>'}</td>
+          <td><button class="btn btn-cyan" onclick="sreOpen('${esc(r.key)}')" style="font-size:11px;padding:6px 12px;">✏️ Edit Record</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>`;
+  ['all','missing','invalid'].forEach(v=>{
+    const el=document.getElementById('ms-filter-'+v); if(el) el.classList.toggle('active', v===_msFilter);
+  });
+}
+
+let _qfixKey=null, _qfixFields=[];
+let _qfixSaving=false;
+function msQuickFix(key, field){
+  const rec = allRecords[key]; if(!rec) return;
+  _qfixKey=key;
+  const NAME_KEYS=['Official Student Name','Name','Student Name','name','FullName'];
+  const nameKey=NAME_KEYS.find(k=>rec[k]);
+  const name=nameKey?String(rec[nameKey]):'Unknown';
+  const scoreFields=Object.keys(fieldStats).filter(k=>fieldStats[k].type==='score');
+  _qfixFields=scoreFields.filter(f=>{
+    const v=rec[f];
+    if(v===undefined||v===null||String(v).trim()==='') return true;
+    const n=parseFloat(String(v).replace(/[^0-9.-]/g,'')); return isNaN(n);
+  });
+  if(!_qfixFields.length) return;
+  document.getElementById('qfix-title').textContent=`Fix Scores — ${name}`;
+  document.getElementById('qfix-body').innerHTML=`<strong>${esc(name)}</strong> (${esc(rec.Grade||'')} · ${esc(rec.Term||'')}) has ${_qfixFields.length} missing/invalid score field${_qfixFields.length!==1?'s':''}.`;
+  const wrap=document.getElementById('qfix-fields');
+  wrap.innerHTML=_qfixFields.map(f=>{
+    const cur=rec[f]!==undefined&&rec[f]!==null?String(rec[f]):'';
+    return `<div style="display:flex;flex-direction:column;gap:4px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);">📊 ${esc(f)}</div>
+      <input class="type-input" data-qfield="${esc(f)}" value="${esc(cur)}" placeholder="Enter numeric score…" style="border-color:rgba(239,68,68,.4);">
+    </div>`;
+  }).join('');
+  document.getElementById('qfix-progress-wrap').style.display='none';
+  document.getElementById('qfix-progress-bar').style.width='0%';
+  document.getElementById('qfix-progress-text').textContent='';
+  document.getElementById('qfix-overlay').classList.add('open');
+}
+window.msQuickFix=msQuickFix;
+
+function closeQfix(){ if(_qfixSaving) return; document.getElementById('qfix-overlay').classList.remove('open'); }
+window.closeQfix=closeQfix;
+
+async function executeQfix(){
+  if(!_qfixKey||_qfixSaving) return;
+  const inputs=[...document.querySelectorAll('#qfix-fields [data-qfield]')];
+  const updates={};
+  inputs.forEach(inp=>{
+    const f=inp.getAttribute('data-qfield'); const v=inp.value.trim();
+    if(v!=='') updates[`${_activePath}/${_qfixKey}/${f}`]=v;
+  });
+  if(!Object.keys(updates).length){ notify('No values entered','warning'); return; }
+  _qfixSaving=true;
+  document.getElementById('qfix-cancel-btn').disabled=true;
+  document.getElementById('qfix-save-btn').disabled=true;
+  document.getElementById('qfix-save-btn').textContent='⏳ Saving…';
+  document.getElementById('qfix-progress-wrap').style.display='block';
+  try{
+    await fb.update(fb.ref(db),updates);
+    const n=Object.keys(updates).length;
+    Object.entries(updates).forEach(([path,v])=>{ const f=path.split('/').pop(); allRecords[_qfixKey][f]=v; });
+    document.getElementById('qfix-progress-bar').style.width='100%';
+    document.getElementById('qfix-progress-text').textContent=`${n} field${n!==1?'s':''} saved.`;
+    notify(`✅ Fixed ${n} score field${n!==1?'s':''}!`,'success');
+    log(`✅ Quick-fixed ${n} score field${n!==1?'s':''} on record ${_qfixKey}.`,'success');
+    setTimeout(()=>{ document.getElementById('qfix-overlay').classList.remove('open'); msScan(); },700);
+  } catch(e){
+    notify('❌ Save failed: '+e.message,'error');
+    log('❌ Qfix error: '+e.message,'error');
+  }
+  _qfixSaving=false;
+  document.getElementById('qfix-cancel-btn').disabled=false;
+  document.getElementById('qfix-save-btn').disabled=false;
+  document.getElementById('qfix-save-btn').textContent='💾 Save';
+}
+window.executeQfix=executeQfix;
+
+// ── UNIVERSAL FIELD EDITOR ─────────────────────────────────
+let _ufeMode = 'replace'; // 'replace' | 'all' | 'rename'
+let _ufeSaving = false;
+
+function ufeSetMode(mode){
+  _ufeMode = mode;
+  ['replace','all','rename'].forEach(m=>{
+    document.getElementById('ufe-mode-'+m).classList.toggle('active', m===mode);
+  });
+  const curWrap = document.getElementById('ufe-current-wrap');
+  const newLabel = document.getElementById('ufe-new-label');
+  const newInput = document.getElementById('ufe-new-input');
+  if(mode==='replace'){
+    curWrap.style.display='';
+    newLabel.textContent='New Value';
+    newInput.placeholder='Enter replacement value…';
+  } else if(mode==='all'){
+    curWrap.style.display='none';
+    newLabel.textContent='Value to Set';
+    newInput.placeholder='Set this value on ALL records…';
+  } else { // rename
+    curWrap.style.display='none';
+    newLabel.textContent='New Field Name';
+    newInput.placeholder='e.g. Score_Total…';
+  }
+  onUfeFieldChange();
+}
+window.ufeSetMode = ufeSetMode;
+
+function populateUfeFieldSelect(){
+  const fields = new Set();
+  Object.values(allRecords).forEach(rec=>Object.keys(rec).forEach(k=>fields.add(k)));
+  const sel = document.getElementById('ufe-field-select');
+  if(fields.size===0){
+    sel.innerHTML='<option value="">— No fields found —</option>';
+    document.getElementById('ufe-apply-btn').disabled=true;
+    return;
+  }
+  const sorted = [...fields].sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML='<option value="">— Select a field —</option>'+
+    sorted.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join('');
+  onUfeFieldChange();
+}
+
+function onUfeFieldChange(){
+  const field = document.getElementById('ufe-field-select').value;
+  const curSel = document.getElementById('ufe-current-select');
+  const newInput = document.getElementById('ufe-new-input');
+  newInput.disabled = !field;
+  if(!field){
+    curSel.innerHTML='<option value="">— pick a field first —</option>';
+    curSel.disabled=true;
+    document.getElementById('ufe-apply-btn').disabled=true;
+    document.getElementById('ufe-hint').textContent='Select a field to edit.';
+    return;
+  }
+  // populate current-value dropdown for replace mode
+  if(_ufeMode==='replace'){
+    const vals = new Map();
+    Object.values(allRecords).forEach(rec=>{
+      if(field in rec){
+        const v = rec[field]!==undefined&&rec[field]!==null ? String(rec[field]).trim() : '';
+        vals.set(v,(vals.get(v)||0)+1);
+      }
+    });
+    const sorted=[...vals.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+    curSel.innerHTML='<option value="">— Select current value —</option>'+
+      sorted.map(([v,n])=>`<option value="${esc(v)}">${esc(v)} (${n} record${n!==1?'s':''})</option>`).join('');
+    curSel.disabled=false;
+  }
+  onUfeInputChange();
+}
+window.onUfeFieldChange=onUfeFieldChange;
+
+function onUfeInputChange(){
+  const field   = document.getElementById('ufe-field-select').value;
+  const current = document.getElementById('ufe-current-select').value;
+  const newVal  = document.getElementById('ufe-new-input').value.trim();
+  const btn     = document.getElementById('ufe-apply-btn');
+  const hint    = document.getElementById('ufe-hint');
+  if(!field){ btn.disabled=true; hint.textContent='Select a field.'; return; }
+
+  if(_ufeMode==='replace'){
+    if(!current){ hint.textContent=`Pick a current value to replace in "${esc(field)}".`; btn.disabled=true; return; }
+    const count = Object.values(allRecords).filter(r=>field in r && String(r[field]||'').trim()===current).length;
+    if(!newVal){ hint.innerHTML=`<strong style="color:var(--cyan);">${count} record${count!==1?'s':''}</strong> have <em>${esc(field)}</em> = "<em>${esc(current)}</em>". Enter the new value.`; btn.disabled=true; return; }
+    if(newVal===current){ hint.innerHTML='⚠️ New value is the same as the current — nothing would change.'; btn.disabled=true; return; }
+    hint.innerHTML=`Replace <strong style="color:#f87171;">"${esc(current)}"</strong> → <strong style="color:#34d399;">"${esc(newVal)}"</strong> in <em>${esc(field)}</em> on <strong style="color:var(--cyan);">${count} record${count!==1?'s':''}</strong>.`;
+    btn.disabled=false;
+  } else if(_ufeMode==='all'){
+    const total=Object.keys(allRecords).length;
+    if(!newVal){ hint.textContent=`All ${total} records will have "${esc(field)}" set to the value you type above.`; btn.disabled=true; return; }
+    hint.innerHTML=`Set <em>${esc(field)}</em> = <strong style="color:#34d399;">"${esc(newVal)}"</strong> on <strong style="color:var(--cyan);">${total} record${total!==1?'s':''}</strong>.`;
+    btn.disabled=false;
+  } else { // rename
+    if(!newVal){ hint.textContent=`Enter the new field name to rename "${esc(field)}".`; btn.disabled=true; return; }
+    if(newVal===field){ hint.textContent='⚠️ New name is the same as the current name.'; btn.disabled=true; return; }
+    const count=Object.values(allRecords).filter(r=>field in r).length;
+    hint.innerHTML=`Rename field <strong style="color:#f87171;">"${esc(field)}"</strong> → <strong style="color:#34d399;">"${esc(newVal)}"</strong> on <strong style="color:var(--cyan);">${count} record${count!==1?'s':''}</strong>. (Old key deleted, new key written.)`;
+    btn.disabled=false;
+  }
+}
+window.onUfeInputChange=onUfeInputChange;
+
+function openUfeConfirm(){
+  const field   = document.getElementById('ufe-field-select').value;
+  const current = document.getElementById('ufe-current-select').value;
+  const newVal  = document.getElementById('ufe-new-input').value.trim();
+  if(!field||!newVal) return;
+
+  let icon,title,body;
+  if(_ufeMode==='replace'){
+    const count=Object.values(allRecords).filter(r=>field in r&&String(r[field]||'').trim()===current).length;
+    icon='🔁'; title='Confirm Value Replace';
+    body=`Replace <code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(239,68,68,.08);padding:2px 6px;border-radius:4px;">${esc(current)}</code> → <strong>${esc(newVal)}</strong> in the <strong>${esc(field)}</strong> field across <strong>${count} record${count!==1?'s':''}.</strong>`;
+  } else if(_ufeMode==='all'){
+    const total=Object.keys(allRecords).length;
+    icon='📝'; title='Confirm Bulk Set';
+    body=`Set <strong>${esc(field)}</strong> = <strong>"${esc(newVal)}"</strong> on every one of the <strong>${total} records</strong> in this database. Existing values will be overwritten.`;
+  } else {
+    const count=Object.values(allRecords).filter(r=>field in r).length;
+    icon='🏷️'; title='Confirm Field Rename';
+    body=`Rename field key <code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(239,68,68,.08);padding:2px 6px;border-radius:4px;">${esc(field)}</code> → <strong>${esc(newVal)}</strong> on <strong>${count} record${count!==1?'s':''}.</strong> The old key will be removed.`;
+  }
+  document.getElementById('ufe-dlg-icon').textContent=icon;
+  document.getElementById('ufe-dlg-title').textContent=title;
+  document.getElementById('ufe-dlg-body').innerHTML=body;
+  document.getElementById('ufe-progress-wrap').style.display='none';
+  document.getElementById('ufe-progress-bar').style.width='0%';
+  document.getElementById('ufe-progress-text').textContent='';
+  document.getElementById('ufe-overlay').classList.add('open');
+}
+window.openUfeConfirm=openUfeConfirm;
+
+function closeUfeConfirm(){
+  if(_ufeSaving) return;
+  document.getElementById('ufe-overlay').classList.remove('open');
+}
+window.closeUfeConfirm=closeUfeConfirm;
+
+async function executeUfeUpdate(){
+  if(_ufeSaving) return;
+  const field   = document.getElementById('ufe-field-select').value;
+  const current = document.getElementById('ufe-current-select').value;
+  const newVal  = document.getElementById('ufe-new-input').value.trim();
+  if(!field||!newVal) return;
+
+  _ufeSaving=true;
+  document.getElementById('ufe-cancel-btn').disabled=true;
+  document.getElementById('ufe-confirm-btn').disabled=true;
+  document.getElementById('ufe-confirm-btn').textContent='⏳ Updating…';
+  document.getElementById('ufe-progress-wrap').style.display='block';
+
+  // Build list of keys to update
+  let matchKeys;
+  if(_ufeMode==='replace'){
+    matchKeys=Object.entries(allRecords).filter(([,rec])=>field in rec&&String(rec[field]||'').trim()===current).map(([k])=>k);
+  } else if(_ufeMode==='all'){
+    matchKeys=Object.keys(allRecords);
+  } else { // rename – keys that have the field
+    matchKeys=Object.entries(allRecords).filter(([,rec])=>field in rec).map(([k])=>k);
+  }
+
+  // Snapshot for undo
+  const undoUpdates={};
+  matchKeys.forEach(k=>{
+    if(_ufeMode==='rename'){
+      undoUpdates[`${_activePath}/${k}/${newVal}`]=null;
+      undoUpdates[`${_activePath}/${k}/${field}`]=allRecords[k][field]??null;
+    } else {
+      undoUpdates[`${_activePath}/${k}/${field}`]=allRecords[k][field]??null;
+    }
+  });
+
+  const total=matchKeys.length;
+  let done=0, errors=0;
+  const BATCH=50;
+
+  if(_ufeMode==='rename'){
+    log(`🏷️ Renaming field "${field}" → "${newVal}" on ${total} records…`,'info');
+  } else {
+    log(`✏️ Setting ${field} ${_ufeMode==='replace'?`"${current}" → `:''}= "${newVal}" on ${total} records…`,'info');
+  }
+
+  for(let i=0;i<matchKeys.length;i+=BATCH){
+    const batch=matchKeys.slice(i,i+BATCH);
+    const updates={};
+    batch.forEach(key=>{
+      if(_ufeMode==='rename'){
+        // write new key with old value, delete old key
+        const oldVal=allRecords[key][field];
+        updates[`${_activePath}/${key}/${newVal}`]=oldVal;
+        updates[`${_activePath}/${key}/${field}`]=null;
+      } else {
+        updates[`${_activePath}/${key}/${field}`]=newVal;
+      }
+    });
+    try{
+      await fb.update(fb.ref(db),updates);
+      done+=batch.length;
+    } catch(e){
+      errors+=batch.length;
+      log(`❌ Batch error at record ${i}: ${e.message}`,'error');
+    }
+    const pct=Math.round(done/total*100);
+    document.getElementById('ufe-progress-bar').style.width=pct+'%';
+    document.getElementById('ufe-progress-text').textContent=`${done} / ${total} records updated (${pct}%)`;
+    await new Promise(r=>setTimeout(r,20));
+  }
+
+  _ufeSaving=false;
+  document.getElementById('ufe-cancel-btn').disabled=false;
+  document.getElementById('ufe-confirm-btn').disabled=false;
+  document.getElementById('ufe-confirm-btn').textContent='🛠️ Confirm Update';
+  document.getElementById('ufe-overlay').classList.remove('open');
+
+  if(errors===0){
+    notify(`✅ Done! Updated ${done} record${done!==1?'s':''}!`,'success');
+    log(`✅ ${_ufeMode==='rename'?`Renamed "${field}" → "${newVal}"`:`Set ${field} = "${newVal}"`} on ${done} records.`,'success');
+    const undoLabel = _ufeMode==='rename' ? `Rename "${field}" → "${newVal}" (${done} records)` : `Set ${field} = "${newVal}" on ${done} records`;
+    pushUndo(undoLabel, undoUpdates);
+  } else {
+    notify(`⚠️ Completed with ${errors} errors. Check the log.`,'warning');
+    log(`⚠️ Done: ${done} ok, ${errors} errors.`,'warning');
+  }
+
+  document.getElementById('ufe-new-input').value='';
+  await loadData();
+}
+window.executeUfeUpdate=executeUfeUpdate;
+
+// ── FLATPICKR DATE PICKERS (TDI) ─────────────────────────────
+let _fpClosing = null, _fpOpening = null;
+
+function initTdiDatePickers(){
+  if(_fpClosing) { _fpClosing.destroy(); _fpOpening.destroy(); }
+
+  const sharedCfg = {
+    dateFormat: 'Y-m-d',
+    altInput: true,
+    altFormat: 'j M Y',
+    disableMobile: false,
+    onChange: () => onTdiInputChange(),
+  };
+
+  _fpClosing = flatpickr('#tdi-closing', {
+    ...sharedCfg,
+    onReady(_, __, fp){ fp.altInput.classList.add('tdi-fp-input'); fp.altInput.placeholder='Pick closing date…'; },
+  });
+
+  _fpOpening = flatpickr('#tdi-opening', {
+    ...sharedCfg,
+    onReady(_, __, fp){ fp.altInput.classList.add('tdi-fp-input'); fp.altInput.placeholder='Pick opening date…'; },
+  });
+}
+
+// ── TERM DATE INJECTOR (TDI) — GRADE-BASED ───────────────────
+let _tdiSaving = false;
+
+function populateTdiGradeSelect(){
+  const sel = document.getElementById('tdi-grade-select');
+  const grades = new Set();
+  Object.values(allRecords).forEach(r=>{ if(r.Grade) grades.add(String(r.Grade)); });
+  const sorted = [...grades].sort();
+  if(sorted.length===0){
+    sel.innerHTML='<option value="">— no Grade values found —</option>';
+    return;
+  }
+  sel.innerHTML='<option value="">— select a grade —</option>'+sorted.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
+  // Init Flatpickr once the inputs are in the DOM
+  if(typeof flatpickr !== 'undefined') initTdiDatePickers();
+  onTdiInputChange();
+}
+// Keep old name as alias so existing loadData() calls still work
+function populateTdiTermSelect(){ populateTdiGradeSelect(); }
+
+function onTdiGradeChange(){ onTdiInputChange(); }
+window.onTdiGradeChange=onTdiGradeChange;
+
+function onTdiInputChange(){
+  const grade   = document.getElementById('tdi-grade-select').value;
+  // Read ISO dates from Flatpickr instances (selectedDates[0]), fall back to raw input value
+  const getISO = fp => {
+    if(fp && fp.selectedDates && fp.selectedDates.length){
+      const d = fp.selectedDates[0];
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    return '';
+  };
+  const opening = getISO(_fpOpening);
+  const closing = getISO(_fpClosing);
+  const btn     = document.getElementById('tdi-apply-btn');
+  const hint    = document.getElementById('tdi-hint');
+  const preview = document.getElementById('tdi-preview');
+
+  if(!grade){ hint.textContent='Select a Grade and enter both dates to continue.'; btn.disabled=true; preview.style.display='none'; return; }
+
+  const matchCount = Object.values(allRecords).filter(r=>String(r.Grade||'')===grade).length;
+  // How many unique terms within this grade
+  const termsInGrade = new Set(Object.values(allRecords).filter(r=>String(r.Grade||'')===grade).map(r=>r.Term||''));
+
+  if(!opening||!closing){
+    hint.innerHTML=`<strong style="color:var(--cyan);">${matchCount} record${matchCount!==1?'s':''}</strong> across <strong style="color:var(--purple);">${termsInGrade.size} term${termsInGrade.size!==1?'s':''}</strong> found in Grade "<em>${esc(grade)}</em>". Enter both dates.`;
+    btn.disabled=true; preview.style.display='none'; return;
+  }
+
+  if(opening<=closing){
+    hint.innerHTML='⚠️ Opening Date must be after Closing Date.';
+    btn.disabled=true; preview.style.display='none'; return;
+  }
+
+  hint.innerHTML=`Ready to write dates to <strong style="color:var(--cyan);">${matchCount} record${matchCount!==1?'s':''}</strong> across all terms in Grade "<em>${esc(grade)}</em>".`;
+  btn.disabled=false;
+  preview.style.display='block';
+  preview.innerHTML=`
+    🎓 <strong>Grade</strong>: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan);">${esc(grade)}</code> &nbsp;·&nbsp; <span style="color:var(--text3);">${termsInGrade.size} term${termsInGrade.size!==1?'s':''}, ${matchCount} records</span><br>
+    📂 <strong>Opening Date</strong> → <code style="font-family:'JetBrains Mono',monospace;color:#34d399;">${esc(formatDateNice(opening))}</code><br>
+    📁 <strong>Closing Date</strong> &nbsp;→ <code style="font-family:'JetBrains Mono',monospace;color:#f87171;">${esc(formatDateNice(closing))}</code><br>
+    <span style="color:var(--text3);">Both fields will be created or overwritten on every student in this grade.</span>
+  `;
+}
+window.onTdiInputChange=onTdiInputChange;
+
+function formatDateNice(dateStr){
+  const [y,m,d] = dateStr.split('-');
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${parseInt(d,10)} ${months[parseInt(m,10)-1]} ${y}`;
+}
+
+function _getTdiDates(){
+  const getISO = fp => {
+    if(fp && fp.selectedDates && fp.selectedDates.length){
+      const d = fp.selectedDates[0];
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    return '';
+  };
+  return { opening: getISO(_fpOpening), closing: getISO(_fpClosing) };
+}
+
+function openTdiConfirm(){
+  const grade = document.getElementById('tdi-grade-select').value;
+  const { opening, closing } = _getTdiDates();
+  if(!grade||!opening||!closing) return;
+  const matchCount = Object.values(allRecords).filter(r=>String(r.Grade||'')===grade).length;
+  document.getElementById('tdi-dlg-body').innerHTML=
+    `Set <strong>Opening Date</strong> and <strong>Closing Date</strong> on <strong style="color:var(--cyan);">${matchCount} record${matchCount!==1?'s':''}</strong> in Grade "<em>${esc(grade)}</em>" (all terms).`;
+  document.getElementById('tdi-dlg-opening').textContent=formatDateNice(opening);
+  document.getElementById('tdi-dlg-closing').textContent=formatDateNice(closing);
+  document.getElementById('tdi-progress-wrap').style.display='none';
+  document.getElementById('tdi-progress-bar').style.width='0%';
+  document.getElementById('tdi-progress-text').textContent='';
+  document.getElementById('tdi-overlay').classList.add('open');
+}
+window.openTdiConfirm=openTdiConfirm;
+
+function closeTdiConfirm(){
+  if(_tdiSaving) return;
+  document.getElementById('tdi-overlay').classList.remove('open');
+}
+window.closeTdiConfirm=closeTdiConfirm;
+
+async function executeTdiUpdate(){
+  if(_tdiSaving) return;
+  const grade = document.getElementById('tdi-grade-select').value;
+  const { opening, closing } = _getTdiDates();
+  if(!grade||!opening||!closing) return;
+
+  const openingStr = formatDateNice(opening);
+  const closingStr = formatDateNice(closing);
+
+  _tdiSaving=true;
+  document.getElementById('tdi-cancel-btn').disabled=true;
+  document.getElementById('tdi-confirm-btn').disabled=true;
+  document.getElementById('tdi-confirm-btn').textContent='⏳ Writing…';
+  document.getElementById('tdi-progress-wrap').style.display='block';
+
+  // Match by Grade (all terms within the grade)
+  const matchKeys = Object.entries(allRecords)
+    .filter(([,r])=>String(r.Grade||'')===grade)
+    .map(([k])=>k);
+
+  // Snapshot existing values for undo
+  const undoUpdates = {};
+  matchKeys.forEach(k=>{
+    undoUpdates[`${_activePath}/${k}/Opening Date`] = allRecords[k]['Opening Date'] ?? null;
+    undoUpdates[`${_activePath}/${k}/Closing Date`] = allRecords[k]['Closing Date'] ?? null;
+  });
+
+  const total=matchKeys.length;
+  let done=0, errors=0;
+  const BATCH=50;
+
+  log(`📅 Writing Opening Date="${openingStr}" & Closing Date="${closingStr}" to ${total} records in Grade "${grade}"…`,'info');
+
+  for(let i=0;i<matchKeys.length;i+=BATCH){
+    const batch=matchKeys.slice(i,i+BATCH);
+    const updates={};
+    batch.forEach(key=>{
+      updates[`${_activePath}/${key}/Opening Date`]=openingStr;
+      updates[`${_activePath}/${key}/Closing Date`]=closingStr;
+    });
+    try{
+      await fb.update(fb.ref(db),updates);
+      done+=batch.length;
+    } catch(e){
+      errors+=batch.length;
+      log(`❌ Batch error at record ${i}: ${e.message}`,'error');
+    }
+    const pct=Math.round(done/total*100);
+    document.getElementById('tdi-progress-bar').style.width=pct+'%';
+    document.getElementById('tdi-progress-text').textContent=`${done} / ${total} records updated (${pct}%)`;
+    await new Promise(r=>setTimeout(r,20));
+  }
+
+  _tdiSaving=false;
+  document.getElementById('tdi-cancel-btn').disabled=false;
+  document.getElementById('tdi-confirm-btn').disabled=false;
+  document.getElementById('tdi-confirm-btn').textContent='📅 Write Dates';
+  document.getElementById('tdi-overlay').classList.remove('open');
+
+  if(errors===0){
+    notify(`✅ Done! Dates written to ${done} record${done!==1?'s':''}!`,'success');
+    log(`✅ Opening Date & Closing Date set on ${done} records in Grade "${grade}".`,'success');
+    pushUndo(`Dates set on Grade "${grade}" (${done} records)`, undoUpdates);
+  } else {
+    notify(`⚠️ Completed with ${errors} errors. Check the log.`,'warning');
+    log(`⚠️ Done: ${done} ok, ${errors} errors.`,'warning');
+  }
+
+  await loadData();
+}
+window.executeTdiUpdate=executeTdiUpdate;
+
+// ── UNDO SYSTEM ──────────────────────────────────────────────
+let _undoStack = null;   // { label, path, updates:{path:oldVal} }
+let _undoTimer = null;
+const UNDO_DURATION = 12000; // 12 seconds
+
+function pushUndo(label, reversalUpdates){
+  _undoStack = { label, updates: reversalUpdates };
+  const banner = document.getElementById('undo-banner');
+  document.getElementById('undo-msg').innerHTML = `<strong>Done:</strong> ${esc(label)}`;
+  const bar = document.getElementById('undo-timer-bar');
+  bar.style.transition = 'none'; bar.style.width = '100%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    bar.style.transition = `width ${UNDO_DURATION}ms linear`; bar.style.width = '0%';
+  }));
+  banner.classList.add('show');
+  clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(dismissUndo, UNDO_DURATION);
+}
+
+function dismissUndo(){
+  clearTimeout(_undoTimer);
+  document.getElementById('undo-banner').classList.remove('show');
+  _undoStack = null;
+}
+window.dismissUndo = dismissUndo;
+
+async function executeUndo(){
+  if(!_undoStack) return;
+  const { label, updates } = _undoStack;
+  dismissUndo();
+  try {
+    const BATCH = 200;
+    const entries = Object.entries(updates);
+    for(let i=0; i<entries.length; i+=BATCH){
+      const chunk = Object.fromEntries(entries.slice(i,i+BATCH));
+      await fb.update(fb.ref(db), chunk);
+    }
+    notify(`↩ Undone: ${label}`, 'success');
+    log(`↩ Undo applied: ${label}`, 'success');
+    await loadData();
+  } catch(e){
+    notify('❌ Undo failed: '+e.message, 'error');
+    log('❌ Undo failed: '+e.message, 'error');
+  }
+}
+window.executeUndo = executeUndo;
+
+// Patch existing execute functions to push undo snapshots
+const _origExecuteDelete = executeDelete;
+const _origExecuteGradeUpdate = executeGradeUpdate;
+const _origExecuteTdiUpdate = executeTdiUpdate;
+
+// ── DUPLICATE DETECTOR ───────────────────────────────────────
+function dupScan(){
+  const btn = document.getElementById('dup-scan-btn');
+  btn.textContent='⏳ Scanning…'; btn.disabled=true;
+
+  const NAME_KEYS=['Official Student Name','Name','Student Name','name','FullName'];
+  // Build map: normalisedName|grade → [{key, record}]
+  const groups = new Map();
+  Object.entries(allRecords).forEach(([key,rec])=>{
+    const nameKey = NAME_KEYS.find(k=>rec[k]);
+    if(!nameKey) return;
+    const name  = String(rec[nameKey]).trim().toLowerCase().replace(/\s+/g,' ');
+    const grade = String(rec.Grade||'').trim().toLowerCase();
+    const gKey  = `${name}||${grade}`;
+    if(!groups.has(gKey)) groups.set(gKey,{name:String(rec[nameKey]).trim(), grade:String(rec.Grade||'—'), records:[]});
+    groups.get(gKey).records.push({key, term:String(rec.Term||'—'), rec});
+  });
+
+  const dupes = [...groups.values()].filter(g=>g.records.length>1).sort((a,b)=>b.records.length-a.records.length);
+
+  const el = document.getElementById('dup-content');
+  btn.textContent='🔄 Re-scan'; btn.disabled=false;
+
+  if(dupes.length===0){
+    el.innerHTML=`<div class="empty" style="padding:28px 20px;">
+      <div class="empty-icon" style="font-size:36px;">✅</div>
+      <div style="color:var(--text2);font-size:13px;font-weight:600;">No duplicate records found — database looks clean!</div>
+    </div>`;
+    log('🗂️ Duplicate scan: no duplicates found.','success');
+    return;
+  }
+
+  let html=`<div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span class="ms-badge danger">⚠️ ${dupes.length} duplicate group${dupes.length!==1?'s':''} found</span>
+    <span style="font-size:12px;color:var(--text2);">${dupes.reduce((s,g)=>s+g.records.length,0)} total records affected</span>
+  </div>
+  <div style="overflow-x:auto;"><table class="dup-table">
+    <thead><tr><th>Student Name</th><th>Grade</th><th>Copies</th><th>Terms / Keys</th></tr></thead>
+    <tbody>`;
+
+  dupes.forEach(g=>{
+    const termsHtml = g.records.map(r=>`<span style="display:inline-block;padding:1px 7px;border-radius:5px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);font-size:10px;margin:1px;font-family:'JetBrains Mono',monospace;">${esc(r.term)}</span>`).join(' ');
+    html+=`<tr>
+      <td style="font-weight:700;">${esc(g.name)}</td>
+      <td style="color:var(--text2);">${esc(g.grade)}</td>
+      <td><span class="dup-count-badge">${g.records.length}×</span></td>
+      <td>${termsHtml}</td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>`;
+  el.innerHTML=html;
+  log(`🗂️ Duplicate scan: ${dupes.length} group${dupes.length!==1?'s':''} (${dupes.reduce((s,g)=>s+g.records.length,0)} records).`,'warning');
+}
+window.dupScan = dupScan;
+
+// ── CSV / EXCEL EXPORT ────────────────────────────────────────
+let _expFmt = 'csv';
+
+function expSetFmt(fmt){
+  _expFmt = fmt;
+  document.getElementById('exp-fmt-csv').classList.toggle('active', fmt==='csv');
+  document.getElementById('exp-fmt-xlsx').classList.toggle('active', fmt==='xlsx');
+}
+window.expSetFmt = expSetFmt;
+
+function populateExportSelects(){
+  const grades = new Set(), terms = new Set();
+  Object.values(allRecords).forEach(r=>{
+    if(r.Grade) grades.add(String(r.Grade));
+    if(r.Term)  terms.add(String(r.Term));
+  });
+  const gSel = document.getElementById('exp-grade-select');
+  const tSel = document.getElementById('exp-term-select');
+  gSel.innerHTML = '<option value="">— All Grades —</option>'+[...grades].sort().map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
+  tSel.innerHTML = '<option value="">— All Terms —</option>'+[...terms].sort().map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  onExpChange();
+}
+
+function onExpChange(){
+  const grade = document.getElementById('exp-grade-select').value;
+  const term  = document.getElementById('exp-term-select').value;
+  const filtered = Object.values(allRecords).filter(r=>
+    (!grade || String(r.Grade||'')===grade) &&
+    (!term  || String(r.Term||'')===term)
+  );
+  const hint = document.getElementById('exp-hint');
+  hint.innerHTML = `<strong style="color:var(--cyan);">${filtered.length} record${filtered!==1?'s':''}</strong> will be exported${grade?` · Grade: <em>${esc(grade)}</em>`:''}${term?` · Term: <em>${esc(term)}</em>`:''}.`;
+}
+window.onExpChange = onExpChange;
+
+function runExport(){
+  const grade = document.getElementById('exp-grade-select').value;
+  const term  = document.getElementById('exp-term-select').value;
+  const rows  = Object.entries(allRecords)
+    .filter(([,r])=>(!grade||String(r.Grade||'')===grade)&&(!term||String(r.Term||'')===term))
+    .map(([k,r])=>({_key:k,...r}));
+
+  if(!rows.length){ notify('No records match the selected filters.','warning'); return; }
+
+  // Collect all field headers (union of all keys)
+  const headers = ['_key',...new Set(rows.flatMap(r=>Object.keys(r)).filter(k=>k!=='_key'))];
+
+  if(_expFmt==='csv'){
+    const escape = v => { const s=String(v??''); return s.includes(',')||s.includes('"')||s.includes('\n') ? `"${s.replace(/"/g,'""')}"` : s; };
+    const csv = [headers.map(escape).join(','), ...rows.map(r=>headers.map(h=>escape(r[h]??'')).join(','))].join('\n');
+    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const fname = `export${grade?'_'+grade.replace(/\s/g,'_'):''}${term?'_'+term.replace(/\s/g,'_'):''}.csv`;
+    triggerDownload(blob, fname);
+    log(`📤 Exported ${rows.length} records as CSV (${fname}).`,'success');
+  } else {
+    // Build minimal XLSX manually (XML-based)
+    const xlsxBlob = buildXlsx(headers, rows);
+    const fname = `export${grade?'_'+grade.replace(/\s/g,'_'):''}${term?'_'+term.replace(/\s/g,'_'):''}.xlsx`;
+    triggerDownload(xlsxBlob, fname);
+    log(`📤 Exported ${rows.length} records as Excel (${fname}).`,'success');
+  }
+  notify(`✅ Export downloaded — ${rows.length} records.`,'success');
+}
+window.runExport = runExport;
+
+function triggerDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function buildXlsx(headers, rows){
+  // Minimal Office Open XML SpreadsheetML — no dependencies needed
+  const xmlEsc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const colLetter = n => { let s=''; n++; while(n>0){s=String.fromCharCode(64+(n%26||26))+s;n=Math.floor((n-1)/26);} return s; };
+
+  const sheetRows = [headers, ...rows.map(r=>headers.map(h=>r[h]??''))];
+  const sheetXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<sheetData>${sheetRows.map((row,ri)=>`<row r="${ri+1}">${row.map((cell,ci)=>{
+  const ref=colLetter(ci)+(ri+1);
+  const isNum = ri>0 && cell!=='' && !isNaN(Number(cell));
+  return isNum ? `<c r="${ref}"><v>${xmlEsc(cell)}</v></c>`
+               : `<c r="${ref}" t="inlineStr"><is><t>${xmlEsc(cell)}</t></is></c>`;
+}).join('')}</row>`).join('')}
+</sheetData></worksheet>`;
+
+  const wbXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="Export" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+
+  const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>`;
+
+  const pkgRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`;
+
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>`;
+
+  // Build ZIP manually using a simple implementation
+  function strToBytes(str){ return new TextEncoder().encode(str); }
+  function buildZip(files){
+    const fileRecords=[]; let offset=0;
+    const crc32=(data)=>{
+      let c=0xFFFFFFFF;
+      const t=new Uint32Array(256);
+      for(let n=0;n<256;n++){let v=n;for(let k=0;k<8;k++)v=v&1?0xEDB88320^(v>>>1):v>>>1;t[n]=v;}
+      for(let i=0;i<data.length;i++)c=t[(c^data[i])&0xFF]^(c>>>8);
+      return (c^0xFFFFFFFF)>>>0;
+    };
+    const u32=(n)=>{const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;}
+    const u16=(n)=>{const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;}
+    const cat=(...arrs)=>{const t=new Uint8Array(arrs.reduce((s,a)=>s+a.length,0));let o=0;arrs.forEach(a=>{t.set(a,o);o+=a.length;});return t;}
+
+    const localHeaders=[];
+    for(const [name,content] of files){
+      const nameBytes=new TextEncoder().encode(name);
+      const data=strToBytes(content);
+      const crc=crc32(data);
+      const local=cat(
+        new Uint8Array([0x50,0x4B,0x03,0x04]),u16(20),u16(0),u16(0),
+        u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),
+        u16(nameBytes.length),u16(0),nameBytes,data
+      );
+      fileRecords.push({name,nameBytes,data,crc,offset,size:local.length});
+      localHeaders.push(local); offset+=local.length;
+    }
+    const centralDir=fileRecords.map(({name,nameBytes,data,crc,offset})=>cat(
+      new Uint8Array([0x50,0x4B,0x01,0x02]),u16(20),u16(20),u16(0),u16(0),
+      u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),
+      u16(nameBytes.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),nameBytes
+    ));
+    const cdSize=centralDir.reduce((s,a)=>s+a.length,0);
+    const eocd=cat(
+      new Uint8Array([0x50,0x4B,0x05,0x06]),u16(0),u16(0),
+      u16(fileRecords.length),u16(fileRecords.length),
+      u32(cdSize),u32(offset),u16(0)
+    );
+    return cat(...localHeaders,...centralDir,eocd);
+  }
+
+  const zipBytes = buildZip([
+    ['[Content_Types].xml', contentTypes],
+    ['_rels/.rels', pkgRels],
+    ['xl/workbook.xml', wbXml],
+    ['xl/_rels/workbook.xml.rels', relsXml],
+    ['xl/worksheets/sheet1.xml', sheetXml],
+  ]);
+  return new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+// ── ACTIVITY LOG ─────────────────────────────────────────────
+const _logColors={success:'#10b981',error:'#f87171',warning:'#fbbf24',info:'#00d4ff'};
+function log(msg,type='info'){
+  const el=document.getElementById('activity-log');
+  const time=new Date().toLocaleTimeString();
+  const color=_logColors[type]||_logColors.info;
+  el.innerHTML+=`<div><span style="color:var(--text3);">[${time}]</span> <span style="color:${color};">${msg}</span></div>`;
+  el.scrollTop=el.scrollHeight;
+  if(el.children.length>1 && el.children[0].textContent.includes('No actions')) el.children[0].remove();
+}
+function clearLog(){
+  document.getElementById('activity-log').innerHTML=`<div style="color:var(--text3);">Log cleared.</div>`;
+}
+window.clearLog=clearLog;
+
+// ── NOTIFY ───────────────────────────────────────────────────
+function notify(msg,type='info'){
+  const a=document.getElementById('notif-area');
+  const d=document.createElement('div');
+  d.className=`notif ${type}`;
+  d.innerHTML=`<span>${type==='success'?'✅':type==='error'?'❌':type==='warning'?'⚠️':'ℹ️'}</span><span>${msg}</span>`;
+  d.onclick=()=>d.remove();
+  a.appendChild(d);
+  setTimeout(()=>{d.style.opacity='0';d.style.transition='opacity .4s';setTimeout(()=>d.remove(),400);},5000);
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+</script>
+<!-- ── UNDO BANNER ── -->
+<div id="undo-banner">
+  <div style="flex:1;">
+    <div class="undo-msg" id="undo-msg">Last action can be undone.</div>
+    <div class="undo-timer"><div class="undo-timer-bar" id="undo-timer-bar" style="width:100%;"></div></div>
+  </div>
+  <button class="undo-btn" onclick="executeUndo()">↩ Undo</button>
+  <button class="undo-close" onclick="dismissUndo()">✕</button>
+</div>
+
+</body>
+</html>>

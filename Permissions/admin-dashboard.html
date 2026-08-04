@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - TSC Kenya</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="gradient-mesh min-h-screen">
+
+
+    <div class="dashboard">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <div class="navbar-logo">
+             <img src="../images/logo.png" alt="">
+
+                </div>
+                <div class="navbar-title">
+                    <h1>Kanyadet Pri & Junior School</h1>
+                    <p>Admin Dashboard</p>
+                </div>
+            </div>
+            <div class="navbar-user">
+                <!-- Added System Logs Button -->
+                <button class="btn-secondary" onclick="openAuditLogs()" style="margin-right: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    📜 System Logs
+                </button>
+               
+                <div class="user-avatar" id="adminAvatar">
+                    <img src="" alt="Admin" id="adminPhoto" style="display: none;">
+                    <div class="avatar-placeholder" id="adminAvatarPlaceholder">A</div>
+                </div>
+                <div class="user-info">
+                    <p>Administrator</p>
+                    <strong id="adminName">Admin</strong>
+                    <span id="adminEmail" class="user-email"></span>
+                </div>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
+            </div>
+
+
+
+
+
+            
+            <!-- Add this inside your navbar, near the System Logs button -->
+<button class="btn-secondary" onclick="openMessageModal()" style="position: relative; margin-right: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+    💬 Read Messages
+    <span id="messagesBadge" style="position: absolute; top: -8px; right: -8px; background: #dc3545; color: white; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); font-size: 0.75rem; font-weight: bold; line-height: 1; padding: 0; display: none; align-items: center; justify-content: center; z-index: 10;"></span>
+</button>
+<!-- Message Modal - Fixed Version -->
+<div id="messageModalBackdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000;">
+    <div id="messageModalContent" style="background: white; margin: 50px auto; padding: 20px; border-radius: 12px; width: 700px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #8B1538;">
+            <h3 id="chatPartnerName" style="margin: 0; color: #8B1538;">Your Messages</h3>
+            <button onclick="closeMessageModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+        </div>
+        
+        <div id="adminThreadsList" style="min-height: 200px;">
+            <p style="text-align: center; padding: 2rem; color: #999;">Loading conversations...</p>
+        </div>
+        
+        <div id="adminThreadView" style="display: none;">
+            <div id="messagesContainer" style="max-height: 300px; overflow-y: auto; padding: 1rem; background: #f9f9f9; border-radius: 8px; margin-bottom: 1rem;"></div>
+            
+            <!-- File Preview Area -->
+            <div id="filePreviewArea" style="display: none; background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #ffc107;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="filePreviewIcon">📎</span>
+                        <span id="filePreviewName" style="font-size: 0.9rem; color: #666;"></span>
+                        <span id="filePreviewSize" style="font-size: 0.8rem; color: #999;"></span>
+                    </div>
+                    <button onclick="clearFileAttachment()" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.8rem;">Remove</button>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <!-- Hidden File Input - FIXED: Removed inline onchange -->
+                <input type="file" id="messageFileInput" accept="image/*,.pdf" style="display: none;">
+                
+                <!-- Attach File Button -->
+                <button onclick="triggerFileSelect()" style="padding: 10px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; flex-shrink: 0;" title="Attach image or PDF">
+                    📎
+                </button>
+                
+                <input type="text" id="adminMessageInput" placeholder="Type message" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+                
+                <button onclick="sendAdminReply()" style="padding: 10px 20px; background: #8B1538; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Message Modal - Fixed Version -->
+
+
+
+
+
+        </nav>
+
+        <div class="dashboard-container">
+            <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <h2>Administrative Dashboard</h2>
+                <p>Review and manage all teacher requests</p>
+                 <!-- Added Notification Button -->
+                <button class="btn-submit" onclick="openNotificationModal()" style="margin-right: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    📧 Send Notification
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Requests</h3>
+                    <div class="stat-value" id="totalRequests">0</div>
+                    <div class="stat-change">All time</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Review</h3>
+                    <div class="stat-value" id="pendingRequests">0</div>
+                    <div class="stat-change">Awaiting action</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Approved Today</h3>
+                    <div class="stat-value" id="approvedToday">0</div>
+                    <div class="stat-change positive">Last 24 hours</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Teachers</h3>
+                    <div class="stat-value" id="totalTeachers">0</div>
+                    <div class="stat-change">Active users- Send Messages</div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h3>Filter Requests</h3>
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; justify-content: space-between;">
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn-secondary filter-btn active" data-filter="all" onclick="filterRequests('all')">
+                            All Requests
+                        </button>
+                        <button class="btn-secondary filter-btn" data-filter="pending" onclick="filterRequests('pending')">
+                            Pending
+                        </button>
+                        <button class="btn-secondary filter-btn" data-filter="approved" onclick="filterRequests('approved')">
+                            Approved
+                        </button>
+                        <button class="btn-secondary filter-btn" data-filter="rejected" onclick="filterRequests('rejected')">
+                            Rejected
+                        </button>
+                        <button class="btn-secondary filter-btn" data-filter="permission" onclick="filterRequests('permission')">
+                            Permission
+                        </button>
+                        <button class="btn-secondary filter-btn" data-filter="sick-leave" onclick="filterRequests('sick-leave')">
+                            Sick Leave
+                        </button>
+                        <button class="btn-secondary filter-btn" data-filter="court-summon" onclick="filterRequests('court-summon')">
+                            Court Summons
+                        </button>
+                    </div>
+                    <button class="btn-submit" onclick="openAnalytics()" style="padding: 0.5rem 1rem; white-space: nowrap;">
+                        📊 View Analytics
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div id="analyticsSection" class="requests-section" style="display: none; margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3>📊 Request Analytics</h3>
+                    <button class="btn-secondary" onclick="closeAnalytics()">Close Analytics</button>
+                </div>
+                
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h4>Requests by Type</h4>
+                        <canvas id="typeChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Approval Rate</h4>
+                        <canvas id="approvalChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Monthly Trend</h4>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Response Time</h4>
+                        <div id="responseTimeStats" style="padding: 1rem;">
+                            <div style="margin-bottom: 1rem;">
+                                <strong>Average Response Time:</strong>
+                                <div style="font-size: 2rem; color: var(--tsc-maroon); font-weight: 700;" id="avgResponseTime">--</div>
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong>Fastest:</strong> <span id="fastestResponse">--</span>
+                            </div>
+                            <div>
+                                <strong>Slowest:</strong> <span id="slowestResponse">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analytics-card" style="margin-top: 1.5rem;">
+                    <h4>Top Teachers by Requests</h4>
+                    <div id="topTeachers"></div>
+                </div>
+            </div>
+
+            <div class="requests-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <h3>All Requests</h3>
+                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="searchRequests" placeholder="Search requests..." style="padding: 0.5rem 1rem; border: 2px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;">
+                        <button class="btn-secondary" onclick="exportAdminCSV()" style="padding: 0.5rem 1rem; white-space: nowrap;">
+                            📥 Export All
+                        </button>
+                        <button class="btn-submit" onclick="showBulkApprove()" style="padding: 0.5rem 1rem; white-space: nowrap;">
+                            ✓ Bulk Approve
+                        </button>
+
+<!-- Role Management Modal -->
+<div id="roleManagementModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div class="modal-content" style="background-color: #ffff; margin: auto; padding: 2rem; border-radius: 12px; width: 80%; max-width: 1200px;; overflow-y: auto; position: relative; top: 45%; transform: translateY(-50%);">
+        
+        <!-- Modal Header -->
+        <div style="display: flex; justify-content: space-between;border-radius: 10px; align-items: center;background: linear-gradient(135deg, #8B1538 0%, #5a0f26 100%); margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #8B1538;">
+            <h2 style="margin: 0; color: #faf7f8; display: flex; align-items: center; gap: 0.5rem;">
+                👑 Role Management
+                <span style="font-size: 1rem; font-weight: normal; color: #0d85a6;">(Promote/Demote Users)</span>
+            </h2>
+            <button onclick="closeRoleManagement()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">
+                ✕
+            </button>
+        </div>
+        
+        <!-- Info Box -->
+        <div style="background: #e3f2fd; border-left: 4px solid #2196F3; padding: 1rem; border-radius: 6px; margin-bottom: 2rem;">
+            <p style="margin: 0; color: #1565c0; font-size: 0.95rem;">
+                <strong>ℹ️ Role Management:</strong> Promote teachers to admin or demote admins back to teacher. All role changes are logged in the audit trail.
+            </p>
+        </div>
+        
+        <!-- Users Flex Container -->
+        <div id="roleManagementContainer" style="display: flex; flex-wrap: wrap; gap: 1.5rem; min-height: 300px;">
+            <div style="text-align: center; padding: 2rem; color: #999; width: 100%;">
+                <p>Loading users...</p>
+            </div>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 1rem;">
+            <button onclick="closeRoleManagement()" style="padding: 0.75rem 1.5rem; background: #f5f5f5; color: #333; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f5f5f5'">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Example button to open the modal -->
+<button onclick="openRoleManagement()" style="padding: 0.75rem 1.5rem; background: #8B1538; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; margin: 0.5rem;" onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#8B1538'">
+    👑 Role Management
+</button>
+
+
+                    </div>
+                </div>
+
+                
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Teacher</th>
+                            <th>Type</th>
+                            <th>Submitted</th>
+                            <th>Details</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem; color: #999;">
+                                Loading requests...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="paginationContainer"></div>
+            </div>
+        </div>
+    </div>
+
+<!-- Send Notification Modal -->
+<div id="notificationModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="max-width: 700px; width: 95%;">
+        <div class="modal-header">
+            <h3>📧 Send Notification to Teachers</h3>
+            <button class="modal-close" onclick="closeNotificationModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="notificationRecipient">Send To:</label>
+                <select id="notificationRecipient" style="padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 6px; font-size: 1rem; width: 100%;">
+                    <option value="all">All Teachers</option>
+                    <option value="specific">Specific Teacher</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="specificTeacherGroup" style="display: none;">
+                <label for="specificTeacher">Select Teacher:</label>
+                <select id="specificTeacher" style="padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 6px; font-size: 1rem; width: 100%;">
+                    <option value="">-- Select a teacher --</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="notificationTitle">Subject/Title: <span style="color: red;">*</span></label>
+                <input type="text" id="notificationTitle" placeholder="Enter notification subject" style="padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 6px; font-size: 1rem; width: 100%;" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="notificationMessage">Message: <span style="color: red;">*</span></label>
+                <textarea id="notificationMessage" rows="6" placeholder="Enter your message here..." style="padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 6px; font-size: 1rem; width: 100%; resize: vertical;" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="notificationPriority">Priority:</label>
+                <select id="notificationPriority" style="padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 6px; font-size: 1rem; width: 100%;">
+                    <option value="normal">Normal</option>
+                    <option value="high">High Priority</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+            
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+                <p style="margin: 0; font-size: 0.9rem;">
+                    <strong>ℹ️ Note:</strong> Teachers will receive this notification in their dashboard and can mark it as read.
+                </p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeNotificationModal()">Cancel</button>
+            <button class="btn-submit" onclick="sendNotification()">
+                📤 Send Notification
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Teachers Modal -->
+<div id="teachersModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 1200px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative;">
+        
+        <!-- Modal Header -->
+        <div style="background: #8B1538; color: white; padding: 2rem; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001;">
+            <div>
+                <h2 style="margin: 0; font-size: 1.8rem;">👨‍🏫 All Teachers</h2>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.9;">Click on any teacher to view their details</p>
+            </div>
+            <button onclick="closeTeachersModal()" style="background: white; color: #8B1538; border: none; font-size: 2rem; cursor: pointer; padding: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">
+                ✕
+            </button>
+        </div>
+        
+        <!-- Teachers Container -->
+        <div id="teachersContainer" style="padding: 2rem;">
+            <!-- Teachers cards will be inserted here -->
+        </div>
+        
+    </div>
+</div>
+
+    <!-- Audit Logs Modal -->
+    <div id="auditLogsModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="max-width: 900px; width: 95%;">
+            <div class="modal-header">
+                <h3>📜 System Audit Logs</h3>
+                <button class="modal-close" onclick="closeAuditLogs()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: #666;">View login/logout history for all users.</p>
+                
+                <div style="overflow-x: auto; max-height: 500px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                    <table class="requests-table" style="margin: 0;">
+                        <thead>
+                            <tr style="position: sticky; top: 0; background: #f5f5f5; z-index: 10;">
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Action</th>
+                                <th>Device/Browser</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditLogsTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 2rem; color: #999;">Loading logs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAuditLogs()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Request Modal -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Review Request</h3>
+                <button class="modal-close" onclick="closeReviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="requestDetailsContainer">
+                    <!-- Request details will be populated here -->
+                </div>
+                <div class="form-group" style="margin-top: 2rem;">
+                    <label for="adminNotes">Admin Notes (Optional)</label>
+                    <textarea id="adminNotes" rows="4" placeholder="Add any notes or comments about this request..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeReviewModal()">Cancel</button>
+                <button class="btn-submit" style="background: #c33;" onclick="reviewRequest('rejected')">
+                    Reject Request
+                </button>
+                <button class="btn-submit" onclick="reviewRequest('approved')">
+                    Approve Request
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Approve Modal -->
+    <div id="bulkApproveModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Bulk Approve Pending Requests</h3>
+                <button class="modal-close" onclick="closeBulkModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem;">Select requests to approve in bulk:</p>
+                <div id="bulkRequestsList" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Bulk requests will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeBulkModal()">Cancel</button>
+                <button class="btn-submit" onclick="bulkApproveRequests()">
+                    Approve Selected
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="admin-dashboard.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+</body>
+</html>
