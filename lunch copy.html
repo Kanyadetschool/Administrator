@@ -389,13 +389,12 @@ window.dispatchEvent(new Event('fb-ready'));
   }
   .pdf-overlay.show { display: flex; }
   .pdf-overlay-box {
-    background: linear-gradient(160deg, #fdf8f3, #f7ece0); border-radius: var(--radius-lg);
+    background: var(--white); border-radius: 14px;
     padding: 28px 36px; text-align: center;
-    box-shadow: 0 20px 56px rgba(43,26,16,.4);
-    border: 1px solid rgba(217,164,65,.35);
+    box-shadow: 0 12px 40px rgba(0,0,0,.3);
   }
-  .pdf-overlay-box p { font-size: 15px; font-weight: 500; margin-top: 12px; color: #3a2417; }
-  .pdf-overlay-box small { font-size: 12px; color: #6b5340; }
+  .pdf-overlay-box p { font-size: 15px; font-weight: 500; margin-top: 12px; color: var(--ink); }
+  .pdf-overlay-box small { font-size: 12px; color: var(--ink-light); }
   .pdf-spinner {
     width: 36px; height: 36px;
     border: 3px solid var(--rule);
@@ -1071,25 +1070,6 @@ window.dispatchEvent(new Event('fb-ready'));
     font-size: 10px; color: var(--ink-light); font-family: 'JetBrains Mono', monospace;
     display: block; margin-top: 2px;
   }
-  /* Shown on the amount cell when a member has more than one payment
-     entry logged for the period — click to see the breakdown. */
-  .entry-count-badge {
-    display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 800;
-    font-family: 'JetBrains Mono', monospace; color: var(--accent-dk);
-    background: rgba(211,164,55,.16); border: 1px solid var(--rule-strong);
-    border-radius: 20px; padding: 1px 7px; cursor: pointer; vertical-align: middle;
-  }
-  .entry-count-badge:hover { background: rgba(211,164,55,.28); }
-  .entry-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    background: var(--bg); border: 1px solid var(--rule); border-radius: 9px;
-    padding: 7px 10px; font-size: 12.5px;
-  }
-  .entry-row .entry-amt { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--ink); }
-  .entry-row .entry-date { color: var(--ink-light); font-size: 11px; }
-  .entry-row .entry-del { background: none; border: none; color: var(--nil-fg); cursor: pointer; font-size: 13px; padding: 2px 4px; flex-shrink: 0; }
-  .entry-row .entry-del:hover { opacity: .7; }
-  .entry-empty { font-size: 12px; color: var(--ink-light); text-align: center; padding: 10px 0; }
 
   /* ── READ-ONLY VIEW (07) ── */
   .share-modal { max-width: 480px; }
@@ -1339,13 +1319,13 @@ window.dispatchEvent(new Event('fb-ready'));
   }
   #share-modal.on{display:flex;}
   .share-box{
-    background:linear-gradient(160deg, #fdf8f3, #f7ece0);border:1px solid rgba(217,164,65,.35);
+    background:var(--white);border:1px solid var(--rule);
     border-radius:var(--radius-lg);padding:16px;
     width:min(440px,100%);
     max-height:96vh;overflow-y:auto;
-    box-shadow:0 20px 56px rgba(43,26,16,.4);
+    box-shadow:0 24px 80px rgba(0,0,0,.5);
   }
-  .share-box h2{font-size:13px;font-weight:800;color:#3a2417;margin-bottom:10px;}
+  .share-box h2{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:10px;}
   #share-card-preview{
     border-radius:10px;overflow:hidden;margin-bottom:12px;
     border:1px solid var(--rule);
@@ -1400,11 +1380,11 @@ window.dispatchEvent(new Event('fb-ready'));
     backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
   }
   .bulk-prog-box{
-    background:linear-gradient(160deg, #fdf8f3, #f7ece0);border:1px solid rgba(217,164,65,.35);border-radius:var(--radius-lg);
+    background:var(--white);border:1px solid var(--rule-strong);border-radius:16px;
     padding:32px 36px;max-width:420px;width:90%;text-align:center;
-    box-shadow:0 20px 56px rgba(43,26,16,.4);
+    box-shadow:0 24px 64px rgba(0,0,0,.5);
   }
-  .bulk-prog-bar-track{background:#f0e2c8;border-radius:8px;height:8px;overflow:hidden;margin-bottom:12px;}
+  .bulk-prog-bar-track{background:var(--bg2);border-radius:8px;height:8px;overflow:hidden;margin-bottom:12px;}
   .bulk-prog-bar-fill{height:100%;background:linear-gradient(90deg,#8e44ad,var(--accent));border-radius:8px;transition:width .3s;width:0%;}
 
   /* ── MANDATORY SIGN-IN GATE ── */
@@ -1698,7 +1678,7 @@ window.dispatchEvent(new Event('fb-ready'));
           inp.value = saved || (months[now.getMonth()] + ' ' + now.getFullYear());
         })();
       </script>
-      <button class="btn btn-ghost editor-only" style="font-size:12px;padding:7px 14px;" onclick="openNewPeriodModal()" title="Switch periods, or create a new one — add a label to create more than one period within the same month">
+      <button class="btn btn-ghost editor-only" style="font-size:12px;padding:7px 14px;" onclick="openNewPeriodModal()" title="Switch to a different month">
         📅 Change Period
       </button>
     </div>
@@ -2278,12 +2258,8 @@ firebase deploy --only functions</pre>
 <!-- NEW PERIOD MODAL -->
 <div class="modal-backdrop" id="newPeriodModal">
   <div class="modal-box" style="max-width:400px;">
-    <div class="modal-title">New / Change Period</div>
-    <div class="modal-body">Pick a month and year to switch to. Add a label if you want more than one period within the same month (e.g. "Batch 2") — otherwise it defaults to the plain month name. If the period already exists, you'll see its data; if it's new, the current roster is carried forward with amounts reset to zero.</div>
-    <div class="field" style="margin-bottom:8px;">
-      <label style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-light);display:block;margin-bottom:6px;font-family:'JetBrains Mono',monospace;">Label <span style="text-transform:none;letter-spacing:0;">(optional — for a 2nd+ period this month)</span></label>
-      <input type="text" id="newPeriodLabel" placeholder="e.g. Batch 2" oninput="updateNewPeriodInfo()" style="width:100%;padding:10px 14px;border:1.5px solid var(--rule);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;background:var(--bg);color:var(--ink);outline:none;">
-    </div>
+    <div class="modal-title">Change Period</div>
+    <div class="modal-body">Enter the month and year to switch to. If that period already exists, you'll see its data. If it's new, the current roster will be carried forward with all amounts reset to zero.</div>
     <div class="field" style="margin-bottom:8px;">
       <label style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-light);display:block;margin-bottom:6px;font-family:'JetBrains Mono',monospace;">Month</label>
       <select id="newPeriodMonth" onchange="updateNewPeriodInfo()" style="width:100%;padding:10px 14px;border:1.5px solid var(--rule);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;background:var(--bg);color:var(--ink);outline:none;">
@@ -2465,77 +2441,6 @@ firebase deploy --only functions</pre>
     <div id="shortcutsList" style="display:flex;flex-direction:column;gap:2px;margin-bottom:18px;"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('shortcutsModal')">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- PAYMENT ENTRIES MODAL — a member can pay in more than one instalment
-     within the same month; each instalment is its own dated entry, and
-     the member's total for the period is the sum of all entries. -->
-<div class="modal-backdrop" id="entriesModal">
-  <div class="modal-box" style="max-width:400px;">
-    <div class="modal-title" id="entriesModalTitle">Payments</div>
-    <div class="modal-body" style="margin-bottom:8px;">Log each instalment separately — the total below updates automatically.</div>
-    <div id="entriesList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:220px;overflow-y:auto;"></div>
-    <div id="entriesTotalRow" style="display:flex;justify-content:space-between;align-items:center;padding:8px 2px;border-top:1px solid var(--rule);font-weight:800;font-size:14px;margin-bottom:14px;">
-      <span>Total this period</span><span id="entriesTotalVal">Ksh 0</span>
-    </div>
-    <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:6px;">
-      <div style="flex:1;">
-        <label style="font-size:10px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px;">Amount</label>
-        <input class="inline-input" id="newEntryAmt" type="number" min="0" placeholder="e.g. 200" style="width:100%;">
-      </div>
-      <div style="flex:1;">
-        <label style="font-size:10px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px;">Date</label>
-        <input class="inline-input" id="newEntryDate" type="date" style="width:100%;">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('entriesModal')">Close</button>
-      <button class="btn btn-primary" onclick="addEntry()">+ Add Payment</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT MEMBER MODAL — name, phone, amount, custom standard, and photo
-     (URL paste or device upload with live preview) all in one place,
-     replacing the old inline row editor. -->
-<div class="modal-backdrop" id="editMemberModal">
-  <div class="modal-box" style="max-width:400px;">
-    <div class="modal-title">Edit Member</div>
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-      <img id="editPhotoPreview" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid rgba(217,164,65,.4);background:#f0e2c8;display:none;flex-shrink:0;">
-      <span id="editPhotoPlaceholder" style="width:64px;height:64px;border-radius:50%;border:2px solid rgba(217,164,65,.4);background:#f0e2c8;color:#8a6a52;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;flex-shrink:0;"></span>
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <input class="inline-input" id="ePhotoUrl" type="url" placeholder="Photo URL or upload →" style="flex:1;min-width:0;font-size:11px;" title="Direct image URL for this member's photo" oninput="updateEditPhotoPreview();document.getElementById('ePhotoUrlStatus').textContent=''" onblur="checkPhotoUrlValidity(this)">
-          <button type="button" class="icon-btn" title="Upload photo from device" style="flex-shrink:0;" onclick="document.getElementById('ePhotoFile').click()">📷</button>
-          <input type="file" id="ePhotoFile" accept="image/*" style="display:none" onchange="handlePhotoFileSelect(this)">
-        </div>
-        <span id="ePhotoUrlStatus" style="font-size:10px;display:block;margin-top:3px;"></span>
-      </div>
-    </div>
-    <div class="field" style="margin-bottom:10px;">
-      <label style="font-size:10px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px;">Name</label>
-      <input class="inline-input" id="eName" style="width:100%;">
-    </div>
-    <div class="field" style="margin-bottom:10px;">
-      <label style="font-size:10px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px;">Phone</label>
-      <input class="inline-input" id="ePhone" type="tel" placeholder="+254..." style="width:100%;">
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:16px;">
-      <div class="field" style="flex:1;">
-        <label style="font-size:10px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px;">Amount</label>
-        <input class="inline-input" id="eAmt" type="number" min="0" style="width:100%;">
-      </div>
-      <div class="field" style="flex:1;">
-        <label style="font-size:10px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px;">Custom Std</label>
-        <input class="inline-input" id="eCustomStd" type="number" min="0" placeholder="leave blank" style="width:100%;">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('editMemberModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEdit(editMemberIdx);closeModal('editMemberModal');">💾 Save</button>
     </div>
   </div>
 </div>
@@ -2840,10 +2745,6 @@ function render() {
     const checked  = selectedIds.has(m.id) ? 'checked' : '';
     const noteTip  = m.note ? `<span class="note-dot" onmouseenter="showNote(event,'${m.note.replace(/'/g,"&#39;")}')" onmouseleave="hideNote()" title="${m.note}"></span>` : '';
     const customBadge = (m.customStd && m.customStd > 0) ? `<span class="custom-std-badge">Ksh ${fmt(m.customStd)}</span>` : '';
-    const entryCount = Array.isArray(m.entries) ? m.entries.length : 0;
-    const entryBadge = entryCount > 1
-      ? `<span class="entry-count-badge" onclick="openEntriesModal(${m._origIdx})" title="${entryCount} payments logged this period">×${entryCount}</span>`
-      : '';
 
     const tr = document.createElement('tr');
     tr.dataset.id = m.id;
@@ -2853,10 +2754,9 @@ function render() {
       <td class="td-name">${avatarHtml}<span class="td-name-text">${m.name}${noteTip}${customBadge}</span></td>
       <td class="td-phone" style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--ink-mid)">${m.phone ? `<a href="https://wa.me/${waNum(m.phone)}" target="_blank" title="${m.phone}" style="color:var(--ink-mid);text-decoration:none;">${maskPhone(m.phone)}</a>` : '<span style="color:var(--rule)">—</span>'}</td>
       <td><span class="badge ${s.badgeCls}">${s.label}</span></td>
-      <td class="td-amount ${s.cls}">Ksh ${fmt(m.amount)}${m.paidAt ? `<span class="date-stamp">${fmtShortDate(m.paidAt)}</span>` : ''}${entryBadge}</td>
+      <td class="td-amount ${s.cls}">Ksh ${fmt(m.amount)}${m.paidAt ? `<span class="date-stamp">${fmtShortDate(m.paidAt)}</span>` : ''}</td>
       <td class="td-actions no-print no-edit">
-        <button class="icon-btn" title="Log a payment (supports more than one entry per month)" onclick="openEntriesModal(${m._origIdx})">💰</button>
-        <button class="icon-btn" title="Edit" onclick="openEditMemberModal(${m._origIdx})">✎</button>
+        <button class="icon-btn" title="Edit" onclick="startEdit(${m._origIdx})">✎</button>
         <button class="icon-btn" title="Note" onclick="editNote(${m._origIdx})" style="font-size:11px;">📝</button>
         <button class="icon-btn" title="Receipt" onclick="showReceipt(${m._origIdx})" style="font-size:11px;">🧾</button>
         <button class="icon-btn" title="Payment Card" onclick="openPaymentCard(${m._origIdx})" style="font-size:11px;">🔗</button>
@@ -3027,7 +2927,6 @@ function checkPhotoUrlValidity(input) {
     clearTimeout(timeout);
     statusEl.textContent = '✓ valid image';
     statusEl.style.color = 'var(--ok-fg)';
-    updateEditPhotoPreview();
   };
   img.onerror = () => {
     clearTimeout(timeout);
@@ -3068,8 +2967,7 @@ function handlePhotoFileSelect(fileInput) {
 
       const urlInput = document.getElementById('ePhotoUrl');
       if (urlInput) urlInput.value = dataUrl;
-      if (statusEl) { statusEl.textContent = '✓ photo ready'; statusEl.style.color = 'var(--ok-fg)'; }
-      updateEditPhotoPreview();
+      if (statusEl) { statusEl.textContent = '✓ photo ready — click ✓ to save'; statusEl.style.color = 'var(--ok-fg)'; }
     };
     img.onerror = () => { if (statusEl) { statusEl.textContent = '✗ could not read image'; statusEl.style.color = 'var(--nil-fg)'; } };
     img.src = reader.result;
@@ -3079,40 +2977,31 @@ function handlePhotoFileSelect(fileInput) {
 }
 window.handlePhotoFileSelect = handlePhotoFileSelect;
 
-function updateEditPhotoPreview() {
-  const url = (document.getElementById('ePhotoUrl')?.value || '').trim();
-  const img = document.getElementById('editPhotoPreview');
-  const ph  = document.getElementById('editPhotoPlaceholder');
-  if (!img || !ph) return;
-  if (url) {
-    img.src = url;
-    img.style.display = 'block';
-    ph.style.display = 'none';
-    img.onerror = () => { img.style.display = 'none'; ph.style.display = 'flex'; };
-  } else {
-    img.style.display = 'none';
-    ph.style.display = 'flex';
-  }
-}
-window.updateEditPhotoPreview = updateEditPhotoPreview;
-
-let editMemberIdx = null;
-function openEditMemberModal(i) {
+function startEdit(i) {
   if (!guardEdit()) return;
-  editMemberIdx = i;
-  const m = members[i];
-  document.getElementById('eName').value = m.name;
-  document.getElementById('ePhone').value = m.phone || '';
-  document.getElementById('eAmt').value = m.amount;
-  document.getElementById('eCustomStd').value = m.customStd || '';
-  document.getElementById('ePhotoUrl').value = m.photoUrl || '';
-  document.getElementById('ePhotoUrlStatus').textContent = '';
-  document.getElementById('editPhotoPlaceholder').textContent = initials(m.name);
-  updateEditPhotoPreview();
-  document.getElementById('editMemberModal').classList.add('show');
-  setTimeout(() => document.getElementById('eName').focus(), 50);
+  const tbody = document.getElementById('tbody');
+  const row   = tbody.rows[i];
+  const m     = members[i];
+  row.classList.add('editing-row');
+
+  row.cells[1].innerHTML = `<input class="inline-input" id="eName" value="${m.name}" style="width:160px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;">
+    <div style="display:flex;align-items:center;gap:5px;margin-top:4px;">
+      <input class="inline-input" id="ePhotoUrl" type="url" value="${(m.photoUrl||'').replace(/"/g,'&quot;')}" placeholder="Photo URL or upload →" style="width:120px;font-size:10.5px;opacity:.75;" title="Direct image URL for this member's photo" onblur="checkPhotoUrlValidity(this)" oninput="document.getElementById('ePhotoUrlStatus').textContent=''">
+      <button type="button" class="icon-btn" title="Upload photo from device" style="font-size:11px;flex-shrink:0;" onclick="document.getElementById('ePhotoFile').click()">📷</button>
+      <input type="file" id="ePhotoFile" accept="image/*" style="display:none" onchange="handlePhotoFileSelect(this)">
+      <span id="ePhotoUrlStatus" style="font-size:10px;flex-shrink:0;"></span>
+    </div>`;
+  row.cells[2].innerHTML = `<input class="inline-input" id="ePhone" type="tel" value="${m.phone || ''}" placeholder="+254..." style="width:120px;font-family:'JetBrains Mono',monospace;font-size:12px;">`;
+  row.cells[4].innerHTML = `<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;">
+    <input class="inline-input" id="eAmt" type="number" value="${m.amount}" min="0" style="width:90px;">
+    <input class="inline-input" id="eCustomStd" type="number" value="${m.customStd||''}" min="0" placeholder="Custom std" style="width:90px;font-size:11px;opacity:.7;" title="Custom standard amount (leave blank for global)">
+  </div>`;
+  row.cells[5].innerHTML = `
+    <button class="icon-btn" onclick="saveEdit(${i})" title="Save">✓</button>
+    <button class="icon-btn del" onclick="render()" title="Cancel">✕</button>`;
+
+  document.getElementById('eName').focus();
 }
-window.openEditMemberModal = openEditMemberModal;
 
 function saveEdit(i) {
   if (!guardEdit()) return;
@@ -3498,8 +3387,8 @@ function renderPeriodCards(periods, memberHistory, names) {
         <span class="badge badge-nil">${nil} Nil</span>
       </div>
       ${paidMembers.length ? `<div style="display:flex;align-items:center;margin-left:6px;margin-bottom:8px;">${avatarCluster}${extraCount}</div>` : ''}
-      ${isEditor() ? `<button class="hpc-delete-btn" style="border-color:var(--rule);color:var(--ink-mid);" onclick="renamePeriod('${escJsAttr(p.key)}','${escJsAttr(p.label)}')">✏️ Rename</button>` : ''}
-      ${isAdvancedAdmin() ? `<button class="hpc-delete-btn" onclick="openDeletePeriodModal('${escJsAttr(p.key)}', '${escJsAttr(p.label)}')">🗑 Delete</button>` : ''}
+      ${isEditor() ? `<button class="hpc-delete-btn" style="border-color:var(--rule);color:var(--ink-mid);" onclick="renamePeriod('${p.key}','${p.label.replace(/'/g,"\\'")}')">✏️ Rename</button>` : ''}
+      ${isAdvancedAdmin() ? `<button class="hpc-delete-btn" onclick="openDeletePeriodModal('${p.key}', '${p.label}')">🗑 Delete</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -4117,9 +4006,7 @@ function openNewPeriodModal() {
   const now = new Date();
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-  // Pre-fill month/year with the current period; label always starts blank
-  // since it's specific to the NEW period you're about to create, not a
-  // carry-over from whatever the current one happens to be called.
+  // Pre-fill with current period value
   const current = getPeriod().trim().split(' ');
   const curMonth = current[0] || months[now.getMonth()];
   const curYear  = parseInt(current[1]) || now.getFullYear();
@@ -4127,54 +4014,30 @@ function openNewPeriodModal() {
   const sel = document.getElementById('newPeriodMonth');
   sel.value = curMonth;
   document.getElementById('newPeriodYear').value = curYear;
-  document.getElementById('newPeriodLabel').value = '';
 
   updateNewPeriodInfo();
   document.getElementById('newPeriodModal').classList.add('show');
 }
 
 function updateNewPeriodInfo() {
-  const label = document.getElementById('newPeriodLabel').value.trim();
   const month = document.getElementById('newPeriodMonth').value;
   const year  = document.getElementById('newPeriodYear').value;
   const info  = document.getElementById('newPeriodInfo');
   if (month && year) {
-    const full = label ? `${label} ${month} ${year}` : `${month} ${year}`;
-    info.textContent = `Will switch to: ${full}`;
+    info.textContent = `Will switch to: ${month} ${year}`;
   }
 }
 
 async function confirmNewPeriod() {
-  const label = document.getElementById('newPeriodLabel').value.trim().replace(/\s+/g, ' ');
   const month = document.getElementById('newPeriodMonth').value;
   const year  = parseInt(document.getElementById('newPeriodYear').value);
   if (!month || !year || year < 2020 || year > 2099) {
     showToast('Please enter a valid month and year');
     return;
   }
-  if (label && /[.#$\[\]]/.test(label)) {
-    showToast('Label can\'t contain . # $ [ ]');
-    return;
-  }
   closeModal('newPeriodModal');
-  await applyPeriodChange(label ? `${label} ${month} ${year}` : `${month} ${year}`);
+  await applyPeriodChange(`${month} ${year}`);
 }
-
-// Period labels are free text (see periodTextIsValid below) and get
-// interpolated straight into onclick="...('${label}')" attributes when
-// rendering period cards/buttons. Without escaping, a label containing an
-// apostrophe or double quote breaks out of the JS string / HTML attribute
-// and crashes the whole page with a SyntaxError on click — this is the
-// single choke point every one of those interpolations should go through.
-function escJsAttr(str) {
-  return String(str ?? '')
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-window.escJsAttr = escJsAttr;
 
 // A period must contain a recognizable month name and a 20xx year
 // somewhere in the text — but the whole typed text (including any name or
@@ -5279,9 +5142,9 @@ async function loadMiniDash() {
     const cls   = rate >= 90 ? 'mdc-high' : rate >= 60 ? 'mdc-mid' : 'mdc-low';
     const col   = rate >= 90 ? 'var(--ok-fg)' : rate >= 60 ? 'var(--warn-fg)' : 'var(--nil-fg)';
     const label = pk.replace(/_/g,' ');
-    return `<div class="mini-dash-card ${cls}" onclick="switchToPeriod('${escJsAttr(label)}')" title="Switch to ${escJsAttr(label)}">
-      <button onclick="event.stopPropagation();renamePeriod('${escJsAttr(pk)}','${escJsAttr(label)}')" title="Rename ${escJsAttr(label)}" style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,.85);border:1px solid var(--rule);border-radius:6px;width:22px;height:22px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✏️</button>
-      <div class="mdc-period">${escJsAttr(label)}</div>
+    return `<div class="mini-dash-card ${cls}" onclick="switchToPeriod('${label}')" title="Switch to ${label}">
+      <button onclick="event.stopPropagation();renamePeriod('${pk}','${label.replace(/'/g,"\\'")}')" title="Rename ${label}" style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,.85);border:1px solid var(--rule);border-radius:6px;width:22px;height:22px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✏️</button>
+      <div class="mdc-period">${label}</div>
       <div class="mdc-collected">Ksh ${total.toLocaleString('en-KE')}</div>
       <div class="mdc-rate" style="color:${col}">${rate}% collected</div>
       <div class="mdc-nav-hint">↩ tap to switch</div>
@@ -5844,95 +5707,10 @@ function saveEdit(i) {
   // fullPaid: true only when amount reaches the full standard IN THIS SINGLE SAVE.
   // Once set to true it stays true even if amount is later reduced by an admin correction.
   const fullPaid  = (amount >= effStd) ? true : (m.fullPaid || false);
-  // A manual edit here is a straight correction of the total, not another
-  // instalment — collapse any logged payment entries down to one entry
-  // matching the new total so the ×N badge never drifts out of sync with
-  // the amount shown. Use Add Payment (💰) to log a second instalment.
-  const entries   = amount > 0 ? [{ amt: amount, date: paidAt || new Date().toISOString().slice(0,10) }] : [];
-  update(ref(db, `${membersPath()}/${m.id}`), { name, amount, phone, paidAt, customStd, photoUrl, fullPaid, entries })
+  update(ref(db, `${membersPath()}/${m.id}`), { name, amount, phone, paidAt, customStd, photoUrl, fullPaid })
     .then(() => showToast('Updated'))
     .catch(e => showToast('Error: ' + e.message));
 }
-
-// ══════════════════════════════════════════════════════════════
-// PAYMENT ENTRIES — a member can pay a period's contribution in more
-// than one instalment. Each instalment is a dated entry; the member's
-// `amount` for the period is always the sum of their `entries`.
-// ══════════════════════════════════════════════════════════════
-let entriesModalIdx = null;
-
-function openEntriesModal(i) {
-  entriesModalIdx = i;
-  const m = members[i];
-  document.getElementById('entriesModalTitle').textContent = `Payments — ${m.name}`;
-  document.getElementById('newEntryAmt').value = '';
-  document.getElementById('newEntryDate').value = new Date().toISOString().slice(0, 10);
-  renderEntriesList();
-  document.getElementById('entriesModal').classList.add('show');
-}
-window.openEntriesModal = openEntriesModal;
-
-function renderEntriesList() {
-  if (entriesModalIdx === null) return;
-  const m = members[entriesModalIdx];
-  const entries = Array.isArray(m.entries) ? m.entries : [];
-  const list = document.getElementById('entriesList');
-  const totalEl = document.getElementById('entriesTotalVal');
-  totalEl.textContent = `Ksh ${fmt(entries.reduce((s, e) => s + (e.amt || 0), 0))}`;
-  if (!entries.length) {
-    list.innerHTML = `<div class="entry-empty">No payments logged yet — add the first one below.</div>`;
-    return;
-  }
-  list.innerHTML = entries.map((e, idx) => `
-    <div class="entry-row">
-      <span class="entry-amt">Ksh ${fmt(e.amt || 0)}</span>
-      <span class="entry-date">${e.date ? fmtShortDate(e.date) : ''}</span>
-      <button class="entry-del" title="Remove this entry" onclick="removeEntry(${idx})">✕</button>
-    </div>`).join('');
-}
-
-function _saveEntries(entries) {
-  if (!guardEdit()) return;
-  const { db, ref, update } = window._fb;
-  const m = members[entriesModalIdx];
-  const total = entries.reduce((s, e) => s + (e.amt || 0), 0);
-  const effStd = memberStd(m);
-  const latestDate = entries.length ? entries[entries.length - 1].date : (m.paidAt || '');
-  const fullPaid = (total >= effStd) ? true : (m.fullPaid || false);
-  update(ref(db, `${membersPath()}/${m.id}`), { entries, amount: total, paidAt: latestDate, fullPaid })
-    .then(() => { showToast('Saved'); renderEntriesList(); })
-    .catch(e => showToast('Error: ' + e.message));
-}
-
-function addEntry() {
-  if (entriesModalIdx === null) return;
-  if (!guardEdit()) return;
-  const amtInput  = document.getElementById('newEntryAmt');
-  const dateInput = document.getElementById('newEntryDate');
-  const amt = parseFloat(amtInput.value);
-  if (!amt || amt <= 0) { showToast('Enter an amount greater than 0'); return; }
-  const date = dateInput.value || new Date().toISOString().slice(0, 10);
-  const m = members[entriesModalIdx];
-  // Legacy members that already had a lump-sum amount but no entries[]
-  // yet keep that history as their first entry instead of losing it.
-  const existing = Array.isArray(m.entries) ? m.entries.slice()
-    : (m.amount > 0 ? [{ amt: m.amount, date: m.paidAt || date }] : []);
-  existing.push({ amt, date });
-  amtInput.value = '';
-  _saveEntries(existing);
-}
-window.addEntry = addEntry;
-
-function removeEntry(idx) {
-  if (entriesModalIdx === null) return;
-  if (!guardEdit()) return;
-  const m = members[entriesModalIdx];
-  const existing = (Array.isArray(m.entries) ? m.entries.slice()
-    : (m.amount > 0 ? [{ amt: m.amount, date: m.paidAt || '' }] : []));
-  existing.splice(idx, 1);
-  _saveEntries(existing);
-}
-window.removeEntry = removeEntry;
 
 function subscribeToMembers() {
   const { db, ref, onValue, set, push } = window._fb;
@@ -5976,7 +5754,7 @@ function subscribeToMembers() {
       set(ref(db, path), writes);
       return;
     }
-    members = Object.entries(data).map(([id, v]) => ({ id, name: v.name, amount: v.amount, phone: v.phone || '', note: v.note || '', paidAt: v.paidAt || '', customStd: v.customStd || 0, photoUrl: v.photoUrl || '', fullPaid: v.fullPaid || false, entries: Array.isArray(v.entries) ? v.entries : [] }));
+    members = Object.entries(data).map(([id, v]) => ({ id, name: v.name, amount: v.amount, phone: v.phone || '', note: v.note || '', paidAt: v.paidAt || '', customStd: v.customStd || 0, photoUrl: v.photoUrl || '', fullPaid: v.fullPaid || false }));
     render();
     checkOverdue();
     checkAutoRollover();
@@ -6534,10 +6312,10 @@ async function bulkDownloadPaymentCards(format) {
   progDiv.innerHTML = `
     <div class="bulk-prog-box">
       <div style="font-size:40px;margin-bottom:12px;">${format==='pdf'?'📄':'📦'}</div>
-      <h3 style="font-size:16px;font-weight:800;color:#3a2417;margin-bottom:8px;">Generating ${format==='pdf'?'PDF':'Payment Cards'} — ${getPeriodDisplay()}</h3>
-      <div id="bulk-card-prog-txt" style="font-size:12px;color:#6b5340;margin-bottom:16px;">Preparing…</div>
+      <h3 style="font-size:16px;font-weight:800;color:var(--ink);margin-bottom:8px;">Generating ${format==='pdf'?'PDF':'Payment Cards'} — ${getPeriodDisplay()}</h3>
+      <div id="bulk-card-prog-txt" style="font-size:12px;color:var(--ink-mid);margin-bottom:16px;">Preparing…</div>
       <div class="bulk-prog-bar-track"><div id="bulk-card-prog-bar" class="bulk-prog-bar-fill"></div></div>
-      <div id="bulk-card-prog-count" style="font-size:11px;color:#8a6a52;">0 / ${total}</div>
+      <div id="bulk-card-prog-count" style="font-size:11px;color:var(--ink-light);">0 / ${total}</div>
     </div>`;
   document.body.appendChild(progDiv);
 

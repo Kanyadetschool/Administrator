@@ -1,0 +1,3416 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kanyadet School — Advanced Admin Portal</title>
+  <link rel="icon" type="image/x-icon" href="./images/logo.png">
+<link rel="manifest" href="./manifest.json">
+
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="./PWA/pwa.css">
+  <script src="./PWA/pwa.js" ></script>
+
+
+
+
+
+  <style>
+
+    :root {
+      --blue:#2980b9; --blue-dk:#1a5276; --blue-lt:#5dade2; --blue-glow:rgba(41,128,185,.35);
+      --orange:#e67e22; --orange-dk:#d35400; --gold:#f39c12;
+      --green:#27ae60; --green-dk:#1d8a4e; --red:#e74c3c; --red-dk:#c0392b;
+      --purple:#8e44ad; --teal:#16a085;
+      --brand-1:#0f4c81; --brand-2:#3f8fc5; --brand-3:#ffb84d;
+      --radius-xl:24px; --radius-lg:18px; --radius-md:12px; --radius-sm:8px;
+      --transition:all .25s cubic-bezier(.4,0,.2,1);
+      --sidebar-w:260px;
+    }
+    [data-theme="dark"] {
+      --bg:#090f1a; --bg2:#0c1525; --surface:#111d2e; --surface2:#162438;
+      --surface3:#1c2e44; --border:rgba(41,128,185,.18); --border-strong:rgba(41,128,185,.4);
+      --text:#ddeeff; --text2:#7aaec9; --text3:#4a7a9b; --topbar:rgba(9,15,26,.9);
+      --sidebar-bg:#0a1422; --card-shadow:0 8px 32px rgba(0,0,0,.4);
+      --input-bg:#0f1c30;
+    }
+    [data-theme="light"] {
+      --bg:linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%);
+      --bg2:#f7edd0; --surface:#ffffff; --surface2:#fdfaf2;
+      --surface3:#f8eed6; --border:rgba(211,164,55,.2); --border-strong:rgba(211,164,55,.45);
+      --text:#0c1e33; --text2:#5a5342; --text3:#a89b7a; --topbar:rgba(250,244,225,.88);
+      --sidebar-bg:#faf6ea; --card-shadow:0 4px 20px rgba(211,164,55,.14);
+      --input-bg:#fff;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(circle at 10% 10%, rgba(41,128,185,.20), transparent 26%),
+        radial-gradient(circle at 88% 92%, rgba(230,126,34,.20), transparent 24%),
+        linear-gradient(120deg, rgba(255,255,255,.08), transparent 60%);
+    }
+    body::after{
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:linear-gradient(rgba(41,128,185,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(41,128,185,.045) 1px, transparent 1px);
+      background-size:26px 26px;
+      mask-image:radial-gradient(circle at center, black 50%, transparent 92%);
+    }
+    a{color:inherit;text-decoration:none}
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:8px}
+
+    /* Auth — same warm cream/gold background as Teachers portal */
+    #auth-gate{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;overflow-y:auto;background:var(--bg)}
+    #auth-gate.hidden{display:none}
+    #auth-gate::before{
+      content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(ellipse 55% 45% at 90% 88%,rgba(243,156,18,.18) 0%,transparent 65%),
+        radial-gradient(ellipse 45% 40% at 10% 8%,rgba(211,164,55,.08) 0%,transparent 60%);
+      opacity:.6;
+    }
+    [data-theme="dark"] #auth-gate::before{
+      opacity:1;
+      background:radial-gradient(ellipse 60% 50% at 8% 10%,rgba(41,128,185,.12) 0%,transparent 65%),
+        radial-gradient(ellipse 50% 45% at 92% 90%,rgba(22,160,133,.08) 0%,transparent 60%);
+    }
+    .auth-card{position:relative;z-index:1;width:100%;max-width:380px;background:var(--surface);border-radius:28px;padding:2.3rem 2.1rem 2.1rem;box-shadow:0 30px 90px rgba(10,30,60,.28),0 0 0 1px rgba(41,128,185,.07);border:1px solid var(--border);text-align:left;animation:fadeUp .5s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes fadeUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .auth-logo{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));display:grid;place-items:center;font-size:24px;margin:0 auto 1.1rem;box-shadow:0 10px 26px var(--blue-glow)}
+    .auth-card h1{text-align:center;font-size:1.55rem;font-weight:900;letter-spacing:-.01em;color:var(--text);margin-bottom:.25rem}
+    .auth-card .auth-sub{text-align:center;font-size:.83rem;color:var(--text2);font-weight:500;margin-bottom:1.4rem}
+    .auth-err{background:rgba(231,76,60,.12);color:#e25b4b;border:1px solid rgba(231,76,60,.3);padding:9px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+    .auth-field{margin-bottom:.6rem}
+    .auth-field label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+    .auth-field input{width:100%;padding:.8rem .95rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);font-family:inherit;font-size:.85rem;color:var(--text);outline:none;transition:border-color .15s;box-sizing:border-box}
+    .auth-field input:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
+    .auth-btn{width:100%;padding:.95rem 1.5rem;border:none;border-radius:14px;font-family:inherit;font-size:.9rem;font-weight:800;cursor:pointer;transition:var(--transition);margin-top:.3rem;margin-bottom:.6rem;display:flex;align-items:center;justify-content:center;gap:.55rem}
+    .auth-btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
+    .auth-btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(20,40,70,.45)}
+    .auth-btn-google{background:linear-gradient(135deg,var(--blue-dk),#0c1e33);color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
+    .auth-btn-google:hover{transform:translateY(-2px)}
+    .auth-divider{display:flex;align-items:center;gap:.6rem;margin:.9rem 0;font-size:.68rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .auth-links{text-align:center;margin-top:.3rem;font-size:.79rem;color:var(--text2);font-weight:500}
+    .auth-links a{color:var(--blue-lt);font-weight:700}
+    .auth-links a:hover{text-decoration:underline}
+    .boot-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── DESKTOP SIDE PANEL — irregular wave-divided blue panel (exact port from https://kanyadetschool.github.io/results/main-result-portal.html / teachers_copy.html) ── */
+    .auth-cards-wrap{flex:1;min-width:0;display:flex;align-items:flex-start;justify-content:center;padding:20px;position:relative;}
+    @media(min-height:600px){.auth-cards-wrap{align-items:center;}}
+    .auth-side-panel{display:none;}
+    .auth-divider-wave{display:none;}
+    @media(min-width:901px){
+      #auth-gate{justify-content:flex-start;--auth-panel-w:min(42%,600px);--auth-wave-amp:72px;}
+      .auth-side-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--auth-panel-w);flex-shrink:0;min-height:100vh;position:relative;overflow:hidden;padding:4rem 3rem;color:#fff;}
+      .auth-side-panel::before{content:'';position:absolute;top:0;bottom:0;left:0;right:var(--auth-wave-amp);background:linear-gradient(160deg,var(--blue-dk) 0%,#132a45 55%,#0a1c30 100%);}
+      .auth-side-panel .asp-blob{position:absolute;border-radius:50%;pointer-events:none;}
+      .auth-side-panel .asp-blob-1{width:360px;height:360px;top:-130px;right:-130px;background:rgba(255,255,255,.055);}
+      .auth-side-panel .asp-blob-2{width:280px;height:280px;bottom:-110px;left:-90px;background:rgba(93,173,226,.18);}
+      .auth-side-panel .asp-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.22);}
+      .auth-side-panel .asp-dot-1{width:14px;height:14px;top:16%;right:20%;}
+      .auth-side-panel .asp-dot-2{width:10px;height:10px;bottom:22%;left:14%;background:var(--blue-lt);opacity:.9;}
+      .auth-side-panel .asp-illustration{position:relative;z-index:1;width:100%;max-width:320px;margin:0 auto 2.4rem;}
+      .auth-side-panel .asp-illustration svg{width:100%;height:auto;display:block;}
+      .auth-side-panel .asp-brand{position:relative;z-index:1;text-align:center;}
+      .auth-side-panel .asp-brand-name{font-size:1.5rem;font-weight:900;margin-bottom:.6rem;letter-spacing:-.01em;}
+      .auth-side-panel .asp-brand-tag{font-size:.88rem;color:rgba(255,255,255,.72);font-weight:500;line-height:1.55;max-width:320px;margin:0 auto;min-height:2.7em;transition:opacity .35s ease;}
+      .auth-side-panel .asp-brand-tag.fading{opacity:0;}
+      .auth-side-panel .asp-tip-dots{display:flex;justify-content:center;gap:.4rem;margin-top:1.1rem;position:relative;z-index:1;}
+      .auth-side-panel .asp-tip-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28);transition:background .25s,width .25s;}
+      .auth-side-panel .asp-tip-dot.active{background:var(--blue-lt);width:18px;border-radius:3px;}
+      .auth-divider-wave{display:block;position:absolute;top:0;bottom:0;left:calc(var(--auth-panel-w) - var(--auth-wave-amp));width:calc(var(--auth-wave-amp) * 2);z-index:2;pointer-events:none;}
+      .auth-divider-wave svg{width:100%;height:100%;display:block;}
+      .auth-cards-wrap{flex:1;min-height:100vh;padding:40px 4vw;position:relative;z-index:1;}
+      .auth-card{box-shadow:none;border:none;background:transparent;max-width:400px;}
+    }
+
+    #app-shell{display:none;min-height:100vh;position:relative;z-index:1;width:100%;overflow-x:hidden}
+    #app-shell.ready{display:flex}
+    .sidebar{width:var(--sidebar-w);flex-shrink:0;background:linear-gradient(180deg, var(--sidebar-bg), rgba(255,255,255,.66));border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:600;transition:var(--transition),transform .3s;overflow-y:auto;overflow-x:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.2) inset}
+    .sidebar-brand{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;background:linear-gradient(90deg, rgba(41,128,185,.12), rgba(243,156,18,.08))}
+    .brand-icon{width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--brand-1),var(--brand-2),var(--brand-3));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 6px 20px rgba(20,63,110,.35)}
+    .brand-text .b-name{font-size:14px;font-weight:900;letter-spacing:.01em;color:var(--text)}
+    .brand-text .b-role{font-size:10px;color:var(--blue-lt);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .sidebar-section{padding:16px 12px 6px}
+    .s-label{font-size:9px;font-weight:800;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;padding:0 8px;margin-bottom:6px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-md);cursor:pointer;transition:var(--transition);font-size:13px;font-weight:700;color:var(--text2);margin-bottom:2px;white-space:nowrap;border:1px solid transparent}
+    .nav-item:hover{background:rgba(41,128,185,.12);color:var(--text);transform:translateX(2px)}
+    .nav-item.active{background:linear-gradient(135deg,rgba(41,128,185,.25),rgba(41,128,185,.12));color:var(--blue-lt);border-color:rgba(41,128,185,.32);box-shadow:0 6px 18px rgba(41,128,185,.15)}
+    .nav-item .nav-icon{font-size:16px;flex-shrink:0;width:18px;text-align:center}
+    .nav-badge{margin-left:auto;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;min-width:18px;text-align:center}
+    .nav-badge.red{background:var(--red)}
+    .nav-badge.orange{background:var(--orange)}
+    .sidebar-footer{padding:14px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;margin-top:auto}
+    .me-av{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,var(--purple),#6c3483);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+    .me-info{min-width:0;flex:1}
+    .me-info .m-name{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .me-info .m-role{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .logout-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;flex-shrink:0;padding:6px}
+    .logout-btn:hover{color:var(--red)}
+
+    .main-content{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;max-width:calc(100vw - var(--sidebar-w));transition:margin-left .25s}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:linear-gradient(90deg, rgba(255,255,255,.55), rgba(255,255,255,.22));backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:550;min-width:0;gap:10px;box-shadow:0 10px 24px rgba(0,0,0,.06)}
+    .topbar-left{display:flex;align-items:center;gap:14px;min-width:0;flex-shrink:1}
+    .burger{background:none;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--text2);font-size:15px;flex-shrink:0;display:none}
+    .page-title{font-size:18px;font-weight:900;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.03em}
+    .page-crumb{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+    .theme-toggle{width:52px;height:28px;border-radius:14px;background:var(--surface2);border:1.5px solid var(--border);cursor:pointer;position:relative;display:flex;align-items:center;padding:3px}
+    .theme-toggle::after{content:'';width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+    [data-theme="light"] .theme-toggle::after{transform:translateX(24px)}
+    .theme-icon{position:absolute;font-size:11px}
+    .theme-icon.moon{left:6px}
+    .theme-icon.sun{right:5px;opacity:.4}
+    [data-theme="light"] .theme-icon.moon{opacity:.4}
+    [data-theme="light"] .theme-icon.sun{opacity:1}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+    .icon-btn{position:relative;width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+    .icon-btn:hover{color:var(--text);border-color:var(--border-strong)}
+    .icon-dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--surface);display:none}
+    .icon-dot.show{display:block}
+
+    .content-area{padding:24px clamp(12px,2.5vw,28px);flex:1;min-width:0}
+    .view{display:none}
+    .view.active{display:block;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+    .sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+    .sec-hdr h2{font-size:16px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:8px}
+    .sec-hdr h2::before{content:'';display:block;width:4px;height:18px;background:linear-gradient(180deg,var(--blue),var(--teal));border-radius:2px}
+    .sec-sub{font-size:11.5px;color:var(--text3);margin-top:3px}
+    .actions-row{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius-md);border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;transition:var(--transition)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+    .btn-blue{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;box-shadow:0 3px 12px var(--blue-glow)}
+    .btn-blue:hover:not(:disabled){transform:translateY(-2px)}
+    .btn-green{background:linear-gradient(135deg,var(--green),var(--green-dk));color:#fff}
+    .btn-orange{background:linear-gradient(135deg,var(--orange),var(--orange-dk));color:#fff}
+    .btn-red{background:linear-gradient(135deg,var(--red),var(--red-dk));color:#fff}
+    .btn-purple{background:linear-gradient(135deg,var(--purple),#6c3483);color:#fff}
+    .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+    .btn-outline:hover:not(:disabled){border-color:var(--blue-lt);color:var(--blue-lt)}
+    .btn-sm{padding:6px 12px;font-size:11px}
+    .btn-xs{padding:4px 8px;font-size:10px}
+
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr));gap:14px;margin-bottom:24px}
+    .kpi-card{background:linear-gradient(165deg, rgba(255,255,255,.88), rgba(255,255,255,.64));border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--card-shadow);position:relative;overflow:hidden;cursor:pointer;transition:var(--transition)}
+    .kpi-card:hover{transform:translateY(-2px);border-color:var(--border-strong)}
+    .kpi-card::after{content:'';position:absolute;inset:auto -20px -20px auto;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle, rgba(41,128,185,.18), transparent 65%)}
+    .kpi-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase}
+    .kpi-value{font-size:28px;font-weight:900;letter-spacing:-.04em;margin-top:8px;color:var(--text);font-variant-numeric:tabular-nums}
+    .kpi-meta{margin-top:8px;font-size:11px;font-weight:700;color:var(--text2)}
+    .kpi-variant{display:inline-flex;padding:3px 8px;border-radius:999px;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .kpi-variant.up{background:rgba(39,174,96,.12);color:var(--green)}
+    .kpi-variant.warn{background:rgba(230,126,34,.12);color:var(--orange)}
+    .kpi-variant.purple{background:rgba(142,68,173,.12);color:var(--purple)}
+    .kpi-variant.blue{background:rgba(41,128,185,.12);color:var(--blue)}
+
+    .cards-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:18px}
+    .panel{background:linear-gradient(165deg, rgba(255,255,255,.82), rgba(255,255,255,.62));border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow);padding:18px;margin-bottom:16px}
+    .panel-title{font-size:14px;font-weight:900;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+    .mini-chart{height:240px;border-radius:14px;background:linear-gradient(180deg, rgba(41,128,185,.08), rgba(41,128,185,.02));border:1px solid var(--border);padding:8px;position:relative}
+    .mini-chart canvas{width:100%!important;height:100%!important}
+
+    .activity-list,.notice-list{display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto}
+    .activity-item,.notice-item{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--border);background:var(--surface2);padding:12px;border-radius:12px}
+    .activity-item .dot,.notice-item .dot{width:10px;height:10px;background:var(--blue);border-radius:50%;margin-top:4px;flex-shrink:0;box-shadow:0 0 0 4px rgba(41,128,185,.12)}
+    .activity-item strong,.notice-item strong{display:block;font-size:12px;color:var(--text);margin-bottom:2px}
+    .activity-item span,.notice-item span{font-size:11px;color:var(--text2);line-height:1.4}
+
+    .quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
+    .quick-tile{border:1px solid var(--border);border-radius:14px;padding:14px;background:linear-gradient(165deg, rgba(255,255,255,.83), rgba(255,255,255,.55));min-height:108px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:var(--transition)}
+    .quick-tile:hover{transform:translateY(-2px);border-color:var(--border-strong)}
+    .quick-tile .qt-icon{font-size:22px}
+    .quick-tile .qt-label{font-size:12px;font-weight:800;color:var(--text)}
+    .quick-tile .qt-desc{font-size:10px;color:var(--text3)}
+    .quick-tile.active{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-glow)}
+
+    .admin-subpanel{display:none;}
+    .admin-subpanel.open{display:block;}
+    .personnel-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--border);margin-bottom:8px}
+    .personnel-name{font-size:13px;font-weight:700;color:var(--text)}
+    .personnel-email{font-size:11px;color:var(--text3)}
+    .aswitch{position:relative;width:42px;height:24px;flex-shrink:0;display:inline-block}
+    .aswitch input{opacity:0;width:0;height:0;position:absolute}
+    .aswitch .aslider{position:absolute;inset:0;border-radius:12px;background:var(--surface3);border:1px solid var(--border);cursor:pointer;transition:.2s}
+    .aswitch .aslider::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+    .aswitch input:checked + .aslider{background:linear-gradient(135deg,var(--green),var(--green-dk));border-color:var(--green)}
+    .aswitch input:checked + .aslider::after{transform:translateX(18px)}
+    .aswitch input:disabled + .aslider{opacity:.5;cursor:not-allowed}
+
+    .dmodal-backdrop{position:fixed;inset:0;background:rgba(10,20,35,.6);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px;}
+    .dmodal-backdrop.open{display:flex;}
+    .dmodal{background:linear-gradient(160deg, #fdf8f3, #f7ece0);border-radius:var(--radius-lg);border:1px solid rgba(217,164,65,.35);max-width:560px;width:100%;max-height:calc(100vh - 48px);overflow-y:auto;box-shadow:0 20px 56px rgba(43,26,16,.4);}
+    .dmodal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(217,164,65,.3);position:sticky;top:0;background:#f7ece0;z-index:2;}
+    .dmodal-hdr h3{font-size:15px;font-weight:900;margin:0;color:#3a2417;}
+    .dmodal-close{background:none;border:none;font-size:18px;cursor:pointer;color:#6b5340;line-height:1;}
+    .dmodal-body{padding:18px 20px;}
+    .dmodal-ftr{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid rgba(217,164,65,.3);position:sticky;bottom:0;background:#f7ece0;flex-wrap:wrap;}
+    /* Coffee/gold theme for form fields and view rows inside this modal — fixed regardless of light/dark app theme, matching the Lunch Portal's modal styling. */
+    .dmodal .field-group label{color:#8a6a52;}
+    .dmodal .field-input{background:#fff;border:1.5px solid rgba(217,164,65,.35);color:#3a2417;}
+    .dmodal .field-input:focus{border-color:rgba(217,164,65,.7);}
+    .dmodal .dfield-row{color:#3a2417;}
+    .dmodal .dfk{color:#8a6a52;}
+    .dmodal-photo-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+    .dmodal-photo-preview{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid rgba(217,164,65,.4);background:#f0e2c8;flex-shrink:0;}
+    .dmodal-photo-placeholder{width:64px;height:64px;border-radius:50%;border:2px solid rgba(217,164,65,.4);background:#f0e2c8;color:#8a6a52;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex-shrink:0;}
+    .dfield-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed var(--border);font-size:12.5px;}
+    .dfield-row .dfk{color:var(--text3);flex-shrink:0;}
+    .dfield-row .dfv{font-weight:700;color:var(--text);text-align:right;}
+
+    .compliance-group{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;background:var(--surface2);overflow:hidden;}
+    .compliance-group summary{padding:12px 14px;cursor:pointer;font-weight:700;font-size:13px;color:var(--text);list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .compliance-group summary::-webkit-details-marker{display:none;}
+    .compliance-group summary::after{content:'▾';color:var(--text3);font-size:11px;flex-shrink:0;}
+    .compliance-group[open] summary::after{content:'▴';}
+    .compliance-group .compliance-body{padding:4px 14px 12px;border-top:1px solid var(--border);}
+
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+    .search-input,.sel,.field-input{padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text);font-family:inherit;font-size:12px;outline:none;min-width:0}
+    .search-input{flex:1;min-width:180px}
+    .search-input:focus,.sel:focus,.field-input:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px rgba(41,128,185,.12)}
+    .sel{cursor:pointer}
+    .field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+    .field-group label{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    textarea.field-input{min-height:90px;resize:vertical}
+
+    .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface2);max-height:520px}
+    .pager{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
+    .pager-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.03em}
+    .pager button:disabled{opacity:.4;cursor:not-allowed}
+    table{width:100%;border-collapse:collapse;min-width:640px}
+    th,td{padding:11px 14px;border-bottom:1px solid var(--border);text-align:left;font-size:12px}
+    th{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;background:rgba(41,128,185,.06);position:sticky;top:0;z-index:2}
+    td{color:var(--text2)}
+    tbody tr{cursor:pointer;transition:background .15s}
+    tbody tr:hover{background:rgba(41,128,185,.05)}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+    .pill.ok{background:rgba(39,174,96,.12);color:var(--green)}
+    .pill.warn{background:rgba(230,126,34,.12);color:var(--orange)}
+    .pill.bad{background:rgba(231,76,60,.12);color:var(--red)}
+    .pill.blue{background:rgba(41,128,185,.12);color:var(--blue)}
+    .pill.purple{background:rgba(142,68,173,.12);color:var(--purple)}
+    .empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+    .empty-state .es-icon{font-size:36px;margin-bottom:8px}
+    .empty-state .es-title{font-size:14px;font-weight:800;color:var(--text2);margin-bottom:4px}
+    .muted{color:var(--text3);font-size:11px}
+    .mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+
+    .att-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:11px;font-weight:700}
+    .att-legend span{display:inline-flex;align-items:center;gap:5px}
+    .att-btn{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:11px;font-weight:800;transition:var(--transition)}
+    .att-btn.P{background:rgba(39,174,96,.15);border-color:var(--green);color:var(--green)}
+    .att-btn.A{background:rgba(231,76,60,.15);border-color:var(--red);color:var(--red)}
+    .att-btn.L{background:rgba(230,126,34,.15);border-color:var(--orange);color:var(--orange)}
+    .att-actions{display:flex;gap:4px}
+
+    .link-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+    .link-card{border:1px solid var(--border);border-radius:14px;padding:16px;background:var(--surface2);display:flex;flex-direction:column;gap:8px;transition:var(--transition);cursor:pointer}
+    .link-card:hover{border-color:var(--border-strong);transform:translateY(-2px)}
+    .link-card .lc-icon{font-size:24px}
+    .link-card .lc-title{font-size:13px;font-weight:800;color:var(--text)}
+    .link-card .lc-desc{font-size:11px;color:var(--text2);line-height:1.4}
+
+    .toast-host{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .toast{pointer-events:auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;box-shadow:var(--card-shadow);font-size:12px;font-weight:700;color:var(--text);animation:fadeIn .25s ease;max-width:320px}
+    .toast.ok{border-left:4px solid var(--green)}
+    .toast.err{border-left:4px solid var(--red)}
+    .toast.info{border-left:4px solid var(--blue)}
+
+    .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:590}
+    .sidebar-backdrop.show{display:block}
+
+    .form-panel{display:none;border:1px solid var(--border);border-radius:14px;padding:16px;background:var(--surface2);margin-bottom:14px}
+    .form-panel.open{display:block;animation:fadeIn .25s ease}
+
+    .stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px}
+    .stat-row:last-child{border-bottom:none}
+    .stat-row .sr-val{font-weight:800;font-variant-numeric:tabular-nums}
+
+    .grade-bars{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto}
+    .gbar{display:grid;grid-template-columns:90px 1fr 40px;gap:8px;align-items:center;font-size:11px}
+    .gbar-track{height:8px;background:rgba(41,128,185,.1);border-radius:99px;overflow:hidden}
+    .gbar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:99px;transition:width .5s ease}
+
+    @media (max-width: 950px){
+      .sidebar{transform:translateX(-102%)}
+      .sidebar.open{transform:translateX(0)}
+      .main-content{margin-left:0;max-width:100vw}
+      .burger{display:flex;align-items:center;justify-content:center}
+    }
+    @media (max-width: 760px){
+      .cards-grid,.field-row{grid-template-columns:1fr}
+      .topbar{padding:12px 14px}
+      .content-area{padding:16px 12px}
+    }
+    .back-to-top-wrap{
+      position:fixed;right:18px;bottom:18px;z-index:1200;
+      width:56px;height:56px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.78);backdrop-filter:blur(8px);
+      box-shadow:0 8px 24px rgba(0,0,0,.16);
+      border:1px solid rgba(243,156,18,.18);
+    }
+    .back-to-top-ring{
+      position:absolute;inset:0;border-radius:50%;
+      transform:rotate(-90deg);
+    }
+    .back-to-top-ring circle{
+      fill:none;stroke:rgba(243,156,18,.18);stroke-width:5;
+    }
+    .back-to-top-ring .progress{
+      stroke:var(--gold);stroke-linecap:round;stroke-dasharray:157.08;stroke-dashoffset:157.08;
+      transition:stroke-dashoffset .16s ease;
+    }
+    .back-to-top-btn{
+      position:relative;z-index:1;width:42px;height:42px;border-radius:50%;
+      border:none;background:linear-gradient(135deg,var(--gold),var(--orange-dk));
+      color:#fff;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;box-shadow:0 6px 18px rgba(243,156,18,.3);
+    }
+    .back-to-top-btn:hover{transform:translateY(-1px);}
+    .back-to-top-btn svg{width:18px;height:18px;}
+    .back-to-top-wrap.hidden{opacity:0;pointer-events:none;transform:translateY(10px);}
+  </style>
+</head>
+<body>
+  <div class="back-to-top-wrap hidden" id="backToTopWrap" aria-hidden="true">
+    <svg class="back-to-top-ring" viewBox="0 0 56 56" aria-hidden="true">
+      <circle cx="28" cy="28" r="25"></circle>
+      <circle class="progress" cx="28" cy="28" r="25"></circle>
+    </svg>
+    <button class="back-to-top-btn" type="button" id="backToTopBtn" aria-label="Back to top">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m0 0l-6 6m6-6l6 6"/></svg>
+    </button>
+  </div>
+
+  
+  <!-- AUTH GATE -->
+  <div id="auth-gate">
+
+    <!-- ── DESKTOP SIDE PANEL — hidden on mobile, fills the left side on wide screens ── -->
+    <div class="auth-side-panel" aria-hidden="true">
+      <div class="asp-blob asp-blob-1"></div>
+      <div class="asp-blob asp-blob-2"></div>
+      <div class="asp-dot asp-dot-1"></div>
+      <div class="asp-dot asp-dot-2"></div>
+      <div class="asp-illustration">
+        <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="160" cy="130" r="112" fill="rgba(255,255,255,.06)"/>
+          <rect x="96" y="30" width="128" height="200" rx="24" fill="rgba(255,255,255,.09)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+          <rect x="118" y="54" width="84" height="10" rx="5" fill="rgba(255,255,255,.35)"/>
+          <g transform="translate(160,136)">
+            <rect x="-34" y="-6" width="68" height="52" rx="12" fill="var(--blue-lt)"/>
+            <path d="M-22 -6 v-16 a22 22 0 0 1 44 0 v16" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="0" cy="18" r="7" fill="#0a1c30"/>
+            <rect x="-3.5" y="18" width="7" height="15" rx="3.5" fill="#0a1c30"/>
+          </g>
+          <rect x="118" y="196" width="84" height="10" rx="5" fill="rgba(255,255,255,.25)"/>
+          <circle cx="66" cy="52" r="18" fill="var(--blue-lt)" opacity=".45"/>
+          <circle cx="258" cy="204" r="14" fill="rgba(255,255,255,.2)"/>
+          <path d="M46 200 q16 -34 44 -10" stroke="var(--blue-lt)" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
+          <path d="M244 50 l14 -14 m0 14 l-14 -14" stroke="rgba(255,255,255,.5)" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="asp-brand">
+        <div class="asp-brand-name">Kanyadet PRI &amp; Junior School</div>
+        <div class="asp-brand-tag" id="asp-tip-text">Deep school-wide administration — audit trails, welfare, announcements and portal management, all in one secure place.</div>
+        <div class="asp-tip-dots" id="asp-tip-dots"></div>
+      </div>
+    </div>
+
+    <!-- ── IRREGULAR WAVE DIVIDER — replaces the straight seam between panel and content on desktop ── -->
+    <div class="auth-divider-wave" aria-hidden="true">
+      <svg viewBox="0 0 144 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="authWaveGrad" x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0%"  stop-color="#1a5276"/>
+            <stop offset="55%" stop-color="#132a45"/>
+            <stop offset="100%" stop-color="#0a1c30"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#authWaveGrad)" d="M88,0 L103.7,16 L101.8,32 L96.3,48 L100.9,64 L114.1,80 L120.3,96 L105.6,112 L73.2,128 L41.4,144 L27.7,160 L33.5,176 L44.2,192 L45.2,208 L37.4,224 L35.5,240 L52.7,256 L85.5,272 L115.6,288 L125.5,304 L114.7,320 L98.4,336 L91.9,352 L95.3,368 L94.4,384 L76.6,400 L45.2,416 L18.6,432 L13.5,448 L30,464 L51.8,480 L63,496 L62.6,512 L64.4,528 L81,544 L109.2,560 L131,576 L130.5,592 L108.4,608 L81.8,624 L67.4,640 L66.6,656 L65.7,672 L52.1,688 L28.6,704 L12.3,720 L18.5,736 L45.4,752 L75.5,768 L91.3,784 L91.5,800 L0,800 L0,0 Z"/>
+      </svg>
+    </div>
+
+    <div class="auth-cards-wrap">
+    <div class="auth-card" id="auth-card">
+      <div class="auth-logo">🏫</div>
+       <!-- ── INSTALL APP (PWA, standalone-only) — shown when browser deems the app installable ── -->
+  <button id="pwa-install-btn" type="button" onclick="installPwaApp()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+    Install App
+  </button>
+      <h1>Kanyadet School</h1>
+      <p class="auth-sub">Advanced Admin Portal — sign in to continue</p>
+      <div class="auth-err" id="auth-err"></div>
+      <div id="auth-loading" style="display:none">
+        <div class="boot-spinner"></div>
+                    <p style="text-align:center;font-size:12px;color:var(--text2);margin-top:8px">Verifying access…</p>
+      </div>
+      <div id="auth-form">
+        <div class="auth-field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" autocomplete="username" />
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" autocomplete="current-password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" id="btn-email-login">Sign In</button>
+        <div class="auth-divider">or</div>
+        <button class="auth-btn auth-btn-google" id="btn-google-login">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-links">
+          <a href="./main-result-portal.html">Results Portal</a> ·
+          <a href="./Active-Students-Database.html">Students DB</a> ·
+          <a href="https://kanyadet-school-portal.web.app">Teachers</a>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="toast-host" id="toastHost"></div>
+
+  <div id="app-shell">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon" style="overflow:hidden;padding:0;">
+          <img src="./images/logo.png" alt="School Logo" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;">🏫</div>
+        </div>
+        <div class="brand-text">
+          <div class="b-name">Kanyadet School</div>
+          <div class="b-role">Advanced Admin</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="s-label">Navigation</div>
+        <div class="nav-item active" data-view="dashboard"><span class="nav-icon">📊</span>Dashboard <span class="nav-badge" id="nav-pending">0</span></div>
+        <div class="nav-item" data-view="students"><span class="nav-icon">🎓</span>Students <span class="nav-badge" id="nav-students">—</span></div>
+        <div class="nav-item" data-view="teachers"><span class="nav-icon">👩‍🏫</span>Teachers <span class="nav-badge" id="nav-teachers">—</span></div>
+        <div class="nav-item" data-view="attendance"><span class="nav-icon">🧾</span>Attendance</div>
+        <div class="nav-item" data-view="results"><span class="nav-icon">📝</span>Results</div>
+        <div class="nav-item" data-view="welfare"><span class="nav-icon">🍽️</span>Welfare <span class="nav-badge orange" id="nav-welfare">—</span></div>
+        <div class="nav-item" data-view="settings"><span class="nav-icon">⚙️</span>Settings</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="s-label">Operations</div>
+        <div class="nav-item" data-view="audit"><span class="nav-icon">🛡️</span>Audit Trail <span class="nav-badge red" id="nav-audit">Live</span></div>
+        <div class="nav-item" data-view="messages"><span class="nav-icon">📢</span>Announcements <span class="nav-badge orange" id="nav-ann">0</span></div>
+        <div class="nav-item" data-view="portals"><span class="nav-icon">🔗</span>Linked Portals</div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="me-av" id="me-av">AA</div>
+        <div class="me-info">
+          <div class="m-name" id="me-name">Admin</div>
+          <div class="m-role" id="me-role">Super Administrator</div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" title="Logout">⎋</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="burger" id="burgerBtn">☰</button>
+          <div>
+            <div class="page-title" id="pageTitle">Dashboard</div>
+            <div class="page-crumb" id="pageCrumb">School command center</div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <span class="theme-icon moon">🌙</span>
+            <span class="theme-icon sun">☀️</span>
+          </div>
+          <button class="icon-btn" id="notifBtn" title="Notifications">🔔<span class="icon-dot" id="notifDot"></span></button>
+          <button class="btn btn-outline btn-sm" id="refreshBtn">🔄 Refresh</button>
+          <div class="status-dot" title="System online"></div>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <!-- DASHBOARD -->
+        <section class="view active" id="dashboard">
+          <div class="sec-hdr">
+            <div>
+              <h2>Executive Overview</h2>
+              <div class="sec-sub">Live snapshot of learners, staff, attendance, and school performance.</div>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-outline btn-sm" id="exportDashBtn">Export Snapshot</button>
+              <button class="btn btn-blue btn-sm" id="refreshDashBtn">Refresh</button>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi-card" data-goto="students">
+              <div class="kpi-label">Active Students</div>
+              <div class="kpi-value" id="kpi-students">—</div>
+              <div class="kpi-meta"><span class="kpi-variant blue" id="kpi-grades-count">— grades</span></div>
+            </div>
+            <div class="kpi-card" data-goto="teachers">
+              <div class="kpi-label">Registered Teachers</div>
+              <div class="kpi-value" id="kpi-teachers">—</div>
+              <div class="kpi-meta"><span class="kpi-variant purple">Staff</span></div>
+            </div>
+            <div class="kpi-card" data-goto="attendance">
+              <div class="kpi-label">Today's Attendance</div>
+              <div class="kpi-value" id="kpi-attendance">—</div>
+              <div class="kpi-meta"><span class="kpi-variant up" id="kpi-att-meta">Mark today</span></div>
+            </div>
+            <div class="kpi-card" data-goto="results">
+              <div class="kpi-label">School Average</div>
+              <div class="kpi-value" id="kpi-avg">—</div>
+              <div class="kpi-meta"><span class="kpi-variant warn" id="kpi-records">— records</span></div>
+            </div>
+            <div class="kpi-card" data-goto="welfare">
+              <div class="kpi-label">Lunch Shortfall</div>
+              <div class="kpi-value" id="kpi-pending">—</div>
+              <div class="kpi-meta"><span class="kpi-variant warn" id="kpi-welfare-meta">Welfare</span></div>
+            </div>
+          </div>
+
+          <div class="cards-grid">
+            <div class="panel">
+              <div class="panel-title">Enrollment by Grade</div>
+              <div class="mini-chart"><canvas id="enrollChart"></canvas></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Announcements <button class="btn btn-outline btn-xs" data-goto="messages">View all</button></div>
+              <div class="notice-list" id="dash-announcements">
+                <div class="empty-state"><div class="es-title">Loading…</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Quick Actions</div>
+            <div class="quick-grid">
+              <div class="quick-tile" data-goto="students" data-action="add-student"><div class="qt-icon">🧑‍🎓</div><div class="qt-label">Students DB</div><div class="qt-desc">Full admissions tool</div></div>
+              <div class="quick-tile" data-goto="teachers"><div class="qt-icon">👩‍🏫</div><div class="qt-label">Teachers</div><div class="qt-desc">Staff roster</div></div>
+              <div class="quick-tile" data-goto="attendance"><div class="qt-icon">🧾</div><div class="qt-label">Attendance</div><div class="qt-desc">Mark daily status</div></div>
+              <div class="quick-tile" data-goto="messages" data-action="new-ann"><div class="qt-icon">📢</div><div class="qt-label">Notice</div><div class="qt-desc">Broadcast update</div></div>
+              <div class="quick-tile" data-href="https://kanyadetschool.github.io/results/main-result-portal.html"><div class="qt-icon">📋</div><div class="qt-label">Results Portal</div><div class="qt-desc">Grades & reports</div></div>
+              <div class="quick-tile" data-goto="welfare"><div class="qt-icon">🍽️</div><div class="qt-label">Welfare</div><div class="qt-desc">Lunch contributions</div></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Recent Admin Activity <button class="btn btn-outline btn-xs" data-goto="audit">Full log</button></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Action</th><th>Owner</th><th>Module</th><th>Time</th></tr></thead>
+                <tbody id="dash-audit-body"><tr><td colspan="4" class="muted">Loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- STUDENTS -->
+        <section class="view" id="students">
+          <div class="sec-hdr">
+            <div>
+              <h2>Student Command Center</h2>
+              <div class="sec-sub">Live active enrollment from the school student database.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="./Active-Students-Database.html" target="_blank">Open Full Students DB ↗</a>
+              <a class="btn btn-outline btn-sm" href="./All-Deleted-Students-Database.html" target="_blank">Deleted Archive ↗</a>
+            </div>
+          </div>
+          <div class="kpi-grid" style="margin-bottom:16px">
+            <div class="kpi-card"><div class="kpi-label">Enrolled</div><div class="kpi-value" id="stu-total">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Boys</div><div class="kpi-value" id="stu-boys">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Girls</div><div class="kpi-value" id="stu-girls">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Grades</div><div class="kpi-value" id="stu-grades">—</div></div>
+          </div>
+          <div class="panel">
+            <div class="toolbar">
+              <input class="search-input" id="stu-search" placeholder="Search name, UPI, admission no, grade…" />
+              <select class="sel" id="stu-grade-filter"><option value="">All Grades</option></select>
+              <select class="sel" id="stu-gender-filter">
+                <option value="">All Genders</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+              <button class="btn btn-outline btn-sm" id="stu-export-btn">Export CSV</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Name</th><th>Assessment No</th><th>Grade</th><th>Gender</th><th>UPI / Adm</th><th>Status</th></tr></thead>
+                <tbody id="stu-tbody"><tr><td colspan="5" class="muted">Loading students…</td></tr></tbody>
+              </table>
+            </div>
+            <div class="muted" style="margin-top:10px" id="stu-count-label"></div>
+            <div class="pager" id="stu-pager"></div>
+          </div>
+          <div class="cards-grid">
+            <div class="panel">
+              <div class="panel-title">Grade Distribution</div>
+              <div class="grade-bars" id="stu-grade-bars"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Data Quality <span class="muted" id="stu-quality-filter-label"></span></div>
+              <div class="muted" style="margin-bottom:10px;font-size:11px;">Click a stat to filter the table above to just those students.</div>
+              <div id="stu-quality-stats"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TEACHERS -->
+        <section class="view" id="teachers">
+          <div class="sec-hdr">
+            <div>
+              <h2>Teacher Performance & Roster</h2>
+              <div class="sec-sub">Staff accounts from Firestore — Advanced Admin management.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank">Teachers Portal ↗</a>
+              <a class="btn btn-outline btn-sm" href="https://kanyadetschool.github.io/results/main-result-portal.html" target="_blank">Manage in Results Portal ↗</a>
+            </div>
+          </div>
+          <div class="kpi-grid" style="margin-bottom:16px">
+            <div class="kpi-card"><div class="kpi-label">Teaching Staff</div><div class="kpi-value" id="tch-total">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Advanced Admins</div><div class="kpi-value" id="tch-admins">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Class Teachers</div><div class="kpi-value" id="tch-class">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Disabled</div><div class="kpi-value" id="tch-disabled">—</div></div>
+          </div>
+          <div class="panel">
+            <div class="toolbar">
+              <input class="search-input" id="tch-search" placeholder="Search teacher name, email, subject…" />
+              <select class="sel" id="tch-role-filter">
+                <option value="">All Roles</option>
+                <option value="admin">Advanced Admin</option>
+                <option value="teacher">Teacher</option>
+                <option value="disabled">Disabled</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Name</th><th>Email</th><th>Subject / Grades</th><th>Role</th><th>Status</th></tr></thead>
+                <tbody id="tch-tbody"><tr><td colspan="5" class="muted">Loading teachers…</td></tr></tbody>
+              </table>
+            </div>
+            <div class="pager" id="tch-pager"></div>
+          </div>
+        </section>
+
+        <!-- ATTENDANCE -->
+        <section class="view" id="attendance">
+          <div class="sec-hdr">
+            <div>
+              <h2>Attendance Dashboard</h2>
+              <div class="sec-sub">Mark and save daily attendance by grade. Synced to Firebase.</div>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-green btn-sm" id="att-save-btn">💾 Save Attendance</button>
+              <button class="btn btn-outline btn-sm" id="att-mark-all-p">Mark All Present</button>
+            </div>
+          </div>
+          <div class="kpi-grid" style="margin-bottom:16px">
+            <div class="kpi-card"><div class="kpi-label">Present</div><div class="kpi-value" id="att-p" style="color:var(--green)">0</div></div>
+            <div class="kpi-card"><div class="kpi-label">Absent</div><div class="kpi-value" id="att-a" style="color:var(--red)">0</div></div>
+            <div class="kpi-card"><div class="kpi-label">Late</div><div class="kpi-value" id="att-l" style="color:var(--orange)">0</div></div>
+            <div class="kpi-card"><div class="kpi-label">Rate</div><div class="kpi-value" id="att-rate">—</div></div>
+          </div>
+          <div class="panel">
+            <div class="toolbar">
+              <input type="date" class="sel" id="att-date" />
+              <select class="sel" id="att-grade"><option value="">Select Grade</option></select>
+              <input class="search-input" id="att-search" placeholder="Filter learners…" />
+            </div>
+            <div class="att-legend">
+              <span><button class="att-btn P" disabled>P</button> Present</span>
+              <span><button class="att-btn A" disabled>A</button> Absent</span>
+              <span><button class="att-btn L" disabled>L</button> Late</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Learner</th><th>UPI / Adm</th><th>Status</th></tr></thead>
+                <tbody id="att-tbody"><tr><td colspan="3" class="muted">Select a grade to begin.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- RESULTS -->
+        <section class="view" id="results">
+          <div class="sec-hdr">
+            <div>
+              <h2>Exam & Results Oversight</h2>
+              <div class="sec-sub">Performance snapshot from the Results portal database.</div>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-outline btn-sm" id="res-export-btn">Export CSV</button>
+              <a class="btn btn-blue btn-sm" href="./Results-main.html" target="_blank">Open Results Portal ↗</a>
+              <a class="btn btn-outline btn-sm" href="./Results-main.html" target="_blank">Results Page ↗</a>
+            </div>
+          </div>
+          <div class="kpi-grid" style="margin-bottom:16px">
+            <div class="kpi-card"><div class="kpi-label">Result Records</div><div class="kpi-value" id="res-count">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">School Average</div><div class="kpi-value" id="res-avg">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">EE Band</div><div class="kpi-value" id="res-ee">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Terms / Exams</div><div class="kpi-value" id="res-terms">—</div></div>
+          </div>
+          <div class="cards-grid">
+            <div class="panel">
+              <div class="panel-title">Grade Averages</div>
+              <div class="grade-bars" id="res-grade-bars"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Top Performers</div>
+              <div class="table-wrap" style="max-height:280px">
+                <table>
+                  <thead><tr><th>#</th><th>Student</th><th>Grade</th><th>Avg</th></tr></thead>
+                  <tbody id="res-top-body"><tr><td colspan="4" class="muted">Loading…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Report Completion Tracker <span class="muted" id="pending-term-summary"></span></div>
+            <div class="muted" style="margin-bottom:10px;font-size:11px;">Checks which students in a term are missing subject scores other students in the same sitting already have.</div>
+            <div class="toolbar">
+              <select class="sel" id="pending-term-select" style="min-width:280px;"><option value="">Select a term…</option></select>
+            </div>
+            <div class="table-wrap" style="max-height:300px">
+              <table>
+                <thead><tr><th>Student</th><th>Grade</th><th>Missing Subjects</th></tr></thead>
+                <tbody id="pending-tbody"><tr><td colspan="3" class="muted">Select a term to check completion.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Teacher Score Compliance <span class="muted" id="compliance-summary"></span></div>
+            <div class="muted" style="margin-bottom:10px;font-size:11px;">Missing scores for the term selected above, matched to the responsible teacher by subject + assigned grade. Enter a score and save — it writes straight to the record, no need to open the Results Portal.</div>
+            <div id="compliance-list"><div class="muted">Select a term above to check compliance.</div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Live Quick Entry Sessions <span class="muted" id="qe-live-count"></span></div>
+            <div class="muted" style="margin-bottom:10px;font-size:11px;">Teachers currently have a Quick Entry sheet open, along with the student/subject/score they last typed — updates in real time.</div>
+            <div id="qe-live-list"><div class="muted">No teachers are currently entering scores.</div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Results Workflow</div>
+            <div class="quick-grid">
+              <div class="quick-tile" data-href="./https://kanyadetschool.github.io/results/main-result-portal.html"><div class="qt-icon">📝</div><div class="qt-label">Quick Entry</div><div class="qt-desc">Score sheets</div></div>
+              <div class="quick-tile" data-href="./https://kanyadetschool.github.io/results/main-result-portal.html"><div class="qt-icon">📄</div><div class="qt-label">Report Cards</div><div class="qt-desc">Generate & print</div></div>
+              <div class="quick-tile" data-href="./https://kanyadetschool.github.io/results/main-result-portal.html"><div class="qt-icon">📥</div><div class="qt-label">Import Data</div><div class="qt-desc">CSV / Excel</div></div>
+              <div class="quick-tile" data-href="./https://kanyadetschool.github.io/results/main-result-portal.html"><div class="qt-icon">📈</div><div class="qt-label">Analytics</div><div class="qt-desc">Deep charts</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- WELFARE (Lunch contributions from lunch.html data) -->
+        <section class="view" id="welfare">
+          <div class="sec-hdr">
+            <div>
+              <h2>Welfare — Lunch Contributions</h2>
+              <div class="sec-sub">Live data from the Lunch Contribution Manager (`lunch/` Firebase node).</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-orange btn-sm" href="./lunch.html" target="_blank">Open Full Lunch Manager ↗</a>
+              <button class="btn btn-outline btn-sm" id="wel-export-btn">Export CSV</button>
+            </div>
+          </div>
+
+          <div class="toolbar" style="margin-bottom:16px">
+            <select class="sel" id="wel-period" style="min-width:180px"><option value="">Loading periods…</option></select>
+            <span class="muted" id="wel-std-label">Standard: —</span>
+            <span class="muted" id="wel-members-label"></span>
+          </div>
+
+          <div class="kpi-grid" style="margin-bottom:16px">
+            <div class="kpi-card"><div class="kpi-label">Collected</div><div class="kpi-value" id="wel-collected" style="color:var(--green)">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Fully Paid</div><div class="kpi-value" id="wel-paid" style="color:var(--green)">—</div><div class="kpi-meta" id="wel-paid-sub"></div></div>
+            <div class="kpi-card"><div class="kpi-label">Partial / Nil</div><div class="kpi-value" id="wel-unpaid" style="color:var(--red)">—</div><div class="kpi-meta" id="wel-unpaid-sub"></div></div>
+            <div class="kpi-card"><div class="kpi-label">Shortfall</div><div class="kpi-value" id="wel-shortfall" style="color:var(--orange)">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Collection Rate</div><div class="kpi-value" id="wel-rate">—</div></div>
+          </div>
+
+          <div class="panel" style="padding-top:14px;padding-bottom:14px">
+            <div class="panel-title" style="margin-bottom:8px">Collection Progress</div>
+            <div class="gbar" style="grid-template-columns:1fr 56px">
+              <div class="gbar-track" style="height:12px"><div class="gbar-fill" id="wel-rate-bar" style="width:0%"></div></div>
+              <div class="sr-val" id="wel-rate-pct">0%</div>
+            </div>
+          </div>
+
+          <div class="cards-grid">
+            <div class="panel">
+              <div class="panel-title">Payment Mix</div>
+              <div class="mini-chart"><canvas id="welDonut"></canvas></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Period History</div>
+              <div class="mini-chart"><canvas id="welHistChart"></canvas></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">All Periods Snapshot</div>
+            <div class="quick-grid" id="wel-period-cards">
+              <div class="muted">Loading period history…</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Members — Current Period</div>
+            <div class="toolbar">
+              <input class="search-input" id="wel-search" placeholder="Search member name or phone…" />
+              <select class="sel" id="wel-status-filter">
+                <option value="">All statuses</option>
+                <option value="paid">Fully Paid</option>
+                <option value="partial">Partial</option>
+                <option value="nil">Nil / Unpaid</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>#</th><th>Member</th><th>Phone</th><th>Paid</th><th>Balance</th><th>Status</th><th>Paid At</th></tr></thead>
+                <tbody id="wel-tbody"><tr><td colspan="7" class="muted">Loading lunch members…</td></tr></tbody>
+              </table>
+            </div>
+            <div class="muted" style="margin-top:10px" id="wel-count-label"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Outstanding Balances <span class="muted" id="wel-out-count"></span></div>
+            <div class="table-wrap" style="max-height:280px">
+              <table>
+                <thead><tr><th>Member</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
+                <tbody id="wel-outstanding-body"><tr><td colspan="4" class="muted">—</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="view" id="settings">
+          <div class="sec-hdr">
+            <div>
+              <h2>Portal Settings</h2>
+              <div class="sec-sub">Preferences, linked tools, and account information.</div>
+            </div>
+          </div>
+          <div class="cards-grid">
+            <div class="panel">
+              <div class="panel-title">Account</div>
+              <div class="stat-row"><span>Signed in as</span><span class="sr-val" id="set-email">—</span></div>
+              <div class="stat-row"><span>Display name</span><span class="sr-val" id="set-name">—</span></div>
+              <div class="stat-row"><span>Role</span><span class="sr-val"><span class="pill purple">Advanced Admin</span></span></div>
+              <div class="stat-row"><span>Theme</span><span class="sr-val" id="set-theme">Light</span></div>
+              <div class="actions-row" style="margin-top:14px">
+                <button class="btn btn-outline btn-sm" id="set-theme-btn">Toggle Theme</button>
+                <button class="btn btn-red btn-sm" id="set-logout">Sign Out</button>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">System</div>
+              <div class="stat-row"><span>Students & Results path</span><span class="sr-val mono">Results/…/students</span></div>
+              <div class="stat-row"><span>Attendance path</span><span class="sr-val mono">attendance/{date}</span></div>
+              <div class="stat-row"><span>Welfare / Lunch</span><span class="sr-val mono">lunch/{period}/members</span></div>
+              <div class="stat-row"><span>Live sync</span><span class="sr-val"><span class="pill ok">Connected</span></span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Admin Modules</div>
+            <div class="quick-grid">
+              <div class="quick-tile" data-admin-panel="panel-roles"><div class="qt-icon">🔐</div><div class="qt-label">Role Management</div><div class="qt-desc">Grant Advanced Admin</div></div>
+              <div class="quick-tile" data-admin-panel="panel-termlocks"><div class="qt-icon">🔒</div><div class="qt-label">Term Locks</div><div class="qt-desc">Freeze exam periods</div></div>
+              <div class="quick-tile" data-admin-panel="panel-importperm"><div class="qt-icon">📥</div><div class="qt-label">Import Permissions</div><div class="qt-desc">Teacher CSV access</div></div>
+              <div class="quick-tile" data-admin-panel="panel-addteacher"><div class="qt-icon">👤</div><div class="qt-label">Add Teacher</div><div class="qt-desc">Create staff logins</div></div>
+            </div>
+          </div>
+
+          <div class="panel admin-subpanel" id="panel-roles">
+            <div class="panel-title">Role Management <span class="muted" id="roles-count"></span></div>
+            <input class="search-input" id="roles-search" placeholder="Search teacher name or email…" style="margin-bottom:12px;width:100%;max-width:320px;">
+            <div id="roles-list"><div class="muted">Loading…</div></div>
+          </div>
+
+          <div class="panel admin-subpanel" id="panel-termlocks">
+            <div class="panel-title">Term Locks <span class="muted" id="termlock-count"></span></div>
+            <div class="muted" style="margin-bottom:10px;">Lock a term to make its records read-only in the Results Portal.</div>
+            <div class="toolbar" style="justify-content:space-between;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;">
+                <input type="checkbox" id="termlock-selectall"> Select all
+              </label>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="muted" id="termlock-selcount">0 selected</span>
+                <button class="btn btn-sm btn-red" id="termlock-bulklock" disabled>🔒 Lock Selected</button>
+                <button class="btn btn-sm btn-outline" id="termlock-bulkunlock" disabled>🔓 Unlock Selected</button>
+              </div>
+            </div>
+            <div id="termlock-list"><div class="muted">Loading…</div></div>
+            <div id="termlock-orphan-wrap" style="display:none;margin-top:16px;">
+              <div class="panel-title" style="font-size:12px;">⚠️ Orphaned Locks <span class="muted">— no matching term in the current data</span></div>
+              <div id="termlock-orphan-list"></div>
+            </div>
+          </div>
+
+          <div class="panel admin-subpanel" id="panel-importperm">
+            <div class="panel-title">Import Permissions <span class="muted" id="importperm-count"></span></div>
+            <div class="muted" style="margin-bottom:10px;">Control which teachers can access bulk CSV/Excel import. Advanced Admins always retain full access.</div>
+            <input class="search-input" id="importperm-search" placeholder="Search teacher name or email…" style="margin-bottom:12px;width:100%;max-width:320px;">
+            <div id="importperm-list"><div class="muted">Loading…</div></div>
+          </div>
+
+          <div class="panel admin-subpanel" id="panel-addteacher">
+            <div class="panel-title">Add Teacher Account</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+              <div class="field-group"><label>First Name</label><input class="field-input" id="at-fname" placeholder="e.g. Jane"></div>
+              <div class="field-group"><label>Last Name</label><input class="field-input" id="at-lname" placeholder="e.g. Mwangi"></div>
+              <div class="field-group"><label>Email Address</label><input class="field-input" id="at-email" type="email" placeholder="teacher@school.ac.ke"></div>
+              <div class="field-group"><label>Phone Number</label><input class="field-input" id="at-phone" placeholder="e.g. 0712 345 678"></div>
+              <div class="field-group"><label>Password</label><input class="field-input" id="at-password" type="password" placeholder="Min 8 characters"></div>
+              <div class="field-group"><label>Confirm Password</label><input class="field-input" id="at-password2" type="password" placeholder="Repeat password"></div>
+            </div>
+            <div class="actions-row" style="margin-top:12px;">
+              <button class="btn btn-green btn-sm" id="at-submit-btn">➕ Create Teacher Account</button>
+              <button class="btn btn-outline btn-sm" id="at-clear-btn">Clear Form</button>
+            </div>
+            <div class="muted" id="at-result" style="margin-top:10px;"></div>
+            <div style="margin-top:24px;">
+              <div class="panel-title" style="font-size:13px;">Existing Teacher Accounts <span class="muted" id="at-teachers-count"></span>
+                <button class="btn btn-outline btn-sm" id="at-teachers-refresh" style="margin-left:auto;">🔄 Refresh</button>
+              </div>
+              <div id="at-teachers-list"><div class="muted">Loading…</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AUDIT -->
+        <section class="view" id="audit">
+          <div class="sec-hdr">
+            <div>
+              <h2>Audit Trail</h2>
+              <div class="sec-sub">Meaningful changes across the school system.</div>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-outline btn-sm" id="audit-export-btn">Export CSV</button>
+              <a class="btn btn-outline btn-sm" href="./https://kanyadetschool.github.io/results/main-result-portal.html" target="_blank">Full Audit in Results Portal ↗</a>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="toolbar">
+              <input class="search-input" id="audit-search" placeholder="Search actions, admin, module…" />
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Action</th><th>Admin</th><th>Category</th><th>Time</th></tr></thead>
+                <tbody id="audit-tbody"><tr><td colspan="4" class="muted">Loading audit log…</td></tr></tbody>
+              </table>
+            </div>
+            <div class="pager" id="audit-pager"></div>
+          </div>
+        </section>
+
+        <!-- ANNOUNCEMENTS -->
+        <section class="view" id="messages">
+          <div class="sec-hdr">
+            <div>
+              <h2>Announcements</h2>
+              <div class="sec-sub">Broadcast updates to staff across the school system.</div>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-blue btn-sm" id="ann-new-btn">+ New Announcement</button>
+            </div>
+          </div>
+          <div class="form-panel" id="ann-form">
+            <div class="panel-title">Compose Announcement</div>
+            <div class="field-group"><label>Title</label><input class="field-input" id="ann-title" placeholder="Announcement title" /></div>
+            <div class="field-group"><label>Body</label><textarea class="field-input" id="ann-body" placeholder="Write the notice…"></textarea></div>
+            <div class="field-group"><label>Type</label>
+              <select class="sel field-input" id="ann-type">
+                <option value="info">Info</option>
+                <option value="urgent">Urgent</option>
+                <option value="event">Event</option>
+                <option value="finance">Welfare</option>
+              </select>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-green btn-sm" id="ann-submit">Publish</button>
+              <button class="btn btn-outline btn-sm" id="ann-cancel">Cancel</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="activity-list" id="ann-list">
+              <div class="empty-state"><div class="es-icon">📢</div><div class="es-title">No announcements yet</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PORTALS -->
+        <section class="view" id="portals">
+          <div class="sec-hdr">
+            <div>
+              <h2>Linked Portals</h2>
+              <div class="sec-sub">Jump into specialized school tools from one command center.</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="link-grid">
+              <a class="link-card" href="./https://kanyadetschool.github.io/results/main-result-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
+              <a class="link-card" href="./Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
+              <a class="link-card" href="./All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
+              <a class="link-card" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
+              <a class="link-card" href="./lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Full lunch contribution tool — payments, reminders, history, and exports.</div></a>
+              <a class="link-card" href="./Results.html" target="_blank"><div class="lc-icon">📝</div><div class="lc-title">Results Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="dmodal-backdrop" id="dmodal-backdrop">
+    <div class="dmodal">
+      <div class="dmodal-hdr">
+        <h3 id="dmodal-title">Details</h3>
+        <button class="dmodal-close" id="dmodal-close">✕</button>
+      </div>
+      <div class="dmodal-body" id="dmodal-body"></div>
+      <div class="dmodal-ftr" id="dmodal-ftr"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getDatabase, ref, get, set, push, update, remove, onValue, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const FB_CONFIG = {
+      apiKey: 'AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE',
+      authDomain: 'kanyadet-school-admin.firebaseapp.com',
+      projectId: 'kanyadet-school-admin',
+      databaseURL: 'https://kanyadet-school-admin-default-rtdb.firebaseio.com',
+      storageBucket: 'kanyadet-school-admin.firebasestorage.app',
+      messagingSenderId: '409708360032',
+      appId: '1:409708360032:web:a21d63e8cb5fa1ecabee05'
+    };
+
+    const APP_ID = 'default-app-id';
+    const RESULTS_PATH = `Results/${APP_ID}/students`;
+    const LOCK_PATH = 'termLocks';
+    const AUDIT_PATH = 'audit_logs';
+    const ANNOUNCEMENTS_PATH = 'announcements';
+    const ATTENDANCE_PATH = 'attendance';
+    const LUNCH_PATH = 'lunch';
+    const QE_ACTIVE_PATH = 'quickEntryActive'; // {encodedCompound}/{uid} -> {name,uid,grade,compound,startedAt,lastActive,cell:{studentName,subject,value,updatedAt}} — written by the Results Portal's Quick Entry
+
+    const app = initializeApp(FB_CONFIG);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const fst = getFirestore(app);
+
+    const state = {
+      user: null,
+      isAdvancedAdmin: false,
+      students: [],
+      teachers: [],
+      results: [],
+      audits: [],
+      announcements: [],
+      lunchRaw: {},
+      lunchPeriod: '',
+      lunchStd: 620,
+      lunchMembers: [],
+      lunchPeriods: [],
+      attendance: {},
+      attDraft: {},
+      stuPage: 1,
+      tchPage: 1,
+      auditPage: 1,
+      enrollChart: null,
+      welDonut: null,
+      welHistChart: null
+    };
+
+    const VIEW_META = {
+      dashboard: ['Dashboard', 'School command center / overview'],
+      students: ['Students', 'Active enrollment registry'],
+      teachers: ['Teachers', 'Staff roster & roles'],
+      attendance: ['Attendance', 'Daily compliance tracking'],
+      results: ['Results', 'Exam performance oversight'],
+      welfare: ['Welfare', 'Lunch contributions & shortfall'],
+      settings: ['Settings', 'Portal preferences'],
+      audit: ['Audit Trail', 'System activity log'],
+      messages: ['Announcements', 'School-wide broadcasts'],
+      portals: ['Linked Portals', 'Jump to specialized tools']
+    };
+
+    /* ── Local cache — paints instantly from last-known data, then only
+       recomputes/re-renders a section when its DB data actually changed ── */
+    const CACHE_PREFIX = 'aap_cache_';
+    function cacheGet(key){
+      try{ const raw = localStorage.getItem(CACHE_PREFIX+key); return raw ? JSON.parse(raw) : null; }
+      catch(e){ return null; }
+    }
+    function cacheSet(key, val){
+      try{ localStorage.setItem(CACHE_PREFIX+key, JSON.stringify(val)); }catch(e){}
+    }
+    // Returns true (and updates the cache) only if freshRaw differs from what's cached under key.
+    function cacheChanged(key, freshRaw){
+      const prevStr = localStorage.getItem(CACHE_PREFIX+'raw_'+key);
+      const freshStr = JSON.stringify(freshRaw);
+      if(prevStr === freshStr) return false;
+      try{ localStorage.setItem(CACHE_PREFIX+'raw_'+key, freshStr); }catch(e){}
+      return true;
+    }
+
+    /* ── Pagination (10 rows/page) — shared by Students, Teachers, Audit tables ── */
+    const PAGE_SIZE = 10;
+    function paginate(list, page){
+      const total = list.length;
+      const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      const clamped = Math.min(Math.max(1, page), totalPages);
+      const start = (clamped - 1) * PAGE_SIZE;
+      return { pageRows: list.slice(start, start + PAGE_SIZE), page: clamped, totalPages, total };
+    }
+    function renderPager(containerId, page, totalPages, onChange){
+      const el = $(containerId);
+      if(!el) return;
+      if(totalPages <= 1){ el.innerHTML = ''; return; }
+      el.innerHTML = `
+        <button class="btn btn-outline btn-sm pager-prev" ${page<=1?'disabled':''}>‹ Prev</button>
+        <span class="pager-label">Page ${page} of ${totalPages}</span>
+        <button class="btn btn-outline btn-sm pager-next" ${page>=totalPages?'disabled':''}>Next ›</button>
+      `;
+      el.querySelector('.pager-prev')?.addEventListener('click', () => onChange(page - 1));
+      el.querySelector('.pager-next')?.addEventListener('click', () => onChange(page + 1));
+    }
+
+    /* ── Utils ── */
+    function $(id){ return document.getElementById(id); }
+    function toast(msg, type='info'){
+      const host = $('toastHost');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.textContent = msg;
+      host.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+    function escapeHtml(s){
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function todayISO(){
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    function fmtTime(ts){
+      if(!ts) return '—';
+      const d = typeof ts === 'number' ? new Date(ts) : new Date(ts);
+      if(isNaN(d)) return String(ts);
+      return d.toLocaleString('en-KE', { dateStyle:'medium', timeStyle:'short' });
+    }
+    function initials(name){
+      const p = String(name||'A').trim().split(/\s+/);
+      return ((p[0]?.[0]||'A') + (p[1]?.[0]||'')).toUpperCase();
+    }
+    function studentName(s){
+      return s['Official Student Name'] || s.StudentFullName || s.name || s.Name || 'Unnamed';
+    }
+    function studentGrade(s){
+      return gShortRes(s.Grade || s.CurrentGrade || s.grade || 'N/A');
+    }
+    function studentGender(s){
+      const g = String(s.Gender || s.gender || '').trim();
+      if(/^m/i.test(g)) return 'Male';
+      if(/^f/i.test(g)) return 'Female';
+      return g || 'Unknown';
+    }
+    function studentUpi(s){
+      return s.UPI || s.upi || s.AssessmentNumber || s['Assessment No'] || s.id || '—';
+    }
+    // Results records don't carry Assessment No/Class/etc. score data — this
+    // is the same set of non-subject "meta" fields used across the school's
+    // other tools to tell subject-score fields apart from record metadata.
+    const RESULTS_META_FIELDS = new Set([
+      'Assessment No','Class','Closing Date','Gender','Grade','Official Student Name',
+      'Opening Date','Position','Remarks','Term','UPI'
+    ]);
+    function gShortRes(raw){
+      const s = String(raw||'');
+      const m = s.match(/Grade\s*\d+/i);
+      return m ? m[0].replace(/\s+/g,' ').trim() : (s.trim() || 'N/A');
+    }
+    // Results is a per-exam-sitting table (several rows per student across
+    // terms), not a student master list, so the roster needs a stable
+    // per-student key to dedupe on — Assessment No first, then UPI, then
+    // name, mirroring the same fallback used across the school's other
+    // tools. Placeholder values like "---" or "pending" are treated as
+    // absent since they aren't unique per student.
+    function studentIdentityKey(rec){
+      const an = String(rec?.['Assessment No'] || '').trim();
+      if(an && !/^-+$/.test(an) && !/^pending/i.test(an)) return 'AN:' + an;
+      const upi = String(rec?.UPI || '').trim();
+      if(upi && !/^-+$/.test(upi)) return 'UPI:' + upi;
+      return 'NAME:' + String(rec?.['Official Student Name'] || '').trim().toUpperCase();
+    }
+    function avgOf(rec){
+      const a = parseFloat(rec.Average ?? rec.average);
+      if(!isNaN(a)) return a;
+      const t = parseFloat(rec.Total ?? rec.total);
+      if(!isNaN(t)) return t;
+      // No precomputed Average/Total on real Results records — derive one
+      // from whatever numeric, non-meta fields are present (raw subject
+      // scores), so this adapts automatically to whichever subjects exist.
+      let sum = 0, count = 0;
+      Object.entries(rec || {}).forEach(([field, v]) => {
+        if(RESULTS_META_FIELDS.has(field)) return;
+        const num = Number(v);
+        if(v === '' || v === null || v === undefined || !Number.isFinite(num)) return;
+        sum += num; count++;
+      });
+      return count ? sum / count : null;
+    }
+
+    /* ── Auth UI ── */
+    function showAuthErr(msg){
+      const el = $('auth-err');
+      el.textContent = msg;
+      el.style.display = msg ? 'block' : 'none';
+    }
+    function setAuthLoading(on){
+      $('auth-loading').style.display = on ? 'block' : 'none';
+      $('auth-form').style.display = on ? 'none' : 'block';
+    }
+
+    async function verifyAdvancedAdmin(user){
+      const snap = await getDoc(doc(fst, 'users', user.uid));
+      if(!snap.exists()) return false;
+      const data = snap.data() || {};
+      if(data.disabled === true) throw new Error('Account disabled by an administrator.');
+      return data.Advancedadmin === true;
+    }
+
+    async function enterApp(user){
+      state.user = user;
+      const name = user.displayName || user.email?.split('@')[0] || 'Admin';
+      $('me-name').textContent = name;
+      $('me-av').textContent = initials(name);
+      $('me-role').textContent = 'Super Administrator';
+      $('set-email').textContent = user.email || '—';
+      $('set-name').textContent = name;
+      $('auth-gate').classList.add('hidden');
+      $('app-shell').classList.add('ready');
+      hydrateFromCache();
+      await loadAll();
+      wireRealtime();
+    }
+
+    async function handleAuthed(user){
+      setAuthLoading(true);
+      showAuthErr('');
+      try{
+        const ok = await verifyAdvancedAdmin(user);
+        if(!ok){
+          await signOut(auth);
+          setAuthLoading(false);
+          showAuthErr('Access denied. Advanced Admin privileges required.');
+          return;
+        }
+        state.isAdvancedAdmin = true;
+        await enterApp(user);
+      }catch(err){
+        console.error(err);
+        await signOut(auth).catch(()=>{});
+        setAuthLoading(false);
+        showAuthErr(err.message || 'Could not verify admin access.');
+      }
+    }
+
+    $('btn-email-login').addEventListener('click', async () => {
+      const email = $('login-email').value.trim();
+      const password = $('login-password').value;
+      if(!email || !password){ showAuthErr('Enter email and password.'); return; }
+      setAuthLoading(true); showAuthErr('');
+      try{
+        await signInWithEmailAndPassword(auth, email, password);
+      }catch(err){
+        setAuthLoading(false);
+        showAuthErr(err.message?.replace('Firebase: ','') || 'Sign-in failed.');
+      }
+    });
+    $('login-password').addEventListener('keydown', e => { if(e.key==='Enter') $('btn-email-login').click(); });
+
+    const _authTips = [
+      "Deep school-wide administration — audit trails, welfare, announcements and portal management, all in one secure place.",
+      "Review the full audit trail across every portal, in real time.",
+      "Manage announcements and keep every linked portal in sync.",
+      "One authorized admin sign-in for full school oversight.",
+      "Track welfare, results and student data from a single control room.",
+    ];
+    let _authTipIdx = 0;
+    function _renderAuthTipDots(){
+      const dotsEl = document.getElementById('asp-tip-dots');
+      if(!dotsEl) return;
+      dotsEl.innerHTML = _authTips.map((_, i)=>`<span class="asp-tip-dot${i===_authTipIdx?' active':''}"></span>`).join('');
+    }
+    function _rotateAuthTip(){
+      const el = document.getElementById('asp-tip-text');
+      if(!el) return;
+      el.classList.add('fading');
+      setTimeout(()=>{
+        _authTipIdx = (_authTipIdx + 1) % _authTips.length;
+        el.textContent = _authTips[_authTipIdx];
+        _renderAuthTipDots();
+        el.classList.remove('fading');
+      }, 350);
+    }
+    _renderAuthTipDots();
+    setInterval(_rotateAuthTip, 4500);
+
+    $('btn-google-login').addEventListener('click', async () => {
+      setAuthLoading(true); showAuthErr('');
+      try{
+        await signInWithPopup(auth, new GoogleAuthProvider());
+      }catch(err){
+        setAuthLoading(false);
+        showAuthErr(err.message?.replace('Firebase: ','') || 'Google sign-in failed.');
+      }
+    });
+
+    async function doLogout(){
+      await signOut(auth);
+      location.reload();
+    }
+    $('logoutBtn').addEventListener('click', doLogout);
+    $('set-logout').addEventListener('click', doLogout);
+
+    onAuthStateChanged(auth, (user) => {
+      if(user) handleAuthed(user);
+      else {
+        $('auth-gate').classList.remove('hidden');
+        $('app-shell').classList.remove('ready');
+        setAuthLoading(false);
+      }
+    });
+
+    /* ── Navigation / chrome ── */
+    const savedTheme = localStorage.getItem('aap_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    $('set-theme').textContent = savedTheme === 'light' ? 'Light' : 'Dark';
+
+    function toggleTheme(){
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('aap_theme', next);
+      $('set-theme').textContent = next === 'light' ? 'Light' : 'Dark';
+    }
+    $('themeToggle').addEventListener('click', toggleTheme);
+    $('set-theme-btn').addEventListener('click', toggleTheme);
+
+    /* ── Admin Modules: shared audit-log helper — same audit_logs shape
+       Attendance/Announcements already write to, so entries interleave
+       correctly in the Audit Trail. ── */
+    async function logAudit(action, category){
+      try{
+        await push(ref(db, AUDIT_PATH), {
+          action,
+          admin: state.user?.displayName || state.user?.email || 'Admin',
+          category,
+          time: Date.now()
+        });
+        loadAudits();
+      }catch(e){ console.error('audit log', e); }
+    }
+
+    /* ── Generic clickable-card detail modal ─────────────────────────────
+       One reusable view/edit/delete modal driven by a config object, so
+       every table (Students, Teachers, Welfare) shares the same component
+       instead of each building its own. ──
+       cfg: { title, viewHtml, editFields?:[{key,label,value,type}],
+              onSave?(values), onDelete?(), deleteWarning? } */
+    let dmodalCtx = null;
+    function openDetailModal(cfg){
+      dmodalCtx = { ...cfg, editing:false };
+      renderDetailModal();
+      $('dmodal-backdrop').classList.add('open');
+    }
+    function closeDetailModal(){
+      $('dmodal-backdrop').classList.remove('open');
+      dmodalCtx = null;
+    }
+    function renderDetailModal(){
+      if(!dmodalCtx) return;
+      $('dmodal-title').textContent = dmodalCtx.title || 'Details';
+      if(!dmodalCtx.editing){
+        $('dmodal-body').innerHTML = dmodalCtx.viewHtml || '<div class="muted">No details available.</div>';
+        $('dmodal-ftr').innerHTML = `
+          <button class="btn btn-outline btn-sm" id="dmodal-cancel">Close</button>
+          ${dmodalCtx.onDelete ? '<button class="btn btn-red btn-sm" id="dmodal-delete">🗑️ Delete</button>' : ''}
+          ${dmodalCtx.editFields ? '<button class="btn btn-blue btn-sm" id="dmodal-edit">✏️ Edit</button>' : ''}
+        `;
+        $('dmodal-cancel').addEventListener('click', closeDetailModal);
+        if(dmodalCtx.onDelete){
+          $('dmodal-delete').addEventListener('click', async () => {
+            const confirmed = await Swal.fire({
+              title: 'Delete?',
+              html: dmodalCtx.deleteWarning || 'This cannot be undone.',
+              icon: 'warning', showCancelButton: true, confirmButtonColor: '#e74c3c'
+            });
+            if(!confirmed.isConfirmed) return;
+            try{
+              await dmodalCtx.onDelete();
+              toast('Deleted.', 'ok');
+              closeDetailModal();
+            }catch(err){ toast(`Error: ${err.message}`, 'err'); }
+          });
+        }
+        if(dmodalCtx.editFields){
+          $('dmodal-edit').addEventListener('click', () => { dmodalCtx.editing = true; renderDetailModal(); });
+        }
+      } else {
+        $('dmodal-body').innerHTML = dmodalCtx.editFields.map(f => {
+          if (f.type === 'image') {
+            const initial = escapeHtml((dmodalCtx.title||'?').trim().charAt(0).toUpperCase() || '?');
+            const previewHtml = f.value
+              ? `<img class="dmodal-photo-preview" id="dmodal-photo-preview" src="${escapeHtml(f.value)}" alt="" onerror="this.outerHTML='<div class=&quot;dmodal-photo-placeholder&quot; id=&quot;dmodal-photo-preview&quot;>${initial}</div>'">`
+              : `<div class="dmodal-photo-placeholder" id="dmodal-photo-preview">${initial}</div>`;
+            return `
+            <div class="field-group">
+              <label>${escapeHtml(f.label)}</label>
+              <div class="dmodal-photo-row">
+                ${previewHtml}
+                <input class="field-input" style="flex:1" type="text" data-edit-field="${escapeHtml(f.key)}" placeholder="Paste an image URL" value="${escapeHtml(f.value ?? '')}"
+                  oninput="(function(el){var v=el.value.trim();var img=document.getElementById('dmodal-photo-preview');if(!v){img.outerHTML='<div class=&quot;dmodal-photo-placeholder&quot; id=&quot;dmodal-photo-preview&quot;>${initial}</div>';return;}var test=new Image();test.onload=function(){var html='<img class=&quot;dmodal-photo-preview&quot; id=&quot;dmodal-photo-preview&quot; src=&quot;'+v+'&quot; alt=&quot;&quot;>';document.getElementById('dmodal-photo-preview').outerHTML=html;};test.onerror=function(){};test.src=v;})(this)">
+              </div>
+            </div>`;
+          }
+          return `
+          <div class="field-group"><label>${escapeHtml(f.label)}</label>
+          <input class="field-input" type="${f.type||'text'}" data-edit-field="${escapeHtml(f.key)}" value="${escapeHtml(f.value ?? '')}"></div>
+          `;
+        }).join('');
+        $('dmodal-ftr').innerHTML = `
+          <button class="btn btn-outline btn-sm" id="dmodal-cancel-edit">Cancel</button>
+          <button class="btn btn-green btn-sm" id="dmodal-save">💾 Save Changes</button>
+        `;
+        $('dmodal-cancel-edit').addEventListener('click', () => { dmodalCtx.editing = false; renderDetailModal(); });
+        $('dmodal-save').addEventListener('click', async () => {
+          const values = {};
+          document.querySelectorAll('#dmodal-body [data-edit-field]').forEach(inp => {
+            values[inp.dataset.editField] = inp.type === 'number' ? (inp.value === '' ? '' : Number(inp.value)) : inp.value.trim();
+          });
+          try{
+            await dmodalCtx.onSave(values);
+            toast('Saved.', 'ok');
+            closeDetailModal();
+          }catch(err){ toast(`Error: ${err.message}`, 'err'); }
+        });
+      }
+    }
+    $('dmodal-close').addEventListener('click', closeDetailModal);
+    $('dmodal-backdrop').addEventListener('click', (e) => { if(e.target.id === 'dmodal-backdrop') closeDetailModal(); });
+
+    /* ── Admin Modules: Role Management ──────────────────────────────────
+       Advancedadmin (boolean, users/{uid}) — same field the Results Portal
+       itself checks at sign-in to decide full-access vs standard teacher. */
+    let roleUnsub = null;
+    function startRoleListener(){
+      if(roleUnsub) return; // already listening — just re-render on toggle
+      roleUnsub = onSnapshot(collection(fst, 'users'), snap => {
+        const users = [];
+        snap.forEach(d => users.push({ uid: d.id, ...d.data() }));
+        state.roleUsers = users.filter(u => {
+          const role = (u.role || '').trim().toLowerCase();
+          return role === 'teacher' || role === 'admin' || u.Advancedadmin === true;
+        }).sort((a,b) => (a.name||a.displayName||'').localeCompare(b.name||b.displayName||''));
+        renderRoleList();
+      }, err => { $('roles-list').innerHTML = `<div class="muted">Error: ${escapeHtml(err.message)}</div>`; });
+    }
+    function renderRoleList(){
+      const q = ($('roles-search').value||'').trim().toLowerCase();
+      const currentUid = state.user?.uid || '';
+      const rows = (state.roleUsers||[]).filter(u => !q ||
+        (u.name||u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+      $('roles-count').textContent = `${rows.length} account${rows.length!==1?'s':''}`;
+      $('roles-list').innerHTML = rows.length ? rows.map(u => {
+        const isAdv = u.Advancedadmin === true;
+        const isMe = u.uid === currentUid;
+        const name = escapeHtml(u.name || u.displayName || u.email || 'Unnamed');
+        return `<div class="personnel-row">
+          <div><div class="personnel-name">${name}${isMe?' <span class="pill ok">You</span>':''}</div>
+          <div class="personnel-email">${escapeHtml(u.email||'')} · ${isAdv?'Advanced Admin':'Teacher'}</div></div>
+          <label class="aswitch"><input type="checkbox" data-role-uid="${u.uid}" data-role-name="${name}" ${isAdv?'checked':''} ${isMe?'disabled':''}><span class="aslider"></span></label>
+        </div>`;
+      }).join('') : '<div class="muted">No teacher accounts found.</div>';
+    }
+    $('roles-search').addEventListener('input', renderRoleList);
+    $('roles-list').addEventListener('change', async (e) => {
+      const inp = e.target;
+      if(inp.type !== 'checkbox' || !inp.dataset.roleUid) return;
+      const uid = inp.dataset.roleUid, name = inp.dataset.roleName, grant = inp.checked;
+      inp.disabled = true;
+      const confirmed = await Swal.fire({
+        title: grant ? 'Grant Advanced Admin' : 'Revoke Advanced Admin',
+        html: grant
+          ? `Grant Advanced Admin to <strong>${name}</strong>? They will see all grades, import data, and manage teachers.`
+          : `Revoke Advanced Admin from <strong>${name}</strong>? They will revert to a standard teacher account.`,
+        icon: 'warning', showCancelButton: true, confirmButtonColor: grant ? '#27ae60' : '#e74c3c'
+      });
+      if(!confirmed.isConfirmed){ inp.checked = !grant; inp.disabled = false; return; }
+      try{
+        await updateDoc(doc(fst, 'users', uid), {
+          Advancedadmin: grant,
+          advancedAdminUpdatedAt: new Date().toISOString(),
+          advancedAdminUpdatedBy: state.user?.displayName || state.user?.email || 'Admin'
+        });
+        toast(`Advanced Admin ${grant?'granted to':'revoked from'} ${name}.`, 'ok');
+        logAudit(`Advanced Admin ${grant?'granted':'revoked'} for ${name}`, 'Role Management');
+      }catch(err){
+        toast(`Error: ${err.message}`, 'err');
+        inp.checked = !grant;
+      } finally { inp.disabled = false; }
+    });
+
+    /* ── Admin Modules: Term Locks ─────────────────────────────────────
+       termLocks/{encodeURIComponent(term)} — term here is the compound
+       Grade string (e.g. "Grade 4-2026-B2-End-Term 2"), same identifier
+       the Results Portal itself uses as an exam sitting's identity. */
+    function uniqueResultTerms(){
+      return [...new Set(state.results.map(r => String(r.Grade||r.grade||'').trim()).filter(Boolean))]
+        .sort((a,b)=>a.localeCompare(b));
+    }
+    function lockKeyFor(term){ return encodeURIComponent(String(term||'').trim()); }
+    let termLockSelected = new Set();
+    async function renderTermLocks(){
+      $('termlock-list').innerHTML = '<div class="muted">Loading…</div>';
+      let locks = {};
+      try{
+        const snap = await get(ref(db, LOCK_PATH));
+        locks = snap.exists() ? snap.val() : {};
+      }catch(e){ $('termlock-list').innerHTML = `<div class="muted">Error: ${escapeHtml(e.message)}</div>`; return; }
+      const terms = uniqueResultTerms();
+      $('termlock-count').textContent = `${terms.length} term${terms.length!==1?'s':''}`;
+      const explainedKeys = new Set(terms.map(lockKeyFor));
+      $('termlock-list').innerHTML = terms.length ? terms.map(t => {
+        const key = lockKeyFor(t);
+        const lock = locks[key];
+        const locked = !!(lock && lock.locked);
+        const checked = termLockSelected.has(key) ? 'checked' : '';
+        return `<div class="personnel-row">
+          <label style="cursor:pointer;"><input type="checkbox" class="term-lock-cb" data-key="${key}" data-term="${escapeHtml(t)}" ${checked}></label>
+          <div style="flex:1;min-width:0;"><div class="personnel-name">${escapeHtml(gShortRes(t))} <span class="muted mono" style="font-size:10px">${escapeHtml(t)}</span></div>
+          <div class="personnel-email">${locked ? `🔒 Locked by ${escapeHtml(lock.lockedBy||'Admin')}` : '🔓 Unlocked — edits allowed'}</div></div>
+          <button class="btn btn-sm ${locked?'btn-outline':'btn-red'}" data-lock-key="${key}" data-lock-term="${escapeHtml(t)}" data-locked="${locked}">${locked?'🔓 Unlock':'🔒 Lock'}</button>
+        </div>`;
+      }).join('') : '<div class="muted">No terms found in the Results dataset yet.</div>';
+
+      // Orphaned locks: entries under termLocks with no matching term in the
+      // current Results data — invisible above yet still enforceable in the
+      // Results Portal, so this is the only place they can be found and cleared.
+      const orphanKeys = Object.keys(locks||{}).filter(k => locks[k]?.locked && !explainedKeys.has(k));
+      const orphanWrap = $('termlock-orphan-wrap'), orphanList = $('termlock-orphan-list');
+      if(!orphanKeys.length){
+        orphanWrap.style.display = 'none';
+        orphanList.innerHTML = '';
+      } else {
+        orphanWrap.style.display = '';
+        orphanList.innerHTML = orphanKeys.map(key => {
+          const lock = locks[key];
+          const label = lock?.label || decodeURIComponent(key);
+          const checked = termLockSelected.has(key) ? 'checked' : '';
+          return `<div class="personnel-row" style="border-style:dashed;border-color:rgba(231,76,60,.5);">
+            <label style="cursor:pointer;"><input type="checkbox" class="term-lock-cb" data-key="${key}" data-term="${escapeHtml(label)}" ${checked}></label>
+            <div style="flex:1;min-width:0;"><div class="personnel-name">${escapeHtml(label)}</div>
+            <div class="personnel-email">🔒 Locked by ${escapeHtml(lock.lockedBy||'Admin')} — no matching term in the current data</div></div>
+            <button class="btn btn-sm btn-outline" data-lock-key="${key}" data-lock-term="${escapeHtml(label)}" data-locked="true">🔓 Unlock</button>
+          </div>`;
+        }).join('');
+      }
+      updateTermLockBulkBar();
+    }
+    function updateTermLockBulkBar(){
+      const count = termLockSelected.size;
+      $('termlock-selcount').textContent = `${count} selected`;
+      $('termlock-bulklock').disabled = count === 0;
+      $('termlock-bulkunlock').disabled = count === 0;
+      const total = document.querySelectorAll('#termlock-list .term-lock-cb, #termlock-orphan-list .term-lock-cb').length;
+      $('termlock-selectall').checked = total > 0 && count === total;
+    }
+    function termLockPanelEl(){ return document.getElementById('panel-termlocks'); }
+    termLockPanelEl().addEventListener('change', (e) => {
+      if(e.target.id === 'termlock-selectall'){
+        const checked = e.target.checked;
+        document.querySelectorAll('#termlock-list .term-lock-cb, #termlock-orphan-list .term-lock-cb').forEach(cb => {
+          cb.checked = checked;
+          if(checked) termLockSelected.add(cb.dataset.key); else termLockSelected.delete(cb.dataset.key);
+        });
+        updateTermLockBulkBar();
+        return;
+      }
+      if(e.target.classList.contains('term-lock-cb')){
+        if(e.target.checked) termLockSelected.add(e.target.dataset.key); else termLockSelected.delete(e.target.dataset.key);
+        updateTermLockBulkBar();
+      }
+    });
+    termLockPanelEl().addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-lock-key]');
+      if(!btn) return;
+      const key = btn.dataset.lockKey, term = btn.dataset.lockTerm, locked = btn.dataset.locked === 'true';
+      const confirmed = await Swal.fire({
+        title: locked ? 'Unlock term?' : 'Lock term?',
+        html: locked
+          ? `Unlock <strong>${escapeHtml(term)}</strong>? Edits and deletes will be allowed again.`
+          : `Lock <strong>${escapeHtml(term)}</strong>? All records in this term become <strong>read-only</strong> until unlocked.`,
+        icon: 'warning', showCancelButton: true, confirmButtonColor: locked ? '#2980b9' : '#e74c3c'
+      });
+      if(!confirmed.isConfirmed) return;
+      try{
+        if(locked){
+          await remove(ref(db, `${LOCK_PATH}/${key}`));
+          toast(`${term} unlocked.`, 'ok');
+          logAudit(`Unlocked term: ${term}`, 'Term Lock');
+        } else {
+          await set(ref(db, `${LOCK_PATH}/${key}`), {
+            locked: true, label: term,
+            lockedBy: state.user?.displayName || state.user?.email || 'Admin',
+            lockedAt: Date.now()
+          });
+          toast(`${term} locked.`, 'ok');
+          logAudit(`Locked term: ${term}`, 'Term Lock');
+        }
+        renderTermLocks();
+      }catch(err){ toast(`Error: ${err.message}`, 'err'); }
+    });
+    async function bulkToggleTermLock(lockThem){
+      if(!termLockSelected.size){ toast('No terms selected.', 'err'); return; }
+      const boxes = [...document.querySelectorAll('#termlock-list .term-lock-cb, #termlock-orphan-list .term-lock-cb')]
+        .filter(cb => termLockSelected.has(cb.dataset.key));
+      const entries = boxes.map(cb => ({ key: cb.dataset.key, term: cb.dataset.term }));
+      if(!entries.length){ toast('No terms selected.', 'err'); return; }
+      const names = entries.map(e2 => e2.term).join(', ');
+      const confirmed = await Swal.fire({
+        title: lockThem ? 'Lock selected terms?' : 'Unlock selected terms?',
+        html: lockThem
+          ? `Lock <strong>${entries.length}</strong> term(s)? All records become <strong>read-only</strong> until unlocked:<br><br>${escapeHtml(names)}`
+          : `Unlock <strong>${entries.length}</strong> term(s)? Edits will be allowed again:<br><br>${escapeHtml(names)}`,
+        icon: 'warning', showCancelButton: true, confirmButtonColor: lockThem ? '#e74c3c' : '#2980b9'
+      });
+      if(!confirmed.isConfirmed) return;
+      const updates = {};
+      entries.forEach(({key, term}) => {
+        updates[`${LOCK_PATH}/${key}`] = lockThem
+          ? { locked: true, label: term, lockedBy: state.user?.displayName || state.user?.email || 'Admin', lockedAt: Date.now() }
+          : null;
+      });
+      try{
+        await update(ref(db), updates);
+        toast(`${entries.length} term(s) ${lockThem?'locked':'unlocked'}.`, 'ok');
+        logAudit(`${lockThem?'Bulk locked':'Bulk unlocked'} ${entries.length} term(s): ${names}`, 'Term Lock');
+        termLockSelected = new Set();
+        renderTermLocks();
+      }catch(err){ toast(`Error: ${err.message}`, 'err'); }
+    }
+    $('termlock-bulklock').addEventListener('click', () => bulkToggleTermLock(true));
+    $('termlock-bulkunlock').addEventListener('click', () => bulkToggleTermLock(false));
+
+    /* ── Admin Modules: Import Permissions ──────────────────────────────
+       canImportData (boolean, users/{uid}) — true/absent = allowed, false
+       = blocked. Advanced Admins are excluded, they always have access. */
+    let importPermUnsub = null;
+    function startImportPermListener(){
+      if(importPermUnsub) return;
+      importPermUnsub = onSnapshot(collection(fst, 'users'), snap => {
+        const users = [];
+        snap.forEach(d => users.push({ uid: d.id, ...d.data() }));
+        state.importPermUsers = users.filter(u => {
+          const role = (u.role || '').trim().toLowerCase();
+          return (role === 'teacher' || role === 'admin') && u.Advancedadmin !== true;
+        }).sort((a,b) => (a.name||a.displayName||'').localeCompare(b.name||b.displayName||''));
+        renderImportPermList();
+      }, err => { $('importperm-list').innerHTML = `<div class="muted">Error: ${escapeHtml(err.message)}</div>`; });
+    }
+    function renderImportPermList(){
+      const q = ($('importperm-search').value||'').trim().toLowerCase();
+      const rows = (state.importPermUsers||[]).filter(u => !q ||
+        (u.name||u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+      $('importperm-count').textContent = `${rows.length} teacher${rows.length!==1?'s':''}`;
+      $('importperm-list').innerHTML = rows.length ? rows.map(u => {
+        const allowed = u.canImportData !== false;
+        const name = escapeHtml(u.name || u.displayName || u.email || 'Unnamed');
+        return `<div class="personnel-row">
+          <div><div class="personnel-name">${name}</div><div class="personnel-email">${escapeHtml(u.email||'')}</div></div>
+          <label class="aswitch"><input type="checkbox" data-ipr-uid="${u.uid}" data-ipr-name="${name}" ${allowed?'checked':''}><span class="aslider"></span></label>
+        </div>`;
+      }).join('') : '<div class="muted">No teacher accounts found.</div>';
+    }
+    $('importperm-search').addEventListener('input', renderImportPermList);
+    $('importperm-list').addEventListener('change', async (e) => {
+      const inp = e.target;
+      if(inp.type !== 'checkbox' || !inp.dataset.iprUid) return;
+      const uid = inp.dataset.iprUid, name = inp.dataset.iprName, allow = inp.checked;
+      inp.disabled = true;
+      try{
+        await updateDoc(doc(fst, 'users', uid), { canImportData: allow });
+        toast(`Import access ${allow?'granted to':'revoked from'} ${name}.`, 'ok');
+        logAudit(`Import access ${allow?'granted':'revoked'} for ${name}`, 'Import Permissions');
+      }catch(err){ toast(`Error: ${err.message}`, 'err'); inp.checked = !allow; }
+      finally{ inp.disabled = false; }
+    });
+
+    /* ── Admin Modules: Add Teacher ─────────────────────────────────────
+       Creates the Firebase Auth account on a secondary app instance (so
+       the current admin session stays signed in) then writes the
+       Firestore profile the Results Portal expects. */
+    $('at-clear-btn').addEventListener('click', () => {
+      ['at-fname','at-lname','at-email','at-phone','at-password','at-password2'].forEach(id => $(id).value = '');
+      $('at-result').textContent = '';
+    });
+    $('at-submit-btn').addEventListener('click', async () => {
+      const fname = $('at-fname').value.trim();
+      const lname = $('at-lname').value.trim();
+      const email = $('at-email').value.trim().toLowerCase();
+      const phone = $('at-phone').value.trim();
+      const password = $('at-password').value;
+      const password2 = $('at-password2').value;
+      if(!fname || !lname){ $('at-result').textContent = '⚠️ Enter both first and last name.'; return; }
+      if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ $('at-result').textContent = '⚠️ Enter a valid email address.'; return; }
+      if(!password || password.length < 8){ $('at-result').textContent = '⚠️ Password must be at least 8 characters.'; return; }
+      if(password !== password2){ $('at-result').textContent = '⚠️ Passwords do not match.'; return; }
+
+      const btn = $('at-submit-btn');
+      btn.disabled = true; btn.textContent = '⏳ Creating…';
+      $('at-result').textContent = '';
+      try{
+        const SECONDARY_APP_NAME = '__teacher_creator__';
+        let secondaryApp = getApps().find(a => a.name === SECONDARY_APP_NAME);
+        if(!secondaryApp) secondaryApp = initializeApp(FB_CONFIG, SECONDARY_APP_NAME);
+        const secondaryAuth = getAuth(secondaryApp);
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        const uid = cred.user.uid;
+        await secondaryAuth.signOut();
+
+        const fullName = `${fname} ${lname}`;
+        const teacherDoc = {
+          name: fullName, firstName: fname, lastName: lname, email, role: 'Teacher',
+          phone: phone || null, Advancedadmin: false,
+          createdAt: new Date().toISOString(),
+          createdBy: state.user?.displayName || state.user?.email || 'Admin',
+          disabled: false
+        };
+        Object.keys(teacherDoc).forEach(k => teacherDoc[k] === null && delete teacherDoc[k]);
+        await setDoc(doc(fst, 'users', uid), teacherDoc);
+
+        $('at-result').innerHTML = `✅ Teacher account created — <strong>${escapeHtml(fullName)}</strong> · ${escapeHtml(email)}`;
+        toast(`Teacher ${fullName} added successfully.`, 'ok');
+        logAudit(`Created teacher account: ${fullName} (${email})`, 'Add Teacher');
+        ['at-fname','at-lname','at-email','at-phone','at-password','at-password2'].forEach(id => $(id).value = '');
+        loadTeachers();
+        renderTeacherAccountsList();
+      }catch(err){
+        let msg = err.message;
+        if(err.code === 'auth/email-already-in-use') msg = 'This email is already registered.';
+        if(err.code === 'auth/weak-password') msg = 'Password is too weak.';
+        $('at-result').textContent = `❌ Error: ${msg}`;
+      }finally{
+        btn.disabled = false; btn.textContent = '➕ Create Teacher Account';
+      }
+    });
+
+    /* ── Existing Teacher Accounts (inside Add Teacher panel) ────────────
+       Disable/reactivate writes the same `disabled` flag verifyAdvancedAdmin
+       already checks for this app's own sign-in gate — the Results Portal
+       is expected to honor the same field for regular teacher sign-in. */
+    async function renderTeacherAccountsList(){
+      const container = $('at-teachers-list');
+      container.innerHTML = '<div class="muted">Loading…</div>';
+      try{
+        const snap = await getDocs(collection(fst, 'users'));
+        const teachers = [];
+        snap.forEach(d => {
+          const u = { uid: d.id, ...d.data() };
+          if(u.Advancedadmin === true) return;
+          if((u.role||'').trim().toLowerCase() === 'admin') return;
+          teachers.push(u);
+        });
+        teachers.sort((a,b) => (a.name||a.displayName||'').localeCompare(b.name||b.displayName||''));
+        $('at-teachers-count').textContent = `${teachers.length} account${teachers.length!==1?'s':''}`;
+        container.innerHTML = teachers.length ? teachers.map(u => {
+          const disabled = u.disabled === true;
+          const name = escapeHtml(u.name || u.displayName || u.email || 'Unnamed');
+          return `<div class="personnel-row">
+            <div><div class="personnel-name">${name}${disabled?' <span class="pill warn">Disabled</span>':''}</div>
+            <div class="personnel-email">${escapeHtml(u.email||'')}</div></div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+              <button class="btn btn-outline btn-sm" data-reset-uid="${u.uid}" data-reset-email="${escapeHtml(u.email||'')}" data-reset-name="${name}">✉️ Reset Password</button>
+              <button class="btn btn-sm ${disabled?'btn-green':'btn-red'}" data-disable-uid="${u.uid}" data-disable-name="${name}" data-disabled="${disabled}">${disabled?'✓ Reactivate':'⛔ Disable'}</button>
+            </div>
+          </div>`;
+        }).join('') : '<div class="muted">No teacher accounts found.</div>';
+      }catch(e){ container.innerHTML = `<div class="muted">Error: ${escapeHtml(e.message)}</div>`; }
+    }
+    $('at-teachers-refresh').addEventListener('click', renderTeacherAccountsList);
+    $('at-teachers-list').addEventListener('click', async (e) => {
+      const resetBtn = e.target.closest('button[data-reset-uid]');
+      if(resetBtn){
+        const email = resetBtn.dataset.resetEmail, name = resetBtn.dataset.resetName;
+        if(!email){ toast('This account has no email on file.', 'err'); return; }
+        const confirmed = await Swal.fire({
+          title: 'Send password reset?',
+          html: `Send a password reset email to <strong>${name}</strong> at ${escapeHtml(email)}?`,
+          icon: 'question', showCancelButton: true, confirmButtonColor: '#2980b9'
+        });
+        if(!confirmed.isConfirmed) return;
+        try{
+          await sendPasswordResetEmail(auth, email);
+          toast(`Password reset email sent to ${name}.`, 'ok');
+          logAudit(`Sent password reset to ${name} (${email})`, 'Add Teacher');
+        }catch(err){ toast(`Error: ${err.message}`, 'err'); }
+        return;
+      }
+      const disBtn = e.target.closest('button[data-disable-uid]');
+      if(disBtn){
+        const uid = disBtn.dataset.disableUid, name = disBtn.dataset.disableName, wasDisabled = disBtn.dataset.disabled === 'true';
+        const confirmed = await Swal.fire({
+          title: wasDisabled ? 'Reactivate account?' : 'Disable account?',
+          html: wasDisabled
+            ? `Reactivate <strong>${name}</strong>? They will be able to sign in again.`
+            : `Disable <strong>${name}</strong>? They will be blocked from signing in until reactivated.`,
+          icon: 'warning', showCancelButton: true, confirmButtonColor: wasDisabled ? '#27ae60' : '#e74c3c'
+        });
+        if(!confirmed.isConfirmed) return;
+        try{
+          await updateDoc(doc(fst, 'users', uid), { disabled: !wasDisabled });
+          toast(`${name} ${wasDisabled?'reactivated':'disabled'}.`, 'ok');
+          logAudit(`${wasDisabled?'Reactivated':'Disabled'} teacher account: ${name}`, 'Add Teacher');
+          renderTeacherAccountsList();
+        }catch(err){ toast(`Error: ${err.message}`, 'err'); }
+      }
+    });
+
+    function navTo(view){
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+      document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === view));
+      const meta = VIEW_META[view] || [view, ''];
+      $('pageTitle').textContent = meta[0];
+      $('pageCrumb').textContent = meta[1];
+      $('sidebar').classList.remove('open');
+      $('sidebarBackdrop').classList.remove('show');
+      if(view === 'attendance') renderAttendance();
+      if(view === 'messages') renderAnnouncements();
+      if(view === 'welfare') renderWelfare();
+      if(view === 'audit') renderAudit();
+    }
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => navTo(item.dataset.view));
+    });
+    document.querySelectorAll('[data-goto]').forEach(el => {
+      el.addEventListener('click', () => {
+        const v = el.getAttribute('data-goto');
+        if(v) navTo(v);
+        if(el.getAttribute('data-action') === 'new-ann'){
+          $('ann-form').classList.add('open');
+        }
+      });
+    });
+    document.querySelectorAll('[data-href]').forEach(el => {
+      el.addEventListener('click', () => {
+        const href = el.getAttribute('data-href');
+        if(href) window.open(href, '_blank');
+      });
+    });
+    document.querySelectorAll('.quick-tile[data-admin-panel]').forEach(tile => {
+      tile.addEventListener('click', () => {
+        const id = tile.dataset.adminPanel;
+        const panel = $(id);
+        const opening = !panel.classList.contains('open');
+        document.querySelectorAll('.admin-subpanel').forEach(p => p.classList.remove('open'));
+        document.querySelectorAll('.quick-tile[data-admin-panel]').forEach(t => t.classList.remove('active'));
+        if(opening){
+          panel.classList.add('open');
+          tile.classList.add('active');
+          panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+          if(id === 'panel-roles') startRoleListener();
+          if(id === 'panel-termlocks') renderTermLocks();
+          if(id === 'panel-importperm') startImportPermListener();
+          if(id === 'panel-addteacher') renderTeacherAccountsList();
+        }
+      });
+    });
+    $('burgerBtn').addEventListener('click', () => {
+      $('sidebar').classList.toggle('open');
+      $('sidebarBackdrop').classList.toggle('show');
+    });
+    $('sidebarBackdrop').addEventListener('click', () => {
+      $('sidebar').classList.remove('open');
+      $('sidebarBackdrop').classList.remove('show');
+    });
+    $('refreshBtn').addEventListener('click', () => { loadAll().then(() => toast('Data refreshed','ok')); });
+    $('refreshDashBtn').addEventListener('click', () => { loadAll().then(() => toast('Dashboard refreshed','ok')); });
+    $('notifBtn').addEventListener('click', () => navTo('messages'));
+
+    /* ── Data loaders ── */
+    // Students no longer has its own fetch — the roster is derived from the
+    // same Results-path read as computeResults() below, deduped to one row
+    // per student via studentIdentityKey() (Results has one row per exam
+    // sitting, several per student across terms).
+    function deriveStudentsFromResults(records){
+      const byIdentity = new Map();
+      records.forEach(rec => { byIdentity.set(studentIdentityKey(rec), rec); }); // last sitting wins
+      state.students = Array.from(byIdentity.entries()).map(([key, v]) => ({
+        firebaseKey: key,
+        id: key,
+        ...v
+      }));
+      renderStudents();
+      updateStudentKpis();
+    }
+
+    function computeTeachers(list){
+      state.teachers = list;
+      renderTeachers();
+    }
+    async function loadTeachers(){
+      const snap = await getDocs(collection(fst, 'users'));
+      const list = [];
+      snap.forEach(d => {
+        const u = d.data() || {};
+        list.push({ uid: d.id, ...u });
+      });
+      if(cacheChanged('teachers', list)) computeTeachers(list);
+    }
+
+    function computeResults(data){
+      state.results = Object.entries(data).map(([id, v]) => ({ id, ...v }));
+      renderResults();
+      deriveStudentsFromResults(state.results);
+    }
+    async function loadResults(){
+      const snap = await get(ref(db, RESULTS_PATH));
+      const data = snap.exists() ? snap.val() : {};
+      if(cacheChanged('results', data)) computeResults(data);
+    }
+
+    function computeAudits(rows){
+      state.audits = rows;
+      renderAudit();
+      renderDashAudit();
+    }
+    async function loadAudits(){
+      let rows;
+      try{
+        const q = query(ref(db, AUDIT_PATH), orderByChild('time'), limitToLast(200));
+        const snap = await get(q);
+        rows = [];
+        if(snap.exists()){
+          snap.forEach(c => rows.push({ key: c.key, ...c.val() }));
+        }
+        rows.sort((a,b) => (b.time||0) - (a.time||0));
+      }catch(e){
+        // Fallback without orderBy if index missing
+        const snap = await get(ref(db, AUDIT_PATH));
+        const data = snap.exists() ? snap.val() : {};
+        rows = Object.entries(data).map(([key,v]) => ({key, ...v}))
+          .sort((a,b) => (b.time||0) - (a.time||0)).slice(0,200);
+      }
+      if(cacheChanged('audits', rows)) computeAudits(rows);
+    }
+
+    function computeAnnouncements(data){
+      state.announcements = Object.entries(data).map(([key,v]) => ({key, ...v}))
+        .sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+      renderAnnouncements();
+      renderDashAnnouncements();
+      $('nav-ann').textContent = String(state.announcements.length);
+      $('notifDot').classList.toggle('show', state.announcements.length > 0);
+    }
+    async function loadAnnouncements(){
+      const snap = await get(ref(db, ANNOUNCEMENTS_PATH));
+      const data = snap.exists() ? snap.val() : {};
+      if(cacheChanged('announcements', data)) computeAnnouncements(data);
+    }
+
+    function fmtKsh(v){
+      return 'Ksh ' + Number(v||0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function parseLunchPeriod(key){
+      const months = { January:0,February:1,March:2,April:3,May:4,June:5,July:6,August:7,September:8,October:9,November:10,December:11 };
+      const str = String(key||'');
+      const yrMatch = str.match(/\b(20\d{2}|19\d{2})\b/);
+      const yr = yrMatch ? parseInt(yrMatch[1]) : 2000;
+      const monEntry = Object.keys(months).find(m => new RegExp('\\b'+m+'\\b', 'i').test(str));
+      const mon = monEntry ? months[monEntry] : 0;
+      return new Date(yr, mon, 1).getTime();
+    }
+    function currentMonthPeriod(){
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const now = new Date();
+      return months[now.getMonth()] + '_' + now.getFullYear();
+    }
+    function memberStd(m, periodStd){
+      return (m.customStd && m.customStd > 0) ? m.customStd : periodStd;
+    }
+    function lunchStatus(amt, std){
+      if(amt === 0) return { key:'nil', label:'Nil', pill:'bad' };
+      if(amt >= std) return { key:'paid', label:'Paid', pill:'ok' };
+      return { key:'partial', label:'Partial', pill:'warn' };
+    }
+
+    function computeLunch(data){
+      state.lunchRaw = data || {};
+
+      const periodKeys = Object.keys(data).filter(k => k !== '_meta').sort((a,b) => parseLunchPeriod(a) - parseLunchPeriod(b));
+      state.lunchPeriods = periodKeys.map(pk => {
+        const membersData = data[pk]?.members || {};
+        const mList = Object.entries(membersData).map(([id, m]) => ({ id, ...m }));
+        const std = Number(data[pk]?.std) || 620;
+        const total = mList.reduce((s,m) => s + (Number(m.amount)||0), 0);
+        const expected = mList.reduce((s,m) => s + memberStd(m, std), 0);
+        const paid = mList.filter(m => (Number(m.amount)||0) >= memberStd(m, std)).length;
+        const partial = mList.filter(m => { const a=Number(m.amount)||0; return a>0 && a < memberStd(m,std); }).length;
+        const nil = mList.filter(m => (Number(m.amount)||0) === 0).length;
+        return {
+          key: pk,
+          label: pk.replace(/_/g, ' '),
+          std, total, expected,
+          shortfall: Math.max(0, expected - total),
+          count: mList.length, paid, partial, nil,
+          rate: expected > 0 ? total / expected : 0,
+          members: mList
+        };
+      });
+
+      // Default to the latest month with data (by actual parsed date, ignores stale activePeriod meta)
+      let preferred = periodKeys.reduce((latest, k) =>
+        (!latest || parseLunchPeriod(k) > parseLunchPeriod(latest)) ? k : latest, '') || currentMonthPeriod();
+      if(!state.lunchPeriod || !periodKeys.includes(state.lunchPeriod)){
+        state.lunchPeriod = preferred;
+      }
+      applyLunchPeriod(state.lunchPeriod);
+      populateWelfarePeriods();
+      renderWelfare();
+      updateDashboard();
+    }
+    async function loadLunch(){
+      const snap = await get(ref(db, LUNCH_PATH));
+      const data = snap.exists() ? snap.val() : {};
+      if(cacheChanged('lunch', data)) computeLunch(data);
+    }
+
+    function applyLunchPeriod(periodKey){
+      state.lunchPeriod = periodKey;
+      const found = state.lunchPeriods.find(p => p.key === periodKey);
+      if(found){
+        state.lunchStd = found.std;
+        state.lunchMembers = found.members.slice().sort((a,b) => String(a.name||'').localeCompare(String(b.name||'')));
+      } else {
+        const node = state.lunchRaw[periodKey] || {};
+        state.lunchStd = Number(node.std) || 620;
+        const membersData = node.members || {};
+        state.lunchMembers = Object.entries(membersData).map(([id,m]) => ({id, ...m}))
+          .sort((a,b) => String(a.name||'').localeCompare(String(b.name||'')));
+      }
+    }
+
+    function populateWelfarePeriods(){
+      const sel = $('wel-period');
+      if(!sel) return;
+      const cur = state.lunchPeriod;
+      if(!state.lunchPeriods.length){
+        sel.innerHTML = '<option value="">No lunch periods found</option>';
+        return;
+      }
+      sel.innerHTML = state.lunchPeriods.map(p =>
+        `<option value="${escapeHtml(p.key)}">${escapeHtml(p.label)} · ${fmtKsh(p.total)}</option>`
+      ).join('');
+      if([...sel.options].some(o => o.value === cur)) sel.value = cur;
+    }
+
+    function lunchPeriodStats(){
+      const std = state.lunchStd || 620;
+      const members = state.lunchMembers;
+      const total = members.reduce((s,m) => s + (Number(m.amount)||0), 0);
+      const expected = members.reduce((s,m) => s + memberStd(m, std), 0);
+      const paid = members.filter(m => (Number(m.amount)||0) >= memberStd(m, std)).length;
+      const partial = members.filter(m => { const a=Number(m.amount)||0; return a>0 && a < memberStd(m,std); }).length;
+      const nil = members.filter(m => (Number(m.amount)||0) === 0).length;
+      const shortfall = Math.max(0, expected - total);
+      const rate = expected > 0 ? total / expected : 0;
+      return { std, total, expected, paid, partial, nil, shortfall, rate, count: members.length };
+    }
+
+    function filteredLunchMembers(){
+      const q = ($('wel-search')?.value || '').trim().toLowerCase();
+      const st = $('wel-status-filter')?.value || '';
+      const std = state.lunchStd || 620;
+      return state.lunchMembers.filter(m => {
+        const amt = Number(m.amount)||0;
+        const ms = memberStd(m, std);
+        const status = lunchStatus(amt, ms);
+        if(st && status.key !== st) return false;
+        if(!q) return true;
+        return [m.name, m.phone, m.note].join(' ').toLowerCase().includes(q);
+      });
+    }
+
+    function renderWelfare(){
+      if(!$('wel-collected')) return;
+      const s = lunchPeriodStats();
+      const ratePct = Math.min(100, Math.round(s.rate * 100));
+
+      $('wel-collected').textContent = fmtKsh(s.total);
+      $('wel-paid').textContent = String(s.paid);
+      $('wel-paid-sub').textContent = `of ${s.count} members`;
+      $('wel-unpaid').textContent = String(s.partial + s.nil);
+      $('wel-unpaid-sub').textContent = `${s.partial} partial · ${s.nil} nil`;
+      $('wel-shortfall').textContent = fmtKsh(s.shortfall);
+      $('wel-rate').textContent = `${ratePct}%`;
+      $('wel-std-label').textContent = `Standard: ${fmtKsh(s.std)}`;
+      $('wel-members-label').textContent = `${s.count} members · ${(state.lunchPeriod||'').replace(/_/g,' ')}`;
+      $('wel-rate-bar').style.width = ratePct + '%';
+      $('wel-rate-bar').style.background = ratePct >= 90
+        ? 'linear-gradient(90deg,var(--green),var(--teal))'
+        : ratePct >= 60
+          ? 'linear-gradient(90deg,var(--orange),var(--gold))'
+          : 'linear-gradient(90deg,var(--red),var(--orange))';
+      $('wel-rate-pct').textContent = ratePct + '%';
+      $('nav-welfare').textContent = String(s.partial + s.nil);
+
+      // Members table
+      const rows = filteredLunchMembers();
+      const body = $('wel-tbody');
+      if(!rows.length){
+        body.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="es-title">No members match</div></div></td></tr>';
+        $('wel-count-label').textContent = '';
+      } else {
+        body.innerHTML = rows.map((m, i) => {
+          const amt = Number(m.amount)||0;
+          const ms = memberStd(m, s.std);
+          const bal = Math.max(0, ms - amt);
+          const st = lunchStatus(amt, ms);
+          return `<tr data-row-id="${escapeHtml(m.id)}">
+            <td class="mono">${i+1}</td>
+            <td><strong style="color:var(--text)">${escapeHtml(m.name||'—')}</strong></td>
+            <td class="mono">${escapeHtml(m.phone||'—')}</td>
+            <td class="mono">${fmtKsh(amt)}</td>
+            <td class="mono">${fmtKsh(bal)}</td>
+            <td><span class="pill ${st.pill}">${st.label}</span></td>
+            <td class="muted">${escapeHtml(m.paidAt || '—')}</td>
+          </tr>`;
+        }).join('');
+        $('wel-count-label').textContent = `Showing ${rows.length} of ${state.lunchMembers.length} members`;
+      }
+
+      // Outstanding
+      const outstanding = state.lunchMembers
+        .map(m => {
+          const amt = Number(m.amount)||0;
+          const ms = memberStd(m, s.std);
+          return { m, amt, ms, bal: Math.max(0, ms - amt), st: lunchStatus(amt, ms) };
+        })
+        .filter(x => x.st.key !== 'paid')
+        .sort((a,b) => b.bal - a.bal);
+      $('wel-out-count').textContent = outstanding.length ? `(${outstanding.length})` : '';
+      $('wel-outstanding-body').innerHTML = outstanding.length
+        ? outstanding.map(x => `<tr data-row-id="${escapeHtml(x.m.id)}">
+            <td><strong style="color:var(--text)">${escapeHtml(x.m.name||'—')}</strong></td>
+            <td class="mono">${fmtKsh(x.amt)}</td>
+            <td class="mono">${fmtKsh(x.bal)}</td>
+            <td><span class="pill ${x.st.pill}">${x.st.label}</span></td>
+          </tr>`).join('')
+        : '<tr><td colspan="4" class="muted">Everyone is fully paid for this period. 🎉</td></tr>';
+
+      renderWelDonut(s.paid, s.partial, s.nil);
+      renderWelHistChart();
+      renderWelPeriodCards();
+    }
+    ['wel-tbody','wel-outstanding-body'].forEach(id => {
+      $(id).addEventListener('click', (e) => {
+        const tr = e.target.closest('tr[data-row-id]');
+        if(!tr) return;
+        const m = state.lunchMembers.find(x => String(x.id) === tr.dataset.rowId);
+        if(m) openLunchMemberDetail(m);
+      });
+    });
+    function openLunchMemberDetail(m){
+      const std = state.lunchStd;
+      const amt = Number(m.amount) || 0;
+      const ms = memberStd(m, std);
+      const bal = Math.max(0, ms - amt);
+      const periodKey = state.lunchPeriod;
+      const viewHtml = `
+        <div class="dfield-row"><div class="dfk">Phone</div><div class="dfv">${escapeHtml(m.phone||'—')}</div></div>
+        <div class="dfield-row"><div class="dfk">Amount Paid</div><div class="dfv">${fmtKsh(amt)}</div></div>
+        <div class="dfield-row"><div class="dfk">Balance</div><div class="dfv">${fmtKsh(bal)}</div></div>
+        <div class="dfield-row"><div class="dfk">Last Paid</div><div class="dfv">${escapeHtml(m.paidAt||'—')}</div></div>
+        <div class="dfield-row"><div class="dfk">Period</div><div class="dfv">${escapeHtml((periodKey||'').replace(/_/g,' '))}</div></div>
+      `;
+      const editFields = [
+        { key:'name', label:'Name', value: m.name||'' },
+        { key:'phone', label:'Phone', value: m.phone||'' },
+        { key:'amount', label:'Amount Paid (KSh)', value: amt, type:'number' },
+        { key:'paidAt', label:'Last Paid Date', value: m.paidAt||'' }
+      ];
+      openDetailModal({
+        title: m.name || 'Member',
+        viewHtml, editFields,
+        onSave: async (values) => {
+          await update(ref(db, `${LUNCH_PATH}/${periodKey}/members/${m.id}`), values);
+          logAudit(`Edited lunch record for ${values.name||m.name} (${(periodKey||'').replace(/_/g,' ')})`, 'Welfare');
+        },
+        onDelete: async () => {
+          await remove(ref(db, `${LUNCH_PATH}/${periodKey}/members/${m.id}`));
+          logAudit(`Removed lunch member: ${m.name} (${(periodKey||'').replace(/_/g,' ')})`, 'Welfare');
+        },
+        deleteWarning: `Remove <strong>${escapeHtml(m.name||'this member')}</strong> from ${escapeHtml((periodKey||'').replace(/_/g,' '))}? This cannot be undone.`
+      });
+    }
+
+    function renderWelDonut(paid, partial, nil){
+      const ctx = $('welDonut');
+      if(!ctx) return;
+      if(state.welDonut) state.welDonut.destroy();
+      state.welDonut = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Paid', 'Partial', 'Nil'],
+          datasets: [{
+            data: [paid, partial, nil],
+            backgroundColor: ['rgba(39,174,96,.75)', 'rgba(230,126,34,.75)', 'rgba(231,76,60,.75)'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }
+          },
+          cutout: '62%'
+        }
+      });
+    }
+
+    function renderWelHistChart(){
+      const ctx = $('welHistChart');
+      if(!ctx) return;
+      if(state.welHistChart) state.welHistChart.destroy();
+      const periods = state.lunchPeriods;
+      const totals = periods.map(p => p.total);
+      const maxVal = Math.max(...totals, 1);
+      state.welHistChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: periods.map(p => p.label),
+          datasets: [{
+            label: 'Collected (Ksh)',
+            data: totals,
+            backgroundColor: totals.map(v =>
+              v >= maxVal * 0.9 ? 'rgba(39,174,96,.7)' :
+              v >= maxVal * 0.6 ? 'rgba(230,126,34,.7)' : 'rgba(231,76,60,.7)'
+            ),
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: 'rgba(41,128,185,.08)' } }
+          }
+        }
+      });
+    }
+
+    function renderWelPeriodCards(){
+      const box = $('wel-period-cards');
+      if(!box) return;
+      if(!state.lunchPeriods.length){
+        box.innerHTML = '<div class="muted">No lunch periods in Firebase yet.</div>';
+        return;
+      }
+      const latest = state.lunchPeriods.slice().reverse();
+      box.innerHTML = latest.map(p => {
+        const ratePct = Math.round(p.rate * 100);
+        const active = p.key === state.lunchPeriod;
+        return `<div class="quick-tile" data-wel-period="${escapeHtml(p.key)}" style="${active ? 'border-color:var(--blue-lt);box-shadow:0 0 0 2px rgba(41,128,185,.2)' : ''}">
+          <div class="qt-icon">📅</div>
+          <div class="qt-label">${escapeHtml(p.label)}</div>
+          <div class="qt-desc">${fmtKsh(p.total)} · ${ratePct}% · ${p.count} members</div>
+          <div class="muted" style="margin-top:4px">${p.paid} paid · ${p.partial+p.nil} owing · shortfall ${fmtKsh(p.shortfall)}</div>
+        </div>`;
+      }).join('');
+      box.querySelectorAll('[data-wel-period]').forEach(el => {
+        el.addEventListener('click', () => {
+          applyLunchPeriod(el.getAttribute('data-wel-period'));
+          populateWelfarePeriods();
+          renderWelfare();
+          updateDashboard();
+        });
+      });
+    }
+
+    function computeAttendance(data){
+      state.attendance = data;
+      // seed draft from saved
+      state.attDraft = {};
+      Object.entries(state.attendance).forEach(([id, v]) => {
+        state.attDraft[id] = typeof v === 'string' ? v : (v?.status || 'P');
+      });
+      updateAttKpis();
+      updateDashAttendance();
+    }
+    async function loadAttendanceForDate(date){
+      const snap = await get(ref(db, `${ATTENDANCE_PATH}/${date}`));
+      const data = snap.exists() ? snap.val() : {};
+      if(cacheChanged('attendance_'+date, data)) computeAttendance(data);
+    }
+
+    // Paints the UI instantly from whatever was cached on a previous visit,
+    // before the fresh network fetch in loadAll() resolves.
+    function hydrateFromCache(){
+      let any = false;
+      const t = cacheGet('raw_teachers'); if(t){ computeTeachers(t); any = true; }
+      const r = cacheGet('raw_results'); if(r){ computeResults(r); any = true; }
+      const a = cacheGet('raw_audits'); if(a){ computeAudits(a); any = true; }
+      const an = cacheGet('raw_announcements'); if(an){ computeAnnouncements(an); any = true; }
+      const l = cacheGet('raw_lunch'); if(l){ computeLunch(l); any = true; }
+      const att = cacheGet('raw_attendance_'+todayISO()); if(att){ computeAttendance(att); any = true; }
+      if(any){ updateDashboard(); populateGradeSelects(); }
+    }
+
+    async function loadAll(){
+      await Promise.all([
+        loadTeachers().catch(e => console.error('teachers', e)),
+        loadResults().catch(e => console.error('results', e)),
+        loadAudits().catch(e => console.error('audits', e)),
+        loadAnnouncements().catch(e => console.error('ann', e)),
+        loadLunch().catch(e => console.error('lunch', e)),
+        loadAttendanceForDate(todayISO()).catch(e => console.error('att', e))
+      ]);
+      updateDashboard();
+      populateGradeSelects();
+    }
+
+    function wireRealtime(){
+      onValue(ref(db, RESULTS_PATH), snap => {
+        const data = snap.exists() ? snap.val() : {};
+        if(cacheChanged('results', data)){
+          computeResults(data);
+          updateDashboard();
+          populateGradeSelects();
+        }
+      });
+      onValue(ref(db, ANNOUNCEMENTS_PATH), () => loadAnnouncements());
+      onValue(ref(db, LUNCH_PATH), () => loadLunch());
+      onValue(ref(db, QE_ACTIVE_PATH), snap => {
+        const raw = snap.exists() ? snap.val() : {};
+        const flat = [];
+        Object.values(raw).forEach(byUid => {
+          Object.values(byUid || {}).forEach(sess => { if(sess && sess.uid) flat.push(sess); });
+        });
+        renderQeLiveSessions(flat);
+      });
+    }
+
+    /* ── Live Quick Entry Sessions (mirrors the Results Portal's presence node) ── */
+    function timeAgoShort(ts){
+      const mins = Math.max(0, Math.round((Date.now() - (ts||Date.now())) / 60000));
+      if(mins < 1) return 'just now';
+      if(mins === 1) return '1 min ago';
+      if(mins < 60) return `${mins} min ago`;
+      return `${Math.round(mins/60)}h ago`;
+    }
+    function renderQeLiveSessions(sessions){
+      sessions = (sessions||[]).sort((a,b) => (b.lastActive||0) - (a.lastActive||0));
+      const countEl = $('qe-live-count');
+      if(countEl) countEl.textContent = sessions.length ? `${sessions.length} active` : '';
+      const box = $('qe-live-list');
+      if(!box) return;
+      if(!sessions.length){
+        box.innerHTML = '<div class="muted">No teachers are currently entering scores.</div>';
+        return;
+      }
+      box.innerHTML = sessions.map(s => {
+        const cell = s.cell || null;
+        const cellHtml = cell
+          ? `<div style="font-size:11px;color:var(--text3);margin-top:3px;">${escapeHtml(cell.studentName||'Student')} · ${escapeHtml(cell.subject||'—')} · <strong style="color:var(--blue)">${escapeHtml(cell.value===undefined||cell.value===''?'empty':String(cell.value))}</strong> · ${timeAgoShort(cell.updatedAt)}</div>`
+          : `<div style="font-size:11px;color:var(--text3);font-style:italic;margin-top:3px;">Hasn't entered a score yet</div>`;
+        return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--rule);border-radius:10px;margin-bottom:8px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;">${escapeHtml(initials(s.name))}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:700;color:var(--text);">${escapeHtml(s.name||'Teacher')}</div>
+            <div style="font-size:11px;color:var(--text3);">${escapeHtml(s.compound||s.grade||'—')} · started ${timeAgoShort(s.startedAt)}</div>
+            ${cellHtml}
+          </div>
+          <span style="flex-shrink:0;font-size:10px;font-weight:700;color:var(--green);">🟢 live</span>
+        </div>`;
+      }).join('');
+    }
+
+    /* ── Dashboard ── */
+    function updateDashboard(){
+      const grades = new Set(state.students.map(studentGrade));
+      $('kpi-students').textContent = state.students.length.toLocaleString();
+      $('kpi-grades-count').textContent = `${grades.size} grades`;
+      $('nav-students').textContent = String(state.students.length);
+
+      const staff = state.teachers.filter(t => t.Advancedadmin !== true);
+      $('kpi-teachers').textContent = String(staff.length || state.teachers.length);
+      $('nav-teachers').textContent = String(state.teachers.length);
+
+      const avgs = state.results.map(avgOf).filter(n => n != null);
+      const schoolAvg = avgs.length ? (avgs.reduce((a,b)=>a+b,0)/avgs.length) : null;
+      $('kpi-avg').textContent = schoolAvg != null ? schoolAvg.toFixed(1) : '—';
+      $('kpi-records').textContent = `${state.results.length} records`;
+
+      const s = lunchPeriodStats();
+      const unpaid = s.partial + s.nil;
+      $('kpi-pending').textContent = unpaid ? fmtKsh(s.shortfall) : '0';
+      $('kpi-welfare-meta').textContent = unpaid ? `${unpaid} owing` : 'All clear';
+      $('kpi-welfare-meta').className = unpaid ? 'kpi-variant warn' : 'kpi-variant up';
+      $('nav-pending').textContent = String(unpaid);
+      if($('nav-welfare')) $('nav-welfare').textContent = String(unpaid);
+
+      updateDashAttendance();
+      renderEnrollChart();
+    }
+
+    function updateDashAttendance(){
+      const vals = Object.values(state.attDraft);
+      if(!vals.length){
+        $('kpi-attendance').textContent = '—';
+        $('kpi-att-meta').textContent = 'Not marked';
+        $('kpi-att-meta').className = 'kpi-variant warn';
+        return;
+      }
+      const present = vals.filter(v => v === 'P' || v === 'L').length;
+      const rate = Math.round(present / vals.length * 1000) / 10;
+      $('kpi-attendance').textContent = `${rate}%`;
+      $('kpi-att-meta').textContent = `${present}/${vals.length} present`;
+      $('kpi-att-meta').className = 'kpi-variant up';
+    }
+
+    function renderEnrollChart(){
+      const counts = {};
+      state.students.forEach(s => {
+        const g = studentGrade(s);
+        counts[g] = (counts[g]||0) + 1;
+      });
+      const labels = Object.keys(counts).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+      const values = labels.map(l => counts[l]);
+      const ctx = $('enrollChart');
+      if(!ctx) return;
+      if(state.enrollChart) state.enrollChart.destroy();
+      const gctx = ctx.getContext('2d');
+      const areaFill = gctx.createLinearGradient(0, 0, 0, ctx.clientHeight || 220);
+      areaFill.addColorStop(0, 'rgba(243,156,18,.28)');
+      areaFill.addColorStop(1, 'rgba(243,156,18,.02)');
+      const lineStroke = gctx.createLinearGradient(0, 0, ctx.clientWidth || 400, 0);
+      lineStroke.addColorStop(0, '#f39c12');
+      lineStroke.addColorStop(1, '#e67e22');
+      state.enrollChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Learners',
+            data: values,
+            fill: true,
+            backgroundColor: areaFill,
+            borderColor: lineStroke,
+            borderWidth: 3,
+            tension: 0.35,
+            pointRadius: 4,
+            pointBackgroundColor: '#f39c12',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { size: 10 }, maxRotation: 45 }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: 'rgba(243,156,18,.08)' } }
+          }
+        }
+      });
+    }
+
+    function renderDashAnnouncements(){
+      const box = $('dash-announcements');
+      const list = state.announcements.slice(0, 4);
+      if(!list.length){
+        box.innerHTML = '<div class="empty-state"><div class="es-icon">📢</div><div class="es-title">No announcements</div></div>';
+        return;
+      }
+      const colors = { urgent:'var(--red)', finance:'var(--orange)', event:'var(--purple)', info:'var(--blue)' };
+      box.innerHTML = list.map(a => `
+        <div class="notice-item">
+          <div class="dot" style="background:${colors[a.type]||'var(--blue)'}"></div>
+          <div>
+            <strong>${escapeHtml(a.title||'Untitled')}</strong>
+            <span>${escapeHtml((a.body||'').slice(0,120))}${ (a.body||'').length>120?'…':'' }</span>
+          </div>
+        </div>`).join('');
+    }
+
+    function renderDashAudit(){
+      const body = $('dash-audit-body');
+      const rows = state.audits.slice(0, 6);
+      if(!rows.length){
+        body.innerHTML = '<tr><td colspan="4" class="muted">No recent activity.</td></tr>';
+        return;
+      }
+      body.innerHTML = rows.map(a => `
+        <tr>
+          <td>${escapeHtml(a.action || a.text || a.message || 'Action')}</td>
+          <td>${escapeHtml(a.admin || a.user || a.by || '—')}</td>
+          <td>${escapeHtml(a.category || a.module || 'System')}</td>
+          <td>${escapeHtml(fmtTime(a.time || a.createdAt))}</td>
+        </tr>`).join('');
+    }
+    $('dash-audit-body').addEventListener('click', (e) => {
+      if(e.target.closest('tr')) navTo('audit');
+    });
+
+    $('exportDashBtn').addEventListener('click', () => {
+      const snap = {
+        exportedAt: new Date().toISOString(),
+        students: state.students.length,
+        teachers: state.teachers.length,
+        results: state.results.length,
+        lunchPeriod: state.lunchPeriod,
+        lunchMembers: state.lunchMembers.length,
+        lunchCollected: lunchPeriodStats().total,
+        lunchShortfall: lunchPeriodStats().shortfall,
+        announcements: state.announcements.length
+      };
+      const blob = new Blob([JSON.stringify(snap, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `admin-snapshot-${todayISO()}.json`;
+      a.click();
+      toast('Snapshot exported','ok');
+    });
+
+    /* ── Students ── */
+    function updateStudentKpis(){
+      const boys = state.students.filter(s => studentGender(s)==='Male').length;
+      const girls = state.students.filter(s => studentGender(s)==='Female').length;
+      const grades = new Set(state.students.map(studentGrade));
+      $('stu-total').textContent = state.students.length.toLocaleString();
+      $('stu-boys').textContent = String(boys);
+      $('stu-girls').textContent = String(girls);
+      $('stu-grades').textContent = String(grades.size);
+
+      const counts = {};
+      state.students.forEach(s => { const g = studentGrade(s); counts[g]=(counts[g]||0)+1; });
+      const max = Math.max(1, ...Object.values(counts));
+      const labels = Object.keys(counts).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+      $('stu-grade-bars').innerHTML = labels.map(g => `
+        <div class="gbar">
+          <div>${escapeHtml(g)}</div>
+          <div class="gbar-track"><div class="gbar-fill" style="width:${(counts[g]/max)*100}%"></div></div>
+          <div class="sr-val">${counts[g]}</div>
+        </div>`).join('') || '<div class="muted">No data</div>';
+
+      renderDataQuality();
+    }
+
+    // Blank or placeholder ("---", "N/A", "Unknown") values don't count as
+    // real data — a real Results export showed a meaningful share of
+    // students with placeholder UPIs, so this needs to catch those too,
+    // not just empty strings.
+    function isPlaceholder(v){
+      const s = String(v ?? '').trim();
+      return !s || /^-+$/.test(s) || /^(n\/?a|unknown|pending)$/i.test(s);
+    }
+    let stuQualityFilter = ''; // '' | 'upi' | 'gender' | 'grade'
+    function renderDataQuality(){
+      const missingUpi = state.students.filter(s => isPlaceholder(studentUpi(s))).length;
+      const missingGender = state.students.filter(s => isPlaceholder(s.Gender||s.gender)).length;
+      const missingGrade = state.students.filter(s => isPlaceholder(s.Grade||s.grade)).length;
+      const stats = [
+        { key:'upi', label:'Missing UPI', count:missingUpi },
+        { key:'gender', label:'Missing Gender', count:missingGender },
+        { key:'grade', label:'Missing Grade', count:missingGrade }
+      ];
+      const total = state.students.length || 1;
+      $('stu-quality-stats').innerHTML = stats.map(s => `
+        <div class="personnel-row" data-quality-key="${s.key}" style="cursor:pointer;${stuQualityFilter===s.key?'border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-glow);':''}">
+          <div class="personnel-name">${s.label}</div>
+          <div class="personnel-email">${s.count} of ${total} students (${Math.round(s.count/total*100)}%)</div>
+        </div>`).join('');
+      $('stu-quality-filter-label').textContent = stuQualityFilter ? `Filtered: ${stats.find(s=>s.key===stuQualityFilter)?.label}` : '';
+    }
+    $('stu-quality-stats').addEventListener('click', (e) => {
+      const row = e.target.closest('[data-quality-key]');
+      if(!row) return;
+      const key = row.dataset.qualityKey;
+      stuQualityFilter = stuQualityFilter === key ? '' : key;
+      state.stuPage = 1;
+      renderDataQuality();
+      renderStudents();
+    });
+
+    function populateGradeSelects(){
+      const grades = [...new Set(state.students.map(studentGrade))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+      const fill = (sel, keep) => {
+        const cur = sel.value;
+        const first = sel.options[0]?.outerHTML || '';
+        sel.innerHTML = keep || first;
+        grades.forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = g; opt.textContent = g;
+          sel.appendChild(opt);
+        });
+        if([...sel.options].some(o => o.value === cur)) sel.value = cur;
+      };
+      fill($('stu-grade-filter'), '<option value="">All Grades</option>');
+      fill($('att-grade'), '<option value="">Select Grade</option>');
+    }
+
+    function filteredStudents(){
+      const q = ($('stu-search').value || '').trim().toLowerCase();
+      const grade = $('stu-grade-filter').value;
+      const gender = $('stu-gender-filter').value;
+      return state.students.filter(s => {
+        if(stuQualityFilter === 'upi' && !isPlaceholder(studentUpi(s))) return false;
+        if(stuQualityFilter === 'gender' && !isPlaceholder(s.Gender||s.gender)) return false;
+        if(stuQualityFilter === 'grade' && !isPlaceholder(s.Grade||s.grade)) return false;
+        if(grade && studentGrade(s) !== grade) return false;
+        if(gender && studentGender(s) !== gender) return false;
+        if(!q) return true;
+        const hay = [studentName(s), studentGrade(s), studentUpi(s), s['Assessment No'], s.AssessmentNumber].join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function renderStudents(){
+      const filtered = filteredStudents();
+      const { pageRows, page, totalPages, total } = paginate(filtered, state.stuPage);
+      state.stuPage = page;
+      const body = $('stu-tbody');
+      if(!total){
+        body.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="es-title">No students match</div></div></td></tr>';
+        $('stu-count-label').textContent = '';
+        renderPager('stu-pager', 1, 1, () => {});
+        return;
+      }
+      body.innerHTML = pageRows.map(s => {
+        const status = String(s.Status || s.status || 'Active');
+        const pill = /active/i.test(status) ? 'ok' : 'warn';
+        return `<tr data-row-id="${escapeHtml(s.id)}">
+          <td><strong style="color:var(--text)">${escapeHtml(studentName(s))}</strong></td>
+          <td>${escapeHtml(s['Assessment No'] || s.AssessmentNumber || '—')}</td>
+          <td>${escapeHtml(studentGrade(s))}</td>
+          <td>${escapeHtml(studentGender(s))}</td>
+          <td class="mono">${escapeHtml(studentUpi(s))}</td>
+          <td><span class="pill ${pill}">${escapeHtml(status)}</span></td>
+        </tr>`;
+      }).join('');
+      $('stu-count-label').textContent = `Showing ${pageRows.length} of ${total} filtered · ${state.students.length} total`;
+      renderPager('stu-pager', page, totalPages, p => { state.stuPage = p; renderStudents(); });
+    }
+    $('stu-tbody').addEventListener('click', (e) => {
+      const tr = e.target.closest('tr[data-row-id]');
+      if(!tr) return;
+      const s = state.students.find(x => String(x.id) === tr.dataset.rowId);
+      if(s) openStudentDetail(s);
+    });
+    function openStudentDetail(s){
+      const metaRows = [
+        ['Grade', studentGrade(s)],
+        ['Gender', studentGender(s)],
+        ['UPI', studentUpi(s)],
+        ['Assessment No', s['Assessment No'] || '—'],
+        ['Term / Sitting', s.Grade || s.grade || '—'],
+        ['Position', s.Position || '—'],
+        ['Remarks', s.Remarks || '—']
+      ];
+      const subjectFields = Object.keys(s).filter(k =>
+        !RESULTS_META_FIELDS.has(k) && !['id','firebaseKey'].includes(k) && s[k] !== '' && s[k] != null);
+      const viewHtml = `
+        ${metaRows.map(([k,v]) => `<div class="dfield-row"><div class="dfk">${escapeHtml(k)}</div><div class="dfv">${escapeHtml(v)}</div></div>`).join('')}
+        <div style="margin:14px 0 6px;font-weight:800;font-size:11px;color:var(--text3);letter-spacing:.04em;">SUBJECT SCORES</div>
+        ${subjectFields.length ? subjectFields.map(f => `<div class="dfield-row"><div class="dfk">${escapeHtml(f)}</div><div class="dfv">${escapeHtml(s[f])}</div></div>`).join('') : '<div class="muted">No subject scores on this record.</div>'}
+        <div class="muted" style="margin-top:14px;font-size:11px;">Showing this student's latest recorded sitting — editing or deleting here only affects this specific term's record, not their full history.</div>
+      `;
+      const editFields = [
+        { key:'Official Student Name', label:'Full Name', value: s['Official Student Name']||'' },
+        { key:'Gender', label:'Gender', value: s.Gender||'' },
+        { key:'UPI', label:'UPI', value: s.UPI||'' },
+        { key:'Position', label:'Position', value: s.Position||'' },
+        { key:'Remarks', label:'Remarks', value: s.Remarks||'' },
+        ...subjectFields.map(f => ({ key:f, label:f, value:s[f], type:'number' }))
+      ];
+      openDetailModal({
+        title: studentName(s),
+        viewHtml, editFields,
+        onSave: async (values) => {
+          await update(ref(db, `${RESULTS_PATH}/${s.id}`), values);
+          logAudit(`Edited results record for ${studentName(s)} (${gShortRes(s.Grade||s.grade)})`, 'Students');
+        },
+        onDelete: async () => {
+          await remove(ref(db, `${RESULTS_PATH}/${s.id}`));
+          logAudit(`Deleted results record for ${studentName(s)} (${gShortRes(s.Grade||s.grade)})`, 'Students');
+        },
+        deleteWarning: `Permanently delete <strong>${escapeHtml(studentName(s))}</strong>'s record for <strong>${escapeHtml(gShortRes(s.Grade||s.grade))}</strong>? This only removes this term's sitting — other terms for this student aren't affected.`
+      });
+    }
+    ['stu-search','stu-grade-filter','stu-gender-filter'].forEach(id => {
+      $(id).addEventListener('input', () => { state.stuPage = 1; renderStudents(); });
+      $(id).addEventListener('change', () => { state.stuPage = 1; renderStudents(); });
+    });
+    $('stu-export-btn').addEventListener('click', () => {
+      const rows = filteredStudents();
+      const header = ['Name','Grade','Gender','UPI','Status'];
+      const csv = [header.join(',')].concat(rows.map(s =>
+        [studentName(s), studentGrade(s), studentGender(s), studentUpi(s), s.Status||'Active']
+          .map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
+      )).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = `students-${todayISO()}.csv`;
+      a.click();
+      toast('CSV exported','ok');
+    });
+
+    /* ── Teachers ── */
+    function filteredTeachers(){
+      const q = ($('tch-search').value||'').trim().toLowerCase();
+      const role = $('tch-role-filter').value;
+      return state.teachers.filter(t => {
+        const isAdmin = t.Advancedadmin === true;
+        const disabled = t.disabled === true;
+        if(role === 'admin' && !isAdmin) return false;
+        if(role === 'teacher' && isAdmin) return false;
+        if(role === 'disabled' && !disabled) return false;
+        if(!q) return true;
+        const hay = [t.displayName, t.name, t.email, t.subject, t.mainSubject, ...(t.assignedGrades||[])].join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function renderTeachers(){
+      const staff = state.teachers.filter(t => t.Advancedadmin !== true);
+      const admins = state.teachers.filter(t => t.Advancedadmin === true);
+      const classT = state.teachers.filter(t => Array.isArray(t.classTeacherGrades) && t.classTeacherGrades.length);
+      const disabled = state.teachers.filter(t => t.disabled === true);
+      $('tch-total').textContent = String(staff.length);
+      $('tch-admins').textContent = String(admins.length);
+      $('tch-class').textContent = String(classT.length);
+      $('tch-disabled').textContent = String(disabled.length);
+
+      const filtered = filteredTeachers();
+      const { pageRows, page, totalPages, total } = paginate(filtered, state.tchPage);
+      state.tchPage = page;
+      const body = $('tch-tbody');
+      if(!total){
+        body.innerHTML = '<tr><td colspan="5" class="muted">No teachers found.</td></tr>';
+        renderPager('tch-pager', 1, 1, () => {});
+        return;
+      }
+      body.innerHTML = pageRows.map(t => {
+        const name = t.displayName || t.name || [t.firstName,t.lastName].filter(Boolean).join(' ') || '—';
+        const grades = Array.isArray(t.assignedGrades) ? t.assignedGrades.join(', ') : (t.assignedGrade || '');
+        const subj = t.subject || t.mainSubject || grades || '—';
+        const role = t.Advancedadmin ? 'Advanced Admin' : 'Teacher';
+        const status = t.disabled ? 'Disabled' : 'Active';
+        const tInitial = escapeHtml((name==='—'?'?':name).trim().charAt(0).toUpperCase());
+        const rowAvatar = t.photoUrl
+          ? `<img src="${escapeHtml(t.photoUrl)}" alt="" style="width:26px;height:26px;border-radius:50%;object-fit:cover;margin-right:8px;vertical-align:middle;" onerror="this.style.display='none'">`
+          : `<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--surface3);color:var(--text3);font-size:11px;font-weight:800;margin-right:8px;vertical-align:middle;">${tInitial}</span>`;
+        return `<tr data-row-id="${escapeHtml(t.uid)}">
+          <td>${rowAvatar}<strong style="color:var(--text)">${escapeHtml(name)}</strong></td>
+          <td>${escapeHtml(t.email||'—')}</td>
+          <td>${escapeHtml(subj)}</td>
+          <td><span class="pill ${t.Advancedadmin?'purple':'blue'}">${role}</span></td>
+          <td><span class="pill ${t.disabled?'bad':'ok'}">${status}</span></td>
+        </tr>`;
+      }).join('');
+      renderPager('tch-pager', page, totalPages, p => { state.tchPage = p; renderTeachers(); });
+    }
+    $('tch-tbody').addEventListener('click', (e) => {
+      const tr = e.target.closest('tr[data-row-id]');
+      if(!tr) return;
+      const t = state.teachers.find(x => x.uid === tr.dataset.rowId);
+      if(t) openTeacherDetail(t);
+    });
+    function openTeacherDetail(t){
+      const name = t.displayName || t.name || [t.firstName,t.lastName].filter(Boolean).join(' ') || '—';
+      const grades = Array.isArray(t.assignedGrades) ? t.assignedGrades.join(', ') : (t.assignedGrade || '—');
+      const initial = escapeHtml((name==='—' ? '?' : name).trim().charAt(0).toUpperCase());
+      const photoHtml = t.photoUrl
+        ? `<img class="dmodal-photo-preview" style="width:56px;height:56px;" src="${escapeHtml(t.photoUrl)}" alt="" onerror="this.outerHTML='<div class=&quot;dmodal-photo-placeholder&quot; style=&quot;width:56px;height:56px;&quot;>${initial}</div>'">`
+        : `<div class="dmodal-photo-placeholder" style="width:56px;height:56px;">${initial}</div>`;
+      const viewHtml = `
+        <div class="dmodal-photo-row">${photoHtml}<div style="font-weight:900;font-size:15px;color:#3a2417;">${escapeHtml(name)}</div></div>
+        <div class="dfield-row"><div class="dfk">Email</div><div class="dfv">${escapeHtml(t.email||'—')}</div></div>
+        <div class="dfield-row"><div class="dfk">Phone</div><div class="dfv">${escapeHtml(t.phone||'—')}</div></div>
+        <div class="dfield-row"><div class="dfk">Subject</div><div class="dfv">${escapeHtml(t.subject||t.mainSubject||'—')}</div></div>
+        <div class="dfield-row"><div class="dfk">Assigned Grades</div><div class="dfv">${escapeHtml(grades)}</div></div>
+        <div class="dfield-row"><div class="dfk">Role</div><div class="dfv">${t.Advancedadmin?'Advanced Admin':'Teacher'}</div></div>
+        <div class="dfield-row"><div class="dfk">Status</div><div class="dfv">${t.disabled?'Disabled':'Active'}</div></div>
+        <div class="dfield-row"><div class="dfk">Last Login</div><div class="dfv">${t.lastLogin ? escapeHtml(fmtTime(t.lastLogin)) : 'Never'}</div></div>
+      `;
+      const editFields = [
+        { key:'photoUrl', label:'Photo', type:'image', value: t.photoUrl||'' },
+        { key:'name', label:'Full Name', value: name === '—' ? '' : name },
+        { key:'phone', label:'Phone', value: t.phone||'' },
+        { key:'subject', label:'Subject', value: t.subject||t.mainSubject||'' }
+      ];
+      openDetailModal({
+        title: name,
+        viewHtml, editFields,
+        onSave: async (values) => {
+          await updateDoc(doc(fst, 'users', t.uid), values);
+          logAudit(`Edited teacher profile: ${values.name || name}`, 'Teachers');
+          loadTeachers();
+        },
+        onDelete: async () => {
+          await deleteDoc(doc(fst, 'users', t.uid));
+          logAudit(`Deleted teacher profile: ${name} (${t.email||''})`, 'Teachers');
+          loadTeachers();
+        },
+        deleteWarning: `Permanently remove <strong>${escapeHtml(name)}</strong>'s profile from the system? This removes their access and assignments here, but their Firebase Auth login itself must still be revoked separately in the Firebase console.`
+      });
+    }
+    $('tch-search').addEventListener('input', () => { state.tchPage = 1; renderTeachers(); });
+    $('tch-role-filter').addEventListener('change', () => { state.tchPage = 1; renderTeachers(); });
+
+    /* ── Attendance ── */
+    $('att-date').value = todayISO();
+    $('att-date').addEventListener('change', async () => {
+      await loadAttendanceForDate($('att-date').value || todayISO());
+      renderAttendance();
+    });
+    $('att-grade').addEventListener('change', renderAttendance);
+    $('att-search').addEventListener('input', renderAttendance);
+
+    function renderAttendance(){
+      const grade = $('att-grade').value;
+      const q = ($('att-search').value||'').trim().toLowerCase();
+      const body = $('att-tbody');
+      if(!grade){
+        body.innerHTML = '<tr><td colspan="3" class="muted">Select a grade to begin.</td></tr>';
+        updateAttKpis();
+        return;
+      }
+      let list = state.students.filter(s => studentGrade(s) === grade);
+      if(q) list = list.filter(s => [studentName(s), studentUpi(s)].join(' ').toLowerCase().includes(q));
+      list.sort((a,b) => studentName(a).localeCompare(studentName(b)));
+
+      if(!list.length){
+        body.innerHTML = '<tr><td colspan="3" class="muted">No learners in this grade.</td></tr>';
+        updateAttKpis();
+        return;
+      }
+
+      body.innerHTML = list.map(s => {
+        const id = s.firebaseKey || s.id;
+        const st = state.attDraft[id] || 'P';
+        if(!state.attDraft[id]) state.attDraft[id] = 'P';
+        return `<tr data-sid="${escapeHtml(id)}">
+          <td><strong style="color:var(--text)">${escapeHtml(studentName(s))}</strong></td>
+          <td class="mono">${escapeHtml(studentUpi(s))}</td>
+          <td>
+            <div class="att-actions">
+              <button class="att-btn ${st==='P'?'P':''}" data-st="P" data-id="${escapeHtml(id)}">P</button>
+              <button class="att-btn ${st==='A'?'A':''}" data-st="A" data-id="${escapeHtml(id)}">A</button>
+              <button class="att-btn ${st==='L'?'L':''}" data-st="L" data-id="${escapeHtml(id)}">L</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      body.querySelectorAll('.att-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          const st = btn.dataset.st;
+          state.attDraft[id] = st;
+          renderAttendance();
+        });
+      });
+      updateAttKpis();
+    }
+
+    function updateAttKpis(){
+      const grade = $('att-grade')?.value;
+      let ids = Object.keys(state.attDraft);
+      if(grade){
+        const gradeIds = new Set(state.students.filter(s => studentGrade(s)===grade).map(s => s.firebaseKey||s.id));
+        ids = ids.filter(id => gradeIds.has(id));
+      }
+      const vals = ids.map(id => state.attDraft[id]);
+      const p = vals.filter(v => v==='P').length;
+      const a = vals.filter(v => v==='A').length;
+      const l = vals.filter(v => v==='L').length;
+      $('att-p').textContent = String(p);
+      $('att-a').textContent = String(a);
+      $('att-l').textContent = String(l);
+      const rate = vals.length ? Math.round(((p+l)/vals.length)*1000)/10 : null;
+      $('att-rate').textContent = rate != null ? `${rate}%` : '—';
+      updateDashAttendance();
+    }
+
+    $('att-mark-all-p').addEventListener('click', () => {
+      const grade = $('att-grade').value;
+      if(!grade){ toast('Select a grade first','err'); return; }
+      state.students.filter(s => studentGrade(s)===grade).forEach(s => {
+        state.attDraft[s.firebaseKey||s.id] = 'P';
+      });
+      renderAttendance();
+      toast('All marked present','ok');
+    });
+
+    $('att-save-btn').addEventListener('click', async () => {
+      const date = $('att-date').value || todayISO();
+      const grade = $('att-grade').value;
+      if(!grade){ toast('Select a grade first','err'); return; }
+      const payload = {};
+      state.students.filter(s => studentGrade(s)===grade).forEach(s => {
+        const id = s.firebaseKey || s.id;
+        payload[id] = {
+          status: state.attDraft[id] || 'P',
+          name: studentName(s),
+          grade,
+          updatedAt: Date.now(),
+          updatedBy: state.user?.email || 'admin'
+        };
+      });
+      try{
+        await update(ref(db, `${ATTENDANCE_PATH}/${date}`), payload);
+        await push(ref(db, AUDIT_PATH), {
+          action: `Saved attendance for ${grade} on ${date}`,
+          admin: state.user?.displayName || state.user?.email,
+          category: 'Attendance',
+          time: Date.now()
+        });
+        toast('Attendance saved','ok');
+        loadAudits();
+      }catch(err){
+        console.error(err);
+        toast('Save failed: ' + err.message, 'err');
+      }
+    });
+
+    /* ── Results ── */
+    function renderResults(){
+      const avgs = state.results.map(r => ({ r, avg: avgOf(r) })).filter(x => x.avg != null);
+      const schoolAvg = avgs.length ? avgs.reduce((a,b)=>a+b.avg,0)/avgs.length : null;
+      const ee = avgs.filter(x => x.avg >= 75).length;
+      // `Grade` holds the compound class/year/term/stream sitting identifier
+      // (e.g. "Grade 4-2026-B2-End-Term 2") — each distinct value is one exam
+      // sitting, which is what this KPI counts. The record's own `Term` field
+      // is a per-student index variant of that same string (…-IND01,
+      // …-IND02…), so it's near-unique per student and not usable here.
+      const terms = new Set(state.results.map(r => r.Grade || r.grade || '').filter(Boolean));
+
+      $('res-count').textContent = state.results.length.toLocaleString();
+      $('res-avg').textContent = schoolAvg != null ? schoolAvg.toFixed(1) : '—';
+      $('res-ee').textContent = String(ee);
+      $('res-terms').textContent = String(terms.size || '—');
+
+      const byGrade = {};
+      avgs.forEach(({r, avg}) => {
+        const g = gShortRes(r.Grade || r.grade);
+        if(!byGrade[g]) byGrade[g] = [];
+        byGrade[g].push(avg);
+      });
+      const labels = Object.keys(byGrade).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+      const gradeMeans = labels.map(g => byGrade[g].reduce((a,b)=>a+b,0)/byGrade[g].length);
+      const maxAvg = Math.max(1, ...gradeMeans);
+      $('res-grade-bars').innerHTML = labels.map((g,i) => {
+        const mean = gradeMeans[i];
+        return `<div class="gbar">
+          <div>${escapeHtml(g)}</div>
+          <div class="gbar-track"><div class="gbar-fill" style="width:${(mean/maxAvg)*100}%"></div></div>
+          <div class="sr-val">${mean.toFixed(1)}</div>
+        </div>`;
+      }).join('') || '<div class="muted">No result averages yet</div>';
+
+      const top = [...avgs].sort((a,b)=>b.avg-a.avg).slice(0,10);
+      $('res-top-body').innerHTML = top.length ? top.map((x,i) => `
+        <tr data-row-id="${escapeHtml(x.r.id)}">
+          <td>${i+1}</td>
+          <td>${escapeHtml(x.r['Official Student Name']||x.r.name||'—')}</td>
+          <td>${escapeHtml(gShortRes(x.r.Grade||x.r.grade))}</td>
+          <td><strong>${x.avg.toFixed(1)}</strong></td>
+        </tr>`).join('') : '<tr><td colspan="4" class="muted">No scores yet.</td></tr>';
+
+      populatePendingTermSelect();
+      renderPendingReport();
+      renderTeacherCompliance();
+    }
+
+    /* ── Report Completion Tracker ────────────────────────────────────
+       No canonical subject list exists per grade, so "expected" subjects
+       for a term are inferred as whatever subject fields are actually
+       filled in on at least half of that term's own records — a student
+       missing one of those is very likely an incomplete report, not just
+       a grade level that skips that subject entirely. */
+    function populatePendingTermSelect(){
+      const sel = $('pending-term-select');
+      const cur = sel.value;
+      const terms = uniqueResultTerms();
+      sel.innerHTML = '<option value="">Select a term…</option>' +
+        terms.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+      if(terms.includes(cur)) sel.value = cur;
+    }
+    function isFilledScore(v){
+      const num = Number(v);
+      return v !== '' && v !== null && v !== undefined && Number.isFinite(num);
+    }
+    // Shared by Report Completion + Teacher Score Compliance: infers the
+    // "expected" subject set for a term from whatever's actually filled in
+    // on at least half of that term's own records (no canonical curriculum
+    // list exists to check against), then flags every record missing one.
+    function computeMissingByTerm(term){
+      const records = state.results.filter(r => String(r.Grade||r.grade||'').trim() === term);
+      if(!records.length) return { records: [], expectedSubjects: [], incomplete: [] };
+      const subjectPresence = {};
+      records.forEach(r => {
+        Object.keys(r).forEach(field => {
+          if(RESULTS_META_FIELDS.has(field) || field === 'id') return;
+          subjectPresence[field] = (subjectPresence[field] || 0) + (isFilledScore(r[field]) ? 1 : 0);
+        });
+      });
+      const expectedSubjects = Object.entries(subjectPresence)
+        .filter(([,count]) => count / records.length >= 0.5)
+        .map(([field]) => field);
+      const incomplete = records.map(r => ({
+        r, missing: expectedSubjects.filter(subj => !isFilledScore(r[subj]))
+      })).filter(x => x.missing.length);
+      return { records, expectedSubjects, incomplete };
+    }
+    function renderPendingReport(){
+      const term = $('pending-term-select').value;
+      const tbody = $('pending-tbody');
+      if(!term){
+        tbody.innerHTML = '<tr><td colspan="3" class="muted">Select a term to check completion.</td></tr>';
+        $('pending-term-summary').textContent = '';
+        return;
+      }
+      const { records, incomplete } = computeMissingByTerm(term);
+      if(!records.length){
+        tbody.innerHTML = '<tr><td colspan="3" class="muted">No records found for this term.</td></tr>';
+        $('pending-term-summary').textContent = '';
+        return;
+      }
+      $('pending-term-summary').textContent = `${records.length - incomplete.length} of ${records.length} complete`;
+      tbody.innerHTML = incomplete.length ? incomplete.map(({r, missing}) => `
+        <tr data-row-id="${escapeHtml(r.id)}">
+          <td>${escapeHtml(r['Official Student Name']||r.name||'—')}</td>
+          <td>${escapeHtml(gShortRes(r.Grade||r.grade))}</td>
+          <td>${escapeHtml(missing.join(', '))}</td>
+        </tr>`).join('') : '<tr><td colspan="3" class="muted">✅ All students complete for this term.</td></tr>';
+    }
+
+    /* ── Teacher Score Compliance ──────────────────────────────────────
+       Groups the same missing-score data by subject, then matches each
+       subject to the teacher whose `subject`/`mainSubject` field matches
+       and whose `assignedGrades` covers this term's grade — so an admin
+       can see who to follow up with, not just which students are affected.
+       Includes a live inline save so a score can be entered on the spot. */
+    let complianceOpenSet = new Set();
+    function computeTeacherScoreCompliance(term){
+      const { records, incomplete } = computeMissingByTerm(term);
+      if(!records.length) return [];
+      const grade = gShortRes(term);
+      const norm = (s) => String(s||'').trim().toLowerCase();
+      const missingBySubject = {};
+      incomplete.forEach(({r, missing}) => {
+        missing.forEach(subj => { (missingBySubject[subj] = missingBySubject[subj] || []).push(r); });
+      });
+      return Object.entries(missingBySubject).map(([subject, recs]) => {
+        const teacher = state.teachers.find(t => {
+          if(norm(t.subject||t.mainSubject) !== norm(subject)) return false;
+          const grades = Array.isArray(t.assignedGrades) ? t.assignedGrades : (t.assignedGrade ? [t.assignedGrade] : []);
+          if(!grades.length) return true; // no grade restriction on file — assume responsible
+          return grades.some(g => gShortRes(g) === grade);
+        });
+        return { subject, records: recs, teacher };
+      }).sort((a,b) => b.records.length - a.records.length);
+    }
+    function renderTeacherCompliance(){
+      const term = $('pending-term-select').value;
+      const container = $('compliance-list');
+      if(!term){
+        container.innerHTML = '<div class="muted">Select a term above to check compliance.</div>';
+        $('compliance-summary').textContent = '';
+        return;
+      }
+      const groups = computeTeacherScoreCompliance(term);
+      if(!groups.length){
+        container.innerHTML = '<div class="muted">✅ No missing scores for this term.</div>';
+        $('compliance-summary').textContent = '';
+        return;
+      }
+      const totalMissing = groups.reduce((s,g) => s+g.records.length, 0);
+      $('compliance-summary').textContent = `${totalMissing} missing score${totalMissing!==1?'s':''} across ${groups.length} subject${groups.length!==1?'s':''}`;
+      container.innerHTML = groups.map(g => {
+        const teacherName = g.teacher ? (g.teacher.displayName || g.teacher.name || g.teacher.email) : null;
+        const openAttr = complianceOpenSet.has(g.subject) ? 'open' : '';
+        return `<details class="compliance-group" data-subject="${escapeHtml(g.subject)}" ${openAttr}>
+          <summary>
+            <span>${escapeHtml(g.subject)} — ${teacherName ? escapeHtml(teacherName) : '⚠️ No teacher matched'}</span>
+            <span class="pill ${teacherName?'warn':'bad'}">${g.records.length} missing</span>
+          </summary>
+          <div class="compliance-body">
+            ${g.records.map(r => `
+              <div class="personnel-row" style="align-items:center;">
+                <div style="flex:1;min-width:0;">
+                  <div class="personnel-name">${escapeHtml(r['Official Student Name']||r.name||'—')}</div>
+                  <div class="personnel-email">${escapeHtml(gShortRes(r.Grade||r.grade))}</div>
+                </div>
+                <input type="number" class="field-input" style="width:90px;flex-shrink:0;" data-live-id="${escapeHtml(r.id)}" data-live-subject="${escapeHtml(g.subject)}" placeholder="Score">
+                <button class="btn btn-sm btn-green" data-live-save style="flex-shrink:0;">💾 Save</button>
+              </div>
+            `).join('')}
+          </div>
+        </details>`;
+      }).join('');
+      container.querySelectorAll('details').forEach(d => {
+        d.addEventListener('toggle', () => {
+          if(d.open) complianceOpenSet.add(d.dataset.subject); else complianceOpenSet.delete(d.dataset.subject);
+        });
+      });
+    }
+    async function saveLiveScore(rowEl){
+      const input = rowEl.querySelector('input[data-live-id]');
+      const id = input.dataset.liveId, subject = input.dataset.liveSubject;
+      const val = input.value.trim();
+      if(val === '' || !Number.isFinite(Number(val))){ toast('Enter a valid number.', 'err'); return; }
+      try{
+        const rec = state.results.find(r => r.id === id);
+        await update(ref(db, `${RESULTS_PATH}/${id}`), { [subject]: Number(val) });
+        logAudit(`Live-entered ${subject} score (${val}) for ${rec ? (rec['Official Student Name']||rec.name||id) : id}`, 'Results');
+        toast('Score saved.', 'ok');
+      }catch(err){ toast(`Error: ${err.message}`, 'err'); }
+    }
+    $('compliance-list').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-live-save]');
+      if(!btn) return;
+      saveLiveScore(btn.closest('.personnel-row'));
+    });
+    $('compliance-list').addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' && e.target.matches('input[data-live-id]')){
+        e.preventDefault();
+        saveLiveScore(e.target.closest('.personnel-row'));
+      }
+    });
+    $('pending-term-select').addEventListener('change', () => { renderPendingReport(); renderTeacherCompliance(); });
+    [['res-top-body'],['pending-tbody']].forEach(([id]) => {
+      $(id).addEventListener('click', (e) => {
+        const tr = e.target.closest('tr[data-row-id]');
+        if(!tr) return;
+        const r = state.results.find(x => String(x.id) === tr.dataset.rowId);
+        if(r) openStudentDetail(r);
+      });
+    });
+    $('res-export-btn').addEventListener('click', () => {
+      const header = ['Student','Grade','Term / Sitting','Average Score'];
+      const csv = [header.join(',')].concat(state.results.map(r => {
+        const avg = avgOf(r);
+        return [
+          r['Official Student Name'] || r.name || '—',
+          gShortRes(r.Grade || r.grade),
+          r.Grade || r.grade || '—',
+          avg != null ? avg.toFixed(1) : ''
+        ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+      })).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = `results-${todayISO()}.csv`;
+      a.click();
+      toast('CSV exported','ok');
+    });
+
+    /* ── Welfare (Lunch) UI events ── */
+    $('wel-period')?.addEventListener('change', () => {
+      applyLunchPeriod($('wel-period').value);
+      renderWelfare();
+      updateDashboard();
+    });
+    $('wel-search')?.addEventListener('input', renderWelfare);
+    $('wel-status-filter')?.addEventListener('change', renderWelfare);
+    $('wel-export-btn')?.addEventListener('click', () => {
+      const std = state.lunchStd || 620;
+      const rows = filteredLunchMembers();
+      const header = ['Name','Phone','Amount','Standard','Balance','Status','Paid At'];
+      const csv = [header.join(',')].concat(rows.map(m => {
+        const amt = Number(m.amount)||0;
+        const ms = memberStd(m, std);
+        const st = lunchStatus(amt, ms);
+        return [m.name, m.phone||'', amt, ms, Math.max(0, ms-amt), st.label, m.paidAt||'']
+          .map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+      })).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = `welfare-${(state.lunchPeriod||'period').replace(/\s+/g,'_')}.csv`;
+      a.click();
+      toast('Welfare CSV exported','ok');
+    });
+
+    /* ── Audit ── */
+    function filteredAuditRows(){
+      const q = ($('audit-search').value||'').trim().toLowerCase();
+      return state.audits.filter(a => {
+        if(!q) return true;
+        return [a.action,a.text,a.message,a.admin,a.user,a.category,a.module].join(' ').toLowerCase().includes(q);
+      });
+    }
+    function renderAudit(){
+      const rows = filteredAuditRows().slice(0, 150);
+      const body = $('audit-tbody');
+      if(!rows.length){
+        body.innerHTML = '<tr><td colspan="4" class="muted">No audit entries.</td></tr>';
+        return;
+      }
+      body.innerHTML = rows.map(a => `
+        <tr data-row-id="${escapeHtml(a.key||'')}">
+          <td>${escapeHtml(a.action || a.text || a.message || '—')}</td>
+          <td>${escapeHtml(a.admin || a.user || a.by || '—')}</td>
+          <td><span class="pill blue">${escapeHtml(a.category || a.module || 'System')}</span></td>
+          <td>${escapeHtml(fmtTime(a.time || a.createdAt))}</td>
+        </tr>`).join('');
+      renderDashAudit();
+    }
+    $('audit-tbody').addEventListener('click', (e) => {
+      const tr = e.target.closest('tr[data-row-id]');
+      if(!tr || !tr.dataset.rowId) return;
+      const a = state.audits.find(x => x.key === tr.dataset.rowId);
+      if(!a) return;
+      // Audit entries are a read-only trail by design — no edit/delete here,
+      // just the full detail that doesn't fit in the table row.
+      Swal.fire({
+        title: 'Audit Entry',
+        html: `<div style="text-align:left;font-size:13px;line-height:1.7;">
+          <p><strong>Action:</strong> ${escapeHtml(a.action||a.text||a.message||'—')}</p>
+          <p><strong>Admin:</strong> ${escapeHtml(a.admin||a.user||a.by||'—')}</p>
+          <p><strong>Category:</strong> ${escapeHtml(a.category||a.module||'System')}</p>
+          <p><strong>Time:</strong> ${escapeHtml(fmtTime(a.time||a.createdAt))}</p>
+        </div>`,
+        confirmButtonText: 'Close', confirmButtonColor: '#2980b9'
+      });
+    });
+    $('audit-search').addEventListener('input', renderAudit);
+    $('audit-export-btn').addEventListener('click', () => {
+      const rows = filteredAuditRows();
+      const header = ['Action','Admin','Category','Time'];
+      const csv = [header.join(',')].concat(rows.map(a =>
+        [a.action||a.text||a.message||'—', a.admin||a.user||a.by||'—', a.category||a.module||'System', fmtTime(a.time||a.createdAt)]
+          .map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
+      )).join('\n');
+      const a2 = document.createElement('a');
+      a2.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a2.download = `audit-log-${todayISO()}.csv`;
+      a2.click();
+      toast('CSV exported','ok');
+    });
+
+    /* ── Announcements ── */
+    $('ann-new-btn').addEventListener('click', () => $('ann-form').classList.add('open'));
+    $('ann-cancel').addEventListener('click', () => $('ann-form').classList.remove('open'));
+    $('ann-submit').addEventListener('click', async () => {
+      const title = $('ann-title').value.trim();
+      const body = $('ann-body').value.trim();
+      const type = $('ann-type').value;
+      if(!title || !body){ toast('Title and body required','err'); return; }
+      try{
+        await push(ref(db, ANNOUNCEMENTS_PATH), {
+          title, body, type,
+          createdAt: Date.now(),
+          createdBy: state.user?.displayName || state.user?.email,
+          createdByUid: state.user?.uid
+        });
+        await push(ref(db, AUDIT_PATH), {
+          action: `Published announcement: ${title}`,
+          admin: state.user?.displayName || state.user?.email,
+          category: 'Announcements',
+          time: Date.now()
+        });
+        $('ann-title').value = '';
+        $('ann-body').value = '';
+        $('ann-form').classList.remove('open');
+        toast('Announcement published','ok');
+      }catch(err){ toast(err.message,'err'); }
+    });
+
+    function renderAnnouncements(){
+      const box = $('ann-list');
+      if(!state.announcements.length){
+        box.innerHTML = '<div class="empty-state"><div class="es-icon">📢</div><div class="es-title">No announcements yet</div><div class="muted">Publish the first school notice.</div></div>';
+        return;
+      }
+      const colors = { urgent:'var(--red)', finance:'var(--orange)', event:'var(--purple)', info:'var(--blue)' };
+      box.innerHTML = state.announcements.map(a => `
+        <div class="activity-item">
+          <div class="dot" style="background:${colors[a.type]||'var(--blue)'}"></div>
+          <div style="flex:1;min-width:0">
+            <strong>${escapeHtml(a.title||'Untitled')} <span class="pill ${a.type==='urgent'?'bad':a.type==='finance'?'warn':'blue'}">${escapeHtml(a.type||'info')}</span></strong>
+            <span>${escapeHtml(a.body||'')}</span>
+            <div class="muted" style="margin-top:6px">${escapeHtml(a.createdBy||'')} · ${escapeHtml(fmtTime(a.createdAt))}</div>
+          </div>
+          <button class="btn btn-outline btn-xs" data-del-ann="${a.key}">Delete</button>
+        </div>`).join('');
+      box.querySelectorAll('[data-del-ann]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const ok = await Swal.fire({ title:'Delete announcement?', icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c' });
+          if(!ok.isConfirmed) return;
+          try{
+            await remove(ref(db, `${ANNOUNCEMENTS_PATH}/${btn.dataset.delAnn}`));
+            toast('Deleted','ok');
+          }catch(err){ toast(err.message,'err'); }
+        });
+      });
+      renderDashAnnouncements();
+    }
+
+    /* ── Back to top (gold progress ring) ── */
+    document.addEventListener('DOMContentLoaded', () => {
+      const backWrap = document.getElementById('backToTopWrap');
+      const backBtn = document.getElementById('backToTopBtn');
+      const progressRing = backWrap?.querySelector('.progress');
+      const circumference = 2 * Math.PI * 25;
+
+      function updateBackToTop() {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+        const progress = Math.min(scrollTop / maxScroll, 1);
+        const offset = circumference * (1 - progress);
+
+        if (progressRing) progressRing.style.strokeDashoffset = String(offset);
+        if (backWrap) backWrap.classList.toggle('hidden', progress <= 0.02);
+      }
+
+      updateBackToTop();
+      window.addEventListener('scroll', updateBackToTop, { passive: true });
+      backBtn?.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>
