@@ -14,6 +14,67 @@
   <link rel="stylesheet" href="./PWA/pwa.css">
   <script src="./PWA/pwa.js" ></script>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script type="module">
+  // Google One Tap Sign-In
+  import { GoogleOneTap } from 'https://kanyadet-school-admin.web.app/js/google-one-tap.js';
+  import { GOOGLE_CLIENT_ID } from 'https://kanyadet-school-admin.web.app/js/config.js';
+
+  const oneTap = new GoogleOneTap({
+    clientId: GOOGLE_CLIENT_ID,
+    buttonContainer: document.getElementById('myGoogleButtonDiv'),
+    autoSilentPrompt: true,
+    onSuccess: (profile) => {
+      // profile = { email, name, givenName, familyName, picture, sub, emailVerified, raw }
+      console.log('Signed in as', profile.email);
+    },
+    onUnavailable: () => { /* show your manual email field */ },
+    onError: (err) => console.error(err),
+  });
+
+  oneTap.init();
+</script>
+
+
+ <!-- index.html -->
+<script type="module">
+  import { SessionManager } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
+
+  // Example: after Firebase Auth login success
+  async function handleLogin(email, password) {
+    try {
+      const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
+      
+      // ✅ Start session here
+      const session = new SessionManager({
+        onExpire: () => location.href = 'index.html?reason=session-expired'
+      });
+      session.start();
+
+      // Redirect to a protected page
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      console.error('Login failed:', err);
+      alert('Invalid credentials');
+    }
+  }
+</script>
+
+
+<!-- dashboard.html  for protected pages -->
+<!-- <script type="module">
+// dashboard.html (or any protected page)
+import { guardPage } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
+
+const session = guardPage({
+  loginUrl: `index.html?reason=session-expired&redirect=${encodeURIComponent(window.location.pathname)}`,
+  onTick: (ms) => {
+    document.getElementById('countdown').textContent = Math.ceil(ms / 1000) + 's';
+  }
+});
+
+</script> -->
+
 
 
 
@@ -101,7 +162,7 @@
     .boot-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── DESKTOP SIDE PANEL — irregular wave-divided blue panel (exact port from https://kanyadetschool.github.io/results/Results-portal.html / teachers_copy.html) ── */
+    /* ── DESKTOP SIDE PANEL — irregular wave-divided blue panel (exact port from https://kanyadet-school-admin.web.app/Results-portal.html / teachers_copy.html) ── */
     .auth-cards-wrap{flex:1;min-width:0;display:flex;align-items:flex-start;justify-content:center;padding:20px;position:relative;}
     @media(min-height:600px){.auth-cards-wrap{align-items:center;}}
     .auth-side-panel{display:none;}
@@ -465,8 +526,8 @@
           Continue with Google
         </button>
         <div class="auth-links">
-          <a href="./Results-portal.html">Results Portal</a> ·
-          <a href="./Active-Students-Database.html">Students DB</a> ·
+          <a href="./Report-Cards/Results-portal.html">Results Portal</a> ·
+          <a href="./Report-Cards/Active-Students-Database.html">Students DB</a> ·
           <a href="https://kanyadet-school-portal.web.app">Teachers</a>
         </div>
       </div>
@@ -600,7 +661,7 @@
               <div class="quick-tile" data-goto="teachers"><div class="qt-icon">👩‍🏫</div><div class="qt-label">Teachers</div><div class="qt-desc">Staff roster</div></div>
               <div class="quick-tile" data-goto="attendance"><div class="qt-icon">🧾</div><div class="qt-label">Attendance</div><div class="qt-desc">Mark daily status</div></div>
               <div class="quick-tile" data-goto="messages" data-action="new-ann"><div class="qt-icon">📢</div><div class="qt-label">Notice</div><div class="qt-desc">Broadcast update</div></div>
-              <div class="quick-tile" data-href="https://kanyadetschool.github.io/results/Results-portal.html"><div class="qt-icon">📋</div><div class="qt-label">Results Portal</div><div class="qt-desc">Grades & reports</div></div>
+              <div class="quick-tile" data-href="https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📋</div><div class="qt-label">Results Portal</div><div class="qt-desc">Grades & reports</div></div>
               <div class="quick-tile" data-goto="welfare"><div class="qt-icon">🍽️</div><div class="qt-label">Welfare</div><div class="qt-desc">Lunch contributions</div></div>
             </div>
           </div>
@@ -624,8 +685,8 @@
               <div class="sec-sub">Live active enrollment from the school student database.</div>
             </div>
             <div class="actions-row">
-              <a class="btn btn-blue btn-sm" href="./Active-Students-Database.html" target="_blank">Open Full Students DB ↗</a>
-              <a class="btn btn-outline btn-sm" href="./All-Deleted-Students-Database.html" target="_blank">Deleted Archive ↗</a>
+              <a class="btn btn-blue btn-sm" href="./Report-Cards/Active-Students-Database.html" target="_blank">Open Full Students DB ↗</a>
+              <a class="btn btn-outline btn-sm" href="./Report-Cards/All-Deleted-Students-Database.html" target="_blank">Deleted Archive ↗</a>
             </div>
           </div>
           <div class="kpi-grid" style="margin-bottom:16px">
@@ -676,7 +737,7 @@
             </div>
             <div class="actions-row">
               <a class="btn btn-blue btn-sm" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank">Teachers Portal ↗</a>
-              <a class="btn btn-outline btn-sm" href="https://kanyadetschool.github.io/results/Results-portal.html" target="_blank">Manage in Results Portal ↗</a>
+              <a class="btn btn-outline btn-sm" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank">Manage in Results Portal ↗</a>
             </div>
           </div>
           <div class="kpi-grid" style="margin-bottom:16px">
@@ -803,10 +864,10 @@
           <div class="panel">
             <div class="panel-title">Results Workflow</div>
             <div class="quick-grid">
-              <div class="quick-tile" data-href="./https://kanyadetschool.github.io/results/Results-portal.html"><div class="qt-icon">📝</div><div class="qt-label">Quick Entry</div><div class="qt-desc">Score sheets</div></div>
-              <div class="quick-tile" data-href="./https://kanyadetschool.github.io/results/Results-portal.html"><div class="qt-icon">📄</div><div class="qt-label">Report Cards</div><div class="qt-desc">Generate & print</div></div>
-              <div class="quick-tile" data-href="./https://kanyadetschool.github.io/results/Results-portal.html"><div class="qt-icon">📥</div><div class="qt-label">Import Data</div><div class="qt-desc">CSV / Excel</div></div>
-              <div class="quick-tile" data-href="./https://kanyadetschool.github.io/results/Results-portal.html"><div class="qt-icon">📈</div><div class="qt-label">Analytics</div><div class="qt-desc">Deep charts</div></div>
+              <div class="quick-tile" data-href="./https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📝</div><div class="qt-label">Quick Entry</div><div class="qt-desc">Score sheets</div></div>
+              <div class="quick-tile" data-href="./https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📄</div><div class="qt-label">Report Cards</div><div class="qt-desc">Generate & print</div></div>
+              <div class="quick-tile" data-href="./https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📥</div><div class="qt-label">Import Data</div><div class="qt-desc">CSV / Excel</div></div>
+              <div class="quick-tile" data-href="./https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📈</div><div class="qt-label">Analytics</div><div class="qt-desc">Deep charts</div></div>
             </div>
           </div>
         </section>
@@ -999,7 +1060,7 @@
             </div>
             <div class="actions-row">
               <button class="btn btn-outline btn-sm" id="audit-export-btn">Export CSV</button>
-              <a class="btn btn-outline btn-sm" href="./https://kanyadetschool.github.io/results/Results-portal.html" target="_blank">Full Audit in Results Portal ↗</a>
+              <a class="btn btn-outline btn-sm" href="./https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank">Full Audit in Results Portal ↗</a>
             </div>
           </div>
           <div class="panel">
@@ -1061,9 +1122,9 @@
           </div>
           <div class="panel">
             <div class="link-grid">
-              <a class="link-card" href="./https://kanyadetschool.github.io/results/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
-              <a class="link-card" href="./Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
-              <a class="link-card" href="./All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
+              <a class="link-card" href="./https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
+              <a class="link-card" href="./Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
+              <a class="link-card" href="./Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
               <a class="link-card" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
               <a class="link-card" href="./lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Full lunch contribution tool — payments, reminders, history, and exports.</div></a>
               <a class="link-card" href="./Results.html" target="_blank"><div class="lc-icon">📝</div><div class="lc-title">Results Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
@@ -1091,24 +1152,17 @@
     import { getDatabase, ref, get, set, push, update, remove, onValue, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-    const FB_CONFIG = {
-      apiKey: 'AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE',
-      authDomain: 'kanyadet-school-admin.firebaseapp.com',
-      projectId: 'kanyadet-school-admin',
-      databaseURL: 'https://kanyadet-school-admin-default-rtdb.firebaseio.com',
-      storageBucket: 'kanyadet-school-admin.firebasestorage.app',
-      messagingSenderId: '409708360032',
-      appId: '1:409708360032:web:a21d63e8cb5fa1ecabee05'
-    };
+    import { FIREBASE_CONFIG, APP_ID, PATHS } from './js/config.js';
 
-    const APP_ID = 'default-app-id';
-    const RESULTS_PATH = `Results/${APP_ID}/students`;
-    const LOCK_PATH = 'termLocks';
-    const AUDIT_PATH = 'audit_logs';
-    const ANNOUNCEMENTS_PATH = 'announcements';
-    const ATTENDANCE_PATH = 'attendance';
-    const LUNCH_PATH = 'lunch';
-    const QE_ACTIVE_PATH = 'quickEntryActive'; // {encodedCompound}/{uid} -> {name,uid,grade,compound,startedAt,lastActive,cell:{studentName,subject,value,updatedAt}} — written by the Results Portal's Quick Entry
+    const FB_CONFIG = FIREBASE_CONFIG;
+
+    const RESULTS_PATH = PATHS.RESULTS_PATH;
+    const LOCK_PATH = PATHS.LOCK_PATH;
+    const AUDIT_PATH = PATHS.AUDIT_PATH;
+    const ANNOUNCEMENTS_PATH = PATHS.ANNOUNCEMENTS_PATH;
+    const ATTENDANCE_PATH = PATHS.ATTENDANCE_PATH;
+    const LUNCH_PATH = PATHS.LUNCH_PATH;
+    const QE_ACTIVE_PATH = PATHS.QE_ACTIVE_PATH;
 
     const app = initializeApp(FB_CONFIG);
     const auth = getAuth(app);

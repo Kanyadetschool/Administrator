@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>QR API live test</title>
+<style>
+  body{font-family:sans-serif;padding:2rem;background:#0f1620;color:#eaf1f8}
+  .row{display:flex;gap:2rem;flex-wrap:wrap;margin-top:1.5rem}
+  .card{background:#1b2532;border:1px solid #2c3a4c;border-radius:14px;padding:1rem;text-align:center}
+  img{border-radius:10px;background:#fff;display:block;margin-bottom:.5rem}
+  #status{font-weight:700;padding:.6rem 1rem;border-radius:8px;display:inline-block;margin-top:1rem}
+  .ok{background:#1e5631;color:#9fe3b4}
+  .fail{background:#5b1e1e;color:#f3a3a3}
+  .pending{background:#3a3110;color:#f0d878}
+</style>
+</head>
+<body>
+  <h2>Live test — exact call the admin tool makes</h2>
+  <p>This loads the real <code>api.qrserver.com</code> endpoint with the same URL pattern used in <code>qrImgUrl()</code>. If the QR below renders, the feature works.</p>
+  <div id="status" class="pending">Loading…</div>
+  <div class="row">
+    <div class="card">
+      <img id="qr1" width="200" height="200"
+           src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fkanyadet-school-portal.web.app%2F"
+           alt="QR test">
+      <div>sample portal URL</div>
+    </div>
+    <div class="card">
+      <img id="qr2" width="200" height="200"
+           src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fkanyadet-school-portal.web.app%2F%3Femail%3Djane%40example.com"
+           alt="QR test with email param">
+      <div>sample per-parent URL</div>
+    </div>
+  </div>
+  <script>
+    let loaded = 0, failed = 0;
+    const total = 2;
+    function done(){
+      const el = document.getElementById('status');
+      if(failed > 0){ el.textContent = `❌ ${failed}/${total} image(s) failed to load — QR API unreachable or blocked from this network.`; el.className = 'fail'; }
+      else if(loaded === total){ el.textContent = `✅ ${loaded}/${total} QR images loaded successfully — the feature works.`; el.className = 'ok'; }
+    }
+    ['qr1','qr2'].forEach(id => {
+      const img = document.getElementById(id);
+      img.addEventListener('load', () => { loaded++; done(); });
+      img.addEventListener('error', () => { failed++; done(); });
+    });
+  </script>
+</body>
+</html>

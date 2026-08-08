@@ -11,6 +11,35 @@
 
 
 <link rel="manifest" href="./teachers-manifest.json">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script type="module">
+  // Google One Tap Sign-In
+  import { GoogleOneTap } from './js/google-one-tap.js';
+  import { GOOGLE_CLIENT_ID } from './js/config.js';
+
+  const oneTap = new GoogleOneTap({
+    clientId: GOOGLE_CLIENT_ID,
+    buttonContainer: document.getElementById('myGoogleButtonDiv'),
+    autoSilentPrompt: true,
+    onSuccess: (profile) => {
+      // profile = { email, name, givenName, familyName, picture, sub, emailVerified, raw }
+      console.log('Signed in as', profile.email);
+    },
+    onUnavailable: () => { /* show your manual email field */ },
+    onError: (err) => console.error(err),
+  });
+
+  oneTap.init();
+</script>
+
+
+  <script type="module">
+    // Session management: guardPage() checks for a valid session, and if none exists or it has expired, redirects to login.html. If a valid session exists, it resumes the countdown timer.
+  import { guardPage } from './js/session-manager.js';
+  import { SESSION_DURATION_MS } from './js/config.js';
+  const session = guardPage({ durationMs: SESSION_DURATION_MS }); // resumes the countdown, or redirects to login.html if expired/none
+</script>
+
 <script>
 // ── Teachers-only Service Worker registration (standalone PWA entry) ──────────────
 if ('serviceWorker' in navigator) {
@@ -764,15 +793,11 @@ import {
 /* ══════════════════════════════════════════
    CONFIG — same Firebase project as the Results Portal / KSS,
    so Teachers Portal logins are the exact same accounts.
+   Sourced from the shared js/config.js so it stays in sync
+   with every other page.
 ══════════════════════════════════════════ */
-const FB_CONFIG = {
-  apiKey:"AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE",
-  authDomain:"kanyadet-school-admin.firebaseapp.com",
-  projectId:"kanyadet-school-admin",
-  databaseURL:"https://kanyadet-school-admin-default-rtdb.firebaseio.com",
-  storageBucket:"kanyadet-school-admin.firebasestorage.app",
-  messagingSenderId:"409708360032",
-};
+import { FIREBASE_CONFIG, PATHS } from "./js/config.js";
+const FB_CONFIG = FIREBASE_CONFIG;
 let app, auth, fs, rtdb;
 try{
   app  = initializeApp(FB_CONFIG);
@@ -799,18 +824,18 @@ function gShortJS(raw){
 }
 window._gShort = gShortJS;
 
-const DB_STUDENTS_PATH = 'Results/default-app-id/students';
-const ANNOUNCEMENTS_PATH = 'announcements';
-const ATTENDANCE_PATH = 'attendance';        // attendance/{grade}/{yyyy-mm-dd} = {studentKey:'present'|'absent'|'late', ...}
-const TIMETABLE_PATH  = 'timetables';        // timetables/{grade} = {mon:[...],tue:[...]...}  (legacy per-grade view)
-const RESOURCES_PATH  = 'resources';         // Firestore collection
-const LEAVE_PATH      = 'leaveRequests';     // Firestore collection
-const WELFARE_PATH    = 'welfareContributions'; // Firestore collection (read-only summary for teacher)
+const DB_STUDENTS_PATH = PATHS.RESULTS_PATH;
+const ANNOUNCEMENTS_PATH = PATHS.ANNOUNCEMENTS_PATH;
+const ATTENDANCE_PATH = PATHS.ATTENDANCE_PATH;        // attendance/{grade}/{yyyy-mm-dd} = {studentKey:'present'|'absent'|'late', ...}
+const TIMETABLE_PATH  = PATHS.TIMETABLE_PATH;        // timetables/{grade} = {mon:[...],tue:[...]...}  (legacy per-grade view)
+const RESOURCES_PATH  = PATHS.RESOURCES_PATH;         // Firestore collection
+const LEAVE_PATH      = PATHS.LEAVE_PATH;     // Firestore collection
+const WELFARE_PATH    = PATHS.WELFARE_PATH; // Firestore collection (read-only summary for teacher)
 // teacherTimetables/{section}/{teacherKey} = { name, days: { mon: { periodIdx: {grade, subject} } } }
 // Mirrors the real per-teacher vertical timetable PDFs (Primary Grade 4-6, Junior Grade 7-9):
 // each day has 13 fixed period slots; periods 0,3,6,9,12 are structural breaks (assembly/short
 // break/lunch/close) and are never editable — only the 8 teaching slots in between are.
-const TEACHER_TT_PATH = 'teacherTimetables';
+const TEACHER_TT_PATH = PATHS.TEACHER_TT_PATH;
 const TT_SECTIONS = {
   lowerPrimary: {
     label: 'Lower Primary (Grade 1–3)',
