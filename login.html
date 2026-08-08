@@ -17,8 +17,8 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script type="module">
   // Google One Tap Sign-In
-  import { GoogleOneTap } from './js/google-one-tap.js';
-  import { GOOGLE_CLIENT_ID } from './js/config.js';
+  import { GoogleOneTap } from 'https://kanyadet-school-admin.web.app/js/google-one-tap.js';
+  import { GOOGLE_CLIENT_ID } from 'https://kanyadet-school-admin.web.app/js/config.js';
 
   const oneTap = new GoogleOneTap({
     clientId: GOOGLE_CLIENT_ID,
@@ -36,12 +36,44 @@
 </script>
 
 
-  <script type="module">
-    // Session management: guardPage() checks for a valid session, and if none exists or it has expired, redirects to login.html. If a valid session exists, it resumes the countdown timer.
-  import { guardPage } from './js/session-manager.js';
-  import { SESSION_DURATION_MS } from './js/config.js';
-  const session = guardPage({ durationMs: SESSION_DURATION_MS }); // resumes the countdown, or redirects to login.html if expired/none
+ <!-- index.html -->
+<script type="module">
+  import { SessionManager } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
+
+  // Example: after Firebase Auth login success
+  async function handleLogin(email, password) {
+    try {
+      const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
+      
+      // ✅ Start session here
+      const session = new SessionManager({
+        onExpire: () => location.href = 'login.html?reason=session-expired'
+      });
+      session.start();
+
+      // Redirect to a protected page
+      window.location.href = 'index.html';
+    } catch (err) {
+      console.error('Login failed:', err);
+      alert('Invalid credentials');
+    }
+  }
 </script>
+
+
+<!-- dashboard.html  for protected pages -->
+<!-- <script type="module">
+// dashboard.html (or any protected page)
+import { guardPage } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
+
+const session = guardPage({
+  loginUrl: `index.html?reason=session-expired&redirect=${encodeURIComponent(window.location.pathname)}`,
+  onTick: (ms) => {
+    document.getElementById('countdown').textContent = Math.ceil(ms / 1000) + 's';
+  }
+});
+
+</script> -->
 
 
 
