@@ -9,7 +9,7 @@
  *   session.start(); // after a successful login
  *
  * Every other protected page:
- *   import { guardPage } from './js/session-manager.js';
+ *   import { guardPage } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
  *   const session = guardPage(); // resumes countdown, or redirects to login if expired/none
  *   // session.expireNow() for a manual logout button
  */

@@ -344,6 +344,7 @@
       autoSilentPrompt: true,
       onSuccess: handleOneTapProfile,
       onUnavailable: () => { /* manual form below still works */ },
+      onSuppressed: (reason) => console.log('One Tap silent prompt suppressed:', reason),
       onError: (err) => console.error(err),
     });
     oneTap.init();

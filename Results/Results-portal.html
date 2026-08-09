@@ -11,6 +11,21 @@
  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="./image-popup.js"></script>
+
+<script type="module">
+// dashboard.html (or any protected page)
+import { guardPage } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
+
+const session = guardPage({
+  loginUrl: `index.html?reason=session-expired&redirect=${encodeURIComponent(window.location.pathname)}`,
+  onTick: (ms) => {
+    document.getElementById('countdown').textContent = Math.ceil(ms / 1000) + 's';
+  }
+});
+
+</script>
+
+
 <script>
 // ── PERF INSTRUMENTATION (temporary — safe to remove later) ───────────────
 // Marks the true t=0 for the whole boot sequence. Every stage below logs

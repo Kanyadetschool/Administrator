@@ -106,6 +106,15 @@ export class GoogleOneTap {
    * @param {() => void} [opts.onUnavailable] - Called if GIS can't load at
    *   all (offline, blocked, ad-blocker, etc.) - show a manual fallback here.
    * @param {(err: Error) => void} [opts.onError] - Called on any other error.
+   * @param {(reason: string) => void} [opts.onSuppressed] - Called when the
+   *   silent One Tap prompt doesn't show because Google itself suppressed
+   *   it (e.g. the user dismissed it before - reason "suppressed_by_user")
+   *   or skipped it for another reason. This is normal, expected behavior
+   *   from Google's anti-nag design and can't be forced open - use it to
+   *   nudge the user toward the visible button instead.
+   * @param {boolean} [opts.autoNudgeOnSuppressed=true] - When a silent
+   *   prompt is suppressed/skipped and a buttonContainer was given, briefly
+   *   highlight the button so the user notices the fallback sign-in option.
    * @param {boolean} [opts.debug=true] - console.log the internal steps.
    */
   constructor(opts = {}) {
@@ -130,6 +139,8 @@ export class GoogleOneTap {
     this.onSuccess = typeof opts.onSuccess === 'function' ? opts.onSuccess : () => {};
     this.onUnavailable = typeof opts.onUnavailable === 'function' ? opts.onUnavailable : () => {};
     this.onError = typeof opts.onError === 'function' ? opts.onError : (err) => console.error(err);
+    this.onSuppressed = typeof opts.onSuppressed === 'function' ? opts.onSuppressed : () => {};
+    this.autoNudgeOnSuppressed = opts.autoNudgeOnSuppressed !== false;
     this.debug = opts.debug !== false;
 
     this._buttonRendered = false;
@@ -187,7 +198,9 @@ export class GoogleOneTap {
 
   /** Triggers the zero-click One Tap prompt. Resolves/rejects nothing -
    *  outcomes are reported via the notification callback (logged) and,
-   *  on success, via onSuccess like the button. */
+   *  on success, via onSuccess like the button. Also runs suppression
+   *  detection internally (see _handleSilentNotification) regardless of
+   *  whether an onNotification callback is supplied. */
   promptSilent(onNotification) {
     if (!window.google || !window.google.accounts || !window.google.accounts.id) {
       this._log('promptSilent() called before GIS was ready - ignoring');
@@ -196,8 +209,58 @@ export class GoogleOneTap {
     this._log('Prompting (silent One Tap)...');
     window.google.accounts.id.prompt((notification) => {
       this._log('Silent prompt notification:', notification);
+      this._handleSilentNotification(notification);
       if (typeof onNotification === 'function') onNotification(notification);
     });
+  }
+
+  /** Inspects a prompt notification for "not displayed" / "skipped"
+   *  moments (e.g. reason "suppressed_by_user" after a prior dismissal)
+   *  and, if found, fires onSuppressed + nudges the visible button.
+   *  The inspection methods (isNotDisplayed/getNotDisplayedReason/
+   *  isSkippedMoment/getSkippedReason) are wrapped in try/catch since
+   *  Google is deprecating them as part of the FedCM migration and they
+   *  may not exist on every notification shape going forward. */
+  _handleSilentNotification(notification) {
+    if (!notification) return;
+    let inactive = false;
+    let reason = 'unknown';
+    try {
+      if (typeof notification.isNotDisplayed === 'function' && notification.isNotDisplayed()) {
+        inactive = true;
+        reason = (typeof notification.getNotDisplayedReason === 'function' && notification.getNotDisplayedReason()) || reason;
+      }
+    } catch (e) { /* ignore - deprecated method may throw/be absent */ }
+    try {
+      if (!inactive && typeof notification.isSkippedMoment === 'function' && notification.isSkippedMoment()) {
+        inactive = true;
+        reason = (typeof notification.getSkippedReason === 'function' && notification.getSkippedReason()) || reason;
+      }
+    } catch (e) { /* ignore - deprecated method may throw/be absent */ }
+
+    if (!inactive) return;
+    this._log('Silent prompt did not show, reason:', reason);
+    if (this.autoNudgeOnSuppressed) this._nudgeButton();
+    this.onSuppressed(reason);
+  }
+
+  /** Briefly highlights the rendered "Sign in with Google" button so a
+   *  user whose silent prompt got suppressed still notices there's a
+   *  way to sign in. No-op if no buttonContainer was given/rendered. */
+  _nudgeButton() {
+    if (!this.buttonContainer) return;
+    const el = this.buttonContainer;
+    const prevTransition = el.style.transition;
+    const prevShadow = el.style.boxShadow;
+    const prevTransform = el.style.transform;
+    el.style.transition = 'box-shadow .3s ease, transform .3s ease';
+    el.style.boxShadow = '0 0 0 4px rgba(41,128,185,.35)';
+    el.style.transform = 'scale(1.03)';
+    setTimeout(() => {
+      el.style.boxShadow = prevShadow;
+      el.style.transform = prevTransform;
+      setTimeout(() => { el.style.transition = prevTransition; }, 300);
+    }, 650);
   }
 
   /** Cancels any in-flight One Tap prompt. Call this when closing a modal
