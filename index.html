@@ -17,34 +17,7 @@
   <script src="./PWA/pwa.js" ></script>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script type="module">
-  // Google One Tap Sign-In
-  import { GoogleOneTap } from './js/google-one-tap.js';
-  import { GOOGLE_CLIENT_ID } from './js/config.js';
 
-  const oneTap = new GoogleOneTap({
-    clientId: GOOGLE_CLIENT_ID,
-    buttonContainer: document.getElementById('myGoogleButtonDiv'),
-    autoSilentPrompt: true,
-    onSuccess: (profile) => {
-      // profile = { email, name, givenName, familyName, picture, sub, emailVerified, raw }
-      console.log('Signed in as', profile.email);
-    },
-    onUnavailable: () => { /* show your manual email field */ },
-    onSuppressed: (reason) => {
-      // Google suppressed the silent prompt (e.g. "suppressed_by_user"
-      // after a prior dismissal) - this is expected and can't be forced.
-      // The button gets auto-nudged; nothing else to do here.
-      console.log('One Tap silent prompt suppressed:', reason);
-    },
-    onError: (err) => console.error(err),
-  });
-
-  oneTap.init();
-</script>
-
-
- 
 <!-- <script type="module">
   import { SessionManager } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
 
@@ -3665,7 +3638,7 @@
     import { guardPage } from './js/session-manager.js';
 
     const session = guardPage({
-      loginUrl: `index.html?reason=session-expired&redirect=${encodeURIComponent(window.location.pathname)}`,
+      loginUrl: `login.html?reason=session-expired&redirect=${encodeURIComponent(window.location.pathname)}`,
       onTick: (ms) => {
         const el = document.getElementById('countdown');
         if (el) el.textContent = Math.ceil(ms / 1000) + 's';
