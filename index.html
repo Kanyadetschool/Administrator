@@ -11,52 +11,8 @@
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <link rel="stylesheet" href="./PWA/pwa.css">
   <script src="./PWA/pwa.js" ></script>
-
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script type="module">
-  // Google One Tap Sign-In
-  import { GoogleOneTap } from './js/google-one-tap.js';
-  import { GOOGLE_CLIENT_ID } from './js/config.js';
-
-  const oneTap = new GoogleOneTap({
-    clientId: GOOGLE_CLIENT_ID,
-    buttonContainer: document.getElementById('myGoogleButtonDiv'),
-    autoSilentPrompt: true,
-    onSuccess: (profile) => {
-      // profile = { email, name, givenName, familyName, picture, sub, emailVerified, raw }
-      console.log('Signed in as', profile.email);
-    },
-    onUnavailable: () => { /* show your manual email field */ },
-    onError: (err) => console.error(err),
-  });
-
-  oneTap.init();
-</script>
-
-
- 
-
-
-<!-- dashboard.html  for protected pages -->
-<script type="module">
-// dashboard.html (or any protected page)
-import { guardPage } from /js/session-manager.js';
-
-const session = guardPage({
-  loginUrl: `index.html?reason=session-expired&redirect=${encodeURIComponent(window.location.pathname)}`,
-  onTick: (ms) => {
-    document.getElementById('countdown').textContent = Math.ceil(ms / 1000) + 's';
-  }
-});
-
-</script>
-
-
-
 
 
   <style>
@@ -104,73 +60,6 @@ const session = guardPage({
     a{color:inherit;text-decoration:none}
     ::-webkit-scrollbar{width:8px;height:8px}
     ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:8px}
-
-    /* Auth — same warm cream/gold background as Teachers portal */
-    #auth-gate{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;overflow-y:auto;background:var(--bg)}
-    #auth-gate.hidden{display:none}
-    #auth-gate::before{
-      content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
-      background:radial-gradient(ellipse 55% 45% at 90% 88%,rgba(243,156,18,.18) 0%,transparent 65%),
-        radial-gradient(ellipse 45% 40% at 10% 8%,rgba(211,164,55,.08) 0%,transparent 60%);
-      opacity:.6;
-    }
-    [data-theme="dark"] #auth-gate::before{
-      opacity:1;
-      background:radial-gradient(ellipse 60% 50% at 8% 10%,rgba(41,128,185,.12) 0%,transparent 65%),
-        radial-gradient(ellipse 50% 45% at 92% 90%,rgba(22,160,133,.08) 0%,transparent 60%);
-    }
-    .auth-card{position:relative;z-index:1;width:100%;max-width:380px;background:var(--surface);border-radius:28px;padding:2.3rem 2.1rem 2.1rem;box-shadow:0 30px 90px rgba(10,30,60,.28),0 0 0 1px rgba(41,128,185,.07);border:1px solid var(--border);text-align:left;animation:fadeUp .5s cubic-bezier(.34,1.56,.64,1)}
-    @keyframes fadeUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
-    .auth-logo{width:54px;height:54px;border-radius:16px;backgroud:linear-gradient(135deg,var(--blue),var(--blue-dk));display:grid;place-items:center;font-size:24px;margin:0 auto 1.1rem;box-shadow:0 10px 26px var(--blue-glow);overflow:hidden}
-    .auth-card h1{text-align:center;font-size:1.55rem;font-weight:900;letter-spacing:-.01em;color:var(--text);margin-bottom:.25rem}
-    .auth-card .auth-sub{text-align:center;font-size:.83rem;color:var(--text2);font-weight:500;margin-bottom:1.4rem}
-    .auth-err{background:rgba(231,76,60,.12);color:#e25b4b;border:1px solid rgba(231,76,60,.3);padding:9px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
-    .auth-field{margin-bottom:.6rem}
-    .auth-field label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
-    .auth-field input{width:100%;padding:.8rem .95rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);font-family:inherit;font-size:.85rem;color:var(--text);outline:none;transition:border-color .15s;box-sizing:border-box}
-    .auth-field input:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
-    .auth-btn{width:100%;padding:.95rem 1.5rem;border:none;border-radius:14px;font-family:inherit;font-size:.9rem;font-weight:800;cursor:pointer;transition:var(--transition);margin-top:.3rem;margin-bottom:.6rem;display:flex;align-items:center;justify-content:center;gap:.55rem}
-    .auth-btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
-    .auth-btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(20,40,70,.45)}
-    .auth-btn-google{background:linear-gradient(135deg,var(--blue-dk),#0c1e33);color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
-    .auth-btn-google:hover{transform:translateY(-2px)}
-    .auth-divider{display:flex;align-items:center;gap:.6rem;margin:.9rem 0;font-size:.68rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
-    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-    .auth-links{text-align:center;margin-top:.3rem;font-size:.79rem;color:var(--text2);font-weight:500}
-    .auth-links a{color:var(--blue-lt);font-weight:700}
-    .auth-links a:hover{text-decoration:underline}
-    .boot-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    /* ── DESKTOP SIDE PANEL — irregular wave-divided blue panel (exact port from/Results/Results-portal.html / teachers_copy.html) ── */
-    .auth-cards-wrap{flex:1;min-width:0;display:flex;align-items:flex-start;justify-content:center;padding:20px;position:relative;}
-    @media(min-height:600px){.auth-cards-wrap{align-items:center;}}
-    .auth-side-panel{display:none;}
-    .auth-divider-wave{display:none;}
-    @media(min-width:901px){
-      #auth-gate{justify-content:flex-start;--auth-panel-w:min(42%,600px);--auth-wave-amp:72px;}
-      .auth-side-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--auth-panel-w);flex-shrink:0;min-height:100vh;position:relative;overflow:hidden;padding:4rem 3rem;color:#fff;}
-      .auth-side-panel::before{content:'';position:absolute;top:0;bottom:0;left:0;right:var(--auth-wave-amp);background:linear-gradient(160deg,var(--blue-dk) 0%,#132a45 55%,#0a1c30 100%);}
-      .auth-side-panel .asp-blob{position:absolute;border-radius:50%;pointer-events:none;}
-      .auth-side-panel .asp-blob-1{width:360px;height:360px;top:-130px;right:-130px;background:rgba(255,255,255,.055);}
-      .auth-side-panel .asp-blob-2{width:280px;height:280px;bottom:-110px;left:-90px;background:rgba(93,173,226,.18);}
-      .auth-side-panel .asp-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.22);}
-      .auth-side-panel .asp-dot-1{width:14px;height:14px;top:16%;right:20%;}
-      .auth-side-panel .asp-dot-2{width:10px;height:10px;bottom:22%;left:14%;background:var(--blue-lt);opacity:.9;}
-      .auth-side-panel .asp-illustration{position:relative;z-index:1;width:100%;max-width:320px;margin:0 auto 2.4rem;}
-      .auth-side-panel .asp-illustration svg{width:100%;height:auto;display:block;}
-      .auth-side-panel .asp-brand{position:relative;z-index:1;text-align:center;}
-      .auth-side-panel .asp-brand-name{font-size:1.5rem;font-weight:900;margin-bottom:.6rem;letter-spacing:-.01em;}
-      .auth-side-panel .asp-brand-tag{font-size:.88rem;color:rgba(255,255,255,.72);font-weight:500;line-height:1.55;max-width:320px;margin:0 auto;min-height:2.7em;transition:opacity .35s ease;}
-      .auth-side-panel .asp-brand-tag.fading{opacity:0;}
-      .auth-side-panel .asp-tip-dots{display:flex;justify-content:center;gap:.4rem;margin-top:1.1rem;position:relative;z-index:1;}
-      .auth-side-panel .asp-tip-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28);transition:background .25s,width .25s;}
-      .auth-side-panel .asp-tip-dot.active{background:var(--blue-lt);width:18px;border-radius:3px;}
-      .auth-divider-wave{display:block;position:absolute;top:0;bottom:0;left:calc(var(--auth-panel-w) - var(--auth-wave-amp));width:calc(var(--auth-wave-amp) * 2);z-index:2;pointer-events:none;}
-      .auth-divider-wave svg{width:100%;height:100%;display:block;}
-      .auth-cards-wrap{flex:1;min-height:100vh;padding:40px 4vw;position:relative;z-index:1;}
-      .auth-card{box-shadow:none;border:none;background:transparent;max-width:400px;}
-    }
 
     #app-shell{display:none;min-height:100vh;position:relative;z-index:1;width:100%;overflow-x:hidden}
     #app-shell.ready{display:flex}
@@ -337,21 +226,6 @@ const session = guardPage({
     .empty-state .es-title{font-size:14px;font-weight:800;color:var(--text2);margin-bottom:4px}
     .muted{color:var(--text3);font-size:11px}
     .mono{font-family:'JetBrains Mono',monospace;font-size:11px}
-    /* Student photo avatars — mirrors Results/Results-portal.html's stu-av-wrap */
-    .stu-av-wrap{
-      position:relative;overflow:hidden;flex-shrink:0;
-      display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg,var(--orange),var(--gold));
-      color:#fff;font-weight:900;
-    }
-    .stu-av-wrap img{
-      position:absolute;inset:0;width:100%;height:100%;
-      object-fit:cover;transition:opacity .3s;
-    }
-    .stu-av-sm{width:28px;height:28px;border-radius:8px;font-size:11px;}
-    .stu-av-md{width:40px;height:40px;border-radius:11px;font-size:14px;}
-    .stu-av-wrap.has-photo{cursor:pointer;}
-    .stu-name-cell{display:flex;align-items:center;gap:10px;}
 
     .att-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:11px;font-weight:700}
     .att-legend span{display:inline-flex;align-items:center;gap:5px}
@@ -439,94 +313,6 @@ const session = guardPage({
     <button class="back-to-top-btn" type="button" id="backToTopBtn" aria-label="Back to top">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m0 0l-6 6m6-6l6 6"/></svg>
     </button>
-  </div>
-
-  
-  <!-- AUTH GATE -->
-  <div id="auth-gate">
-
-    <!-- ── DESKTOP SIDE PANEL — hidden on mobile, fills the left side on wide screens ── -->
-    <div class="auth-side-panel" aria-hidden="true">
-      <div class="asp-blob asp-blob-1"></div>
-      <div class="asp-blob asp-blob-2"></div>
-      <div class="asp-dot asp-dot-1"></div>
-      <div class="asp-dot asp-dot-2"></div>
-      <div class="asp-illustration">
-        <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="160" cy="130" r="112" fill="rgba(255,255,255,.06)"/>
-          <rect x="96" y="30" width="128" height="200" rx="24" fill="rgba(255,255,255,.09)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
-          <rect x="118" y="54" width="84" height="10" rx="5" fill="rgba(255,255,255,.35)"/>
-          <g transform="translate(160,136)">
-            <rect x="-34" y="-6" width="68" height="52" rx="12" fill="var(--blue-lt)"/>
-            <path d="M-22 -6 v-16 a22 22 0 0 1 44 0 v16" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
-            <circle cx="0" cy="18" r="7" fill="#0a1c30"/>
-            <rect x="-3.5" y="18" width="7" height="15" rx="3.5" fill="#0a1c30"/>
-          </g>
-          <rect x="118" y="196" width="84" height="10" rx="5" fill="rgba(255,255,255,.25)"/>
-          <circle cx="66" cy="52" r="18" fill="var(--blue-lt)" opacity=".45"/>
-          <circle cx="258" cy="204" r="14" fill="rgba(255,255,255,.2)"/>
-          <path d="M46 200 q16 -34 44 -10" stroke="var(--blue-lt)" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
-          <path d="M244 50 l14 -14 m0 14 l-14 -14" stroke="rgba(255,255,255,.5)" stroke-width="3.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="asp-brand">
-        <div class="asp-brand-name">Kanyadet PRI &amp; Junior School</div>
-        <div class="asp-brand-tag" id="asp-tip-text">Deep school-wide administration — audit trails, welfare, announcements and portal management, all in one secure place.</div>
-        <div class="asp-tip-dots" id="asp-tip-dots"></div>
-      </div>
-    </div>
-
-    <!-- ── IRREGULAR WAVE DIVIDER — replaces the straight seam between panel and content on desktop ── -->
-    <div class="auth-divider-wave" aria-hidden="true">
-      <svg viewBox="0 0 144 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="authWaveGrad" x1="0" y1="0" x2="0.4" y2="1">
-            <stop offset="0%"  stop-color="#1a5276"/>
-            <stop offset="55%" stop-color="#132a45"/>
-            <stop offset="100%" stop-color="#0a1c30"/>
-          </linearGradient>
-        </defs>
-        <path fill="url(#authWaveGrad)" d="M88,0 L103.7,16 L101.8,32 L96.3,48 L100.9,64 L114.1,80 L120.3,96 L105.6,112 L73.2,128 L41.4,144 L27.7,160 L33.5,176 L44.2,192 L45.2,208 L37.4,224 L35.5,240 L52.7,256 L85.5,272 L115.6,288 L125.5,304 L114.7,320 L98.4,336 L91.9,352 L95.3,368 L94.4,384 L76.6,400 L45.2,416 L18.6,432 L13.5,448 L30,464 L51.8,480 L63,496 L62.6,512 L64.4,528 L81,544 L109.2,560 L131,576 L130.5,592 L108.4,608 L81.8,624 L67.4,640 L66.6,656 L65.7,672 L52.1,688 L28.6,704 L12.3,720 L18.5,736 L45.4,752 L75.5,768 L91.3,784 L91.5,800 L0,800 L0,0 Z"/>
-      </svg>
-    </div>
-
-    <div class="auth-cards-wrap">
-    <div class="auth-card" id="auth-card">
-      <div class="auth-logo"><img src="./images/logo.png" alt="School Logo" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span style="display:none">🏫</span></div>
-       <!-- ── INSTALL APP (PWA, standalone-only) — shown when browser deems the app installable ── -->
-  <button id="pwa-install-btn" type="button" onclick="installPwaApp()">
-    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
-    Install App
-  </button>
-      <h1>Administrator Portal</h1>
-      <p class="auth-sub">Advanced Admin Portal — sign in to continue</p>
-      <div class="auth-err" id="auth-err"></div>
-      <div id="auth-loading" style="display:none">
-        <div class="boot-spinner"></div>
-                    <p style="text-align:center;font-size:12px;color:var(--text2);margin-top:8px">Verifying access…</p>
-      </div>
-      <div id="auth-form">
-        <div class="auth-field">
-          <label for="login-email">Email</label>
-          <input type="email" id="login-email" autocomplete="username" />
-        </div>
-        <div class="auth-field">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" autocomplete="current-password" />
-        </div>
-        <button class="auth-btn auth-btn-primary" id="btn-email-login">Sign In</button>
-        <div class="auth-divider">or</div>
-        <button class="auth-btn auth-btn-google" id="btn-google-login">
-          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-          Continue with Google
-        </button>
-        <div class="auth-links">
-          <a href="https://kanyadet-school-parents.web.app/">Parents Portal</a> ·
-          <a href="https://kanyadet-school-portal.web.app">Teachers Portal </a>
-        </div>
-      </div>
-    </div>
-    </div>
   </div>
 
   <div class="toast-host" id="toastHost"></div>
@@ -655,7 +441,7 @@ const session = guardPage({
               <div class="quick-tile" data-goto="teachers"><div class="qt-icon">👩‍🏫</div><div class="qt-label">Teachers</div><div class="qt-desc">Staff roster</div></div>
               <div class="quick-tile" data-goto="attendance"><div class="qt-icon">🧾</div><div class="qt-label">Attendance</div><div class="qt-desc">Mark daily status</div></div>
               <div class="quick-tile" data-goto="messages" data-action="new-ann"><div class="qt-icon">📢</div><div class="qt-label">Notice</div><div class="qt-desc">Broadcast update</div></div>
-              <div class="quick-tile" data-href=/Results/Results-portal.html"><div class="qt-icon">📋</div><div class="qt-label">Results Portal</div><div class="qt-desc">Grades & reports</div></div>
+              <div class="quick-tile" data-href="https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📋</div><div class="qt-label">Results Portal</div><div class="qt-desc">Grades & reports</div></div>
               <div class="quick-tile" data-goto="welfare"><div class="qt-icon">🍽️</div><div class="qt-label">Welfare</div><div class="qt-desc">Lunch contributions</div></div>
             </div>
           </div>
@@ -698,8 +484,6 @@ const session = guardPage({
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
-              <button class="btn btn-outline btn-sm" id="stu-missing-photo-btn" title="Scan the directory for students without a photo on file">📷 Check Photos</button>
-              <button class="btn btn-outline btn-sm" id="stu-missing-photo-download-btn" style="display:none" title="Download a PDF list of students missing a photo">📄 Download Missing (PDF)</button>
               <button class="btn btn-outline btn-sm" id="stu-export-btn">Export CSV</button>
             </div>
             <div class="table-wrap">
@@ -733,7 +517,7 @@ const session = guardPage({
             </div>
             <div class="actions-row">
               <a class="btn btn-blue btn-sm" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank">Teachers Portal ↗</a>
-              <a class="btn btn-outline btn-sm" href=/Results/Results-portal.html" target="_blank">Manage in Results Portal ↗</a>
+              <a class="btn btn-outline btn-sm" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank">Manage in Results Portal ↗</a>
             </div>
           </div>
           <div class="kpi-grid" style="margin-bottom:16px">
@@ -809,8 +593,8 @@ const session = guardPage({
             </div>
             <div class="actions-row">
               <button class="btn btn-outline btn-sm" id="res-export-btn">Export CSV</button>
-              <a class="btn btn-blue btn-sm" href="./Results/Results-portal.html" target="_blank">Open Results Portal ↗</a>
-              <a class="btn btn-outline btn-sm" href="./Results/Results-portal.html" target="_blank">Results Page ↗</a>
+              <a class="btn btn-blue btn-sm" href="./Results-portal.html" target="_blank">Open Results Portal ↗</a>
+              <a class="btn btn-outline btn-sm" href="./Results-portal.html" target="_blank">Results Page ↗</a>
             </div>
           </div>
           <div class="kpi-grid" style="margin-bottom:16px">
@@ -860,10 +644,10 @@ const session = guardPage({
           <div class="panel">
             <div class="panel-title">Results Workflow</div>
             <div class="quick-grid">
-              <div class="quick-tile" data-href="./Results/Results-portal.html"><div class="qt-icon">📝</div><div class="qt-label">Quick Entry</div><div class="qt-desc">Score sheets</div></div>
-              <div class="quick-tile" data-href="./Results/Results-portal.html"><div class="qt-icon">📄</div><div class="qt-label">Report Cards</div><div class="qt-desc">Generate & print</div></div>
-              <div class="quick-tile" data-href="./Results/Results-portal.html"><div class="qt-icon">📥</div><div class="qt-label">Import Data</div><div class="qt-desc">CSV / Excel</div></div>
-              <div class="quick-tile" data-href="./Results/Results-portal.html"><div class="qt-icon">📈</div><div class="qt-label">Analytics</div><div class="qt-desc">Deep charts</div></div>
+              <div class="quick-tile" data-href="./https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📝</div><div class="qt-label">Quick Entry</div><div class="qt-desc">Score sheets</div></div>
+              <div class="quick-tile" data-href="./https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📄</div><div class="qt-label">Report Cards</div><div class="qt-desc">Generate & print</div></div>
+              <div class="quick-tile" data-href="./https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📥</div><div class="qt-label">Import Data</div><div class="qt-desc">CSV / Excel</div></div>
+              <div class="quick-tile" data-href="./https://kanyadet-school-admin.web.app/Results-portal.html"><div class="qt-icon">📈</div><div class="qt-label">Analytics</div><div class="qt-desc">Deep charts</div></div>
             </div>
           </div>
         </section>
@@ -1056,7 +840,7 @@ const session = guardPage({
             </div>
             <div class="actions-row">
               <button class="btn btn-outline btn-sm" id="audit-export-btn">Export CSV</button>
-              <a class="btn btn-outline btn-sm" href="./Results/Results-portal.html" target="_blank">Full Audit in Results Portal ↗</a>
+              <a class="btn btn-outline btn-sm" href="./https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank">Full Audit in Results Portal ↗</a>
             </div>
           </div>
           <div class="panel">
@@ -1118,7 +902,7 @@ const session = guardPage({
           </div>
           <div class="panel">
             <div class="link-grid">
-              <a class="link-card" href="./Results/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
+              <a class="link-card" href="./https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
               <a class="link-card" href="./Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
               <a class="link-card" href="./Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
               <a class="link-card" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
@@ -1144,11 +928,17 @@ const session = guardPage({
 
   <script type="module">
     import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getDatabase, ref, get, set, push, update, remove, onValue, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { guardPage } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
 
     import { FIREBASE_CONFIG, APP_ID, PATHS } from './js/config.js';
+
+    // Hard 15-minute session limit, independent of Firebase's own token
+    // lifetime — resumes the clock this tab arrived with, or bounces
+    // straight back to login.html if it's expired / never existed.
+    const appSession = guardPage({ loginUrl: 'login.html?reason=session-expired' });
 
     const FB_CONFIG = FIREBASE_CONFIG;
 
@@ -1284,131 +1074,6 @@ const session = guardPage({
     function studentUpi(s){
       return s.UPI || s.upi || s.AssessmentNumber || s['Assessment No'] || s.id || '—';
     }
-
-    /* ══════════════════════════════════════════
-       STUDENT PHOTO LOADING — ported from Results/Results-portal.html
-       Priority: 1) ./Report-Cards/student_images/{Grade}/{Name}.jpg
-                 2) Default avatar (silently falls back to initials if missing)
-    ══════════════════════════════════════════ */
-    const _imgCache = {};
-    function _loadImg(src){
-      return new Promise(resolve=>{
-        if(_imgCache[src]!==undefined){resolve(_imgCache[src]);return;}
-        const img=new Image();
-        img.crossOrigin='anonymous';
-        const timer=setTimeout(()=>{_imgCache[src]=null;resolve(null);},2500);
-        img.onload=()=>{clearTimeout(timer);_imgCache[src]=img.src;resolve(img.src);};
-        img.onerror=()=>{clearTimeout(timer);_imgCache[src]=null;resolve(null);};
-        img.src=src;
-      });
-    }
-    async function loadStudentPhoto(name, grade){
-      const g=(grade||'').match(/Grade\s*\d+/i)?.[0]||grade||'';
-      const cleanName=(name||'').trim();
-      const encGrade=encodeURIComponent(g);
-      const encName=encodeURIComponent(cleanName);
-      const paths=[
-        `./Report-Cards/student_images/${g}/${cleanName}.jpg`,
-        `./Report-Cards/student_images/${encGrade}/${encName}.jpg`,
-        `./Report-Cards/student_images/${g}/${encName}.jpg`,
-        `./student_images/${g}/${cleanName}.jpg`,
-        `./student_images/${encGrade}/${encName}.jpg`,
-      ];
-      for(const p of paths){
-        const src=await _loadImg(p);
-        if(src) return src;
-      }
-      // Fallback: default avatar (ok if missing — caller keeps initials)
-      return await _loadImg('./Report-Cards/student_images/default.jpg');
-    }
-    function _applyPhotoToAvatar(el, src, name, grade){
-      if(!el || !src) return;
-      let img = el.querySelector('img');
-      if(!img){
-        img = document.createElement('img');
-        img.loading = 'lazy';
-        el.appendChild(img);
-      }
-      if(img.src !== src) img.src = src;
-      // Real photo loaded (not just initials) — make it clickable to view large.
-      el.classList.add('has-photo');
-      el.title = (name ? name+' — ' : '') + 'click to view photo';
-      el.onclick = (e) => { e.stopPropagation(); openStudentPhotoLightbox(src, name, grade); };
-    }
-    // Checks whether a student has their OWN photo on file — unlike
-    // loadStudentPhoto(), this does NOT fall back to default.jpg, so it can
-    // be used to flag students who are still missing a real photo. Shares
-    // the same _loadImg cache, so it costs nothing extra for students whose
-    // photo (or lack thereof) has already been resolved elsewhere on screen.
-    async function _studentHasOwnPhoto(name, grade){
-      const g=(grade||'').match(/Grade\s*\d+/i)?.[0]||grade||'';
-      const cleanName=(name||'').trim();
-      const encGrade=encodeURIComponent(g);
-      const encName=encodeURIComponent(cleanName);
-      const paths=[
-        `./Report-Cards/student_images/${g}/${cleanName}.jpg`,
-        `./Report-Cards/student_images/${encGrade}/${encName}.jpg`,
-        `./Report-Cards/student_images/${g}/${encName}.jpg`,
-        `./student_images/${g}/${cleanName}.jpg`,
-        `./student_images/${encGrade}/${encName}.jpg`,
-      ];
-      for(const p of paths){
-        const src=await _loadImg(p);
-        if(src) return true;
-      }
-      return false;
-    }
-    // Build a photo avatar element and async-load the image
-    // wrapClass: CSS class(es) for the wrapper div
-    function makePhotoAvatar(name, grade, wrapClass){
-      const uid='av_'+Math.random().toString(36).slice(2,8);
-      const html=`<div class="stu-av-wrap ${wrapClass}" id="${uid}">${escapeHtml(initials(name))}</div>`;
-      requestAnimationFrame(()=>{
-        loadStudentPhoto(name, grade).then(src=>{
-          if(!src) return;
-          const el=document.getElementById(uid);
-          if(el) _applyPhotoToAvatar(el, src, name, grade);
-        });
-      });
-      return html;
-    }
-
-    /* ── Student photo lightbox — click any student avatar to view it large ── */
-    function _ensurePhotoLightbox(){
-      let lb = document.getElementById('student-photo-lightbox');
-      if(lb) return lb;
-      lb = document.createElement('div');
-      lb.id = 'student-photo-lightbox';
-      lb.style.cssText = 'display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);align-items:flex-start;justify-content:center;padding:30px;overflow-y:auto;cursor:zoom-out';
-      lb.innerHTML = `
-        <div style="position:relative;max-width:min(90vw,560px);width:100%;margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:12px" onclick="event.stopPropagation()">
-          <button onclick="closeStudentPhotoLightbox()" title="Close" style="position:absolute;top:-16px;right:-16px;width:34px;height:34px;border-radius:50%;border:none;background:#fff;color:#111;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:1">✕</button>
-          <img id="student-photo-lightbox-img" src="" alt="" style="max-width:100%;max-height:78vh;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);object-fit:contain;background:#fff">
-          <div id="student-photo-lightbox-name" style="color:#fff;font-size:14px;font-weight:700;text-align:center"></div>
-          <div id="student-photo-lightbox-meta" style="color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-align:center;letter-spacing:.3px"></div>
-        </div>`;
-      lb.addEventListener('click', closeStudentPhotoLightbox);
-      document.body.appendChild(lb);
-      return lb;
-    }
-    function openStudentPhotoLightbox(src, name, grade){
-      if(!src) return;
-      const lb = _ensurePhotoLightbox();
-      document.getElementById('student-photo-lightbox-img').src = src;
-      document.getElementById('student-photo-lightbox-img').alt = name || '';
-      document.getElementById('student-photo-lightbox-name').textContent = name || '';
-      document.getElementById('student-photo-lightbox-meta').textContent = grade || '';
-      lb.style.display = 'flex';
-      document.addEventListener('keydown', _photoLightboxEscHandler);
-    }
-    window.openStudentPhotoLightbox = openStudentPhotoLightbox;
-    function closeStudentPhotoLightbox(){
-      const lb = document.getElementById('student-photo-lightbox');
-      if(lb) lb.style.display = 'none';
-      document.removeEventListener('keydown', _photoLightboxEscHandler);
-    }
-    window.closeStudentPhotoLightbox = closeStudentPhotoLightbox;
-    function _photoLightboxEscHandler(e){ if(e.key==='Escape') closeStudentPhotoLightbox(); }
     // Results records don't carry Assessment No/Class/etc. score data — this
     // is the same set of non-subject "meta" fields used across the school's
     // other tools to tell subject-score fields apart from record metadata.
@@ -1452,15 +1117,12 @@ const session = guardPage({
       return count ? sum / count : null;
     }
 
-    /* ── Auth UI ── */
-    function showAuthErr(msg){
-      const el = $('auth-err');
-      el.textContent = msg;
-      el.style.display = msg ? 'block' : 'none';
-    }
-    function setAuthLoading(on){
-      $('auth-loading').style.display = on ? 'block' : 'none';
-      $('auth-form').style.display = on ? 'none' : 'block';
+    /* ── Auth guard — index.html is a protected page. Anyone who isn't a
+       signed-in, verified Advanced Admin gets bounced back to login.html.
+       Sign-in itself only happens on login.html. ── */
+    function goToLogin(reason){
+      const suffix = reason ? `?reason=${encodeURIComponent(reason)}` : '';
+      location.href = `login.html${suffix}`;
     }
 
     async function verifyAdvancedAdmin(user){
@@ -1479,7 +1141,6 @@ const session = guardPage({
       $('me-role').textContent = 'Super Administrator';
       $('set-email').textContent = user.email || '—';
       $('set-name').textContent = name;
-      $('auth-gate').classList.add('hidden');
       $('app-shell').classList.add('ready');
       hydrateFromCache();
       await loadAll();
@@ -1487,14 +1148,11 @@ const session = guardPage({
     }
 
     async function handleAuthed(user){
-      setAuthLoading(true);
-      showAuthErr('');
       try{
         const ok = await verifyAdvancedAdmin(user);
         if(!ok){
           await signOut(auth);
-          setAuthLoading(false);
-          showAuthErr('Access denied. Advanced Admin privileges required.');
+          goToLogin('unauthorized');
           return;
         }
         state.isAdvancedAdmin = true;
@@ -1502,76 +1160,20 @@ const session = guardPage({
       }catch(err){
         console.error(err);
         await signOut(auth).catch(()=>{});
-        setAuthLoading(false);
-        showAuthErr(err.message || 'Could not verify admin access.');
+        goToLogin('error');
       }
     }
-
-    $('btn-email-login').addEventListener('click', async () => {
-      const email = $('login-email').value.trim();
-      const password = $('login-password').value;
-      if(!email || !password){ showAuthErr('Enter email and password.'); return; }
-      setAuthLoading(true); showAuthErr('');
-      try{
-        await signInWithEmailAndPassword(auth, email, password);
-      }catch(err){
-        setAuthLoading(false);
-        showAuthErr(err.message?.replace('Firebase: ','') || 'Sign-in failed.');
-      }
-    });
-    $('login-password').addEventListener('keydown', e => { if(e.key==='Enter') $('btn-email-login').click(); });
-
-    const _authTips = [
-      "Deep school-wide administration — audit trails, welfare, announcements and portal management, all in one secure place.",
-      "Review the full audit trail across every portal, in real time.",
-      "Manage announcements and keep every linked portal in sync.",
-      "One authorized admin sign-in for full school oversight.",
-      "Track welfare, results and student data from a single control room.",
-    ];
-    let _authTipIdx = 0;
-    function _renderAuthTipDots(){
-      const dotsEl = document.getElementById('asp-tip-dots');
-      if(!dotsEl) return;
-      dotsEl.innerHTML = _authTips.map((_, i)=>`<span class="asp-tip-dot${i===_authTipIdx?' active':''}"></span>`).join('');
-    }
-    function _rotateAuthTip(){
-      const el = document.getElementById('asp-tip-text');
-      if(!el) return;
-      el.classList.add('fading');
-      setTimeout(()=>{
-        _authTipIdx = (_authTipIdx + 1) % _authTips.length;
-        el.textContent = _authTips[_authTipIdx];
-        _renderAuthTipDots();
-        el.classList.remove('fading');
-      }, 350);
-    }
-    _renderAuthTipDots();
-    setInterval(_rotateAuthTip, 4500);
-
-    $('btn-google-login').addEventListener('click', async () => {
-      setAuthLoading(true); showAuthErr('');
-      try{
-        await signInWithPopup(auth, new GoogleAuthProvider());
-      }catch(err){
-        setAuthLoading(false);
-        showAuthErr(err.message?.replace('Firebase: ','') || 'Google sign-in failed.');
-      }
-    });
 
     async function doLogout(){
       await signOut(auth);
-      location.reload();
+      appSession.expireNow(); // clears the session clock and redirects to login.html
     }
     $('logoutBtn').addEventListener('click', doLogout);
     $('set-logout').addEventListener('click', doLogout);
 
     onAuthStateChanged(auth, (user) => {
       if(user) handleAuthed(user);
-      else {
-        $('auth-gate').classList.remove('hidden');
-        $('app-shell').classList.remove('ready');
-        setAuthLoading(false);
-      }
+      else goToLogin('session-expired');
     });
 
     /* ── Navigation / chrome ── */
@@ -2847,7 +2449,6 @@ const session = guardPage({
         if(stuQualityFilter === 'upi' && !isPlaceholder(studentUpi(s))) return false;
         if(stuQualityFilter === 'gender' && !isPlaceholder(s.Gender||s.gender)) return false;
         if(stuQualityFilter === 'grade' && !isPlaceholder(s.Grade||s.grade)) return false;
-        if(_missingPhotoFilterActive && _photoMissingKeys && !_photoMissingKeys.has(studentPhotoKey(s))) return false;
         if(grade && studentGrade(s) !== grade) return false;
         if(gender && studentGender(s) !== gender) return false;
         if(!q) return true;
@@ -2855,101 +2456,6 @@ const session = guardPage({
         return hay.includes(q);
       });
     }
-
-    // ── Missing-photo scan/filter ──
-    let _missingPhotoFilterActive = false;
-    let _photoMissingKeys = null;
-    let _photoScanBusy = false;
-    function studentPhotoKey(s){
-      return String(s['Assessment No'] || s.AssessmentNumber || studentName(s) || '').trim() || s.id;
-    }
-    async function toggleMissingPhotoFilter(){
-      const btn = $('stu-missing-photo-btn');
-      if(!btn || _photoScanBusy) return;
-
-      if(_missingPhotoFilterActive){
-        _missingPhotoFilterActive = false;
-        btn.innerHTML = '📷 Check Photos';
-        btn.style.background = '';
-        btn.style.color = '';
-        btn.style.borderColor = '';
-        state.stuPage = 1;
-        renderStudents();
-        return;
-      }
-
-      if(!_photoMissingKeys){
-        _photoScanBusy = true;
-        const origLabel = btn.innerHTML;
-        btn.innerHTML = '⏳ Scanning…';
-        btn.disabled = true;
-        try{
-          const missing = new Set();
-          const BATCH = 15; // keep concurrent local file lookups modest
-          const list = state.students;
-          for(let i=0;i<list.length;i+=BATCH){
-            const batch = list.slice(i, i+BATCH);
-            await Promise.all(batch.map(async s=>{
-              const has = await _studentHasOwnPhoto(studentName(s), studentGrade(s));
-              if(!has) missing.add(studentPhotoKey(s));
-            }));
-          }
-          _photoMissingKeys = missing;
-        }catch(e){
-          btn.innerHTML = origLabel;
-          btn.disabled = false;
-          _photoScanBusy = false;
-          return;
-        }
-        btn.disabled = false;
-        _photoScanBusy = false;
-      }
-
-      _missingPhotoFilterActive = true;
-      btn.innerHTML = `📷 Missing Photos (${_photoMissingKeys.size})`;
-      btn.style.background = 'var(--orange)';
-      btn.style.color = '#fff';
-      btn.style.borderColor = 'var(--orange)';
-      const dlBtn = $('stu-missing-photo-download-btn');
-      dlBtn.style.display = _photoMissingKeys.size ? '' : 'none';
-      state.stuPage = 1;
-      renderStudents();
-    }
-    $('stu-missing-photo-btn').addEventListener('click', toggleMissingPhotoFilter);
-    $('stu-missing-photo-download-btn').addEventListener('click', () => {
-      if(!_photoMissingKeys || !_photoMissingKeys.size) return;
-      if(!window.jspdf){ toast('PDF library loading — try again in a moment.','warn'); return; }
-      const rows = state.students.filter(s => _photoMissingKeys.has(studentPhotoKey(s)));
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('portrait');
-      const W = doc.internal.pageSize.width;
-
-      // Banner
-      const bannerH = 26;
-      doc.setFillColor(41,128,185); doc.rect(0,0,W,bannerH,'F');
-      doc.setTextColor(255,255,255); doc.setFontSize(14); doc.setFont(undefined,'bold');
-      doc.text('KANYADET PRIMARY & JUNIOR SCHOOL', W/2, 12, {align:'center'});
-      doc.setFontSize(10); doc.setFont(undefined,'normal');
-      doc.text('STUDENTS MISSING A PHOTO ON FILE', W/2, 20, {align:'center'});
-      doc.setTextColor(0,0,0);
-      doc.setFontSize(8);
-      doc.text(`Generated: ${new Date().toLocaleDateString()}  ·  Total: ${rows.length}`, 10, bannerH+8);
-
-      const sorted = [...rows].sort((a,b) => studentGrade(a).localeCompare(studentGrade(b),undefined,{numeric:true}) || studentName(a).localeCompare(studentName(b)));
-      const tableData = sorted.map((s,i) => [i+1, studentName(s), s['Assessment No']||s.AssessmentNumber||'—', studentGrade(s), studentGender(s), studentUpi(s)]);
-      doc.autoTable({
-        head: [['#','Student','Assessment No','Grade','Gender','UPI']],
-        body: tableData,
-        startY: bannerH+13,
-        margin: {left:10,right:10},
-        styles: {fontSize:8, cellPadding:2.5},
-        headStyles: {fillColor:[41,128,185], textColor:[255,255,255]},
-        alternateRowStyles: {fillColor:[245,247,250]}
-      });
-
-      doc.save(`students-missing-photos-${todayISO()}.pdf`);
-      toast(`Downloaded ${rows.length} students missing photos`,'ok');
-    });
 
     function renderStudents(){
       const filtered = filteredStudents();
@@ -2966,7 +2472,7 @@ const session = guardPage({
         const status = String(s.Status || s.status || 'Active');
         const pill = /active/i.test(status) ? 'ok' : 'warn';
         return `<tr data-row-id="${escapeHtml(s.id)}">
-          <td><div class="stu-name-cell">${makePhotoAvatar(studentName(s), studentGrade(s), 'stu-av-sm')}<strong style="color:var(--text)">${escapeHtml(studentName(s))}</strong></div></td>
+          <td><strong style="color:var(--text)">${escapeHtml(studentName(s))}</strong></td>
           <td>${escapeHtml(s['Assessment No'] || s.AssessmentNumber || '—')}</td>
           <td>${escapeHtml(studentGrade(s))}</td>
           <td>${escapeHtml(studentGender(s))}</td>
