@@ -33,12 +33,12 @@
 </script>
 
 
-  <script type="module">
+  <!-- <script type="module">
     // Session management: guardPage() checks for a valid session, and if none exists or it has expired, redirects to login.html. If a valid session exists, it resumes the countdown timer.
   import { guardPage } from './js/session-manager.js';
   import { SESSION_DURATION_MS } from './js/config.js';
   const session = guardPage({ durationMs: SESSION_DURATION_MS }); // resumes the countdown, or redirects to login.html if expired/none
-</script>
+</script> -->
 
 <script>
 // ── Teachers-only Service Worker registration (standalone PWA entry) ──────────────
@@ -300,6 +300,46 @@ a{color:inherit;text-decoration:none;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.9)}}
 .icon-btn{position:relative;width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
 .icon-btn:hover{color:var(--text);border-color:var(--border-strong);}
+.topbar-right{position:relative;}
+
+/* ── Notification Center dropdown ── */
+.notif-pop{position:absolute;top:56px;right:70px;width:330px;max-width:calc(100vw - 24px);max-height:420px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 20px 50px rgba(10,30,60,.25);z-index:1500;display:none;flex-direction:column;}
+.notif-pop.open{display:flex;}
+.notif-pop-hdr{padding:12px 16px;border-bottom:1px solid var(--border);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:space-between;}
+.notif-pop-hdr button{background:none;border:none;color:var(--blue-lt);font-size:11px;font-weight:700;cursor:pointer;}
+.notif-item{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:var(--transition);}
+.notif-item:last-child{border-bottom:none;}
+.notif-item:hover{background:var(--surface2);}
+.notif-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--surface3);}
+.notif-body{flex:1;min-width:0;}
+.notif-title{font-size:12.5px;font-weight:700;line-height:1.4;color:var(--text);}
+.notif-meta{font-size:10.5px;color:var(--text3);margin-top:2px;}
+
+/* ── Global search / command palette ── */
+.cmdk-backdrop{position:fixed;inset:0;z-index:3000;background:rgba(5,12,22,.55);display:none;align-items:flex-start;justify-content:center;padding-top:10vh;backdrop-filter:blur(2px);}
+.cmdk-backdrop.open{display:flex;}
+.cmdk-box{width:100%;max-width:560px;max-height:70vh;background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 30px 90px rgba(0,0,0,.4);border:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;margin:0 12px;}
+.cmdk-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.cmdk-input-wrap span{font-size:16px;opacity:.6;}
+.cmdk-input{flex:1;border:none;outline:none;background:transparent;font-family:inherit;font-size:15px;color:var(--text);}
+.cmdk-input-wrap kbd{font-size:10px;font-weight:700;color:var(--text3);border:1px solid var(--border);padding:2px 6px;border-radius:6px;}
+.cmdk-results{overflow-y:auto;flex:1;padding:6px;}
+.cmdk-group-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:8px 10px 4px;}
+.cmdk-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;}
+.cmdk-item.active,.cmdk-item:hover{background:var(--surface2);}
+.cmdk-item-ico{width:28px;height:28px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.cmdk-item-title{font-size:13px;font-weight:700;color:var(--text);}
+.cmdk-item-sub{font-size:10.5px;color:var(--text3);}
+.cmdk-empty{padding:30px 16px;text-align:center;color:var(--text3);font-size:12.5px;}
+
+/* ── Calendar ── */
+.cal-event{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:10px;background:var(--surface2);}
+.cal-date-badge{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.cal-date-badge .cd-day{font-size:17px;font-weight:900;line-height:1;}
+.cal-date-badge .cd-mon{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.cal-event-body{flex:1;min-width:0;}
+.cal-event-title{font-weight:700;font-size:13px;}
+.cal-event-meta{font-size:11px;color:var(--text2);margin-top:2px;}
 .icon-dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--surface);}
 .content-area{padding:24px clamp(12px,2.5vw,28px);flex:1;min-width:0;box-sizing:border-box;}
 .view{display:none;}
@@ -726,6 +766,7 @@ a{color:inherit;text-decoration:none;}
       <div class="nav-item" data-view="attendance" data-title="Attendance" data-crumb="Mark and review daily attendance"><span class="nav-icon">✅</span>Attendance</div>
       <div class="nav-item" data-view="gradebook" data-title="Gradebook" data-crumb="Recent scores for your classes"><span class="nav-icon">📝</span>Gradebook</div>
       <div class="nav-item" data-view="timetable" data-title="Timetable" data-crumb="Weekly lesson schedule"><span class="nav-icon">🗓️</span>Timetable</div>
+      <div class="nav-item" data-view="calendar" data-title="School Calendar" data-crumb="Term dates, exams &amp; events"><span class="nav-icon">📅</span>Calendar<span class="nav-badge" id="badge-cal" style="display:none;">0</span></div>
 
       <div class="s-label" style="margin-top:14px;">Connect</div>
       <div class="nav-item" data-view="messages" data-title="Messages" data-crumb="Chat with staff"><span class="nav-icon">💬</span>Messages<span class="nav-badge red" id="badge-messages" style="display:none;">0</span></div>
@@ -744,7 +785,10 @@ a{color:inherit;text-decoration:none;}
     <div class="sidebar-footer">
       <div class="me-av" id="me-av">TC</div>
       <div class="me-info"><div class="m-name" id="me-name">Loading…</div><div class="m-role" id="me-role">Teacher</div></div>
-      <button class="logout-btn" id="logout-btn" title="Sign out">⏻</button>
+      <button class="logout-btn" id="logout-btn" title="Sign out"> 
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+<!-- ⏻ -->
+      </button>
     </div>
   </aside>
 
@@ -759,7 +803,12 @@ a{color:inherit;text-decoration:none;}
       </div>
       <div class="topbar-right">
         <div class="status-dot" title="Live"></div>
-        <button class="icon-btn" id="ann-bell-btn" title="Announcements">🔔<span class="icon-dot" id="ann-dot" style="display:none;"></span></button>
+        <button class="icon-btn" id="cmdk-btn" title="Search everything (Ctrl+K)">🔍</button>
+        <button class="icon-btn" id="ann-bell-btn" title="Notifications">🔔<span class="icon-dot" id="ann-dot" style="display:none;"></span></button>
+        <div class="notif-pop" id="notif-pop">
+          <div class="notif-pop-hdr"><span>Notifications</span><button id="notif-pop-viewall">View all</button></div>
+          <div id="notif-pop-list"></div>
+        </div>
         <button class="icon-btn" id="msg-bell-btn" title="Messages">💬<span class="icon-dot" id="msg-dot" style="display:none;"></span></button>
         <button class="theme-toggle" id="theme-toggle-btn"><span class="theme-icon moon">🌙</span><span class="theme-icon sun">☀️</span></button>
       </div>
@@ -773,6 +822,17 @@ a{color:inherit;text-decoration:none;}
 
 <div id="toast-stack"></div>
 <div class="modal-overlay" id="modal-overlay"><div class="modal-box" id="modal-box"></div></div>
+
+<div class="cmdk-backdrop" id="cmdk-backdrop">
+  <div class="cmdk-box">
+    <div class="cmdk-input-wrap">
+      <span>🔍</span>
+      <input class="cmdk-input" id="cmdk-input" placeholder="Search sections, my students…" autocomplete="off" />
+      <kbd>Esc</kbd>
+    </div>
+    <div class="cmdk-results" id="cmdk-results"></div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -826,6 +886,7 @@ window._gShort = gShortJS;
 
 const DB_STUDENTS_PATH = PATHS.RESULTS_PATH;
 const ANNOUNCEMENTS_PATH = PATHS.ANNOUNCEMENTS_PATH;
+const CALENDAR_PATH = PATHS.CALENDAR_PATH;         // schoolCalendar/{key} = {title,date,type,notes,createdAt,createdBy}
 const ATTENDANCE_PATH = PATHS.ATTENDANCE_PATH;        // attendance/{grade}/{yyyy-mm-dd} = {studentKey:'present'|'absent'|'late', ...}
 const TIMETABLE_PATH  = PATHS.TIMETABLE_PATH;        // timetables/{grade} = {mon:[...],tue:[...]...}  (legacy per-grade view)
 const RESOURCES_PATH  = PATHS.RESOURCES_PATH;         // Firestore collection
@@ -910,7 +971,7 @@ window._KTP = { app, auth, fs, rtdb, ref, onValue, push, rtSet, rtUpdate, rtRemo
   orderByChild, limitToLast, rtServerTimestamp, rtGet, doc, getDoc, setDoc, updateDoc, collection,
   getDocs, onSnapshot, query, where, orderBy, fsLimit, fsServerTimestamp, sendPasswordResetEmail,
   DB_STUDENTS_PATH, ANNOUNCEMENTS_PATH, ATTENDANCE_PATH, TIMETABLE_PATH, RESOURCES_PATH, LEAVE_PATH, WELFARE_PATH,
-  TEACHER_TT_PATH, TT_SECTIONS, ttKey, guessTtSection
+  TEACHER_TT_PATH, TT_SECTIONS, ttKey, guessTtSection, CALENDAR_PATH
 };
 
 /* ══════════════════════════════════════════
@@ -1261,7 +1322,23 @@ document.querySelectorAll('.nav-item[data-view]').forEach(n=>{
 document.getElementById('burger-btn').addEventListener('click', ()=>{
   document.getElementById('sidebar').classList.toggle('open');
 });
-document.getElementById('ann-bell-btn').addEventListener('click', ()=>navTo('announcements'));
+document.getElementById('ann-bell-btn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  const pop = document.getElementById('notif-pop');
+  const opening = !pop.classList.contains('open');
+  pop.classList.toggle('open', opening);
+  if(opening) renderNotifPop();
+});
+document.addEventListener('click', (e)=>{
+  const pop = document.getElementById('notif-pop');
+  if(pop.classList.contains('open') && !pop.contains(e.target) && e.target.id!=='ann-bell-btn'){
+    pop.classList.remove('open');
+  }
+});
+document.getElementById('notif-pop-viewall').addEventListener('click', ()=>{
+  document.getElementById('notif-pop').classList.remove('open');
+  navTo('announcements');
+});
 document.getElementById('msg-bell-btn').addEventListener('click', ()=>navTo('messages'));
 
 /* ══════════════════════════════════════════
@@ -2820,6 +2897,11 @@ VR4['settings'] = async function(area){
         <button class="btn btn-outline btn-sm" onclick="_navTo('profile')">Go to Profile →</button>
       </div>
       <div class="card">
+        <div class="card-hdr"><div class="card-title">Export My Data</div></div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Download your profile, assigned classes, and timetable as a JSON file for your own records.</div>
+        <button class="btn btn-blue btn-sm" id="export-my-data-btn">⬇️ Download My Data</button>
+      </div>
+      <div class="card">
         <div class="card-hdr"><div class="card-title">Sign Out</div></div>
         <button class="btn btn-red btn-sm" onclick="document.getElementById('logout-btn').click()">⏻ Sign Out</button>
       </div>
@@ -2828,7 +2910,327 @@ VR4['settings'] = async function(area){
     document.getElementById('theme-toggle-btn').click();
     VR4['settings'](area);
   });
+  document.getElementById('export-my-data-btn').addEventListener('click', async ()=>{
+    try{
+      const grades = myGrades();
+      let roster = [];
+      try{
+        const snap = await rtGet(ref(rtdb, DB_STUDENTS_PATH));
+        if(snap.exists()){
+          const all = snap.val();
+          Object.values(all||{}).forEach(rec=>{
+            if(grades.length && !grades.includes(gShortJS(rec.Grade||rec.grade))) return;
+            roster.push(rec);
+          });
+        }
+      }catch(e){}
+      let timetable = null;
+      try{
+        const section = guessTtSection(grades);
+        const ttSnap = await rtGet(ref(rtdb, `${TEACHER_TT_PATH}/${section}/${ttKey(p.name||'')}`));
+        timetable = ttSnap.exists() ? ttSnap.val() : null;
+      }catch(e){}
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        profile: p,
+        assignedGrades: grades,
+        classRoster: roster,
+        timetable
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${(p.name||'teacher').replace(/\s+/g,'_')}-data-${todayStr()}.json`;
+      a.click();
+      toast('Your data was downloaded.', 'success');
+    }catch(err){ toast('Export failed: '+err.message, 'error'); }
+  });
 };
+
+/* ══════════════════════════════════════════
+   CALENDAR — reads the same schoolCalendar RTDB path the
+   Admin Portal writes to, so term dates/exams/meetings the
+   admin adds there show up here automatically. Teachers can
+   view and search; only admins can add or delete entries.
+══════════════════════════════════════════ */
+const CAL_TYPE_META = {
+  exam:     { icon:'📝', color:'var(--purple)', label:'Exam' },
+  holiday:  { icon:'🏖️', color:'var(--green)',  label:'Holiday' },
+  meeting:  { icon:'🗣️', color:'var(--blue)',   label:'Meeting' },
+  deadline: { icon:'⏰', color:'var(--red)',    label:'Deadline' },
+  event:    { icon:'📌', color:'var(--orange)', label:'Event' }
+};
+let _calCache = [];
+function upcomingCalEvents(days){
+  const now = new Date(); now.setHours(0,0,0,0);
+  const cutoff = days ? new Date(now.getTime() + days*86400000) : null;
+  return _calCache.filter(ev=>{
+    if(!ev.date) return false;
+    const d = new Date(ev.date+'T00:00:00');
+    if(isNaN(d) || d < now) return false;
+    if(cutoff && d > cutoff) return false;
+    return true;
+  });
+}
+VIEW_RENDERERS['calendar'] = async function(area){
+  const admin = isAdmin();
+  area.innerHTML = `
+    <div class="sec-hdr"><h2>School Calendar &amp; Events</h2>
+      ${admin ? `<button class="btn btn-blue btn-sm" id="cal-new-btn">+ New Event</button>` : ''}
+    </div>
+    ${admin ? `<div class="card" id="cal-form" style="display:none;">
+      <div class="card-hdr"><div class="card-title">New Event</div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+        <div class="f-group"><label class="f-label">Title</label><input class="f-input" id="cal-title" placeholder="e.g. Mid-Term Exams"></div>
+        <div class="f-group"><label class="f-label">Date</label><input class="f-input" id="cal-date" type="date"></div>
+        <div class="f-group"><label class="f-label">Type</label>
+          <select class="f-select" id="cal-type">
+            <option value="exam">Exam</option><option value="holiday">Holiday</option>
+            <option value="meeting">Meeting</option><option value="deadline">Deadline</option>
+            <option value="event">General Event</option>
+          </select>
+        </div>
+        <div class="f-group" style="grid-column:1/-1"><label class="f-label">Notes (optional)</label><input class="f-input" id="cal-notes"></div>
+      </div>
+      <div class="actions-row" style="margin-top:12px;">
+        <button class="btn btn-green btn-sm" id="cal-submit">Save Event</button>
+        <button class="btn btn-outline btn-sm" id="cal-cancel">Cancel</button>
+      </div>
+    </div>` : ''}
+    <div class="card">
+      <div class="actions-row" style="margin-bottom:14px;">
+        <input class="f-input" id="cal-search" placeholder="Search events…" style="max-width:240px;">
+        <select class="f-select" id="cal-type-filter" style="max-width:180px;">
+          <option value="">All Types</option>
+          <option value="exam">Exam</option><option value="holiday">Holiday</option>
+          <option value="meeting">Meeting</option><option value="deadline">Deadline</option>
+          <option value="event">General Event</option>
+        </select>
+      </div>
+      <div id="cal-list"><div class="empty-state"><div class="es-icon">⏳</div></div></div>
+    </div>`;
+  document.getElementById('badge-cal').style.display = 'none';
+
+  function draw(){
+    const q = (document.getElementById('cal-search').value||'').toLowerCase().trim();
+    const type = document.getElementById('cal-type-filter').value;
+    const rows = _calCache.filter(ev=>{
+      if(type && ev.type !== type) return false;
+      if(!q) return true;
+      return String(ev.title||'').toLowerCase().includes(q) || String(ev.notes||'').toLowerCase().includes(q);
+    });
+    const list = document.getElementById('cal-list');
+    if(!rows.length){ list.innerHTML = '<div class="empty-state"><div class="es-icon">📅</div><div class="es-sub">No events found.</div></div>'; return; }
+    list.innerHTML = rows.map(ev=>{
+      const meta = CAL_TYPE_META[ev.type] || CAL_TYPE_META.event;
+      const d = new Date(ev.date+'T00:00:00');
+      return `<div class="cal-event">
+        <div class="cal-date-badge" style="background:${meta.color}">
+          <div class="cd-day">${isNaN(d)?'—':d.getDate()}</div>
+          <div class="cd-mon">${isNaN(d)?'':d.toLocaleDateString('en-KE',{month:'short'})}</div>
+        </div>
+        <div class="cal-event-body">
+          <div class="cal-event-title">${meta.icon} ${esc(ev.title||'Untitled')} <span class="badge badge-blue">${meta.label}</span></div>
+          <div class="cal-event-meta">${esc(ev.date||'')}${ev.notes?' · '+esc(ev.notes):''}</div>
+        </div>
+        ${admin ? `<button class="btn btn-xs btn-red" data-del-cal="${ev.key}">Delete</button>` : ''}
+      </div>`;
+    }).join('');
+    list.querySelectorAll('[data-del-cal]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const r = await Swal.fire({title:'Delete this event?', icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c', background:'var(--surface)', color:'var(--text)'});
+        if(!r.isConfirmed) return;
+        try{ await rtRemove(ref(rtdb, `${CALENDAR_PATH}/${btn.dataset.delCal}`)); toast('Event deleted.', 'success'); }
+        catch(e){ toast('Could not delete: '+e.message, 'error'); }
+      });
+    });
+  }
+  const unsub = onValue(ref(rtdb, CALENDAR_PATH), (snap)=>{
+    const items = [];
+    if(snap.exists()) snap.forEach(c=>{ items.push({key:c.key, ...c.val()}); });
+    items.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+    _calCache = items;
+    document.getElementById('badge-cal').style.display = 'none';
+    draw();
+  });
+  document.getElementById('cal-search').addEventListener('input', draw);
+  document.getElementById('cal-type-filter').addEventListener('change', draw);
+  if(admin){
+    document.getElementById('cal-new-btn').addEventListener('click', ()=>{
+      document.getElementById('cal-form').style.display = 'block';
+    });
+    document.getElementById('cal-cancel').addEventListener('click', ()=>{
+      document.getElementById('cal-form').style.display = 'none';
+    });
+    document.getElementById('cal-submit').addEventListener('click', async ()=>{
+      const title = document.getElementById('cal-title').value.trim();
+      const date = document.getElementById('cal-date').value;
+      const type = document.getElementById('cal-type').value;
+      const notes = document.getElementById('cal-notes').value.trim();
+      if(!title || !date){ toast('Title and date are required.', 'warning'); return; }
+      try{
+        await rtSet(push(ref(rtdb, CALENDAR_PATH)), { title, date, type, notes, createdAt: Date.now(), createdBy: (window._profile||{}).name || window._currentUser.email });
+        ['cal-title','cal-date','cal-notes'].forEach(id=>document.getElementById(id).value='');
+        document.getElementById('cal-form').style.display = 'none';
+        toast('Event added.', 'success');
+      }catch(e){ toast('Could not save: '+e.message, 'error'); }
+    });
+  }
+  return function cleanup(){ unsub && unsub(); };
+};
+// Keep a lightweight background listener so the sidebar badge and the
+// notification center have upcoming-event data even before the Calendar
+// view has ever been opened.
+onValue(ref(rtdb, CALENDAR_PATH), (snap)=>{
+  const items = [];
+  if(snap.exists()) snap.forEach(c=>{ items.push({key:c.key, ...c.val()}); });
+  items.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+  _calCache = items;
+  const badge = document.getElementById('badge-cal');
+  const upcoming7 = upcomingCalEvents(7).length;
+  if(badge){ badge.textContent = String(upcoming7); badge.style.display = upcoming7 ? '' : 'none'; }
+});
+
+/* ══════════════════════════════════════════
+   NOTIFICATION CENTER
+══════════════════════════════════════════ */
+async function renderNotifPop(){
+  const box = document.getElementById('notif-pop-list');
+  box.innerHTML = '<div class="empty-state" style="padding:20px 12px;"><div class="es-icon">⏳</div></div>';
+  const items = [];
+  const myUidN = (window._currentUser||{}).uid;
+  const adminN = isAdmin();
+  try{
+    const snap = await rtGet(ref(rtdb, ANNOUNCEMENTS_PATH));
+    if(snap.exists()){
+      const list = [];
+      snap.forEach(c=>{ list.push({id:c.key, ...c.val()}); });
+      list.filter(a=>!a.targetUid || a.targetUid===myUidN || adminN)
+        .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,4)
+        .forEach(a=>items.push({ icon:'📢', title: a.title||'Untitled announcement', meta:`Announcement · ${timeAgo(a.createdAt)}`, view:'announcements' }));
+    }
+  }catch(e){}
+  upcomingCalEvents(7).slice(0,4).forEach(ev=>{
+    const meta = CAL_TYPE_META[ev.type] || CAL_TYPE_META.event;
+    items.push({ icon: meta.icon, title:`${ev.title} — ${ev.date}`, meta:`Calendar · ${meta.label}`, view:'calendar' });
+  });
+  if(!items.length){
+    box.innerHTML = '<div class="empty-state" style="padding:24px 12px;"><div class="es-icon">🔔</div><div class="es-sub">All caught up.</div></div>';
+    return;
+  }
+  box.innerHTML = items.slice(0,10).map(it=>`
+    <div class="notif-item" data-notif-goto="${it.view}">
+      <div class="notif-ico">${it.icon}</div>
+      <div class="notif-body"><div class="notif-title">${esc(it.title)}</div><div class="notif-meta">${esc(it.meta)}</div></div>
+    </div>`).join('');
+  box.querySelectorAll('[data-notif-goto]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      document.getElementById('notif-pop').classList.remove('open');
+      navTo(el.dataset.notifGoto);
+    });
+  });
+}
+
+/* ══════════════════════════════════════════
+   GLOBAL SEARCH / COMMAND PALETTE (Ctrl+K)
+══════════════════════════════════════════ */
+function cmdkNavIcon(id){
+  const map = { dashboard:'📊', profile:'👤', classes:'🏷️', attendance:'✅', gradebook:'📝', timetable:'🗓️', calendar:'📅', messages:'💬', announcements:'📢', resources:'📚', leave:'🌴', welfare:'🤝', settings:'⚙️' };
+  return map[id] || '•';
+}
+let cmdkFlatItems = [];
+let cmdkActiveIndex = 0;
+let _cmdkRosterCache = null;
+async function cmdkLoadRoster(){
+  if(_cmdkRosterCache) return _cmdkRosterCache;
+  try{
+    const grades = myGrades();
+    const lists = await Promise.all(grades.map(g=>fetchRoster(g).then(r=>r.map(s=>({...s, grade:g})))));
+    _cmdkRosterCache = lists.flat();
+  }catch(e){ _cmdkRosterCache = []; }
+  return _cmdkRosterCache;
+}
+function cmdkBuildResults(q){
+  q = (q||'').trim().toLowerCase();
+  const sections = Array.from(document.querySelectorAll('.nav-item[data-view]')).map(n=>({
+    id: n.dataset.view, title: n.dataset.title || n.dataset.view, sub: n.dataset.crumb || ''
+  }));
+  const groups = [];
+  if(!q){
+    groups.push({ label:'Jump to', items: sections.map(s=>({ icon:cmdkNavIcon(s.id), title:s.title, sub:s.sub, action:()=>navTo(s.id) })) });
+    return groups;
+  }
+  const secMatches = sections.filter(s=>s.title.toLowerCase().includes(q));
+  if(secMatches.length) groups.push({ label:'Sections', items: secMatches.map(s=>({ icon:cmdkNavIcon(s.id), title:s.title, sub:s.sub, action:()=>navTo(s.id) })) });
+  const stuMatches = (_cmdkRosterCache || []).filter(s=>
+    String(s.name||'').toLowerCase().includes(q) || String(s.assessmentNo||'').toLowerCase().includes(q)
+  ).slice(0,6);
+  if(stuMatches.length){
+    groups.push({ label:'My Students', items: stuMatches.map(s=>({
+      icon:'🎓', title: s.name||'Unnamed', sub: s.grade||'',
+      action:()=>navTo('classes')
+    })) });
+  }
+  return groups;
+}
+function cmdkRender(){
+  const groups = cmdkBuildResults(document.getElementById('cmdk-input').value);
+  cmdkFlatItems = [];
+  groups.forEach(g=>g.items.forEach(it=>cmdkFlatItems.push(it)));
+  cmdkActiveIndex = 0;
+  const box = document.getElementById('cmdk-results');
+  if(!cmdkFlatItems.length){ box.innerHTML = '<div class="cmdk-empty">No matches — try a different keyword.</div>'; return; }
+  let i = 0;
+  box.innerHTML = groups.map(g=>`
+    <div class="cmdk-group-label">${esc(g.label)}</div>
+    ${g.items.map(it=>{
+      const idx = i++;
+      return `<div class="cmdk-item${idx===0?' active':''}" data-cmdk-idx="${idx}">
+        <div class="cmdk-item-ico">${it.icon}</div>
+        <div><div class="cmdk-item-title">${esc(it.title)}</div><div class="cmdk-item-sub">${esc(it.sub||'')}</div></div>
+      </div>`;
+    }).join('')}
+  `).join('');
+  box.querySelectorAll('[data-cmdk-idx]').forEach(el=>{
+    el.addEventListener('click', ()=>cmdkSelect(Number(el.dataset.cmdkIdx)));
+  });
+}
+function cmdkSetActive(idx){
+  cmdkActiveIndex = Math.max(0, Math.min(idx, cmdkFlatItems.length-1));
+  document.getElementById('cmdk-results').querySelectorAll('.cmdk-item').forEach(el=>{
+    el.classList.toggle('active', Number(el.dataset.cmdkIdx)===cmdkActiveIndex);
+  });
+  document.getElementById('cmdk-results').querySelector('.cmdk-item.active')?.scrollIntoView({block:'nearest'});
+}
+function cmdkSelect(idx){
+  const item = cmdkFlatItems[idx];
+  if(!item) return;
+  cmdkClose();
+  item.action();
+}
+function cmdkOpen(){
+  document.getElementById('cmdk-backdrop').classList.add('open');
+  document.getElementById('cmdk-input').value = '';
+  cmdkRender();
+  setTimeout(()=>document.getElementById('cmdk-input').focus(), 30);
+  cmdkLoadRoster().then(()=>{ if(document.getElementById('cmdk-backdrop').classList.contains('open')) cmdkRender(); });
+}
+function cmdkClose(){ document.getElementById('cmdk-backdrop').classList.remove('open'); }
+document.getElementById('cmdk-btn').addEventListener('click', cmdkOpen);
+document.getElementById('cmdk-backdrop').addEventListener('click', (e)=>{ if(e.target.id==='cmdk-backdrop') cmdkClose(); });
+document.getElementById('cmdk-input').addEventListener('input', cmdkRender);
+document.getElementById('cmdk-input').addEventListener('keydown', (e)=>{
+  if(e.key==='ArrowDown'){ e.preventDefault(); cmdkSetActive(cmdkActiveIndex+1); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); cmdkSetActive(cmdkActiveIndex-1); }
+  else if(e.key==='Enter'){ e.preventDefault(); cmdkSelect(cmdkActiveIndex); }
+  else if(e.key==='Escape'){ cmdkClose(); }
+});
+document.addEventListener('keydown', (e)=>{
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){
+    e.preventDefault();
+    document.getElementById('cmdk-backdrop').classList.contains('open') ? cmdkClose() : cmdkOpen();
+  }
+});
 
 // Boot into dashboard once auth/profile is ready.
 window.addEventListener('ktp:ready', ()=>{ window._navTo('dashboard'); });

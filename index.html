@@ -18,30 +18,6 @@
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-<!-- <script type="module">
-  import { SessionManager } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
-
-  // Example: after Firebase Auth login success
-  async function handleLogin(email, password) {
-    try {
-      const userCred = await firebase.auth().signInWithEmailAndPassword(email, password);
-      
-      // ✅ Start session here
-      const session = new SessionManager({
-        onExpire: () => location.href = 'login.html?reason=session-expired'
-      });
-      session.start();
-
-      // Redirect to a protected page
-      window.location.href = 'index.html';
-    } catch (err) {
-      console.error('Login failed:', err);
-      alert('Invalid credentials');
-    }
-  }
-</script> -->
-
-
   <style>
 
     :root {
@@ -200,6 +176,47 @@
     .icon-btn:hover{color:var(--text);border-color:var(--border-strong)}
     .icon-dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--surface);display:none}
     .icon-dot.show{display:block}
+
+    /* ── Notification Center dropdown ── */
+    .notif-pop{position:absolute;top:56px;right:20px;width:340px;max-width:calc(100vw - 24px);max-height:420px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 20px 50px rgba(10,30,60,.25);z-index:1500;display:none;flex-direction:column}
+    .notif-pop.open{display:flex}
+    .notif-pop-hdr{padding:12px 16px;border-bottom:1px solid var(--border);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:space-between}
+    .notif-pop-hdr button{background:none;border:none;color:var(--blue-lt);font-size:11px;font-weight:700;cursor:pointer}
+    .notif-item{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:var(--transition)}
+    .notif-item:last-child{border-bottom:none}
+    .notif-item:hover{background:var(--surface2)}
+    .notif-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--surface3)}
+    .notif-body{flex:1;min-width:0}
+    .notif-title{font-size:12.5px;font-weight:700;line-height:1.4;color:var(--text)}
+    .notif-meta{font-size:10.5px;color:var(--text3);margin-top:2px}
+
+    /* ── Global search / command palette ── */
+    .cmdk-backdrop{position:fixed;inset:0;z-index:3000;background:rgba(5,12,22,.55);display:none;align-items:flex-start;justify-content:center;padding-top:10vh;backdrop-filter:blur(2px)}
+    .cmdk-backdrop.open{display:flex}
+    .cmdk-box{width:100%;max-width:560px;max-height:70vh;background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 30px 90px rgba(0,0,0,.4);border:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;margin:0 12px}
+    .cmdk-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .cmdk-input-wrap span{font-size:16px;opacity:.6}
+    .cmdk-input{flex:1;border:none;outline:none;background:transparent;font-family:inherit;font-size:15px;color:var(--text)}
+    .cmdk-input-wrap kbd{font-size:10px;font-weight:700;color:var(--text3);border:1px solid var(--border);padding:2px 6px;border-radius:6px}
+    .cmdk-results{overflow-y:auto;flex:1;padding:6px}
+    .cmdk-group-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:8px 10px 4px}
+    .cmdk-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer}
+    .cmdk-item.active,.cmdk-item:hover{background:var(--surface2)}
+    .cmdk-item-ico{width:28px;height:28px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+    .cmdk-item-title{font-size:13px;font-weight:700;color:var(--text)}
+    .cmdk-item-sub{font-size:10.5px;color:var(--text3)}
+    .cmdk-empty{padding:30px 16px;text-align:center;color:var(--text3);font-size:12.5px}
+
+    /* ── Calendar ── */
+    .cal-event{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:10px;background:var(--surface2)}
+    .cal-date-badge{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+    .cal-date-badge .cd-day{font-size:17px;font-weight:900;line-height:1}
+    .cal-date-badge .cd-mon{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+    .cal-event-body{flex:1;min-width:0}
+    .cal-event-title{font-weight:700;font-size:13px}
+    .cal-event-meta{font-size:11px;color:var(--text2);margin-top:2px}
+    .cal-upcoming-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+    .cal-upcoming-row:last-child{border-bottom:none}
 
     .content-area{padding:24px clamp(12px,2.5vw,28px);flex:1;min-width:0}
     .view{display:none}
@@ -482,31 +499,11 @@
     Install App
   </button>
       <h1>Administrator Portal</h1>
-      <p class="auth-sub">Advanced Admin Portal — sign in to continue</p>
+      <p class="auth-sub">Advanced Admin Portal</p>
       <div class="auth-err" id="auth-err"></div>
-      <div id="auth-loading" style="display:none">
+      <div id="auth-loading">
         <div class="boot-spinner"></div>
-                    <p style="text-align:center;font-size:12px;color:var(--text2);margin-top:8px">Verifying access…</p>
-      </div>
-      <div id="auth-form">
-        <div class="auth-field">
-          <label for="login-email">Email</label>
-          <input type="email" id="login-email" autocomplete="username" />
-        </div>
-        <div class="auth-field">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" autocomplete="current-password" />
-        </div>
-        <button class="auth-btn auth-btn-primary" id="btn-email-login">Sign In</button>
-        <div class="auth-divider">or</div>
-        <button class="auth-btn auth-btn-google" id="btn-google-login">
-          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-          Continue with Google
-        </button>
-        <div class="auth-links">
-          <a href="https://kanyadet-school-parents.web.app/">Parents Portal</a> ·
-          <a href="https://kanyadet-school-portal.web.app">Teachers Portal </a>
-        </div>
+        <p style="text-align:center;font-size:12px;color:var(--text2);margin-top:8px" id="auth-loading-text">Verifying access…</p>
       </div>
     </div>
     </div>
@@ -543,6 +540,7 @@
         <div class="s-label">Operations</div>
         <div class="nav-item" data-view="audit"><span class="nav-icon">🛡️</span>Audit Trail <span class="nav-badge red" id="nav-audit">Live</span></div>
         <div class="nav-item" data-view="messages"><span class="nav-icon">📢</span>Announcements <span class="nav-badge orange" id="nav-ann">0</span></div>
+        <div class="nav-item" data-view="calendar"><span class="nav-icon">🗓️</span>Calendar <span class="nav-badge" id="nav-cal">0</span></div>
         <div class="nav-item" data-view="portals"><span class="nav-icon">🔗</span>Linked Portals</div>
       </div>
 
@@ -552,7 +550,10 @@
           <div class="m-name" id="me-name">Admin</div>
           <div class="m-role" id="me-role">Super Administrator</div>
         </div>
-        <button class="logout-btn" id="logoutBtn" title="Logout">⎋</button>
+        <button class="logout-btn" id="logoutBtn" title="Logout">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+
+        </button>
       </div>
     </aside>
 
@@ -565,13 +566,18 @@
             <div class="page-crumb" id="pageCrumb">School command center</div>
           </div>
         </div>
-        <div class="topbar-right">
+        <div class="topbar-right" style="position:relative;">
           <span id="countdown" class="pill blue" title="Session time remaining"></span>
+          <button class="icon-btn" id="cmdkBtn" title="Search everything (Ctrl+K)">🔍</button>
           <div class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
             <span class="theme-icon moon">🌙</span>
             <span class="theme-icon sun">☀️</span>
           </div>
           <button class="icon-btn" id="notifBtn" title="Notifications">🔔<span class="icon-dot" id="notifDot"></span></button>
+          <div class="notif-pop" id="notifPop">
+            <div class="notif-pop-hdr"><span>Notifications</span><button id="notifPopViewAll">View all</button></div>
+            <div id="notifPopList"></div>
+          </div>
           <button class="btn btn-outline btn-sm" id="refreshBtn">🔄 Refresh</button>
           <div class="status-dot" title="System online"></div>
         </div>
@@ -642,6 +648,11 @@
               <div class="quick-tile" data-href=/Results/Results-portal.html"><div class="qt-icon">📋</div><div class="qt-label">Results Portal</div><div class="qt-desc">Grades & reports</div></div>
               <div class="quick-tile" data-goto="welfare"><div class="qt-icon">🍽️</div><div class="qt-label">Welfare</div><div class="qt-desc">Lunch contributions</div></div>
             </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Upcoming Events <button class="btn btn-outline btn-xs" data-goto="calendar">Open calendar</button></div>
+            <div id="dash-upcoming-events"><div class="empty-state"><div class="es-title">Loading…</div></div></div>
           </div>
 
           <div class="panel">
@@ -965,6 +976,15 @@
             </div>
           </div>
           <div class="panel">
+            <div class="panel-title">Data Backup &amp; Export</div>
+            <div class="muted" style="margin-bottom:12px;">Download a full snapshot of live portal data (students, teachers, results, attendance, welfare, announcements, calendar, audit log) as a single JSON file — useful before major changes or for offline safekeeping.</div>
+            <div class="actions-row">
+              <button class="btn btn-blue btn-sm" id="backup-export-btn">⬇️ Download Full Backup (JSON)</button>
+            </div>
+            <div class="muted" id="backup-status" style="margin-top:10px;font-size:11px;"></div>
+          </div>
+
+          <div class="panel">
             <div class="panel-title">Admin Modules</div>
             <div class="quick-grid">
               <div class="quick-tile" data-admin-panel="panel-roles"><div class="qt-icon">🔐</div><div class="qt-label">Role Management</div><div class="qt-desc">Grant Advanced Admin</div></div>
@@ -1093,6 +1113,56 @@
         </section>
 
         <!-- PORTALS -->
+        <!-- CALENDAR -->
+        <section class="view" id="calendar">
+          <div class="sec-hdr">
+            <div>
+              <h2>School Calendar &amp; Events</h2>
+              <div class="sec-sub">Term dates, exams, meetings, and holidays — visible school-wide.</div>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-blue btn-sm" id="cal-new-btn">+ New Event</button>
+            </div>
+          </div>
+
+          <div class="panel" id="cal-form" style="display:none">
+            <div class="panel-title">New Event</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+              <div class="field-group"><label>Title</label><input class="field-input" id="cal-title" placeholder="e.g. Mid-Term Exams"></div>
+              <div class="field-group"><label>Date</label><input class="field-input" id="cal-date" type="date"></div>
+              <div class="field-group"><label>Type</label>
+                <select class="sel" id="cal-type" style="width:100%">
+                  <option value="exam">Exam</option>
+                  <option value="holiday">Holiday</option>
+                  <option value="meeting">Meeting</option>
+                  <option value="deadline">Deadline</option>
+                  <option value="event">General Event</option>
+                </select>
+              </div>
+              <div class="field-group" style="grid-column:1/-1"><label>Notes (optional)</label><input class="field-input" id="cal-notes" placeholder="Extra detail shown in the event card"></div>
+            </div>
+            <div class="actions-row" style="margin-top:12px">
+              <button class="btn btn-green btn-sm" id="cal-submit">Save Event</button>
+              <button class="btn btn-outline btn-sm" id="cal-cancel">Cancel</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="toolbar">
+              <input class="search-input" id="cal-search" placeholder="Search events…" />
+              <select class="sel" id="cal-type-filter">
+                <option value="">All Types</option>
+                <option value="exam">Exam</option>
+                <option value="holiday">Holiday</option>
+                <option value="meeting">Meeting</option>
+                <option value="deadline">Deadline</option>
+                <option value="event">General Event</option>
+              </select>
+            </div>
+            <div id="cal-list"></div>
+          </div>
+        </section>
+
         <section class="view" id="portals">
           <div class="sec-hdr">
             <div>
@@ -1115,6 +1185,17 @@
     </main>
   </div>
 
+  <div class="cmdk-backdrop" id="cmdkBackdrop">
+    <div class="cmdk-box">
+      <div class="cmdk-input-wrap">
+        <span>🔍</span>
+        <input class="cmdk-input" id="cmdkInput" placeholder="Search students, teachers, sections…" autocomplete="off" />
+        <kbd>Esc</kbd>
+      </div>
+      <div class="cmdk-results" id="cmdkResults"></div>
+    </div>
+  </div>
+
   <div class="dmodal-backdrop" id="dmodal-backdrop">
     <div class="dmodal">
       <div class="dmodal-hdr">
@@ -1128,9 +1209,11 @@
 
   <script type="module">
     import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getDatabase, ref, get, set, push, update, remove, onValue, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { SessionManager } from './js/session-manager.js';
+    // import { SessionManager } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
 
     import { FIREBASE_CONFIG, APP_ID, PATHS } from './js/config.js';
 
@@ -1143,11 +1226,29 @@
     const ATTENDANCE_PATH = PATHS.ATTENDANCE_PATH;
     const LUNCH_PATH = PATHS.LUNCH_PATH;
     const QE_ACTIVE_PATH = PATHS.QE_ACTIVE_PATH;
+    const CALENDAR_PATH = PATHS.CALENDAR_PATH;
 
     const app = initializeApp(FB_CONFIG);
     const auth = getAuth(app);
     const db = getDatabase(app);
     const fst = getFirestore(app);
+
+    /* ── Session guard — this page is protected; login only happens on
+       login.html, which calls session.start(). Here we just resume the
+       existing countdown (or bounce to login.html if there isn't one). ── */
+    const session = new SessionManager({
+      onExpire: () => { signOut(auth).catch(()=>{}); location.href = 'login.html?reason=session-expired'; },
+      onTick: (ms) => {
+        const el = document.getElementById('countdown');
+        if (el) el.textContent = Math.ceil(ms / 1000) + 's';
+      }
+    });
+    if (!session.resume() && !session._expired) {
+      // Never had a session at all (as opposed to one that just expired,
+      // which resume() already redirected for via onExpire above).
+      signOut(auth).catch(()=>{});
+      location.href = 'login.html?reason=session-expired';
+    }
 
     const state = {
       user: null,
@@ -1169,7 +1270,8 @@
       auditPage: 1,
       enrollChart: null,
       welDonut: null,
-      welHistChart: null
+      welHistChart: null,
+      calendarEvents: []
     };
 
     const VIEW_META = {
@@ -1182,6 +1284,7 @@
       settings: ['Settings', 'Portal preferences'],
       audit: ['Audit Trail', 'System activity log'],
       messages: ['Announcements', 'School-wide broadcasts'],
+      calendar: ['Calendar', 'Term dates, exams & school events'],
       portals: ['Linked Portals', 'Jump to specialized tools']
     };
 
@@ -1442,9 +1545,9 @@
       el.textContent = msg;
       el.style.display = msg ? 'block' : 'none';
     }
-    function setAuthLoading(on){
+    function setAuthLoading(on, text){
       $('auth-loading').style.display = on ? 'block' : 'none';
-      $('auth-form').style.display = on ? 'none' : 'block';
+      if(text) $('auth-loading-text').textContent = text;
     }
 
     async function verifyAdvancedAdmin(user){
@@ -1470,6 +1573,11 @@
       wireRealtime();
     }
 
+    function goToLogin(reason){
+      session.expireNow();
+      location.href = `login.html${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`;
+    }
+
     async function handleAuthed(user){
       setAuthLoading(true);
       showAuthErr('');
@@ -1477,8 +1585,8 @@
         const ok = await verifyAdvancedAdmin(user);
         if(!ok){
           await signOut(auth);
-          setAuthLoading(false);
           showAuthErr('Access denied. Advanced Admin privileges required.');
+          setTimeout(() => goToLogin('access-denied'), 1500);
           return;
         }
         state.isAdvancedAdmin = true;
@@ -1486,24 +1594,10 @@
       }catch(err){
         console.error(err);
         await signOut(auth).catch(()=>{});
-        setAuthLoading(false);
         showAuthErr(err.message || 'Could not verify admin access.');
+        setTimeout(() => goToLogin('auth-error'), 1500);
       }
     }
-
-    $('btn-email-login').addEventListener('click', async () => {
-      const email = $('login-email').value.trim();
-      const password = $('login-password').value;
-      if(!email || !password){ showAuthErr('Enter email and password.'); return; }
-      setAuthLoading(true); showAuthErr('');
-      try{
-        await signInWithEmailAndPassword(auth, email, password);
-      }catch(err){
-        setAuthLoading(false);
-        showAuthErr(err.message?.replace('Firebase: ','') || 'Sign-in failed.');
-      }
-    });
-    $('login-password').addEventListener('keydown', e => { if(e.key==='Enter') $('btn-email-login').click(); });
 
     const _authTips = [
       "Deep school-wide administration — audit trails, welfare, announcements and portal management, all in one secure place.",
@@ -1532,19 +1626,9 @@
     _renderAuthTipDots();
     setInterval(_rotateAuthTip, 4500);
 
-    $('btn-google-login').addEventListener('click', async () => {
-      setAuthLoading(true); showAuthErr('');
-      try{
-        await signInWithPopup(auth, new GoogleAuthProvider());
-      }catch(err){
-        setAuthLoading(false);
-        showAuthErr(err.message?.replace('Firebase: ','') || 'Google sign-in failed.');
-      }
-    });
-
     async function doLogout(){
-      await signOut(auth);
-      location.reload();
+      await signOut(auth).catch(()=>{});
+      goToLogin();
     }
     $('logoutBtn').addEventListener('click', doLogout);
     $('set-logout').addEventListener('click', doLogout);
@@ -1552,9 +1636,8 @@
     onAuthStateChanged(auth, (user) => {
       if(user) handleAuthed(user);
       else {
-        $('auth-gate').classList.remove('hidden');
-        $('app-shell').classList.remove('ready');
-        setAuthLoading(false);
+        // No Firebase session — sign-in now happens only on login.html.
+        goToLogin('session-expired');
       }
     });
 
@@ -2048,6 +2131,7 @@
       if(view === 'messages') renderAnnouncements();
       if(view === 'welfare') renderWelfare();
       if(view === 'audit') renderAudit();
+      if(view === 'calendar') renderCalendar();
     }
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => navTo(item.dataset.view));
@@ -2095,7 +2179,20 @@
     });
     $('refreshBtn').addEventListener('click', () => { loadAll().then(() => toast('Data refreshed','ok')); });
     $('refreshDashBtn').addEventListener('click', () => { loadAll().then(() => toast('Dashboard refreshed','ok')); });
-    $('notifBtn').addEventListener('click', () => navTo('messages'));
+    $('notifBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pop = $('notifPop');
+      const opening = !pop.classList.contains('open');
+      pop.classList.toggle('open', opening);
+      if(opening) renderNotifPop();
+    });
+    document.addEventListener('click', (e) => {
+      const pop = $('notifPop');
+      if(pop.classList.contains('open') && !pop.contains(e.target) && e.target.id !== 'notifBtn'){
+        pop.classList.remove('open');
+      }
+    });
+    $('notifPopViewAll').addEventListener('click', () => { $('notifPop').classList.remove('open'); navTo('messages'); });
 
     /* ── Data loaders ── */
     // Students no longer has its own fetch — the roster is derived from the
@@ -2177,6 +2274,175 @@
       const data = snap.exists() ? snap.val() : {};
       if(cacheChanged('announcements', data)) computeAnnouncements(data);
     }
+
+    /* ── Notification Center ── */
+    function renderNotifPop(){
+      const box = $('notifPopList');
+      if(!box) return;
+      const items = [];
+      try{
+        const s = lunchPeriodStats();
+        if(s && s.shortfall > 0){
+          items.push({ icon:'🍽️', title:`Lunch shortfall of ${fmtKsh(s.shortfall)} this period`, meta:'Welfare', view:'welfare' });
+        }
+      }catch(e){}
+      state.announcements.filter(a => a.type === 'urgent').slice(0,3).forEach(a => {
+        items.push({ icon:'📢', title: a.title || 'Untitled announcement', meta:`Announcement · ${fmtTime(a.createdAt)}`, view:'messages' });
+      });
+      upcomingCalendarEvents(7).slice(0,3).forEach(ev => {
+        const meta = CAL_TYPE_META[ev.type] || CAL_TYPE_META.event;
+        items.push({ icon: meta.icon, title:`${ev.title} — ${fmtTime(ev.date)}`, meta:`Calendar · ${meta.label}`, view:'calendar' });
+      });
+      state.audits.slice(0,4).forEach(a => {
+        items.push({ icon:'🛡️', title: a.action || a.text || a.message || 'Admin activity', meta:`${a.admin||a.user||a.by||'System'} · ${fmtTime(a.time||a.createdAt)}`, view:'audit' });
+      });
+      if(!items.length){
+        box.innerHTML = '<div class="empty-state" style="padding:24px 12px"><div class="es-icon">🔔</div><div class="es-title">All caught up</div></div>';
+        return;
+      }
+      box.innerHTML = items.slice(0,10).map(it => `
+        <div class="notif-item" data-notif-goto="${it.view}">
+          <div class="notif-ico">${it.icon}</div>
+          <div class="notif-body">
+            <div class="notif-title">${escapeHtml(it.title)}</div>
+            <div class="notif-meta">${escapeHtml(it.meta)}</div>
+          </div>
+        </div>`).join('');
+      box.querySelectorAll('[data-notif-goto]').forEach(el => {
+        el.addEventListener('click', () => {
+          $('notifPop').classList.remove('open');
+          navTo(el.dataset.notifGoto);
+        });
+      });
+    }
+
+    /* ── Calendar ── */
+    function computeCalendar(data){
+      state.calendarEvents = Object.entries(data || {}).map(([key,v]) => ({key, ...v}))
+        .sort((a,b) => String(a.date||'').localeCompare(String(b.date||'')));
+      $('nav-cal').textContent = String(state.calendarEvents.length);
+      if($('calendar')?.classList.contains('active')) renderCalendar();
+      renderDashUpcomingEvents();
+    }
+    async function loadCalendar(){
+      const snap = await get(ref(db, CALENDAR_PATH));
+      const data = snap.exists() ? snap.val() : {};
+      if(cacheChanged('calendar', data)) computeCalendar(data);
+    }
+    const CAL_TYPE_META = {
+      exam:     { icon:'📝', color:'var(--purple)', label:'Exam' },
+      holiday:  { icon:'🏖️', color:'var(--green)',  label:'Holiday' },
+      meeting:  { icon:'🗣️', color:'var(--blue)',   label:'Meeting' },
+      deadline: { icon:'⏰', color:'var(--red)',    label:'Deadline' },
+      event:    { icon:'📌', color:'var(--orange)', label:'Event' }
+    };
+    function upcomingCalendarEvents(days){
+      const now = new Date(); now.setHours(0,0,0,0);
+      const cutoff = days ? new Date(now.getTime() + days*86400000) : null;
+      return state.calendarEvents.filter(ev => {
+        if(!ev.date) return false;
+        const d = new Date(ev.date + 'T00:00:00');
+        if(isNaN(d)) return false;
+        if(d < now) return false;
+        if(cutoff && d > cutoff) return false;
+        return true;
+      });
+    }
+    function renderDashUpcomingEvents(){
+      const box = $('dash-upcoming-events');
+      if(!box) return;
+      const upcoming = upcomingCalendarEvents(30).slice(0,5);
+      if(!upcoming.length){
+        box.innerHTML = '<div class="empty-state"><div class="es-icon">🗓️</div><div class="es-title">No upcoming events</div><div class="muted">Add term dates, exams, or meetings from the Calendar.</div></div>';
+        return;
+      }
+      box.innerHTML = upcoming.map(ev => {
+        const meta = CAL_TYPE_META[ev.type] || CAL_TYPE_META.event;
+        const d = new Date(ev.date + 'T00:00:00');
+        return `<div class="cal-upcoming-row">
+          <div class="cal-date-badge" style="width:38px;height:38px;background:${meta.color}">
+            <div class="cd-day" style="font-size:13px;">${d.getDate()}</div>
+            <div class="cd-mon" style="font-size:8px;">${d.toLocaleDateString('en-KE',{month:'short'})}</div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12.5px;font-weight:700;">${escapeHtml(ev.title||'Untitled')}</div>
+            <div class="muted" style="font-size:10.5px;">${meta.icon} ${meta.label}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    function filteredCalendarEvents(){
+      const q = ($('cal-search')?.value || '').toLowerCase().trim();
+      const type = $('cal-type-filter')?.value || '';
+      return state.calendarEvents.filter(ev => {
+        if(type && ev.type !== type) return false;
+        if(!q) return true;
+        return String(ev.title||'').toLowerCase().includes(q) || String(ev.notes||'').toLowerCase().includes(q);
+      });
+    }
+    function renderCalendar(){
+      const list = $('cal-list');
+      if(!list) return;
+      const rows = filteredCalendarEvents();
+      if(!rows.length){
+        list.innerHTML = '<div class="empty-state"><div class="es-icon">🗓️</div><div class="es-title">No events found</div><div class="muted">Create the first school calendar entry.</div></div>';
+        return;
+      }
+      list.innerHTML = rows.map(ev => {
+        const meta = CAL_TYPE_META[ev.type] || CAL_TYPE_META.event;
+        const d = new Date(ev.date + 'T00:00:00');
+        const dayLabel = isNaN(d) ? '—' : d.getDate();
+        const monLabel = isNaN(d) ? '' : d.toLocaleDateString('en-KE',{month:'short'});
+        return `<div class="cal-event">
+          <div class="cal-date-badge" style="background:${meta.color}">
+            <div class="cd-day">${dayLabel}</div>
+            <div class="cd-mon">${monLabel}</div>
+          </div>
+          <div class="cal-event-body">
+            <div class="cal-event-title">${meta.icon} ${escapeHtml(ev.title||'Untitled')} <span class="pill blue">${meta.label}</span></div>
+            <div class="cal-event-meta">${escapeHtml(fmtTime(ev.date))}${ev.notes ? ' · ' + escapeHtml(ev.notes) : ''}</div>
+          </div>
+          <button class="btn btn-outline btn-xs" data-del-cal="${ev.key}">Delete</button>
+        </div>`;
+      }).join('');
+      list.querySelectorAll('[data-del-cal]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const ok = await Swal.fire({ title:'Delete this event?', icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c' });
+          if(!ok.isConfirmed) return;
+          try{
+            await remove(ref(db, `${CALENDAR_PATH}/${btn.dataset.delCal}`));
+            toast('Event deleted','ok');
+          }catch(err){ toast(err.message,'err'); }
+        });
+      });
+    }
+    $('cal-new-btn')?.addEventListener('click', () => $('cal-form').style.display = 'block');
+    $('cal-cancel')?.addEventListener('click', () => $('cal-form').style.display = 'none');
+    $('cal-submit')?.addEventListener('click', async () => {
+      const title = $('cal-title').value.trim();
+      const date = $('cal-date').value;
+      const type = $('cal-type').value;
+      const notes = $('cal-notes').value.trim();
+      if(!title || !date){ toast('Title and date are required','err'); return; }
+      try{
+        await push(ref(db, CALENDAR_PATH), {
+          title, date, type, notes,
+          createdAt: Date.now(),
+          createdBy: state.user?.displayName || state.user?.email
+        });
+        await push(ref(db, AUDIT_PATH), {
+          action: `Added calendar event: ${title}`,
+          admin: state.user?.displayName || state.user?.email,
+          category: 'Calendar',
+          time: Date.now()
+        });
+        ['cal-title','cal-date','cal-notes'].forEach(id => $(id).value = '');
+        $('cal-form').style.display = 'none';
+        toast('Event added','ok');
+      }catch(err){ toast(err.message,'err'); }
+    });
+    $('cal-search')?.addEventListener('input', renderCalendar);
+    $('cal-type-filter')?.addEventListener('change', renderCalendar);
 
     function fmtKsh(v){
       return 'Ksh ' + Number(v||0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2524,6 +2790,7 @@
       const r = cacheGet('raw_results'); if(r){ computeResults(r); any = true; }
       const a = cacheGet('raw_audits'); if(a){ computeAudits(a); any = true; }
       const an = cacheGet('raw_announcements'); if(an){ computeAnnouncements(an); any = true; }
+      const cal = cacheGet('raw_calendar'); if(cal){ computeCalendar(cal); any = true; }
       const l = cacheGet('raw_lunch'); if(l){ computeLunch(l); any = true; }
       const att = cacheGet('raw_attendance_'+todayISO()); if(att){ computeAttendance(att); any = true; }
       if(any){ updateDashboard(); populateGradeSelects(); }
@@ -2536,7 +2803,8 @@
         loadAudits().catch(e => console.error('audits', e)),
         loadAnnouncements().catch(e => console.error('ann', e)),
         loadLunch().catch(e => console.error('lunch', e)),
-        loadAttendanceForDate(todayISO()).catch(e => console.error('att', e))
+        loadAttendanceForDate(todayISO()).catch(e => console.error('att', e)),
+        loadCalendar().catch(e => console.error('calendar', e))
       ]);
       updateDashboard();
       populateGradeSelects();
@@ -2553,6 +2821,7 @@
       });
       onValue(ref(db, ANNOUNCEMENTS_PATH), () => loadAnnouncements());
       onValue(ref(db, LUNCH_PATH), () => loadLunch());
+      onValue(ref(db, CALENDAR_PATH), () => loadCalendar());
       onValue(ref(db, QE_ACTIVE_PATH), snap => {
         const raw = snap.exists() ? snap.val() : {};
         const flat = [];
@@ -3607,6 +3876,146 @@
       renderDashAnnouncements();
     }
 
+    /* ── Global Search / Command Palette (Ctrl+K) ── */
+    const CMDK_SECTIONS = Object.entries(VIEW_META).map(([id,[title,sub]]) => ({ id, title, sub }));
+    let cmdkActiveIndex = 0;
+    let cmdkFlatItems = [];
+    function cmdkBuildResults(q){
+      q = (q||'').trim().toLowerCase();
+      const groups = [];
+      if(!q){
+        groups.push({ label:'Jump to', items: CMDK_SECTIONS.map(s => ({ icon: navIconFor(s.id), title:s.title, sub:s.sub, action:() => navTo(s.id) })) });
+        return groups;
+      }
+      const secMatches = CMDK_SECTIONS.filter(s => s.title.toLowerCase().includes(q));
+      if(secMatches.length){
+        groups.push({ label:'Sections', items: secMatches.map(s => ({ icon: navIconFor(s.id), title:s.title, sub:s.sub, action:() => navTo(s.id) })) });
+      }
+      const stuMatches = state.students.filter(s =>
+        studentName(s).toLowerCase().includes(q) || String(studentUpi(s)).toLowerCase().includes(q)
+      ).slice(0,6);
+      if(stuMatches.length){
+        groups.push({ label:'Students', items: stuMatches.map(s => ({
+          icon:'🎓', title: studentName(s), sub:`${studentGrade(s)} · ${studentUpi(s)}`,
+          action:() => {
+            navTo('students');
+            $('stu-search').value = studentName(s);
+            state.stuPage = 1;
+            renderStudents();
+            $('stu-tbody')?.scrollIntoView({ behavior:'smooth', block:'center' });
+          }
+        })) });
+      }
+      const tchMatches = state.teachers.filter(t =>
+        String(t.name||t.displayName||'').toLowerCase().includes(q) || String(t.email||'').toLowerCase().includes(q)
+      ).slice(0,6);
+      if(tchMatches.length){
+        groups.push({ label:'Teachers', items: tchMatches.map(t => ({
+          icon:'👩‍🏫', title: t.name||t.displayName||t.email||'Unnamed', sub: t.email||'',
+          action:() => {
+            navTo('teachers');
+            $('tch-search').value = t.name||t.displayName||t.email||'';
+            state.tchPage = 1;
+            renderTeachers();
+            $('tch-tbody')?.scrollIntoView({ behavior:'smooth', block:'center' });
+          }
+        })) });
+      }
+      return groups;
+    }
+    function navIconFor(id){
+      const map = { dashboard:'📊', students:'🎓', teachers:'👩‍🏫', attendance:'🧾', results:'📝', welfare:'🍽️', settings:'⚙️', audit:'🛡️', messages:'📢', calendar:'🗓️', portals:'🔗' };
+      return map[id] || '•';
+    }
+    function cmdkRender(){
+      const groups = cmdkBuildResults($('cmdkInput').value);
+      cmdkFlatItems = [];
+      groups.forEach(g => g.items.forEach(it => cmdkFlatItems.push(it)));
+      cmdkActiveIndex = 0;
+      const box = $('cmdkResults');
+      if(!cmdkFlatItems.length){
+        box.innerHTML = '<div class="cmdk-empty">No matches — try a different name or keyword.</div>';
+        return;
+      }
+      let i = 0;
+      box.innerHTML = groups.map(g => `
+        <div class="cmdk-group-label">${escapeHtml(g.label)}</div>
+        ${g.items.map(it => {
+          const idx = i++;
+          return `<div class="cmdk-item${idx===0?' active':''}" data-cmdk-idx="${idx}">
+            <div class="cmdk-item-ico">${it.icon}</div>
+            <div><div class="cmdk-item-title">${escapeHtml(it.title)}</div><div class="cmdk-item-sub">${escapeHtml(it.sub||'')}</div></div>
+          </div>`;
+        }).join('')}
+      `).join('');
+      box.querySelectorAll('[data-cmdk-idx]').forEach(el => {
+        el.addEventListener('click', () => cmdkSelect(Number(el.dataset.cmdkIdx)));
+      });
+    }
+    function cmdkSetActive(idx){
+      cmdkActiveIndex = Math.max(0, Math.min(idx, cmdkFlatItems.length - 1));
+      $('cmdkResults').querySelectorAll('.cmdk-item').forEach(el => {
+        el.classList.toggle('active', Number(el.dataset.cmdkIdx) === cmdkActiveIndex);
+      });
+      $('cmdkResults').querySelector('.cmdk-item.active')?.scrollIntoView({ block:'nearest' });
+    }
+    function cmdkSelect(idx){
+      const item = cmdkFlatItems[idx];
+      if(!item) return;
+      cmdkClose();
+      item.action();
+    }
+    function cmdkOpen(){
+      $('cmdkBackdrop').classList.add('open');
+      $('cmdkInput').value = '';
+      cmdkRender();
+      setTimeout(() => $('cmdkInput').focus(), 30);
+    }
+    function cmdkClose(){
+      $('cmdkBackdrop').classList.remove('open');
+    }
+    $('cmdkBtn').addEventListener('click', cmdkOpen);
+    $('cmdkBackdrop').addEventListener('click', (e) => { if(e.target.id === 'cmdkBackdrop') cmdkClose(); });
+    $('cmdkInput').addEventListener('input', cmdkRender);
+    $('cmdkInput').addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowDown'){ e.preventDefault(); cmdkSetActive(cmdkActiveIndex + 1); }
+      else if(e.key === 'ArrowUp'){ e.preventDefault(); cmdkSetActive(cmdkActiveIndex - 1); }
+      else if(e.key === 'Enter'){ e.preventDefault(); cmdkSelect(cmdkActiveIndex); }
+      else if(e.key === 'Escape'){ cmdkClose(); }
+    });
+    document.addEventListener('keydown', (e) => {
+      if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
+        e.preventDefault();
+        $('cmdkBackdrop').classList.contains('open') ? cmdkClose() : cmdkOpen();
+      }
+    });
+
+    /* ── Data Backup & Export ── */
+    $('backup-export-btn')?.addEventListener('click', () => {
+      try{
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          exportedBy: state.user?.displayName || state.user?.email || 'unknown',
+          students: state.students,
+          teachers: state.teachers,
+          results: state.results,
+          attendance: state.attendance,
+          lunch: { period: state.lunchPeriod, members: state.lunchMembers },
+          announcements: state.announcements,
+          calendarEvents: state.calendarEvents,
+          auditLog: state.audits
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `kanyadet-backup-${todayISO()}.json`;
+        a.click();
+        $('backup-status').textContent = `Last export: ${fmtTime(Date.now())}`;
+        toast('Backup downloaded','ok');
+        logAudit('Downloaded a full data backup', 'Settings');
+      }catch(err){ toast('Export failed: ' + err.message, 'err'); }
+    });
+
     /* ── Back to top (gold progress ring) ── */
     document.addEventListener('DOMContentLoaded', () => {
       const backWrap = document.getElementById('backToTopWrap');
@@ -3629,20 +4038,6 @@
       backBtn?.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
-    });
-  </script>
-
-  <script type="module">
-    // Session guard — placed at the end of body so #countdown and the
-    // rest of the DOM already exist by the time onTick fires.
-    import { guardPage } from './js/session-manager.js';
-
-    const session = guardPage({
-      loginUrl: `login.html?reason=session-expired&redirect=${encodeURIComponent(window.location.pathname)}`,
-      onTick: (ms) => {
-        const el = document.getElementById('countdown');
-        if (el) el.textContent = Math.ceil(ms / 1000) + 's';
-      }
     });
   </script>
 </body>

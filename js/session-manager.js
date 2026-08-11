@@ -11,7 +11,8 @@
  * Every other protected page:
  *   import { guardPage } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
  *   const session = guardPage(); // resumes countdown, or redirects to login if expired/none
- *   // session.expireNow() for a manual logout button
+ *   // A <button id="logoutBtn"> on the page is auto-wired to session.expireNow();
+ *   // call session.expireNow() yourself only if using a different element/id.
  */
 
 const DEFAULT_STORAGE_KEY = 'kanyadet_session_expiry';
@@ -205,6 +206,18 @@ export function guardPage(opts = {}) {
     if (!session._expired) {
       window.location.href = loginUrl;
     }
+  }
+
+  // Auto-wire a manual logout button if the page has one, so pages
+  // don't each need their own click listener wired to
+  // session.expireNow(). Different pages use different ids for this
+  // button, so match on both id and class variants seen across the
+  // site. Safe no-op if no matching button is on the page.
+  const logoutBtn = document.getElementById('logoutBtn')
+    || document.getElementById('logout-btn')
+    || document.querySelector('.logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => session.expireNow());
   }
 
   return session;

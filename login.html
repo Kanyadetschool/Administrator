@@ -230,11 +230,11 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithCredential, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-    import { GoogleOneTap } from 'https://kanyadet-school-admin.web.app/js/google-one-tap.js';
-    import { SessionManager } from 'https://kanyadet-school-admin.web.app/js/session-manager.js';
+    import { GoogleOneTap } from './js/google-one-tap.js';
+    import { SessionManager } from './js/session-manager.js';
 
     import { FIREBASE_CONFIG } from './js/config.js';
-    import { GOOGLE_CLIENT_ID } from 'https://kanyadet-school-admin.web.app/js/config.js';
+    import { GOOGLE_CLIENT_ID } from './js/config.js';
 
     const app = initializeApp(FIREBASE_CONFIG);
     const auth = getAuth(app);
