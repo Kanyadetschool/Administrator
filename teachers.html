@@ -709,6 +709,9 @@ a{color:inherit;text-decoration:none;}
     <div class="auth-switch">
       <span id="show-forgot">Forgot password?</span> &nbsp;·&nbsp; <span id="show-passkeys">Use a passkey</span>
     </div>
+    <div>
+      <a href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank" rel="noopener" style="font-size:11px;color:var(--text3);margin-top:6px;display:block;text-align:center;">Set up My profile</a>
+    </div>
     <button class="pwa-install-btn auth-install-icon" type="button" onclick="installPwaApp()" aria-label="Install teachers app" title="Install App">
       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
     </button>
@@ -1731,7 +1734,8 @@ VIEW_RENDERERS['dashboard'] = async function(area){
       }
     }
     totalAssignedStudents = seenIds.size || 0;
-    document.getElementById('kpi-students').textContent = totalAssignedStudents || '0';
+    const kpiStudentsEl = document.getElementById('kpi-students');
+    if(kpiStudentsEl) kpiStudentsEl.textContent = totalAssignedStudents || '0';
     const dqEl = document.getElementById('kpi-data-quality');
     if(dqEl) dqEl.textContent = missingIdCount;
 
@@ -1759,10 +1763,11 @@ VIEW_RENDERERS['dashboard'] = async function(area){
       `).join('');
     }
     const topGrade = gradeMix.slice().sort((a,b)=>b.rate-a.rate)[0];
-    document.getElementById('dash-coverage-label').textContent = coverage + '%';
-    document.getElementById('hero-school-pulse').textContent = coverage >= 85 ? 'High coverage' : coverage >= 70 ? 'Stable coverage' : 'Needs attention';
-    document.getElementById('hero-top-grade').textContent = topGrade ? `${topGrade.grade} · ${topGrade.rate}%` : '—';
-    document.getElementById('hero-school-status').textContent = `School status: ${coverage >= 85 ? 'Strong' : coverage >= 70 ? 'Stable' : 'Needs attention'}`;
+    const setText = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+    setText('dash-coverage-label', coverage + '%');
+    setText('hero-school-pulse', coverage >= 85 ? 'High coverage' : coverage >= 70 ? 'Stable coverage' : 'Needs attention');
+    setText('hero-top-grade', topGrade ? `${topGrade.grade} · ${topGrade.rate}%` : '—');
+    setText('hero-school-status', `School status: ${coverage >= 85 ? 'Strong' : coverage >= 70 ? 'Stable' : 'Needs attention'}`);
 
     const genderCanvas = document.getElementById('dash-gender-chart');
     if(genderCanvas && typeof Chart !== 'undefined'){
@@ -1810,7 +1815,7 @@ VIEW_RENDERERS['dashboard'] = async function(area){
           `).join('')
         : `<div class="empty-state"><div class="es-sub">No enrollment data in the active student dataset yet.</div></div>`;
     }
-  }catch(e){ document.getElementById('kpi-students').textContent = '—'; }
+  }catch(e){ const kpiStudentsElErr = document.getElementById('kpi-students'); if(kpiStudentsElErr) kpiStudentsElErr.textContent = '—'; }
 
   // Results-path performance analytics — subjectTotals, gradeScoreTotals and
   // studentBestScore were already accumulated in the Results-path pass
@@ -1905,10 +1910,14 @@ VIEW_RENDERERS['dashboard'] = async function(area){
     const total = todayAttendance.reduce((sum, item) => sum + item.total, 0);
     const attendancePct = total ? Math.round(present / total * 100) : 0;
     const attendanceDelta = attendancePct >= 85 ? '+12 pts' : attendancePct >= 70 ? '+5 pts' : '-3 pts';
-    document.getElementById('kpi-attendance').textContent = total ? attendancePct + '%' : '—';
-    document.getElementById('dash-trend-label').textContent = attendancePct >= 85 ? 'Ahead of target' : attendancePct >= 70 ? 'Steady' : 'Needs focus';
-    document.getElementById('dash-trend-label').setAttribute('data-delta', attendanceDelta);
-  }catch(e){ document.getElementById('kpi-attendance').textContent = '—'; }
+    const kpiAttEl = document.getElementById('kpi-attendance');
+    if(kpiAttEl) kpiAttEl.textContent = total ? attendancePct + '%' : '—';
+    const trendLabelEl = document.getElementById('dash-trend-label');
+    if(trendLabelEl){
+      trendLabelEl.textContent = attendancePct >= 85 ? 'Ahead of target' : attendancePct >= 70 ? 'Steady' : 'Needs focus';
+      trendLabelEl.setAttribute('data-delta', attendanceDelta);
+    }
+  }catch(e){ const kpiAttElErr = document.getElementById('kpi-attendance'); if(kpiAttElErr) kpiAttElErr.textContent = '—'; }
 
   // last-7-day attendance trend for dashboard analytics chart
   try{
@@ -1993,7 +2002,8 @@ VIEW_RENDERERS['dashboard'] = async function(area){
       rows.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
     }
   }catch(e){}
-  document.getElementById('dash-today-tt').innerHTML = rows.length ? `
+  const todayTtEl = document.getElementById('dash-today-tt');
+  if(todayTtEl) todayTtEl.innerHTML = rows.length ? `
     <div class="table-wrap"><table class="data-table"><thead><tr><th>Time</th><th>Grade</th><th>Subject</th></tr></thead><tbody>
       ${rows.map(r=>`<tr><td>${esc(r.time||'—')}</td><td>${esc(r.grade)}</td><td>${esc(r.subject||'—')}</td></tr>`).join('')}
     </tbody></table></div>` : `<div class="empty-state"><div class="es-icon">🗓️</div><div class="es-sub">No timetable set for today yet.</div></div>`;
@@ -2102,7 +2112,7 @@ async function fetchRoster(grade, snapOverride){
     Object.entries(val).forEach(([key, rec])=>{
       const g = gShortJS(rec && rec['Grade']);
       if(g.toLowerCase() === String(grade).toLowerCase()){
-        out.push({ key, name: rec['Official Student Name']||'—', gender: rec['Gender']||'', assessmentNo: rec['Assessment No']||rec['UPI']||key });
+        out.push({ key, name: rec['Official Student Name']||'—', gender: rec['Gender']||'', assessmentNo: rec['Assessment No']||rec['UPI']||key, UPI: rec['UPI']||'' });
       }
     });
   }
@@ -2143,8 +2153,8 @@ VR2['classes'] = async function(area){
     try{
       const roster = await fetchRoster(g);
       document.getElementById('roster-count').textContent = roster.length + (roster.length===1?' student':' students');
-      body.innerHTML = roster.length ? `<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Gender</th><th>Assessment No.</th></tr></thead><tbody>
-        ${roster.map((s,i)=>`<tr><td>${i+1}</td><td>${esc2(s.name)}</td><td>${esc2(s.gender)}</td><td>${esc2(s.assessmentNo)}</td></tr>`).join('')}
+      body.innerHTML = roster.length ? `<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Gender</th><th>Assessment No.</th><th>UPI</th></tr></thead><tbody>
+        ${roster.map((s,i)=>`<tr><td>${i+1}</td><td>${esc2(s.name)}</td><td>${esc2(s.gender)}</td><td>${esc2(s.assessmentNo)}</td><td>${esc2(s.UPI)}</td></tr>`).join('')}
       </tbody></table></div>` : `<div class="empty-state"><div class="es-icon">🧑‍🎓</div><div class="es-sub">No students found for ${esc2(g)} yet.</div></div>`;
     }catch(e){ body.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-sub">${esc2(e.message)}</div></div>`; }
   };
