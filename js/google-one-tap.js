@@ -4,7 +4,10 @@
  * guardPage (see session-manager.js) so both import from one file.
  *
  * import { GoogleOneTap, SessionManager } from './js/google-one-tap.js';
- * new GoogleOneTap({ clientId, buttonContainer, onSuccess, onUnavailable }).init();
+ * new GoogleOneTap({ clientId, onSuccess, onUnavailable }).init();
+ * // No buttonContainer/div needed - runs silent-only by default.
+ * // Pass buttonContainer (element or selector string) only if you also
+ * // want the official rendered "Sign in with Google" button somewhere.
  * onSuccess(profile) -> { email, name, givenName, familyName, picture, sub, emailVerified }
  *
  * Doesn't touch Firebase - just resolves a Google profile and hands it
@@ -92,13 +95,25 @@ export class GoogleOneTap {
   /**
    * @param {Object} opts
    * @param {string} opts.clientId - Google OAuth Client ID (required).
-   * @param {HTMLElement} [opts.buttonContainer] - Element to render the
-   *   official "Sign in with Google" button into. Omit if you only want
-   *   the silent prompt and no visible button.
+   * @param {HTMLElement|string} [opts.buttonContainer] - Element (or CSS/id
+   *   selector string) to render the official "Sign in with Google" button
+   *   into. Fully optional - omit it and GoogleOneTap runs silent-only via
+   *   the zero-click One Tap prompt, no button/div needed on the page.
    * @param {Object} [opts.buttonOptions] - Overrides passed to
    *   google.accounts.id.renderButton (theme, size, shape, text, width...).
-   * @param {boolean} [opts.autoSilentPrompt=false] - Also call the
-   *   zero-click One Tap prompt in the background as soon as init() runs.
+   * @param {boolean} [opts.autoSilentPrompt=true] - Also call the
+   *   zero-click One Tap prompt in the background as soon as init() runs
+   *   (or as soon as notifySignedOut() is called, if
+   *   deferAutoPromptUntilSignal is set - see below). Defaults to true so
+   *   pages work with no buttonContainer/div at all; pass false to opt out.
+   * @param {boolean} [opts.deferAutoPromptUntilSignal=false] - Set this to
+   *   true on any page that has its own session/auth check (Firebase or
+   *   otherwise). Session restoration is normally async, so firing the
+   *   silent prompt unconditionally on page load can flash it briefly even
+   *   for an already-signed-in user. With this on, the library holds off
+   *   the automatic prompt until the page calls notifySignedIn() or
+   *   notifySignedOut() (see methods below) - so it only ever fires once
+   *   the page has confirmed there's really no active session.
    * @param {boolean} [opts.autoSelect=false] - Google's auto_select option.
    * @param {boolean} [opts.useFedCM=true] - Google's use_fedcm_for_prompt option.
    * @param {(profile: object) => void} [opts.onSuccess] - Called with the
@@ -120,7 +135,16 @@ export class GoogleOneTap {
   constructor(opts = {}) {
     if (!opts.clientId) throw new Error('[GoogleOneTap] clientId is required');
     this.clientId = opts.clientId;
-    this.buttonContainer = opts.buttonContainer || null;
+    // buttonContainer is fully optional. Accepts an Element, a CSS/id
+    // selector string (resolved lazily in init(), since the element may
+    // not exist in the DOM yet at construction time), or nothing at all.
+    // With no container, GoogleOneTap runs in silent-only mode: no visible
+    // "Sign in with Google" button is rendered, just the zero-click One
+    // Tap bubble - so pages don't need to add a div for this to work.
+    this._buttonContainerRef = opts.buttonContainer || null;
+    this.buttonContainer = (opts.buttonContainer && typeof opts.buttonContainer !== 'string')
+      ? opts.buttonContainer
+      : null;
     this.buttonOptions = Object.assign(
       {
         type: 'standard',
@@ -133,7 +157,15 @@ export class GoogleOneTap {
       },
       opts.buttonOptions || {}
     );
-    this.autoSilentPrompt = !!opts.autoSilentPrompt;
+    // Defaults to true (unlike before) so a page that only passes a
+    // clientId + onSuccess still gets working sign-in via the silent
+    // prompt, with no button/div required. Pass autoSilentPrompt:false
+    // to opt out.
+    this.autoSilentPrompt = opts.autoSilentPrompt !== false;
+    this.deferAutoPromptUntilSignal = !!opts.deferAutoPromptUntilSignal;
+    this._readyForAutoPrompt = false;   // init() has finished loading/initializing GIS
+    this._autoPromptResolved = false;   // an auto-prompt decision (fire or skip) has already been made
+    this._sessionSignal = null;         // null = unknown, true = signed in, false = confirmed signed out
     this.autoSelect = !!opts.autoSelect;
     this.useFedCM = opts.useFedCM !== false;
     this.onSuccess = typeof opts.onSuccess === 'function' ? opts.onSuccess : () => {};
@@ -185,6 +217,18 @@ export class GoogleOneTap {
       this._initialized = true;
     }
 
+    if (this.buttonContainer === null && typeof this._buttonContainerRef === 'string') {
+      // Resolve now (not at construction time) - the element may not have
+      // existed in the DOM yet when `new GoogleOneTap()` ran. Accepts a
+      // full selector ('#id', '.class') or a bare id string.
+      const selector = this._buttonContainerRef;
+      this.buttonContainer = document.querySelector(selector)
+        || document.getElementById(selector.replace(/^#/, ''));
+      if (!this.buttonContainer) {
+        this._log(`buttonContainer "${selector}" not found in the DOM - continuing without a visible button (silent prompt only).`);
+      }
+    }
+
     if (this.buttonContainer && !this._buttonRendered) {
       this._log('Rendering button into container');
       window.google.accounts.id.renderButton(this.buttonContainer, this.buttonOptions);
@@ -192,8 +236,48 @@ export class GoogleOneTap {
     }
 
     if (this.autoSilentPrompt) {
-      this.promptSilent();
+      this._readyForAutoPrompt = true;
+      this._maybeAutoPrompt();
     }
+  }
+
+  /** Internal: fires (or skips) the automatic silent prompt exactly once,
+   *  once both init() has finished AND - if deferAutoPromptUntilSignal is
+   *  set - the page has reported its session state via notifySignedIn()/
+   *  notifySignedOut(). Safe to call multiple times; only ever acts once. */
+  _maybeAutoPrompt() {
+    if (!this._readyForAutoPrompt || this._autoPromptResolved) return;
+    if (this.deferAutoPromptUntilSignal && this._sessionSignal === null) {
+      this._log('Auto silent prompt deferred - waiting for notifySignedIn()/notifySignedOut()');
+      return;
+    }
+    this._autoPromptResolved = true;
+    if (this._sessionSignal === true) {
+      this._log('Session already active - skipping auto silent prompt');
+      return;
+    }
+    this.promptSilent();
+  }
+
+  /** Call this from your page's own auth-state listener as soon as it
+   *  confirms a session IS active (e.g. Firebase onAuthStateChanged with a
+   *  non-null user). Cancels any in-flight/pending silent prompt and
+   *  prevents the automatic one from firing this page load. Safe to call
+   *  more than once (e.g. on every onAuthStateChanged tick). */
+  notifySignedIn() {
+    this._sessionSignal = true;
+    if (!this._autoPromptResolved) this._autoPromptResolved = true;
+    this.cancel();
+  }
+
+  /** Call this from your page's own auth-state listener as soon as it
+   *  confirms there is NO active session. If deferAutoPromptUntilSignal
+   *  was set, this is what actually releases the automatic silent prompt.
+   *  Safe to call more than once - only the first call after a signed-in
+   *  state (or at all) triggers the prompt. */
+  notifySignedOut() {
+    this._sessionSignal = false;
+    this._maybeAutoPrompt();
   }
 
   /** Triggers the zero-click One Tap prompt. Resolves/rejects nothing -

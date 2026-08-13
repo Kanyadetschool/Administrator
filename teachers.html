@@ -19,17 +19,38 @@
 
   const oneTap = new GoogleOneTap({
     clientId: GOOGLE_CLIENT_ID,
-    buttonContainer: document.getElementById('myGoogleButtonDiv'),
-    autoSilentPrompt: true,
-    onSuccess: (profile) => {
+    // Hold the automatic silent prompt until we call notifySignedIn()/
+    // notifySignedOut() from onAuthStateChanged below - prevents it firing
+    // on top of an already-active session before Firebase's async session
+    // restore finishes. This guard now lives in the library itself.
+    deferAutoPromptUntilSignal: true,
+    onSuccess: async (profile) => {
       // profile = { email, name, givenName, familyName, picture, sub, emailVerified, raw }
       console.log('Signed in as', profile.email);
+      const idToken = profile.raw && profile.raw.credential;
+      if (!idToken || !window._KTP) {
+        console.error('[GoogleOneTap] Missing ID token or app not ready yet — cannot sign in.');
+        return;
+      }
+      try {
+        // Exchanges the One Tap credential for a real Firebase session.
+        // onAuthStateChanged (main app script) takes it from here: loads
+        // the teacher profile, checks portal authorization, and calls enterApp().
+        await window._KTP.googleCredentialSignIn(idToken);
+      } catch (e) {
+        console.error('[GoogleOneTap] Firebase sign-in failed:', e);
+        const err = document.getElementById('login-error');
+        if (err) err.textContent = (e && e.message)
+          ? e.message.replace('Firebase: ', '').replace(/\(auth\/.*\)/, '')
+          : 'Google sign-in failed. Try again.';
+      }
     },
     onUnavailable: () => { /* show your manual email field */ },
     onError: (err) => console.error(err),
   });
 
   oneTap.init();
+  window._oneTap = oneTap;
 </script>
 
 
@@ -841,7 +862,7 @@ a{color:inherit;text-decoration:none;}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
-  GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, setPersistence,
+  GoogleAuthProvider, signInWithPopup, signInWithCredential, sendPasswordResetEmail, setPersistence,
   indexedDBLocalPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
@@ -974,7 +995,12 @@ window._KTP = { app, auth, fs, rtdb, ref, onValue, push, rtSet, rtUpdate, rtRemo
   orderByChild, limitToLast, rtServerTimestamp, rtGet, doc, getDoc, setDoc, updateDoc, collection,
   getDocs, onSnapshot, query, where, orderBy, fsLimit, fsServerTimestamp, sendPasswordResetEmail,
   DB_STUDENTS_PATH, ANNOUNCEMENTS_PATH, ATTENDANCE_PATH, TIMETABLE_PATH, RESOURCES_PATH, LEAVE_PATH, WELFARE_PATH,
-  TEACHER_TT_PATH, TT_SECTIONS, ttKey, guessTtSection, CALENDAR_PATH
+  TEACHER_TT_PATH, TT_SECTIONS, ttKey, guessTtSection, CALENDAR_PATH,
+  // Exchanges a Google One Tap ID token for a Firebase session. Once this
+  // resolves, onAuthStateChanged below picks it up and runs the normal
+  // profile-load / authorization-check / enterApp() flow — same as the
+  // signInWithPopup Google button.
+  googleCredentialSignIn: (idToken) => signInWithCredential(auth, GoogleAuthProvider.credential(idToken))
 };
 
 /* ══════════════════════════════════════════
@@ -1218,8 +1244,16 @@ onAuthStateChanged(auth, async (user)=>{
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('app-shell').classList.remove('active');
     showCard('login-card');
+    // Now that Firebase has confirmed there's no persisted session,
+    // release the deferred One Tap prompt (see deferAutoPromptUntilSignal
+    // above) - never fires on raw page load, so it can't pop up on top
+    // of a user who's actually already signed in.
+    if(window._oneTap) window._oneTap.notifySignedOut();
     return;
   }
+  // A session exists (fresh or restored) - tell One Tap so it cancels
+  // any pending/in-flight prompt and skips the automatic one entirely.
+  if(window._oneTap) window._oneTap.notifySignedIn();
   window._currentUser = user;
   // These two reads are independent (profile doc vs. config doc), so run them
   // concurrently instead of back-to-back — previously this was two sequential

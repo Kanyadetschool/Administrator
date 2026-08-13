@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Library — Kanyadet Primary & Junior School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal-900:#0d3d3a; --teal-800:#0f4c4a; --teal-700:#116661; --teal-600:#0f8f86; --teal-500:#2dd4bf; --teal-300:#a7f3e8; --teal-100:#e3fbf6;
+    --peach-500:#ffb88c; --peach-300:#ffe0c7; --peach-100:#fff4ea;
+    --ink:#0e2e2b; --muted:#5f7f7c; --faint:#8fa8a5;
+    --glass-bg:rgba(255,255,255,.6); --glass-bg-strong:rgba(255,255,255,.85); --glass-border:rgba(255,255,255,.75);
+    --danger:#e0605c; --danger-bg:#fdebea; --warn:#ee9c3a; --warn-bg:#fdf1e0; --success:#2fae7e; --success-bg:#e5f7ee;
+    --r-lg:26px; --r-md:18px; --r-sm:12px;
+    --shadow:0 24px 60px -28px rgba(13,61,58,.5);
+    --shadow-sm:0 10px 24px -14px rgba(13,61,58,.3);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Manrope',sans-serif; color:var(--ink); min-height:100vh;
+    background:
+      radial-gradient(circle at 90% -10%, #ffe3cc 0%, transparent 42%),
+      radial-gradient(circle at 0% 100%, #c9f5e9 0%, transparent 45%),
+      linear-gradient(160deg,#eafcf7 0%, #fdf4ea 100%);
+    display:flex; align-items:flex-start; justify-content:center; padding:26px 14px;
+  }
+  h1,h2,h3,.display{font-family:'Fraunces',serif; letter-spacing:-.01em;}
+  ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-thumb{background:rgba(15,76,74,.25);border-radius:8px;}
+  .glass{background:var(--glass-bg); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%); border:1px solid var(--glass-border); border-radius:var(--r-lg); box-shadow:var(--shadow-sm);}
+
+  #loginGate{position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; background:
+      radial-gradient(circle at 90% -10%, #ffe3cc 0%, transparent 42%),
+      radial-gradient(circle at 0% 100%, #c9f5e9 0%, transparent 45%),
+      linear-gradient(160deg,#eafcf7 0%, #fdf4ea 100%); padding:20px;}
+  .login-card{width:min(400px,100%); padding:44px 32px; text-align:center;}
+  .brand-mark{width:80px;height:80px;margin:0 auto 16px;}
+  .login-card h1{font-size:24px; margin-bottom:6px;}
+  .login-card p{color:var(--muted); font-size:14px; margin-bottom:24px; line-height:1.5;}
+  .btn-google{display:inline-flex; align-items:center; gap:10px; background:#fff; border:1px solid #e4e9e8; padding:13px 22px; border-radius:14px; font-weight:700; font-size:14.5px; cursor:pointer; box-shadow:var(--shadow-sm); transition:.2s; width:100%; justify-content:center;}
+  .btn-google:hover{transform:translateY(-2px);}
+  #loginError{color:var(--danger); font-size:13px; margin-top:14px; min-height:16px;}
+  #deniedNote{display:none; margin-top:18px; padding:14px; background:var(--danger-bg); color:var(--danger); border-radius:var(--r-sm); font-size:13px; text-align:left;}
+
+  /* App shell — phone-card aesthetic like the reference */
+  #app{display:none; width:min(430px,100%); flex-direction:column;}
+  .shell{position:relative; padding-bottom:86px; min-height:80vh; width:100%;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:6px 6px 18px;}
+  .greet span{display:block; font-size:12.5px; color:var(--muted); font-weight:700;}
+  .greet b{font-family:'Fraunces',serif; font-size:20px;}
+  .top-icons{display:flex; align-items:center; gap:10px;}
+  .icon-btn{width:38px;height:38px;border-radius:12px; background:var(--glass-bg-strong); border:1px solid var(--glass-border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--teal-800); position:relative;}
+  .icon-btn svg{width:17px;height:17px;}
+  .avatar{width:38px;height:38px;border-radius:50%; background:linear-gradient(135deg,var(--peach-500),var(--teal-500)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:13px; cursor:pointer; flex-shrink:0;}
+  .dot{position:absolute; top:6px; right:6px; width:7px;height:7px;border-radius:50%; background:var(--danger); display:none;}
+
+  .view{display:none;} .view.active{display:block; animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+  .search-box{display:flex; align-items:center; gap:9px; background:var(--glass-bg-strong); border:1px solid var(--glass-border); border-radius:16px; padding:13px 16px; margin-bottom:16px;}
+  .search-box svg{width:16px;height:16px; color:var(--muted); flex-shrink:0;}
+  .search-box input{border:none; background:none; outline:none; font-family:inherit; font-size:13.5px; width:100%; color:var(--ink);}
+
+  /* Home */
+  .hero-card{padding:22px; margin-bottom:16px; position:relative; overflow:hidden; background:linear-gradient(135deg, var(--teal-700), var(--teal-500)); border:none; color:#fff;}
+  .hero-card .tag{font-size:11.5px; font-weight:800; opacity:.85; text-transform:uppercase; letter-spacing:.05em;}
+  .hero-card h2{font-size:19px; margin:6px 0 14px; line-height:1.35;}
+  .hero-actions{display:flex; gap:10px;}
+  .btn{font-family:inherit; font-weight:700; font-size:13px; border:none; border-radius:12px; padding:10px 16px; cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:6px;}
+  .btn-white{background:#fff; color:var(--teal-800);}
+  .btn-ghost-w{background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.4);}
+  .hero-deco{position:absolute; right:-16px; bottom:-16px; font-size:80px; opacity:.18;}
+
+  .quick-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;}
+  .quick-item{padding:14px 6px; text-align:center; cursor:pointer;}
+  .quick-item .qi-icon{width:38px;height:38px; border-radius:12px; background:var(--teal-100); display:flex; align-items:center; justify-content:center; margin:0 auto 8px;}
+  .quick-item .qi-icon svg{width:17px;height:17px; color:var(--teal-700);}
+  .quick-item span{font-size:11px; font-weight:700; color:var(--teal-800);}
+
+  .score-card{padding:20px; display:flex; align-items:center; gap:18px; margin-bottom:18px;}
+  .ring-wrap{position:relative; width:76px; height:76px; flex-shrink:0;}
+  .ring-wrap svg{transform:rotate(-90deg);}
+  .ring-num{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; font-size:18px; color:var(--teal-800);}
+  .score-text b{display:block; font-size:14.5px;}
+  .score-text span{font-size:12px; color:var(--muted); line-height:1.4;}
+
+  .section-head{display:flex; align-items:center; justify-content:space-between; margin:4px 0 12px;}
+  .section-head h3{font-size:15.5px;}
+  .section-head .link{font-size:12px; font-weight:700; color:var(--teal-700); cursor:pointer;}
+
+  .book-row{display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:10px;}
+  .book-row .cov{width:44px;height:44px;border-radius:13px; background:var(--teal-100); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;}
+  .book-row .bt{flex:1; min-width:0;}
+  .book-row .bt b{display:block; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .book-row .bt span{font-size:11.5px; color:var(--muted);}
+  .chip{font-size:10px; font-weight:800; padding:4px 9px; border-radius:20px; white-space:nowrap;}
+  .chip-active{background:var(--teal-100); color:var(--teal-700);}
+  .chip-overdue{background:var(--danger-bg); color:var(--danger);}
+  .chip-due{background:var(--warn-bg); color:var(--warn);}
+  .chip-returned{background:#eef1f0; color:var(--muted);}
+  .chip-pending{background:var(--warn-bg); color:var(--warn);}
+  .chip-approved{background:var(--success-bg); color:var(--success);}
+  .chip-rejected{background:var(--danger-bg); color:var(--danger);}
+  .chip-fulfilled{background:var(--teal-100); color:var(--teal-700);}
+
+  /* Browse */
+  .filter-row{display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; padding-bottom:2px;}
+  .pill{padding:8px 14px; border-radius:20px; background:var(--glass-bg-strong); border:1px solid var(--glass-border); font-size:12px; font-weight:700; cursor:pointer; color:var(--teal-800); white-space:nowrap; flex-shrink:0;}
+  .pill.active{background:linear-gradient(135deg,var(--teal-600),var(--teal-500)); color:#fff; border-color:transparent;}
+  .book-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .book-card{padding:14px; display:flex; flex-direction:column; gap:8px;}
+  .book-cover{width:100%; height:82px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:32px; background:linear-gradient(135deg,var(--teal-100),var(--peach-100)); overflow:hidden;}
+  .book-cover img{width:100%; height:100%; object-fit:cover;}
+  .book-card b{font-size:13px; line-height:1.3;}
+  .book-card .auth{font-size:11px; color:var(--muted);}
+  .book-card .avail{font-size:10.5px; color:var(--muted); margin-top:2px;}
+  .book-card .btn{width:100%; justify-content:center; margin-top:2px; padding:8px; font-size:12px;}
+
+  .tabs{display:flex; gap:6px; background:var(--glass-bg-strong); border:1px solid var(--glass-border); border-radius:16px; padding:5px; margin-bottom:16px;}
+  .tab{flex:1; text-align:center; padding:9px; border-radius:12px; font-size:12.5px; font-weight:700; color:var(--teal-800); cursor:pointer;}
+  .tab.active{background:linear-gradient(135deg,var(--teal-600),var(--teal-500)); color:#fff;}
+
+  .profile-card{padding:24px; text-align:center; margin-bottom:16px;}
+  .profile-avatar{width:64px;height:64px;border-radius:50%; margin:0 auto 12px; background:linear-gradient(135deg,var(--peach-500),var(--teal-500)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:22px;}
+  .profile-card h3{font-size:17px;}
+  .profile-card span{font-size:12.5px; color:var(--muted);}
+  .stat-strip{display:flex; margin-top:16px; border-top:1px solid rgba(15,76,74,.1); padding-top:14px;}
+  .stat-strip div{flex:1; text-align:center;}
+  .stat-strip b{display:block; font-family:'Fraunces',serif; font-size:18px;}
+  .stat-strip span{font-size:10.5px; color:var(--muted); font-weight:700;}
+  .menu-item{display:flex; align-items:center; gap:12px; padding:14px; cursor:pointer; margin-bottom:8px;}
+  .menu-item svg{width:17px;height:17px; color:var(--teal-700);}
+  .menu-item span{flex:1; font-size:13.5px; font-weight:700;}
+
+  .empty-state{text-align:center; padding:44px 16px; color:var(--muted);}
+  .empty-state svg{width:44px;height:44px; opacity:.35; margin-bottom:10px;}
+  .empty-state b{display:block; color:var(--ink); font-size:14px; margin-bottom:4px;}
+  .loader{width:100%; display:flex; align-items:center; justify-content:center; padding:36px; color:var(--muted); font-size:13px; gap:10px;}
+  .spin{width:16px;height:16px; border:2.5px solid rgba(15,76,74,.2); border-top-color:var(--teal-600); border-radius:50%; animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Bottom nav */
+  .bottom-nav{position:fixed; bottom:16px; left:50%; transform:translateX(-50%); width:min(398px,calc(100% - 28px)); background:var(--glass-bg-strong); backdrop-filter:blur(24px); border:1px solid var(--glass-border); border-radius:22px; box-shadow:var(--shadow); display:flex; padding:10px 6px; z-index:50;}
+  .nav-item{flex:1; text-align:center; padding:8px 4px; border-radius:14px; cursor:pointer; color:var(--faint); transition:.15s;}
+  .nav-item svg{width:19px;height:19px; margin:0 auto 4px; display:block;}
+  .nav-item span{font-size:10px; font-weight:700; display:block;}
+  .nav-item.active{color:var(--teal-700); background:rgba(45,212,191,.15);}
+
+  .toast{position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--teal-800); color:#fff; padding:12px 20px; border-radius:14px; font-size:13px; font-weight:700; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.3s; z-index:300; max-width:90vw; text-align:center;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast.err{background:var(--danger);}
+
+  /* ---------- DESKTOP SIDEBAR (hidden on mobile, shown ≥861px) ---------- */
+  .sidebar{display:none;}
+  .sidebar .brand{display:flex; align-items:center; gap:10px; padding:6px 8px 26px;}
+  .sidebar .brand svg{width:36px;height:36px;flex-shrink:0;}
+  .sidebar .brand-text b{display:block; font-family:'Fraunces',serif; font-size:16px; line-height:1.15;}
+  .sidebar .brand-text span{font-size:11px; color:var(--muted); font-weight:600;}
+  .sidebar nav.navlist{display:flex; flex-direction:column; gap:4px; flex:1;}
+  .sidebar .sb-item{display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:14px; color:var(--teal-800); font-weight:700; font-size:14px; cursor:pointer; transition:.15s;}
+  .sidebar .sb-item svg{width:18px;height:18px; opacity:.85; flex-shrink:0;}
+  .sidebar .sb-item:hover{background:rgba(45,212,191,.14);}
+  .sidebar .sb-item.active{background:linear-gradient(135deg,var(--teal-600),var(--teal-500)); color:#fff; box-shadow:0 10px 22px -10px rgba(15,143,134,.6);}
+  .sidebar-foot{border-top:1px solid rgba(15,76,74,.12); padding-top:14px; display:flex; align-items:center; gap:10px;}
+  .sidebar-foot .who{flex:1; min-width:0;}
+  .sidebar-foot .who b{display:block; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .sidebar-foot .who span{display:block; font-size:10.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .sidebar .signout{background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;border-radius:8px; flex-shrink:0;}
+  .sidebar .signout:hover{background:rgba(224,96,92,.12); color:var(--danger);}
+
+  @media(min-width:861px){
+    body{padding:0; align-items:stretch; justify-content:flex-start;}
+    #app{width:100%; flex-direction:row;}
+    .sidebar{display:flex; flex-direction:column; width:250px; flex-shrink:0; min-height:100vh; height:100vh; position:sticky; top:0; padding:26px 18px; background:var(--glass-bg-strong); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-right:1px solid var(--glass-border);}
+    .shell{flex:1; min-width:0; width:auto; max-width:1000px; margin:0 auto; padding:36px 44px 60px;}
+    .bottom-nav{display:none;}
+    .quick-grid{max-width:560px;}
+    .book-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginGate">
+  <div class="login-card glass">
+    <svg class="brand-mark" viewBox="0 0 100 100" fill="none">
+      <rect x="14" y="22" width="72" height="56" rx="10" fill="url(#gA)"/>
+      <path d="M22 32c8-4 18-4 26 2v38c-8-6-18-6-26-2V32z" fill="#fff" opacity=".85"/>
+      <path d="M78 32c-8-4-18-4-26 2v38c8-6 18-6 26-2V32z" fill="#fff" opacity=".65"/>
+      <circle cx="50" cy="16" r="6" fill="#ffb88c"/>
+      <defs><linearGradient id="gA" x1="14" y1="22" x2="86" y2="78"><stop stop-color="#0f8f86"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient></defs>
+    </svg>
+    <h1>Staff Library</h1>
+    <p>Kanyadet Primary &amp; Junior School<br>Sign in with your school Google account to borrow and track books.</p>
+    <button class="btn-google" id="googleSignInBtn">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.16.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="loginError"></div>
+    <div id="deniedNote"></div>
+  </div>
+</div>
+
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <svg viewBox="0 0 100 100" fill="none"><rect x="14" y="22" width="72" height="56" rx="10" fill="url(#gS)"/><path d="M22 32c8-4 18-4 26 2v38c-8-6-18-6-26-2V32z" fill="#fff" opacity=".85"/><path d="M78 32c-8-4-18-4-26 2v38c8-6 18-6 26-2V32z" fill="#fff" opacity=".65"/><circle cx="50" cy="16" r="6" fill="#ffb88c"/><defs><linearGradient id="gS" x1="14" y1="22" x2="86" y2="78"><stop stop-color="#0f8f86"/><stop offset="1" stop-color="#2dd4bf"/></linearGradient></defs></svg>
+      <div class="brand-text"><b>Staff Library</b><span>Kanyadet School</span></div>
+    </div>
+    <nav class="navlist">
+      <div class="nav-item sb-item active" data-goto="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+      <div class="nav-item sb-item" data-goto="browse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Browse</span></div>
+      <div class="nav-item sb-item" data-goto="mybooks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/></svg><span>My Books</span></div>
+      <div class="nav-item sb-item" data-goto="requests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Requests</span></div>
+      <div class="nav-item sb-item" data-goto="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6"/></svg><span>Profile</span></div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar" id="sbAvatar">T</div>
+      <div class="who"><b id="sbName">Teacher</b><span id="sbEmail">—</span></div>
+      <button class="signout" id="sbSignOutBtn" title="Sign out"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
+    </div>
+  </aside>
+
+  <div class="shell">
+    <div class="topbar">
+      <div class="greet"><span id="greetTime">Good morning,</span><b id="greetName">Teacher</b></div>
+      <div class="top-icons">
+        <div class="icon-btn" data-goto="requests" title="My requests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><div class="dot" id="notifDot"></div></div>
+        <div class="avatar" id="userAvatar" data-goto="profile">R</div>
+      </div>
+    </div>
+
+    <!-- HOME -->
+    <div class="view active" id="view-home">
+      <div class="glass hero-card">
+        <div class="tag">Currently reading</div>
+        <h2 id="heroText">Browse the catalog to borrow your first book.</h2>
+        <div class="hero-actions">
+          <button class="btn btn-white" data-goto="browse">Browse books</button>
+          <button class="btn btn-ghost-w" data-goto="mybooks">My books</button>
+        </div>
+        <div class="hero-deco">📚</div>
+      </div>
+
+      <div class="quick-grid">
+        <div class="glass quick-item" data-goto="browse"><div class="qi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><span>Browse</span></div>
+        <div class="glass quick-item" data-goto="mybooks"><div class="qi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/></svg></div><span>My books</span></div>
+        <div class="glass quick-item" data-goto="requests"><div class="qi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div><span>Requests</span></div>
+        <div class="glass quick-item" data-goto="mybooks" data-tab="history"><div class="qi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div><span>History</span></div>
+      </div>
+
+      <div class="glass score-card">
+        <div class="ring-wrap">
+          <svg width="76" height="76" viewBox="0 0 76 76">
+            <circle cx="38" cy="38" r="32" fill="none" stroke="#e3fbf6" stroke-width="8"/>
+            <circle id="scoreRing" cx="38" cy="38" r="32" fill="none" stroke="#0f8f86" stroke-width="8" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="201"/>
+          </svg>
+          <div class="ring-num" id="scoreNum">0%</div>
+        </div>
+        <div class="score-text"><b id="scoreLabel">On-time return rate</b><span id="scoreSub">Borrow and return books on time to grow your score.</span></div>
+      </div>
+
+      <div class="section-head"><h3>Due soon</h3><span class="link" data-goto="mybooks">See all</span></div>
+      <div id="dueSoonList"><div class="loader"><div class="spin"></div>Loading…</div></div>
+    </div>
+
+    <!-- BROWSE -->
+    <div class="view" id="view-browse">
+      <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="browseSearch" placeholder="Search title or author…"></div>
+      <div class="filter-row" id="categoryFilters"></div>
+      <div class="filter-row" id="subjectFilters"></div>
+      <div class="book-grid" id="bookGrid"><div class="loader" style="grid-column:1/-1;"><div class="spin"></div>Loading catalog…</div></div>
+    </div>
+
+    <!-- MY BOOKS -->
+    <div class="view" id="view-mybooks">
+      <div class="tabs">
+        <div class="tab active" data-mtab="active">Borrowed</div>
+        <div class="tab" data-mtab="history">History</div>
+      </div>
+      <div id="myBooksList"><div class="loader"><div class="spin"></div>Loading…</div></div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="view" id="view-requests">
+      <div class="section-head"><h3>My requests</h3></div>
+      <div id="requestsList"><div class="loader"><div class="spin"></div>Loading…</div></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="view" id="view-profile">
+      <div class="glass profile-card">
+        <div class="profile-avatar" id="profileAvatar">R</div>
+        <h3 id="profileName">Teacher</h3>
+        <span id="profileEmail">—</span>
+        <div class="stat-strip">
+          <div><b id="pStatTotal">0</b><span>BOOKS READ</span></div>
+          <div><b id="pStatActive">0</b><span>BORROWED</span></div>
+          <div><b id="pStatRate">0%</b><span>ON TIME</span></div>
+        </div>
+      </div>
+      <div class="glass menu-item" id="signOutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Sign out</span></div>
+    </div>
+  </div>
+
+  <div class="bottom-nav" id="bottomNav">
+    <div class="nav-item active" data-goto="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span>Home</span></div>
+    <div class="nav-item" data-goto="browse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Browse</span></div>
+    <div class="nav-item" data-goto="mybooks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/></svg><span>My Books</span></div>
+    <div class="nav-item" data-goto="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6"/></svg><span>Profile</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, getDoc, addDoc, updateDoc, query, orderBy, onSnapshot,
+  serverTimestamp, where
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* Firebase config: mirrors js/config.js (FIREBASE_CONFIG) */
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE',
+  authDomain: 'kanyadet-school-admin.firebaseapp.com',
+  projectId: 'kanyadet-school-admin',
+  databaseURL: 'https://kanyadet-school-admin-default-rtdb.firebaseio.com',
+  storageBucket: 'kanyadet-school-admin.firebasestorage.app',
+  messagingSenderId: '409708360032',
+  appId: '1:409708360032:web:a21d63e8cb5fa1ecabee05',
+};
+const LIB = { BOOKS: 'libraryBooks', TX: 'libraryTransactions', REQUESTS: 'libraryReservations', SUBJECTS: 'librarySubjects' };
+const CATEGORIES = ['Set Books','CBC Learner Books','Fiction','Non-Fiction','Reference','Kiswahili','Children\u2019s','Biography','Science & Technology'];
+const CATEGORY_ICON = {'Set Books':'📗','CBC Learner Books':'📘','Fiction':'📖','Non-Fiction':'📰','Reference':'📕','Kiswahili':'🌍','Children\u2019s':'🧸','Biography':'👤','Science & Technology':'🔬'};
+let subjectsCache = []; // [{id, name, icon}] — live from Firestore, managed in the admin portal
+function subjectIcon(name){ const s = subjectsCache.find(x=>x.name===name); return s?s.icon:'📚'; }
+const ROLE = 'teacher';
+const MAX_BOOKS = 5; // teachers get a higher concurrent-loan limit than students
+
+const app = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let booksCache = [];
+let myTx = [];
+let myRequests = [];
+let activeCategory = 'all';
+let activeSubject = 'all';
+
+let signingIn = false;
+document.getElementById('googleSignInBtn').addEventListener('click', async () => {
+  if (signingIn) return; // avoid stacking multiple popups on repeat clicks
+  const errEl = document.getElementById('loginError'); errEl.textContent = '';
+  const btn = document.getElementById('googleSignInBtn');
+  signingIn = true; btn.disabled = true;
+  try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+  catch(e){
+    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+      errEl.textContent = 'Sign-in failed. Please try again.';
+    }
+  } finally { signingIn = false; btn.disabled = false; }
+});
+document.getElementById('signOutBtn').addEventListener('click', () => signOut(auth));
+document.getElementById('sbSignOutBtn').addEventListener('click', () => signOut(auth));
+
+async function isAllowedTeacher(user){
+  try{
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists()) return false;
+    const d = snap.data();
+    return d.role === 'Teacher' || d.Advancedadmin === true;
+  }catch(e){ return false; }
+}
+
+let justDenied = false; // guards against signOut()'s own auth-state event hiding the message we just showed
+onAuthStateChanged(auth, async (user) => {
+  const denied = document.getElementById('deniedNote');
+  if (!user){
+    document.getElementById('loginGate').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    if (!justDenied) denied.style.display = 'none';
+    justDenied = false;
+    return;
+  }
+  denied.style.display = 'none';
+  const allowed = await isAllowedTeacher(user);
+  if (!allowed){
+    denied.style.display = 'block';
+    denied.textContent = `${user.email} isn't set up with a Teacher account yet. Ask an Advanced Admin to set your role to "Teacher" in the Users panel, then sign in again.`;
+    justDenied = true;
+    await signOut(auth);
+    return;
+  }
+  currentUser = user;
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  const first = (user.displayName||'Teacher').split(' ')[0];
+  document.getElementById('greetName').textContent = first;
+  document.getElementById('userAvatar').textContent = first.charAt(0).toUpperCase();
+  document.getElementById('sbAvatar').textContent = first.charAt(0).toUpperCase();
+  document.getElementById('sbName').textContent = user.displayName || 'Teacher';
+  document.getElementById('sbEmail').textContent = user.email;
+  document.getElementById('profileAvatar').textContent = first.charAt(0).toUpperCase();
+  document.getElementById('profileName').textContent = user.displayName || 'Teacher';
+  document.getElementById('profileEmail').textContent = user.email;
+  const hr = new Date().getHours();
+  document.getElementById('greetTime').textContent = hr<12 ? 'Good morning,' : hr<17 ? 'Good afternoon,' : 'Good evening,';
+  boot();
+});
+
+/* NAV */
+document.addEventListener('click', (e) => {
+  const g = e.target.closest('[data-goto]');
+  if (!g) return;
+  goto(g.dataset.goto);
+  if (g.dataset.tab) setTimeout(()=>switchMyBooksTab(g.dataset.tab), 0);
+});
+function goto(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+view));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.goto===view));
+}
+
+let toastTimer;
+function toast(msg, isErr=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (isErr?' err':'');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 3000);
+}
+function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(ts){ if(!ts) return '—'; const d = ts.toDate?ts.toDate():new Date(ts); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
+function daysBetween(a,b){ return Math.floor((b-a)/86400000); }
+
+let booted = false;
+function boot(){
+  if (booted) return; booted = true;
+
+  const catRow = document.getElementById('categoryFilters');
+  catRow.innerHTML = `<div class="pill active" data-cat="all">All</div>` + CATEGORIES.map(c=>`<div class="pill" data-cat="${c}">${CATEGORY_ICON[c]||'📚'} ${c}</div>`).join('');
+  catRow.addEventListener('click', e=>{
+    const p = e.target.closest('.pill'); if(!p) return;
+    catRow.querySelectorAll('.pill').forEach(x=>x.classList.remove('active')); p.classList.add('active');
+    activeCategory = p.dataset.cat; renderBrowse();
+  });
+  const subjRow = document.getElementById('subjectFilters');
+  subjRow.addEventListener('click', e=>{
+    const p = e.target.closest('.pill'); if(!p) return;
+    subjRow.querySelectorAll('.pill').forEach(x=>x.classList.remove('active')); p.classList.add('active');
+    activeSubject = p.dataset.subj; renderBrowse();
+  });
+  onSnapshot(query(collection(db, LIB.SUBJECTS), orderBy('name')), snap=>{
+    subjectsCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    subjRow.innerHTML = `<div class="pill${activeSubject==='all'?' active':''}" data-subj="all">All subjects</div>` +
+      subjectsCache.map(s=>`<div class="pill${activeSubject===s.name?' active':''}" data-subj="${esc(s.name)}">${s.icon} ${esc(s.name)}</div>`).join('');
+    renderBrowse();
+  });
+  document.getElementById('browseSearch').addEventListener('input', renderBrowse);
+  document.querySelectorAll('[data-mtab]').forEach(t=>t.addEventListener('click', ()=>switchMyBooksTab(t.dataset.mtab)));
+
+  onSnapshot(query(collection(db, LIB.BOOKS), orderBy('title')), snap=>{
+    booksCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderBrowse();
+  });
+  onSnapshot(query(collection(db, LIB.TX), where('borrowerName','==', currentUser.displayName||'')), snap=>{
+    myTx = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderHome(); renderMyBooks();
+  });
+  onSnapshot(query(collection(db, LIB.REQUESTS), where('requesterUid','==', currentUser.uid)), snap=>{
+    myRequests = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(b.requestedAt?.toDate?.()||0) - (a.requestedAt?.toDate?.()||0));
+    renderRequests();
+    const pending = myRequests.filter(r=>r.status!=='pending' && !r.seen);
+    document.getElementById('notifDot').style.display = myRequests.some(r=>r.status==='approved'||r.status==='fulfilled') ? 'block' : 'none';
+  });
+}
+
+function statusOf(t){
+  if (t.status==='returned') return 'returned';
+  const due = t.dueDate?.toDate ? t.dueDate.toDate() : new Date(t.dueDate);
+  if (due < new Date()) return 'overdue';
+  return daysBetween(new Date(), due)<=2 ? 'due' : 'active';
+}
+function chipClass(s){ return {active:'chip-active', due:'chip-due', overdue:'chip-overdue', returned:'chip-returned'}[s]; }
+function statusLabel(s){ return {active:'Active', due:'Due soon', overdue:'Overdue', returned:'Returned'}[s]; }
+
+/* ---- HOME ---- */
+function renderHome(){
+  const active = myTx.filter(t=>t.status!=='returned');
+  const hero = document.getElementById('heroText');
+  if (active.length){
+    const soonest = [...active].sort((a,b)=>(a.dueDate.toDate?a.dueDate.toDate():new Date(a.dueDate)) - (b.dueDate.toDate?b.dueDate.toDate():new Date(b.dueDate)))[0];
+    hero.textContent = `"${soonest.bookTitle}" is due ${fmtDate(soonest.dueDate)}.`;
+  } else {
+    hero.textContent = 'Browse the catalog to borrow your first book.';
+  }
+
+  const returned = myTx.filter(t=>t.status==='returned');
+  const onTime = returned.filter(t=>{
+    const due = t.dueDate?.toDate?t.dueDate.toDate():new Date(t.dueDate);
+    const ret = t.returnDate?.toDate?t.returnDate.toDate():new Date(t.returnDate);
+    return ret <= due;
+  }).length;
+  const rate = returned.length ? Math.round(onTime/returned.length*100) : 100;
+  const circ = 201, offset = circ - (circ*rate/100);
+  document.getElementById('scoreRing').style.strokeDashoffset = offset;
+  document.getElementById('scoreNum').textContent = rate+'%';
+  document.getElementById('scoreSub').textContent = returned.length ? `${onTime} of ${returned.length} books returned on time.` : 'Borrow and return books on time to grow your score.';
+  document.getElementById('pStatTotal').textContent = returned.length;
+  document.getElementById('pStatActive').textContent = active.length;
+  document.getElementById('pStatRate').textContent = rate+'%';
+
+  const dueSoonList = document.getElementById('dueSoonList');
+  const dueSoon = active.filter(t=>['due','overdue'].includes(statusOf(t)));
+  dueSoonList.innerHTML = dueSoon.length ? dueSoon.map(t=>bookRow(t)).join('') : `<div class="glass" style="padding:26px; text-align:center; color:var(--muted); font-size:13px; border-radius:20px;">Nothing due soon 🎉</div>`;
+}
+function bookRow(t){
+  const s = statusOf(t);
+  const book = booksCache.find(b=>b.id===t.bookId);
+  return `<div class="glass book-row"><div class="cov">${book?book.coverIcon:'📖'}</div><div class="bt"><b>${esc(t.bookTitle)}</b><span>${s==='returned' ? 'Returned '+fmtDate(t.returnDate) : 'Due '+fmtDate(t.dueDate)}</span></div><span class="chip ${chipClass(s)}">${statusLabel(s)}</span></div>`;
+}
+
+/* ---- BROWSE ---- */
+function renderBrowse(){
+  const term = (document.getElementById('browseSearch').value||'').toLowerCase();
+  let list = booksCache.filter(b=>activeCategory==='all' || b.category===activeCategory);
+  list = list.filter(b=>activeSubject==='all' || b.subject===activeSubject);
+  if (term) list = list.filter(b=>(b.title+b.author).toLowerCase().includes(term));
+  const grid = document.getElementById('bookGrid');
+  if (!list.length){ grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><b>No books found</b>Try a different search.</div>`; return; }
+  const activeCount = myTx.filter(t=>t.status!=='returned').length;
+  grid.innerHTML = list.map(b=>{
+    const alreadyHave = myTx.some(t=>t.bookId===b.id && t.status!=='returned');
+    const alreadyRequested = myRequests.some(r=>r.bookId===b.id && r.status==='pending');
+    const atLimit = activeCount >= MAX_BOOKS;
+    let btnLabel = 'Request', disabled = false;
+    if (alreadyHave){ btnLabel = 'Borrowed'; disabled = true; }
+    else if (alreadyRequested){ btnLabel = 'Requested'; disabled = true; }
+    else if (b.availableCopies<1){ btnLabel = 'Unavailable'; disabled = true; }
+    else if (atLimit){ btnLabel = `Limit (${MAX_BOOKS})`; disabled = true; }
+    return `<div class="glass book-card">
+      <div class="book-cover">${b.thumbnailUrl ? `<img src="${esc(b.thumbnailUrl)}" alt="" onerror="this.outerHTML='${b.coverIcon||'📖'}'">` : b.coverIcon}</div>
+      <div><b>${esc(b.title)}</b><div class="auth">${esc(b.author)}</div>${b.subject?`<div class="auth">${subjectIcon(b.subject)} ${esc(b.subject)}</div>`:''}</div>
+      <div class="avail">${b.availableCopies}/${b.totalCopies} available</div>
+      <button class="btn btn-white" style="background:var(--teal-600); color:#fff;" data-request="${b.id}" ${disabled?'disabled':''}>${btnLabel}</button>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('[data-request]').forEach(btn=>btn.addEventListener('click', ()=>requestBook(btn.dataset.request)));
+}
+async function requestBook(bookId){
+  const b = booksCache.find(x=>x.id===bookId);
+  if (!b) return;
+  try{
+    await addDoc(collection(db, LIB.REQUESTS), {
+      bookId: b.id, bookTitle: b.title,
+      requesterUid: currentUser.uid, requesterName: currentUser.displayName || currentUser.email,
+      requesterRole: ROLE, requestedAt: serverTimestamp(), status: 'pending',
+    });
+    toast(`Requested "${b.title}" — the librarian will issue it to you`);
+  }catch(e){ toast('Could not send request', true); }
+}
+
+/* ---- MY BOOKS ---- */
+function switchMyBooksTab(tab){
+  document.querySelectorAll('[data-mtab]').forEach(t=>t.classList.toggle('active', t.dataset.mtab===tab));
+  renderMyBooks(tab);
+}
+function renderMyBooks(tab){
+  tab = tab || (document.querySelector('[data-mtab].active')||{}).dataset?.mtab || 'active';
+  const list = document.getElementById('myBooksList');
+  const filtered = tab==='active' ? myTx.filter(t=>t.status!=='returned') : myTx.filter(t=>t.status==='returned');
+  if (!filtered.length){
+    list.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"/></svg><b>${tab==='active'?'No books borrowed yet':'No history yet'}</b>${tab==='active'?'Browse the catalog to request one.':''}</div>`;
+    return;
+  }
+  const sorted = [...filtered].sort((a,b)=>(b.issueDate?.toDate?.()||0) - (a.issueDate?.toDate?.()||0));
+  list.innerHTML = sorted.map(t=>bookRow(t)).join('');
+}
+
+/* ---- REQUESTS ---- */
+function renderRequests(){
+  const list = document.getElementById('requestsList');
+  if (!myRequests.length){ list.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><b>No requests yet</b>Requests you send from Browse show up here.</div>`; return; }
+  list.innerHTML = myRequests.map(r=>`
+    <div class="glass book-row">
+      <div class="cov">📩</div>
+      <div class="bt"><b>${esc(r.bookTitle)}</b><span>Requested ${fmtDate(r.requestedAt)}</span></div>
+      <span class="chip chip-${r.status}">${r.status==='fulfilled'?'Issued':r.status}</span>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>

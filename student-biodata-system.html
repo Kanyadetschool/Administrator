@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanyadet Student Records</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12211f;
+    --teal-deep:#0f3d3e;
+    --teal-mid:#175c56;
+    --mint:#4fd1ae;
+    --mint-pale:#eaf6f0;
+    --lavender:#b8a9f3;
+    --lavender-pale:#efeafd;
+    --paper:#ffffff;
+    --line:#dbe8e2;
+    --muted:#5c7570;
+    --error:#c1523f;
+    --radius-lg:28px;
+    --radius-md:18px;
+    --radius-sm:10px;
+    --shadow: 0 20px 50px -25px rgba(15,61,62,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:var(--mint-pale);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:0.03em;}
+  .display{font-family:'Fraunces',serif;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select{font-family:inherit;}
+
+  /* ---------- App shell ---------- */
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+
+  /* ---------- LOGIN VIEW ---------- */
+  .login-shell{
+    flex:1;display:grid;grid-template-columns:0.85fr 1fr;min-height:100vh;
+  }
+  @media (max-width:860px){ .login-shell{grid-template-columns:1fr;} .login-brand{min-height:280px;} }
+
+  .login-brand{
+    background:
+      radial-gradient(circle at 20% 15%, rgba(79,209,174,0.18), transparent 55%),
+      radial-gradient(circle at 85% 80%, rgba(184,169,243,0.22), transparent 50%),
+      linear-gradient(160deg, var(--teal-deep), #0a2a2b 75%);
+    color:#f4faf8;
+    display:flex;flex-direction:column;justify-content:space-between;
+    padding:48px 44px;position:relative;overflow:hidden;
+  }
+  .brand-mark{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#bfe4d9;}
+  .brand-mark .dot{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 4px rgba(79,209,174,0.25);}
+
+  .seal-wrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;}
+  .seal{width:min(280px,60%);animation:seal-in 900ms cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes seal-in{from{opacity:0;transform:scale(.85) rotate(-8deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+  .seal circle{transform-origin:center;}
+  .seal .ring-outer{animation:spin 42s linear infinite;}
+  .seal .ring-tick{animation:spin 42s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .brand-copy h1{font-size:clamp(28px,3.4vw,40px);line-height:1.05;margin:0 0 12px;font-weight:600;}
+  .brand-copy p{margin:0;color:#a9d4c7;font-size:15px;line-height:1.6;max-width:38ch;}
+
+  .login-panel{
+    display:flex;align-items:center;justify-content:center;padding:40px 28px;background:var(--paper);
+  }
+  .login-card{width:100%;max-width:400px;}
+  .login-card .eyebrow{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:0.08em;
+    text-transform:uppercase;color:var(--teal-mid);background:var(--mint-pale);padding:6px 12px;border-radius:999px;margin-bottom:18px;
+  }
+  .login-card h2{font-size:26px;margin:0 0 8px;font-weight:600;}
+  .login-card .sub{color:var(--muted);font-size:14.5px;line-height:1.55;margin:0 0 30px;}
+
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--teal-deep);margin-bottom:7px;letter-spacing:0.02em;}
+  .field input, .field select{
+    width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:var(--radius-sm);
+    font-size:15px;background:#fbfdfc;color:var(--ink);transition:border-color .15s, box-shadow .15s;
+  }
+  .field input.mono{font-size:15px;}
+  .field input:focus, .field select:focus{
+    outline:none;border-color:var(--mint);box-shadow:0 0 0 4px rgba(79,209,174,0.18);background:#fff;
+  }
+  .field .hint{font-size:12px;color:var(--muted);margin-top:6px;}
+
+  .submit-btn{
+    width:100%;padding:14px 16px;border:none;border-radius:var(--radius-sm);
+    background:var(--teal-deep);color:#f4faf8;font-size:15px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:background .15s, transform .1s;
+  }
+  .submit-btn:hover{background:var(--teal-mid);}
+  .submit-btn:active{transform:scale(0.99);}
+  .submit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+
+  .form-error{
+    display:none;align-items:flex-start;gap:8px;background:#fdefec;border:1px solid #f3d2ca;color:var(--error);
+    padding:12px 14px;border-radius:var(--radius-sm);font-size:13.5px;line-height:1.5;margin-bottom:16px;
+  }
+  .form-error.show{display:flex;}
+
+  .spinner{
+    width:16px;height:16px;border-radius:50%;border:2px solid rgba(244,250,248,0.4);border-top-color:#f4faf8;
+    animation:sp .7s linear infinite;display:none;
+  }
+  .spinner.show{display:inline-block;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+
+  .login-footnote{margin-top:26px;font-size:12.5px;color:var(--muted);}
+
+  /* ---------- DASHBOARD VIEW ---------- */
+  .dash-shell{display:none;flex:1;flex-direction:column;}
+  .dash-shell.show{display:flex;}
+  .login-shell.hide{display:none;}
+
+  .dash-topbar{
+    display:flex;align-items:center;justify-content:space-between;padding:20px 32px;
+    background:var(--paper);border-bottom:1px solid var(--line);
+  }
+  .dash-brand{display:flex;align-items:center;gap:10px;}
+  .dash-brand .mark{width:34px;height:34px;border-radius:10px;background:var(--teal-deep);display:flex;align-items:center;justify-content:center;}
+  .dash-brand .mark svg{width:18px;height:18px;}
+  .dash-brand span{font-weight:600;font-size:15px;color:var(--teal-deep);}
+  .logout-btn{
+    background:none;border:1.5px solid var(--line);padding:9px 16px;border-radius:999px;font-size:13.5px;font-weight:600;
+    color:var(--teal-deep);transition:background .15s, border-color .15s;
+  }
+  .logout-btn:hover{background:var(--mint-pale);border-color:var(--mint);}
+
+  .dash-body{flex:1;padding:32px;max-width:1080px;margin:0 auto;width:100%;}
+
+  .verified-pill{
+    display:inline-flex;align-items:center;gap:6px;background:var(--mint-pale);color:var(--teal-mid);
+    font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;letter-spacing:0.02em;margin-bottom:18px;
+  }
+  .verified-pill svg{width:13px;height:13px;}
+
+  .hero-card{
+    background:linear-gradient(135deg,var(--teal-deep),#12403f 60%,#0d3335);
+    border-radius:var(--radius-lg);padding:34px;color:#f4faf8;display:flex;gap:26px;align-items:center;
+    box-shadow:var(--shadow);opacity:0;animation:rise .5s .05s cubic-bezier(.2,.8,.2,1) forwards;flex-wrap:wrap;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+  .avatar-ring{
+    width:88px;height:88px;border-radius:50%;background:linear-gradient(150deg,var(--mint),var(--lavender));
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .avatar-ring span{
+    width:78px;height:78px;border-radius:50%;background:var(--teal-deep);display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:#f4faf8;
+  }
+  .hero-info{flex:1;min-width:220px;}
+  .hero-info h1{font-family:'Fraunces',serif;font-size:clamp(22px,3vw,30px);margin:0 0 6px;font-weight:600;}
+  .hero-info .grade-badge{
+    display:inline-block;background:rgba(255,255,255,0.14);padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;
+  }
+  .hero-stamp{
+    background:rgba(255,255,255,0.08);border:1px dashed rgba(244,250,248,0.4);border-radius:var(--radius-sm);
+    padding:14px 18px;text-align:center;min-width:190px;
+  }
+  .hero-stamp .label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:#bfe4d9;margin-bottom:6px;}
+  .hero-stamp .value{font-size:18px;font-weight:600;}
+
+  .card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:22px;}
+  @media (max-width:800px){.card-grid{grid-template-columns:1fr;}}
+
+  .info-card{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-md);padding:22px;
+    opacity:0;animation:rise .5s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .info-card:nth-child(1){animation-delay:.12s;}
+  .info-card:nth-child(2){animation-delay:.17s;}
+  .info-card:nth-child(3){animation-delay:.22s;}
+  .info-card:nth-child(4){animation-delay:.27s;}
+
+  .info-card .head{display:flex;align-items:center;gap:9px;margin-bottom:16px;}
+  .info-card .head .ic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;}
+  .info-card .head .ic svg{width:15px;height:15px;}
+  .info-card .head h3{font-size:14px;margin:0;font-weight:600;color:var(--teal-deep);}
+  .ic.mint{background:var(--mint-pale);color:var(--teal-mid);}
+  .ic.lav{background:var(--lavender-pale);color:#6e5bc4;}
+
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #f0f4f2;font-size:13.5px;}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--muted);}
+  .kv .v{font-weight:600;text-align:right;}
+
+  .dash-footnote{margin-top:26px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6;}
+
+  /* ---------- Splash ---------- */
+  #globalSplash{
+    position:fixed;inset:0;background:var(--teal-deep);display:flex;align-items:center;justify-content:center;z-index:50;
+    transition:opacity .35s ease;
+  }
+  #globalSplash.hidden{opacity:0;pointer-events:none;}
+  #globalSplash .box{text-align:center;color:#f4faf8;}
+  #globalSplash .spin{width:30px;height:30px;border-radius:50%;border:2.5px solid rgba(244,250,248,0.25);border-top-color:var(--mint);animation:sp .7s linear infinite;margin:0 auto 14px;}
+</style>
+</head>
+<body>
+
+<div id="globalSplash"><div class="box"><div class="spin"></div><div class="mono" style="font-size:12.5px;letter-spacing:0.08em;">CONNECTING TO RECORDS…</div></div></div>
+
+<div id="app">
+
+  <!-- ============ LOGIN VIEW ============ -->
+  <div class="login-shell" id="loginShell">
+    <div class="login-brand">
+      <div class="brand-mark"><span class="dot"></span>KANYADET SCHOOL RECORDS</div>
+
+      <div class="seal-wrap">
+        <svg class="seal" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g class="ring-outer">
+            <circle cx="100" cy="100" r="92" stroke="rgba(79,209,174,0.35)" stroke-width="1" stroke-dasharray="2 6"/>
+          </g>
+          <circle cx="100" cy="100" r="76" stroke="rgba(184,169,243,0.5)" stroke-width="1.5"/>
+          <circle cx="100" cy="100" r="60" fill="rgba(79,209,174,0.08)" stroke="#4fd1ae" stroke-width="1.5"/>
+          <path d="M78 100 L94 116 L124 82" stroke="#f4faf8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="brand-copy">
+        <h1>One record,<br/>verified on the spot.</h1>
+        <p>Enter your assessment number and grade to bring up your official biodata card.</p>
+      </div>
+    </div>
+
+    <div class="login-panel">
+      <div class="login-card">
+        <span class="eyebrow">Student portal</span>
+        <h2>Find your record</h2>
+        <p class="sub">Your assessment number is printed on your admission letter or ID card — for example, <span class="mono">B000004646</span>.</p>
+
+        <div class="form-error" id="formError">
+          <svg width="16" height="16" style="flex-shrink:0;margin-top:1px" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M10 6v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="13.5" r="0.9" fill="currentColor"/></svg>
+          <span id="formErrorText">No record matches that assessment number and grade. Double-check both fields and try again.</span>
+        </div>
+
+        <form id="loginForm">
+          <div class="field">
+            <label for="assessmentNo">Assessment number</label>
+            <input type="text" id="assessmentNo" class="mono" placeholder="B000004646" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="grade">Grade</label>
+            <select id="grade" required>
+              <option value="" disabled selected>Select grade</option>
+              <option>PP1</option><option>PP2</option>
+              <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+              <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+              <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+            </select>
+            <div class="hint">Match the grade on your admission letter — the system checks both fields together.</div>
+          </div>
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span class="spinner" id="submitSpinner"></span>
+            <span id="submitLabel">Verify record</span>
+          </button>
+        </form>
+        <div class="login-footnote">Records are pulled directly from the school database each time you sign in — nothing is stored on this device.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DASHBOARD VIEW ============ -->
+  <div class="dash-shell" id="dashShell">
+    <div class="dash-topbar">
+      <div class="dash-brand">
+        <div class="mark"><svg viewBox="0 0 20 20" fill="none"><path d="M4 10 L8 14 L16 5" stroke="#4fd1ae" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span>Kanyadet School Records</span>
+      </div>
+      <button class="logout-btn" id="logoutBtn">Sign out</button>
+    </div>
+
+    <div class="dash-body">
+      <div class="verified-pill">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 10 L8 14 L16 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Record verified
+      </div>
+
+      <div class="hero-card">
+        <div class="avatar-ring"><span id="heroInitials">--</span></div>
+        <div class="hero-info">
+          <h1 id="heroName">—</h1>
+          <span class="grade-badge" id="heroGrade">—</span>
+          <span class="grade-badge" id="heroClass" style="margin-left:6px;">—</span>
+        </div>
+        <div class="hero-stamp">
+          <div class="label">Assessment No.</div>
+          <div class="value mono" id="heroAssessment">—</div>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <div class="info-card">
+          <div class="head"><div class="ic mint"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.2" stroke="currentColor" stroke-width="1.5"/><path d="M4 16c1.2-3 3.6-4.5 6-4.5s4.8 1.5 6 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><h3>Personal</h3></div>
+          <div class="kv"><span class="k">Official name</span><span class="v" id="pFullName">—</span></div>
+          <div class="kv"><span class="k">Gender</span><span class="v" id="pGender">—</span></div>
+          <div class="kv"><span class="k">Date of birth</span><span class="v" id="pDob">—</span></div>
+          <div class="kv"><span class="k">Where born</span><span class="v" id="pWhereBorn">—</span></div>
+          <div class="kv"><span class="k">ID No.</span><span class="v" id="pIdno">—</span></div>
+        </div>
+
+        <div class="info-card">
+          <div class="head"><div class="ic lav"><svg viewBox="0 0 20 20" fill="none"><path d="M10 3l6 3v4c0 4-2.5 6.5-6 7-3.5-0.5-6-3-6-7V6l6-3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div><h3>Family &amp; contact</h3></div>
+          <div class="kv"><span class="k">Father</span><span class="v" id="gFather">—</span></div>
+          <div class="kv"><span class="k">Mother</span><span class="v" id="gMother">—</span></div>
+          <div class="kv"><span class="k">Home phone</span><span class="v" id="gPhone">—</span></div>
+          <div class="kv"><span class="k">Email</span><span class="v" id="gEmail">—</span></div>
+        </div>
+
+        <div class="info-card">
+          <div class="head"><div class="ic mint"><svg viewBox="0 0 20 20" fill="none"><path d="M3 6l7-3 7 3-7 3-7-3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 8.5V13c0 1.5 1.8 2.5 4 2.5s4-1 4-2.5V8.5" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Academic</h3></div>
+          <div class="kv"><span class="k">Grade</span><span class="v" id="aGrade">—</span></div>
+          <div class="kv"><span class="k">Class</span><span class="v" id="aClass">—</span></div>
+          <div class="kv"><span class="k">UPI</span><span class="v" id="aUpi">—</span></div>
+          <div class="kv"><span class="k">Date of admission</span><span class="v" id="aAdmission">—</span></div>
+          <div class="kv"><span class="k">District</span><span class="v" id="aDistrict">—</span></div>
+          <div class="kv"><span class="k">Status</span><span class="v" id="aStatus">—</span></div>
+        </div>
+
+        <div class="info-card">
+          <div class="head"><div class="ic lav"><svg viewBox="0 0 20 20" fill="none"><path d="M10 2v16M4 6l6-4 6 4M4 14l6 4 6-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Health</h3></div>
+          <div class="kv"><span class="k">Disability</span><span class="v" id="hDisability">—</span></div>
+          <div class="kv"><span class="k">Medical condition</span><span class="v" id="hMedical">—</span></div>
+        </div>
+      </div>
+
+      <div class="dash-footnote">Pulled live from the Kanyadet school database. If any detail looks wrong, report it to the school office rather than editing it here.</div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const sanitizedAppId = appId.replace(/\./g, '_');
+
+const customFirebaseConfig = {
+  apiKey: "AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE",
+  authDomain: "kanyadet-school-admin.firebaseapp.com",
+  projectId: "kanyadet-school-admin",
+  databaseURL: "https://kanyadet-school-admin-default-rtdb.firebaseio.com",
+  storageBucket: "kanyadet-school-admin.firebasestorage.app",
+  messagingSenderId: "409708360032",
+  appId: "1:409708360032:web:a21d63e8cb5fa1ecabee05",
+  measurementId: "G-Y4C0ZRRL52"
+};
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : customFirebaseConfig;
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getDatabase(firebaseApp);
+const auth = getAuth(firebaseApp);
+
+// ---------- anonymous auth ----------
+// Your Firebase security rules likely require an authenticated request
+// (auth != null) before allowing reads — anonymous sign-in satisfies that
+// without asking the student for a password.
+let authReady = null;
+function ensureAuth(){
+  if (authReady) return authReady;
+  authReady = new Promise((resolve, reject) => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user){ unsub(); resolve(user); }
+    }, reject);
+    signInAnonymously(auth).catch((err) => {
+      unsub();
+      reject(err);
+    });
+  });
+  return authReady;
+}
+ensureAuth().catch(err => console.error('[Kanyadet] Anonymous sign-in failed:', err));
+
+// ---------- helpers ----------
+function normAssessment(s){
+  return (s || '').toString().trim().toUpperCase().replace(/\s+/g, '');
+}
+function normGrade(g){
+  return (g || '').toString().trim().toLowerCase().replace(/\s+/g, ' ').replace(/^grade\s*/, '');
+}
+function normaliseSnapshot(val){
+  if (!val) return [];
+  return Object.keys(val).map(id => ({ id, ...val[id] }));
+}
+function initialsOf(name){
+  if(!name) return '--';
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0]||'') + (parts[1]?.[0]||'')).toUpperCase() || '--';
+}
+function clean(v){
+  if (v === null || v === undefined) return '—';
+  const s = v.toString().trim();
+  if (s === '' || s === '---' || s === 'N/A' || /^none\.?$/i.test(s)) return '—';
+  return s;
+}
+
+// ---------- splash ----------
+const splash = document.getElementById('globalSplash');
+setTimeout(() => splash.classList.add('hidden'), 500);
+
+// ---------- elements ----------
+const loginShell = document.getElementById('loginShell');
+const dashShell = document.getElementById('dashShell');
+const loginForm = document.getElementById('loginForm');
+const assessmentInput = document.getElementById('assessmentNo');
+const gradeInput = document.getElementById('grade');
+const submitBtn = document.getElementById('submitBtn');
+const submitSpinner = document.getElementById('submitSpinner');
+const submitLabel = document.getElementById('submitLabel');
+const formError = document.getElementById('formError');
+const formErrorText = document.getElementById('formErrorText');
+const logoutBtn = document.getElementById('logoutBtn');
+
+function setBusy(isBusy){
+  submitBtn.disabled = isBusy;
+  submitSpinner.classList.toggle('show', isBusy);
+  submitLabel.textContent = isBusy ? 'Checking…' : 'Verify record';
+}
+function showError(msg){
+  formErrorText.textContent = msg;
+  formError.classList.add('show');
+}
+function clearError(){
+  formError.classList.remove('show');
+}
+
+async function fetchStudentsByGrade(gradeExact){
+  await ensureAuth();
+  const studentsRef = ref(db, `artifacts/${sanitizedAppId}/students`);
+  const gradeQuery = query(studentsRef, orderByChild('Grade'), equalTo(gradeExact));
+  const snapshot = await get(gradeQuery);
+  return normaliseSnapshot(snapshot.val());
+}
+
+function renderStudent(s){
+  const name = clean(s['Official Student Name']);
+  document.getElementById('heroInitials').textContent = initialsOf(name === '—' ? '' : name);
+  document.getElementById('heroName').textContent = name === '—' ? 'Unnamed record' : name;
+  document.getElementById('heroGrade').textContent = clean(s['Grade']);
+  document.getElementById('heroClass').textContent = clean(s['Class']);
+  document.getElementById('heroAssessment').textContent = clean(s['Assessment No']);
+
+  document.getElementById('pFullName').textContent = name;
+  document.getElementById('pGender').textContent = clean(s['Gender']);
+  document.getElementById('pDob').textContent = clean(s['DOB']);
+  document.getElementById('pWhereBorn').textContent = clean(s['Where Born']);
+  document.getElementById('pIdno').textContent = clean(s['IDNO']);
+
+  document.getElementById('gFather').textContent = clean(s['Father']);
+  document.getElementById('gMother').textContent = clean(s['Mother']);
+  document.getElementById('gPhone').textContent = clean(s['Home phone']);
+  document.getElementById('gEmail').textContent = clean(s['Email']);
+
+  document.getElementById('aGrade').textContent = clean(s['Grade']);
+  document.getElementById('aClass').textContent = clean(s['Class']);
+  document.getElementById('aUpi').textContent = clean(s['UPI']);
+  document.getElementById('aAdmission').textContent = clean(s['DateOfAdmission']);
+  document.getElementById('aDistrict').textContent = clean(s['District']);
+  document.getElementById('aStatus').textContent = clean(s['Status']);
+
+  document.getElementById('hDisability').textContent = clean(s['Dissability']);
+  document.getElementById('hMedical').textContent = clean(s['Medical Condition']);
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearError();
+
+  const assessmentVal = normAssessment(assessmentInput.value);
+  const gradeExact = gradeInput.value; // matches the select option text stored in Firebase, e.g. "Grade 9"
+
+  if (!assessmentVal || !gradeExact){
+    showError('Enter both your assessment number and grade to continue.');
+    return;
+  }
+
+  setBusy(true);
+  try {
+    // Indexed query: only pulls the records for this grade, not the whole table.
+    const gradeMatches = await fetchStudentsByGrade(gradeExact);
+    const match = gradeMatches.find(s => normAssessment(s['Assessment No']) === assessmentVal);
+
+    if (!match){
+      showError('No record matches that assessment number and grade. Double-check both fields and try again.');
+      setBusy(false);
+      return;
+    }
+
+    renderStudent(match);
+    loginShell.classList.add('hide');
+    dashShell.classList.add('show');
+  } catch (err){
+    console.error('[Kanyadet] Lookup failed:', err);
+    if (err && err.code && err.code.startsWith('auth/')){
+      showError('Could not sign in to the school database. Check that Anonymous sign-in is still enabled in Firebase Auth.');
+    } else {
+      showError('Could not reach the school database. Check your connection and try again.');
+    }
+  } finally {
+    setBusy(false);
+  }
+});
+
+logoutBtn.addEventListener('click', () => {
+  loginForm.reset();
+  clearError();
+  dashShell.classList.remove('show');
+  loginShell.classList.remove('hide');
+  assessmentInput.focus();
+});
+</script>
+</body>
+</html>

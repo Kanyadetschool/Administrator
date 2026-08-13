@@ -31,6 +31,7 @@ export const PATHS = {
   ANNOUNCEMENTS_PATH: 'announcements',
   ATTENDANCE_PATH: 'attendance',
   LUNCH_PATH: 'lunch',
+  CALENDAR_PATH: 'calendar', // calendar/{eventId} = {date, type, title, ...} — matches the "calendar" node in database.rules.json
   QE_ACTIVE_PATH: 'quickEntryActive', // {encodedCompound}/{uid} -> {name,uid,grade,compound,startedAt,lastActive,cell:{studentName,subject,value,updatedAt}} — written by the Results Portal's Quick Entry
   TIMETABLE_PATH: 'timetables', // timetables/{grade} = {mon:[...],tue:[...]...} (legacy per-grade view)
   RESOURCES_PATH: 'resources', // Firestore collection
