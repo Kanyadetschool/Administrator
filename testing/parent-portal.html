@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Parent Portal · Kanyadet School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .parent-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .parent-card { width: 100%; max-width: 420px; text-align: left; }
+  .status-banner { border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px; font-size: 13.5px; }
+  .status-banner.pending { background: #fbe9d2; color: #6d4710; }
+  .status-banner.approved { background: #dcf1e3; color: #175c34; }
+</style>
+</head>
+<body>
+
+<div class="parent-shell">
+  <div class="card parent-card">
+    <div class="brand-mark" style="width:36px;height:36px;background:#14161a;color:#fff;margin-bottom:14px;">KS</div>
+    <div id="parent-content">
+      <p class="empty-note">Loading…</p>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import {
+    doc, getDoc, setDoc, updateDoc, serverTimestamp,
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { auth, db } from './js/firebase-init.js';
+  import { SessionManager, guardPage } from './js/google-one-tap.js';
+
+  const contentEl = document.getElementById('parent-content');
+  let currentUser = null;
+
+  guardPage({
+    onAuthed: async (user) => {
+      currentUser = user;
+      await renderParentState();
+    },
+    onUnauthed: () => { window.location.href = './login.html'; },
+  });
+
+  async function renderParentState() {
+    const uid = currentUser.uid;
+    const email = (currentUser.email || '').toLowerCase();
+    const parentSnap = await getDoc(doc(db, 'parents', uid)).catch(() => null);
+
+    if (!parentSnap || !parentSnap.exists()) {
+      renderRegistrationForm();
+      return;
+    }
+
+    const parent = parentSnap.data();
+    if (parent.status === 'approved') {
+      renderApprovedHome(parent);
+      return;
+    }
+
+    // Pending — check whether the approval queue has since been approved,
+    // and if so, flip our own status (the rules allow this exact move).
+    const authSnap = await getDoc(doc(db, 'authorizedParents', email)).catch(() => null);
+    if (authSnap && authSnap.exists() && authSnap.data().status === 'approved') {
+      try {
+        await updateDoc(doc(db, 'parents', uid), { status: 'approved' });
+        renderApprovedHome({ ...parent, status: 'approved' });
+        return;
+      } catch (err) {
+        console.error('Could not flip to approved:', err);
+      }
+    }
+    renderPending();
+  }
+
+  function renderRegistrationForm() {
+    contentEl.innerHTML = `
+      <h1 style="font-family:var(--font-display);font-size:24px;margin:0 0 6px;">Parent registration</h1>
+      <p class="sub" style="margin-bottom:20px;">Tell us who you are so the school can verify and approve your account.</p>
+      <form id="register-form">
+        <div class="field"><label for="p-name">Full name</label><input id="p-name" required /></div>
+        <div class="field"><label for="p-phone">Phone number</label><input id="p-phone" type="tel" required /></div>
+        <div class="field"><label for="p-students">Child/children's admission number(s)</label><input id="p-students" placeholder="e.g. KS-2041, KS-2042" required /></div>
+        <button class="btn btn-primary btn-block" type="submit">Submit for approval</button>
+      </form>
+      <p id="register-status" class="login-status"></p>
+    `;
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const statusEl = document.getElementById('register-status');
+      const name = document.getElementById('p-name').value.trim();
+      const phone = document.getElementById('p-phone').value.trim();
+      const linkedStudents = document.getElementById('p-students').value.split(',').map(s => s.trim()).filter(Boolean);
+      const uid = currentUser.uid;
+      const email = (currentUser.email || '').toLowerCase();
+      statusEl.textContent = 'Submitting…';
+      try {
+        await setDoc(doc(db, 'parents', uid), {
+          name, phone, linkedStudents, email,
+          status: 'pending',
+          createdAt: serverTimestamp(),
+        });
+        // Best-effort — allowed by rules for the caller's own email, but
+        // an admin may have already created this record.
+        try {
+          await setDoc(doc(db, 'authorizedParents', email), {
+            email, status: 'pending', requestedAt: serverTimestamp(),
+          });
+        } catch (err) {
+          console.warn('authorizedParents entry may already exist:', err);
+        }
+        await renderParentState();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Could not submit — please try again.';
+        statusEl.className = 'login-status is-error';
+      }
+    });
+  }
+
+  function renderPending() {
+    contentEl.innerHTML = `
+      <div class="status-banner pending">
+        <strong>Awaiting approval.</strong> The school office needs to verify
+        your details before you can view student information. This usually
+        takes 1–2 school days.
+      </div>
+      <button class="btn btn-ghost btn-block" id="refresh-btn">Check again</button>
+      <a class="btn btn-ghost btn-block" href="#" id="signout-btn" style="margin-top:10px;">Sign out</a>
+    `;
+    document.getElementById('refresh-btn').addEventListener('click', renderParentState);
+    document.getElementById('signout-btn').addEventListener('click', doSignOut);
+  }
+
+  function renderApprovedHome(parent) {
+    const students = (parent.linkedStudents || []).map(s => `<li>${escapeHtml(s)}</li>`).join('') || '<li>None linked yet — contact the office to add a child.</li>';
+    contentEl.innerHTML = `
+      <div class="status-banner approved">Welcome, ${escapeHtml(parent.name || '')}. Your account is approved.</div>
+      <h2 style="font-size:15px;margin:0 0 8px;">Linked students</h2>
+      <ul class="checklist" style="margin-bottom:20px;">${students}</ul>
+      <p class="empty-note" style="text-align:left;padding:0;">Results, attendance, and fee views for your children will appear here as those modules go live.</p>
+      <a class="btn btn-ghost btn-block" href="#" id="signout-btn" style="margin-top:14px;">Sign out</a>
+    `;
+    document.getElementById('signout-btn').addEventListener('click', doSignOut);
+  }
+
+  async function doSignOut(e) {
+    e.preventDefault();
+    SessionManager.clear();
+    try { await signOut(auth); } catch (err) { console.error(err); }
+    window.location.href = './login.html';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+</script>
+
+</body>
+</html>

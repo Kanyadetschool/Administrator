@@ -789,7 +789,6 @@ a{color:inherit;text-decoration:none;}
       <div class="nav-item" data-view="classes" data-title="My Classes" data-crumb="Rosters for your assigned grades"><span class="nav-icon">🏷️</span>My Classes</div>
       <div class="nav-item" data-view="attendance" data-title="Attendance" data-crumb="Mark and review daily attendance"><span class="nav-icon">✅</span>Attendance</div>
       <div class="nav-item" data-view="gradebook" data-title="Gradebook" data-crumb="Recent scores for your classes"><span class="nav-icon">📝</span>Gradebook</div>
-      <div class="nav-item" data-view="insights" data-title="At-Risk Insights" data-crumb="Students falling behind on scores or attendance"><span class="nav-icon">🚨</span>At-Risk Insights</div>
       <div class="nav-item" data-view="timetable" data-title="Timetable" data-crumb="Weekly lesson schedule"><span class="nav-icon">🗓️</span>Timetable</div>
       <div class="nav-item" data-view="calendar" data-title="School Calendar" data-crumb="Term dates, exams &amp; events"><span class="nav-icon">📅</span>Calendar<span class="nav-badge" id="badge-cal" style="display:none;">0</span></div>
 
@@ -1232,108 +1231,6 @@ function initials(name){
   return ((parts[0]?.[0]||'') + (parts[1]?.[0]||'')).toUpperCase() || name[0].toUpperCase();
 }
 window._initials = initials;
-
-/* ══════════════════════════════════════════
-   STUDENT PHOTO AVATARS — ported from Results/Results-portal.html and
-   admin index.html's approach: look for a real photo on disk at
-   ./Report-Cards/student_images/{Grade}/{Name}.jpg (a few path variants
-   tried for encoding/casing), silently fall back to initials if missing.
-   No new storage/schema — reads whatever the admin side already writes.
-══════════════════════════════════════════ */
-const _stuImgCache = {};
-function _stuLoadImg(src){
-  return new Promise(resolve=>{
-    if(_stuImgCache[src]!==undefined){ resolve(_stuImgCache[src]); return; }
-    const img=new Image();
-    img.crossOrigin='anonymous';
-    const timer=setTimeout(()=>{ _stuImgCache[src]=null; resolve(null); }, 2500);
-    img.onload=()=>{ clearTimeout(timer); _stuImgCache[src]=img.src; resolve(img.src); };
-    img.onerror=()=>{ clearTimeout(timer); _stuImgCache[src]=null; resolve(null); };
-    img.src=src;
-  });
-}
-async function loadStudentPhoto(name, grade){
-  const g=(grade||'').match(/Grade\s*\d+/i)?.[0]||grade||'';
-  const cleanName=(name||'').trim();
-  const encGrade=encodeURIComponent(g);
-  const encName=encodeURIComponent(cleanName);
-  const paths=[
-    `./Report-Cards/student_images/${g}/${cleanName}.jpg`,
-    `./Report-Cards/student_images/${encGrade}/${encName}.jpg`,
-    `./Report-Cards/student_images/${g}/${encName}.jpg`,
-    `./student_images/${g}/${cleanName}.jpg`,
-    `./student_images/${encGrade}/${encName}.jpg`,
-  ];
-  for(const p of paths){
-    const src = await _stuLoadImg(p);
-    if(src) return src;
-  }
-  // Fallback: default avatar (ok if missing — caller keeps initials)
-  return await _stuLoadImg('./Report-Cards/student_images/default.jpg');
-}
-function _applyPhotoToAvatar(el, src, name, grade){
-  if(!el || !src) return;
-  let img = el.querySelector('img');
-  if(!img){
-    img = document.createElement('img');
-    img.loading = 'lazy';
-    el.appendChild(img);
-  }
-  if(img.src !== src) img.src = src;
-  el.classList.add('has-photo');
-  el.title = (name ? name+' — ' : '') + 'click to view photo';
-  el.onclick = (e) => { e.stopPropagation(); openStudentPhotoLightbox(src, name, grade); };
-}
-// Build a photo avatar element (initials shown immediately, photo swapped
-// in async once/if found). wrapClass: 'stu-av-sm' | 'stu-av-md'
-function makePhotoAvatar(name, grade, wrapClass){
-  const uid = 'av_'+Math.random().toString(36).slice(2,8);
-  const html = `<div class="stu-av-wrap ${wrapClass||'stu-av-sm'}" id="${uid}">${esc(initials(name))}</div>`;
-  requestAnimationFrame(()=>{
-    loadStudentPhoto(name, grade).then(src=>{
-      if(!src) return;
-      const el = document.getElementById(uid);
-      if(el) _applyPhotoToAvatar(el, src, name, grade);
-    });
-  });
-  return html;
-}
-window._makePhotoAvatar = makePhotoAvatar;
-/* ── Student photo lightbox — click any student avatar to view it large ── */
-function _ensureStuPhotoLightbox(){
-  let lb = document.getElementById('student-photo-lightbox');
-  if(lb) return lb;
-  lb = document.createElement('div');
-  lb.id = 'student-photo-lightbox';
-  lb.style.cssText = 'display:none;position:fixed;inset:0;z-index:9800;background:rgba(0,0,0,.75);align-items:center;justify-content:center;flex-direction:column;gap:12px;cursor:pointer;';
-  lb.innerHTML = `
-    <div style="position:relative;max-width:90vw;" onclick="event.stopPropagation()">
-      <button onclick="closeStudentPhotoLightbox()" title="Close" style="position:absolute;top:-16px;right:-16px;width:34px;height:34px;border-radius:50%;border:none;background:#fff;color:#111;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:1">✕</button>
-      <img id="student-photo-lightbox-img" src="" alt="" style="max-width:100%;max-height:78vh;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);object-fit:contain;background:#fff">
-      <div id="student-photo-lightbox-name" style="color:#fff;font-size:14px;font-weight:700;text-align:center"></div>
-      <div id="student-photo-lightbox-meta" style="color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-align:center;letter-spacing:.3px"></div>
-    </div>`;
-  document.body.appendChild(lb);
-  lb.addEventListener('click', closeStudentPhotoLightbox);
-  return lb;
-}
-function openStudentPhotoLightbox(src, name, grade){
-  const lb = _ensureStuPhotoLightbox();
-  document.getElementById('student-photo-lightbox-img').src = src;
-  document.getElementById('student-photo-lightbox-img').alt = name || '';
-  document.getElementById('student-photo-lightbox-name').textContent = name || '';
-  document.getElementById('student-photo-lightbox-meta').textContent = grade || '';
-  lb.style.display = 'flex';
-  document.addEventListener('keydown', _stuPhotoLightboxEscHandler);
-}
-window.openStudentPhotoLightbox = openStudentPhotoLightbox;
-function closeStudentPhotoLightbox(){
-  const lb = document.getElementById('student-photo-lightbox');
-  if(lb) lb.style.display = 'none';
-  document.removeEventListener('keydown', _stuPhotoLightboxEscHandler);
-}
-window.closeStudentPhotoLightbox = closeStudentPhotoLightbox;
-function _stuPhotoLightboxEscHandler(e){ if(e.key==='Escape') closeStudentPhotoLightbox(); }
 
 function enterApp(){
   document.getElementById('auth-screen').style.display = 'none';
@@ -2427,17 +2324,6 @@ function timeAgo3(ts){ if(!ts) return ''; const s=Math.floor((Date.now()-ts)/100
    plus a quick link out to the full Quick Entry / Results Portal
    (the source of truth for entering marks).
 ══════════════════════════════════════════ */
-const GB_META_FIELDS = new Set([
-  'Assessment No','Class','Closing Date','Gender','Grade','Official Student Name',
-  'Opening Date','Position','Remarks','Term','UPI'
-]);
-function gbIdentity(rec){
-  const an = String(rec?.['Assessment No'] || '').trim();
-  if(an && !/^-+$/.test(an) && !/^pending/i.test(an)) return 'AN:' + an;
-  const upi = String(rec?.UPI || '').trim();
-  if(upi && !/^-+$/.test(upi)) return 'UPI:' + upi;
-  return 'NAME:' + String(rec?.['Official Student Name'] || '').trim().toUpperCase();
-}
 VR3['gradebook'] = async function(area){
   const grades = myGrades3();
   area.innerHTML = `
@@ -2447,10 +2333,8 @@ VR3['gradebook'] = async function(area){
     <div class="card">
       <div class="card-hdr"><div class="card-title">About this view</div></div>
       <div style="font-size:12.5px;color:var(--text2);line-height:1.6;">
-        Score entry, subject averages, distribution and rankings live in the main Results Portal — open Quick Entry
-        above for those. This page only surfaces two things Results Portal doesn't: students who may need extra
-        support (it only lists a Top 10), and who's trending up or down term-to-term without you having to
-        run a report.
+        Score entry, exam creation and rankings live in the main Results Portal. This page gives you a quick
+        read-only snapshot of your classes' latest recorded subject averages, pulled from the same database.
       </div>
     </div>
     <div id="gb-body"></div>`;
@@ -2459,194 +2343,25 @@ VR3['gradebook'] = async function(area){
   body.innerHTML = `<div class="empty-state"><div class="es-icon">⏳</div></div>`;
   try{
     const { resultsSnap: snap } = await getDashStudentsSnaps();
-    const studentAgg = new Map(); // identity -> { name, grade, overallSum, overallCount, byTerm: Map(term -> {sum,count}) }
-    let recordsSeen = 0;
-
+    const bySubject = {};
     if(snap.exists()){
       Object.values(snap.val()).forEach(rec=>{
         const g = gShortJS(rec && rec['Grade']);
-        if(!grades.some(mg=>String(g).toLowerCase() === String(mg).toLowerCase())) return;
-        const term = String(rec['Term'] || '').trim() || 'Unspecified';
-        const identity = gbIdentity(rec);
-        let recSum = 0, recCount = 0;
+        if(!grades.some(mg=>g.toLowerCase() === String(mg).toLowerCase())) return;
         Object.entries(rec).forEach(([k,v])=>{
-          if(GB_META_FIELDS.has(k)) return;
-          const num = Number(v);
-          if(v === '' || v === null || v === undefined || !Number.isFinite(num)) return;
-          recSum += num; recCount++;
-        });
-        if(!recCount) return;
-        recordsSeen++;
-        const recAvg = recSum / recCount;
-        const sa = studentAgg.get(identity) || { name: rec['Official Student Name']||'—', grade:g, overallSum:0, overallCount:0, byTerm:new Map() };
-        sa.overallSum += recAvg; sa.overallCount++;
-        const tb = sa.byTerm.get(term) || { sum:0, count:0 };
-        tb.sum += recAvg; tb.count++;
-        sa.byTerm.set(term, tb);
-        studentAgg.set(identity, sa);
-      });
-    }
-
-    if(!recordsSeen){
-      body.innerHTML = `<div class="empty-state"><div class="es-icon">📊</div><div class="es-title">No scores recorded yet</div><div class="es-sub">Enter marks in Quick Entry to see insights here.</div></div>`;
-      return;
-    }
-
-    const students = Array.from(studentAgg.values()).map(s=>({
-      name: s.name, grade: s.grade, avg: s.overallCount ? s.overallSum/s.overallCount : 0,
-      terms: Array.from(s.byTerm.entries())
-        .map(([term,{sum,count}])=>[term, count?sum/count:0])
-        .sort((a,b)=>a[0].localeCompare(b[0], undefined, {numeric:true}))
-    }));
-
-    const strugglingStudents = students.slice().sort((a,b)=>a.avg-b.avg).filter(s=>s.avg < 50).slice(0,8);
-
-    const trending = students
-      .filter(s=>s.terms.length > 1)
-      .map(s=>{
-        const first = s.terms[0][1], last = s.terms[s.terms.length-1][1];
-        return { name:s.name, grade:s.grade, from:first, to:last, delta: last-first, fromTerm:s.terms[0][0], toTerm:s.terms[s.terms.length-1][0] };
-      });
-    const mostImproved = trending.slice().sort((a,b)=>b.delta-a.delta).filter(t=>t.delta>0).slice(0,6);
-    const mostDeclined = trending.slice().sort((a,b)=>a.delta-b.delta).filter(t=>t.delta<0).slice(0,6);
-
-    body.innerHTML = `
-      <div class="card" style="margin-bottom:14px;">
-        <div class="card-hdr"><div class="card-title">Struggling Students (avg below 50)</div></div>
-        ${strugglingStudents.length ? strugglingStudents.map(s=>`<div class="analytics-row"><div><div class="analytics-name">${esc3(s.name)}</div><div class="analytics-meta">${esc3(s.grade)}</div></div><div class="badge badge-red">${s.avg.toFixed(1)}</div></div>`).join('')
-          : `<div class="empty-state"><div class="es-icon">🎉</div><div class="es-sub">No student is currently averaging below 50.</div></div>`}
-      </div>
-      ${trending.length ? `
-      <div class="grid-2">
-        <div class="card"><div class="card-hdr"><div class="card-title">Most Improved (term-to-term)</div></div>
-          ${mostImproved.length ? mostImproved.map(t=>`<div class="analytics-row"><div><div class="analytics-name">${esc3(t.name)}</div><div class="analytics-meta">${esc3(t.fromTerm)} → ${esc3(t.toTerm)}</div></div><div class="badge badge-green">+${t.delta.toFixed(1)}</div></div>`).join('') : `<div class="empty-state"><div class="es-sub">No upward movers yet.</div></div>`}
-        </div>
-        <div class="card"><div class="card-hdr"><div class="card-title">Most Declined (term-to-term)</div></div>
-          ${mostDeclined.length ? mostDeclined.map(t=>`<div class="analytics-row"><div><div class="analytics-name">${esc3(t.name)}</div><div class="analytics-meta">${esc3(t.fromTerm)} → ${esc3(t.toTerm)}</div></div><div class="badge badge-red">${t.delta.toFixed(1)}</div></div>`).join('') : `<div class="empty-state"><div class="es-sub">No decliners yet.</div></div>`}
-        </div>
-      </div>` : `<div class="card"><div class="card-hdr"><div class="card-title">Term-to-Term Trend</div></div>
-        <div style="font-size:12px;color:var(--text2);">Needs at least two terms of scores per student to show movement — not enough data yet.</div></div>`}
-    `;
-  }catch(e){ body.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-sub">${esc3(e.message)}</div></div>`; }
-};
-
-/* ══════════════════════════════════════════
-   AT-RISK INSIGHTS — cross-references each student's Results-derived
-   average score against their last-14-day attendance rate (both
-   already tracked elsewhere in the portal) to surface who needs a
-   check-in. Score risk: avg < 50. Attendance risk: present+late rate
-   < 75% over days actually marked. Students need at least one marked
-   attendance day or one scored record to be considered.
-══════════════════════════════════════════ */
-const RISK_ATT_DAYS = 14;
-const RISK_SCORE_THRESHOLD = 50;
-const RISK_ATT_THRESHOLD = 75;
-async function riskFetchAttendance(grade, days){
-  const dayKeys = Array.from({length:days}, (_,i)=>{
-    const d = new Date(); d.setDate(d.getDate()-i);
-    return d.toISOString().slice(0,10);
-  });
-  const dayMaps = await Promise.all(dayKeys.map(dk =>
-    rtGet(ref(rtdb, `${ATTENDANCE_PATH}/${encodeURIComponent(grade)}/${dk}`)).then(snap => snap.exists() ? snap.val() : {})
-  ));
-  const byKey = {};
-  dayMaps.forEach(dayMap=>{
-    Object.entries(dayMap).forEach(([k,v])=>{
-      const b = byKey[k] || (byKey[k] = { present:0, late:0, absent:0, marked:0 });
-      b.marked++;
-      if(v==='present') b.present++;
-      else if(v==='late') b.late++;
-      else if(v==='absent') b.absent++;
-    });
-  });
-  return byKey;
-}
-VR3['insights'] = async function(area){
-  const grades = myGrades3();
-  area.innerHTML = `
-    <div class="sec-hdr"><h2>At-Risk Insights</h2></div>
-    <div class="card">
-      <div class="card-hdr"><div class="card-title">About this view</div></div>
-      <div style="font-size:12.5px;color:var(--text2);line-height:1.6;">
-        Combines each student's average score with their attendance rate over the last ${RISK_ATT_DAYS} days
-        to flag who may need a check-in. Score risk: average below ${RISK_SCORE_THRESHOLD}. Attendance risk:
-        present/late rate below ${RISK_ATT_THRESHOLD}% on days marked.
-      </div>
-    </div>
-    <div id="risk-body"></div>`;
-  const body = document.getElementById('risk-body');
-  if(!grades.length){ body.innerHTML = `<div class="empty-state"><div class="es-icon">🚨</div><div class="es-sub">No classes assigned yet.</div></div>`; return; }
-  body.innerHTML = `<div class="empty-state"><div class="es-icon">⏳</div></div>`;
-  try{
-    const { resultsSnap } = await getDashStudentsSnaps();
-    const scoreById = {}; // riskId -> { sum, count, name, grade }
-    if(resultsSnap.exists()){
-      Object.entries(resultsSnap.val()).forEach(([key, rec])=>{
-        const g = gShortJS(rec && rec['Grade']);
-        if(!grades.some(mg=>String(g).toLowerCase()===String(mg).toLowerCase())) return;
-        let sum=0, count=0;
-        Object.entries(rec).forEach(([k,v])=>{
-          if(GB_META_FIELDS.has(k)) return;
-          const num = Number(v);
-          if(v==='' || v===null || v===undefined || !Number.isFinite(num)) return;
-          sum += num; count++;
-        });
-        if(!count) return;
-        const an = String(rec['Assessment No']||'').trim();
-        const upi = String(rec['UPI']||'').trim();
-        const id = 'ID:' + (an || upi || key);
-        const b = scoreById[id] || (scoreById[id] = { sum:0, count:0, name: rec['Official Student Name']||'—', grade: g });
-        b.sum += sum/count; b.count++;
-      });
-    }
-
-    const rosters = await Promise.all(grades.map(g => fetchRoster(g).then(r => [g, r])));
-    const attByGrade = await Promise.all(grades.map(g => riskFetchAttendance(g, RISK_ATT_DAYS).then(a => [g, a])));
-    const attMap = Object.fromEntries(attByGrade);
-
-    const risky = [];
-    rosters.forEach(([g, roster])=>{
-      const attByKey = attMap[g] || {};
-      roster.forEach(s=>{
-        const id = 'ID:' + (s.assessmentNo || s.key);
-        const scoreStat = scoreById[id];
-        const scoreAvg = scoreStat && scoreStat.count ? scoreStat.sum/scoreStat.count : null;
-        const att = attByKey[s.key];
-        const attRate = att && att.marked ? Math.round(((att.present+att.late)/att.marked)*100) : null;
-        const scoreRisk = scoreAvg !== null && scoreAvg < RISK_SCORE_THRESHOLD;
-        const attRisk = attRate !== null && attRate < RISK_ATT_THRESHOLD;
-        if(!scoreRisk && !attRisk) return;
-        risky.push({
-          name: s.name, grade: g, scoreAvg, attRate,
-          level: (scoreRisk && attRisk) ? 'High' : 'Medium'
+          if(typeof v === 'number' && v>=0 && v<=100 && !/assessment|number|id/i.test(k)){
+            bySubject[k] = bySubject[k] || []; bySubject[k].push(v);
+          }
         });
       });
-    });
-    risky.sort((a,b)=>{
-      if(a.level !== b.level) return a.level==='High' ? -1 : 1;
-      const am = Math.min(a.scoreAvg??100, a.attRate??100);
-      const bm = Math.min(b.scoreAvg??100, b.attRate??100);
-      return am - bm;
-    });
-
-    const highCount = risky.filter(r=>r.level==='High').length;
-    const medCount = risky.length - highCount;
-
-    body.innerHTML = risky.length ? `
-      <div class="grid-2" style="margin-bottom:14px;">
-        <div class="card"><div class="card-hdr"><div class="card-title">High Risk (both score &amp; attendance)</div></div><div style="font-size:26px;font-weight:800;color:var(--red,#e74c3c);">${highCount}</div></div>
-        <div class="card"><div class="card-hdr"><div class="card-title">Medium Risk (one flag)</div></div><div style="font-size:26px;font-weight:800;color:var(--orange,#f39c12);">${medCount}</div></div>
-      </div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Student</th><th>Class</th><th>Avg Score</th><th>Attendance (${RISK_ATT_DAYS}d)</th><th>Risk</th></tr></thead><tbody>
-      ${risky.map(r=>`<tr>
-        <td>${esc3(r.name)}</td>
-        <td>${esc3(r.grade)}</td>
-        <td>${r.scoreAvg!==null ? `<b style="${r.scoreAvg<RISK_SCORE_THRESHOLD?'color:var(--red,#e74c3c);':''}">${r.scoreAvg.toFixed(1)}</b>` : '—'}</td>
-        <td>${r.attRate!==null ? `<b style="${r.attRate<RISK_ATT_THRESHOLD?'color:var(--red,#e74c3c);':''}">${r.attRate}%</b>` : '—'}</td>
-        <td><span class="badge ${r.level==='High'?'badge-red':'badge-orange'}">${r.level}</span></td>
-      </tr>`).join('')}
-      </tbody></table></div>
-    ` : `<div class="empty-state"><div class="es-icon">🎉</div><div class="es-title">No students currently flagged</div><div class="es-sub">Everyone in your classes is above the score and attendance thresholds for the last ${RISK_ATT_DAYS} days.</div></div>`;
+    }
+    const subjects = Object.keys(bySubject);
+    body.innerHTML = subjects.length ? `<div class="card"><div class="card-hdr"><div class="card-title">Subject Averages — My Classes</div></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Subject</th><th>Entries</th><th>Average</th></tr></thead><tbody>
+      ${subjects.map(s=>{ const arr=bySubject[s]; const avg=(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1);
+        return `<tr><td>${esc3(s)}</td><td>${arr.length}</td><td><b>${avg}</b></td></tr>`; }).join('')}
+      </tbody></table></div></div>` :
+      `<div class="empty-state"><div class="es-icon">📊</div><div class="es-title">No scores recorded yet</div><div class="es-sub">Enter marks in Quick Entry to see averages here.</div></div>`;
   }catch(e){ body.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-sub">${esc3(e.message)}</div></div>`; }
 };
 

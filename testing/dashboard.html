@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dashboard · Kanyadet School Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">KS</div>
+      <div>
+        <div class="brand-name">Kanyadet</div>
+        <span class="brand-sub">Admin Portal</span>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-group-label">Overview</div>
+      <ul class="nav-list">
+        <li><a class="nav-item is-active" href="./dashboard.html">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a></li>
+        <li><a class="nav-item" href="#" data-module="calendar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Calendar
+        </a></li>
+        <li><a class="nav-item" href="#" data-module="announcements">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11v2a2 2 0 0 0 2 2h1l3 4V5L6 9H5a2 2 0 0 0-2 2Z"/><path d="M15 8a4 4 0 0 1 0 8"/></svg>
+          Announcements
+          <span class="nav-badge">3</span>
+        </a></li>
+      </ul>
+    </nav>
+
+    <nav>
+      <div class="nav-group-label">Academics</div>
+      <ul class="nav-list">
+        <li><a class="nav-item" href="./students.html" data-module="students">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Students
+        </a></li>
+        <li><a class="nav-item" href="#" data-module="results">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Results
+        </a></li>
+        <li><a class="nav-item" href="#" data-module="attendance">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+          Attendance
+        </a></li>
+        <li><a class="nav-item" href="#" data-module="timetables">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>
+          Timetables
+        </a></li>
+      </ul>
+    </nav>
+
+    <nav>
+      <div class="nav-group-label">Operations</div>
+      <ul class="nav-list">
+        <li><a class="nav-item" href="#" data-module="leave">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" opacity="0"/><path d="M20 12a8 8 0 1 1-3.5-6.6"/><path d="M20 4v5h-5"/></svg>
+          Leave requests
+        </a></li>
+        <li><a class="nav-item" href="#" data-module="welfare">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.9 2.7 5 6.5 5c2 0 3.3 1 5.5 3 2.2-2 3.5-3 5.5-3 3.8 0 5.8 3.9 4 7.5C19 16.65 12 21 12 21Z"/></svg>
+          Welfare
+        </a></li>
+        <li><a class="nav-item" href="#" data-module="resources">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13Z"/><path d="M6.5 17H20v3H6.5A2.5 2.5 0 0 1 4 17.5"/></svg>
+          Resources
+        </a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="nav-item" href="#" data-module="settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        Settings
+      </a>
+      <a class="nav-item" href="#" id="sign-out-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Sign out
+      </a>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <div class="topbar">
+      <div>
+        <span class="eyebrow" id="today-label">Loading…</span>
+        <h1 id="greeting">Hi there 👋</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" data-module="announcements-new">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+          New announcement
+        </button>
+        <button class="icon-btn" aria-label="Search" data-module="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Notifications" data-module="notifications">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        </button>
+        <div class="avatar" id="avatar-initials">–</div>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- Overview -->
+      <section class="card card-dark col-4">
+        <div class="card-header">
+          <div class="card-title">School Overview <span class="muted">live</span></div>
+          <div class="card-menu-dot">⋮</div>
+        </div>
+        <div class="stat-row">
+          <div>
+            <span class="stat-num" id="stat-students">–</span>
+            <span class="stat-label">Students enrolled</span>
+          </div>
+          <div>
+            <span class="stat-num" id="stat-classes">–</span>
+            <span class="stat-label">Grades running</span>
+          </div>
+          <div>
+            <span class="stat-num" id="stat-teachers">–</span>
+            <span class="stat-label">Teaching staff</span>
+          </div>
+        </div>
+        <div class="pill-stats">
+          <div class="pill-stat"><span class="n" id="stat-pending-leave">–</span><span class="l">Pending leave</span></div>
+          <div class="pill-stat"><span class="n" id="stat-welfare-total">–</span><span class="l">Welfare (KES)</span></div>
+          <div class="pill-stat"><span class="n" id="stat-resources">–</span><span class="l">Resources shared</span></div>
+        </div>
+      </section>
+
+      <!-- Weekly attendance -->
+      <section class="card col-5">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Attendance submissions</div>
+            <div class="legend" style="margin-top:6px;">
+              <span><i class="dot dot-a"></i>Classes submitted, last 7 days</span>
+            </div>
+          </div>
+          <span class="wip-badge">Live</span>
+        </div>
+        <svg id="attendance-chart" viewBox="0 0 300 110" width="100%" height="110" preserveAspectRatio="none" aria-label="Classes submitting attendance per day, last 7 days">
+          <polyline id="attendance-polyline" points="" fill="none" stroke="#14161a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div id="attendance-chart-labels" style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);margin-top:4px;"></div>
+        <p data-module="attendance-summary" style="font-size:11.5px;color:var(--ink-soft);margin:10px 0 0;">Checking today's attendance…</p>
+      </section>
+
+      <!-- Students by grade: live, from the RTDB roster -->
+      <section class="card col-3">
+        <div class="card-header">
+          <div class="card-title">Students by grade</div>
+          <span class="wip-badge">Live</span>
+        </div>
+        <div id="grade-breakdown-list" class="row-list">
+          <p class="empty-note">Loading…</p>
+        </div>
+      </section>
+
+      <!-- Term goals: no "goals" collection exists in the given schema — kept as sample -->
+      <section class="card col-4">
+        <div class="card-header">
+          <div class="card-title">This term's goals</div>
+          <span class="wip-badge">Sample data</span>
+        </div>
+        <ul class="checklist">
+          <li class="done"><input type="checkbox" checked disabled /> Publish mid-term results</li>
+          <li><input type="checkbox" disabled /> Close fee collection window</li>
+          <li><input type="checkbox" disabled /> Finalize exam timetable</li>
+          <li><input type="checkbox" disabled /> Staff performance reviews</li>
+        </ul>
+      </section>
+
+      <!-- Pending actions: live pending leave requests, approve/reject writes to Firestore -->
+      <section class="col-8">
+        <div class="card-header" style="margin-bottom:10px;">
+          <div class="card-title" style="font-size:15px;">Pending actions <span class="muted" id="pending-actions-count">(–)</span></div>
+        </div>
+        <div class="grid" id="pending-actions-grid" style="grid-template-columns:repeat(3,1fr);">
+          <p class="empty-note" style="grid-column:1/-1;">Loading…</p>
+        </div>
+      </section>
+
+      <!-- Recent activity: live feed merged from resources / leaveRequests / welfareContributions -->
+      <section class="card col-4">
+        <div class="card-header">
+          <div class="card-title">Recent activity</div>
+        </div>
+        <div class="row-list" id="recent-activity-list">
+          <p class="empty-note">Loading…</p>
+        </div>
+      </section>
+
+      <!-- Bottom: recently shared resources (live) -->
+      <section class="col-12">
+        <div class="card-header" style="margin-bottom:10px;">
+          <div class="card-title" style="font-size:15px;">Recently shared resources</div>
+        </div>
+        <div class="grid" id="recent-resources-grid" style="grid-template-columns:repeat(3,1fr);">
+          <p class="empty-note" style="grid-column:1/-1;">Loading…</p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { protectPage, wireLogout } from './js/page-guard.js';
+  import { ROLE_NAV, landingPageFor } from './js/roles.js';
+  import { loadAllDashboardData } from './js/dashboard-data.js';
+
+  function initials(name, email) {
+    if (name) return name.trim().split(/\s+/).slice(0, 2).map(p => p[0].toUpperCase()).join('');
+    if (email) return email[0].toUpperCase();
+    return '–';
+  }
+
+  const { ok, session, profile } = protectPage();
+  if (ok) {
+    // Non-admin roles land here only via a stale link/bookmark — bounce
+    // them to their real home instead of showing admin-only data.
+    if (profile.role !== 'admin' && profile.role !== 'advancedAdmin') {
+      window.location.href = landingPageFor(profile.role);
+    } else {
+      document.getElementById('greeting').textContent = `Hi, ${profile.name ? profile.name.split(' ')[0] : 'there'} 👋`;
+      document.getElementById('avatar-initials').textContent = initials(profile.name, profile.email);
+      applyRoleNav(profile.role);
+      loadAllDashboardData();
+      wireLogout(session, document.getElementById('sign-out-btn'));
+    }
+  }
+  // if !ok, protectPage() already redirected to login — render nothing further
+
+  function applyRoleNav(role) {
+    const allowed = new Set(ROLE_NAV[role] || []);
+    document.querySelectorAll('[data-module]').forEach((el) => {
+      const mod = el.dataset.module;
+      // Only hide items that map to a real nav module key; leave
+      // free-floating actions (search, notifications, quick-add, etc.)
+      // untouched since those aren't role-gated resources.
+      if (['students', 'results', 'attendance', 'timetables', 'leave', 'welfare', 'resources', 'settings', 'auditlog', 'calendar', 'announcements'].includes(mod) && !allowed.has(mod)) {
+        el.style.display = 'none';
+      }
+    });
+  }
+
+  // Live attendance summary + chart now live in dashboard-data.js's
+  // loadTodayAttendanceSummary()/loadAttendanceChart() — no local
+  // duplicate here. NOTE: only Firestore rules were provided, not
+  // Realtime Database rules — this assumes ATTENDANCE_PATH is readable
+  // by any authenticated user. Verify your RTDB rules match before
+  // relying on this in production.
+
+  document.getElementById('today-label').textContent = new Date().toLocaleDateString(undefined, {
+    weekday: 'long', month: 'long', day: 'numeric',
+  });
+
+  // Placeholder modules — wire real pages/routes in later.
+  document.querySelectorAll('[data-module]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      if (el.tagName === 'A' && el.getAttribute('href') !== '#') return;
+      e.preventDefault();
+      console.log(`[shell] "${el.dataset.module}" module not wired yet.`);
+    });
+  });
+</script>
+
+</body>
+</html>

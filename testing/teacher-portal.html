@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Teacher Portal · Kanyadet School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .simple-shell { max-width: 920px; margin: 0 auto; padding: 28px 20px 60px; display: flex; flex-direction: column; gap: 20px; }
+  .simple-topbar { display: flex; justify-content: space-between; align-items: center; }
+  .tp-tabs { display: flex; gap: 6px; }
+  .tp-tab { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--line); background: var(--paper-glass); }
+  .tp-tab.is-active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .tp-panel { display: none; }
+  .tp-panel.is-active { display: block; }
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+  .form-row .field { flex: 1; min-width: 160px; margin-bottom: 0; }
+  textarea { border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 10px 12px; font-family: inherit; font-size: 13.5px; width: 100%; resize: vertical; min-height: 44px; }
+  .status-chip { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .status-pending { background: #fbe9d2; color: #8a5a13; }
+  .status-approved { background: #dcf1e3; color: #1f8a4c; }
+  .status-rejected { background: #f6dede; color: #c23b3b; }
+  .empty-note { color: var(--ink-soft); font-size: 13px; padding: 20px 0; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="simple-shell">
+  <div class="simple-topbar">
+    <div>
+      <span class="eyebrow" style="display:block;font-size:12px;color:var(--ink-soft);">Teacher Portal</span>
+      <h1 id="greeting" style="font-family:var(--font-display);font-size:24px;margin:2px 0 0;">Hi there</h1>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="avatar" id="avatar-initials">–</div>
+      <a class="btn btn-ghost" href="#" id="sign-out-btn">Sign out</a>
+    </div>
+  </div>
+
+  <div class="tp-tabs">
+    <button class="tp-tab is-active" data-tab="resources">Resources</button>
+    <button class="tp-tab" data-tab="leave">Leave requests</button>
+    <button class="tp-tab" data-tab="welfare">Welfare</button>
+  </div>
+
+  <!-- Resources -->
+  <section class="card tp-panel is-active" data-panel="resources">
+    <div class="card-header"><div class="card-title">Share a resource</div></div>
+    <form id="resource-form" class="form-row">
+      <div class="field"><label>Title</label><input type="text" id="res-title" required /></div>
+      <div class="field"><label>Link or note</label><input type="text" id="res-link" placeholder="https:// or a short note" required /></div>
+      <button class="btn btn-primary" type="submit">Add</button>
+    </form>
+    <div id="resources-list" class="row-list"><p class="empty-note">Loading…</p></div>
+  </section>
+
+  <!-- Leave -->
+  <section class="card tp-panel" data-panel="leave">
+    <div class="card-header"><div class="card-title">Request leave</div></div>
+    <form id="leave-form" class="form-row">
+      <div class="field"><label>Start date</label><input type="date" id="leave-start" required /></div>
+      <div class="field"><label>End date</label><input type="date" id="leave-end" required /></div>
+      <div class="field" style="flex-basis:100%;"><label>Reason</label><textarea id="leave-reason" required></textarea></div>
+      <button class="btn btn-primary" type="submit">Submit request</button>
+    </form>
+    <div id="leave-list" class="row-list"><p class="empty-note">Loading…</p></div>
+  </section>
+
+  <!-- Welfare -->
+  <section class="card tp-panel" data-panel="welfare">
+    <div class="card-header"><div class="card-title">Log a welfare contribution</div></div>
+    <form id="welfare-form" class="form-row">
+      <div class="field"><label>Amount (KES)</label><input type="number" id="welfare-amount" min="0" step="1" required /></div>
+      <div class="field"><label>Note</label><input type="text" id="welfare-note" placeholder="Optional" /></div>
+      <button class="btn btn-primary" type="submit">Log contribution</button>
+    </form>
+    <p style="font-size:11.5px;color:var(--ink-soft);margin-top:-8px;">Contribution records are immutable once logged — they can't be edited or deleted after submission.</p>
+    <div id="welfare-list" class="row-list"><p class="empty-note">Loading…</p></div>
+  </section>
+</div>
+
+<script type="module">
+  import { signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import {
+    collection, addDoc, query, where, orderBy, getDocs, serverTimestamp,
+  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { auth, db } from './js/firebase-init.js';
+  import { SessionManager, guardPage } from './js/google-one-tap.js';
+
+  let currentUser = null;
+
+  guardPage({
+    onAuthed: (user) => {
+      currentUser = user;
+      document.getElementById('greeting').textContent = `Hi, ${user.name ? user.name.split(' ')[0] : 'there'}`;
+      document.getElementById('avatar-initials').textContent = (user.name || user.email || '–')[0].toUpperCase();
+      loadResources();
+      loadLeaveRequests();
+      loadWelfare();
+    },
+    onUnauthed: () => { window.location.href = './login.html'; },
+  });
+
+  document.getElementById('sign-out-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    SessionManager.clear();
+    try { await signOut(auth); } catch (err) { console.error(err); }
+    window.location.href = './login.html';
+  });
+
+  // Tabs
+  document.querySelectorAll('.tp-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tp-tab').forEach(t => t.classList.remove('is-active'));
+      document.querySelectorAll('.tp-panel').forEach(p => p.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      document.querySelector(`.tp-panel[data-panel="${tab.dataset.tab}"]`).classList.add('is-active');
+    });
+  });
+
+  function fmtDate(ts) {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  // ---- Resources: read (all authenticated), create (createdByUid = me) ----
+  async function loadResources() {
+    const el = document.getElementById('resources-list');
+    try {
+      const q = query(collection(db, 'resources'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      if (snap.empty) { el.innerHTML = '<p class="empty-note">No resources shared yet — add the first one above.</p>'; return; }
+      el.innerHTML = '';
+      snap.forEach((d) => {
+        const r = d.data();
+        el.insertAdjacentHTML('beforeend', `
+          <div class="row-item">
+            <span class="row-dot status-dot-done"></span>
+            <strong>${escapeHtml(r.title || 'Untitled')}</strong>&nbsp;— ${escapeHtml(r.link || '')}
+            <span class="row-time">${fmtDate(r.createdAt)}</span>
+          </div>`);
+      });
+    } catch (err) {
+      console.error(err);
+      el.innerHTML = '<p class="empty-note">Couldn\'t load resources right now.</p>';
+    }
+  }
+
+  document.getElementById('resource-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('res-title').value.trim();
+    const link = document.getElementById('res-link').value.trim();
+    if (!title || !link || !currentUser) return;
+    try {
+      await addDoc(collection(db, 'resources'), {
+        title, link,
+        createdByUid: currentUser.uid,
+        createdByName: currentUser.name || currentUser.email,
+        createdAt: serverTimestamp(),
+      });
+      e.target.reset();
+      loadResources();
+    } catch (err) {
+      console.error(err);
+      alert('Could not add resource — check your connection and try again.');
+    }
+  });
+
+  // ---- Leave requests: read own, create with uid = me ----
+  async function loadLeaveRequests() {
+    const el = document.getElementById('leave-list');
+    try {
+      const q = query(collection(db, 'leaveRequests'), where('uid', '==', currentUser.uid));
+      const snap = await getDocs(q);
+      if (snap.empty) { el.innerHTML = '<p class="empty-note">No leave requests yet.</p>'; return; }
+      el.innerHTML = '';
+      snap.forEach((d) => {
+        const r = d.data();
+        const status = r.status || 'pending';
+        el.insertAdjacentHTML('beforeend', `
+          <div class="row-item">
+            <span class="status-chip status-${status}">${escapeHtml(status)}</span>
+            ${escapeHtml(r.start || '')} → ${escapeHtml(r.end || '')} — ${escapeHtml(r.reason || '')}
+            <span class="row-time">${fmtDate(r.createdAt)}</span>
+          </div>`);
+      });
+    } catch (err) {
+      console.error(err);
+      el.innerHTML = '<p class="empty-note">Couldn\'t load your leave requests right now.</p>';
+    }
+  }
+
+  document.getElementById('leave-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const start = document.getElementById('leave-start').value;
+    const end = document.getElementById('leave-end').value;
+    const reason = document.getElementById('leave-reason').value.trim();
+    if (!start || !end || !reason || !currentUser) return;
+    try {
+      await addDoc(collection(db, 'leaveRequests'), {
+        uid: currentUser.uid,
+        name: currentUser.name || currentUser.email,
+        start, end, reason,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      });
+      e.target.reset();
+      loadLeaveRequests();
+    } catch (err) {
+      console.error(err);
+      alert('Could not submit leave request — check your connection and try again.');
+    }
+  });
+
+  // ---- Welfare contributions: read own, create with uid = me, immutable ----
+  async function loadWelfare() {
+    const el = document.getElementById('welfare-list');
+    try {
+      const q = query(collection(db, 'welfareContributions'), where('uid', '==', currentUser.uid));
+      const snap = await getDocs(q);
+      if (snap.empty) { el.innerHTML = '<p class="empty-note">No contributions logged yet.</p>'; return; }
+      el.innerHTML = '';
+      snap.forEach((d) => {
+        const r = d.data();
+        el.insertAdjacentHTML('beforeend', `
+          <div class="row-item">
+            <span class="row-dot status-dot-done"></span>
+            KES ${escapeHtml(String(r.amount ?? '—'))} ${r.note ? '— ' + escapeHtml(r.note) : ''}
+            <span class="row-time">${fmtDate(r.createdAt)}</span>
+          </div>`);
+      });
+    } catch (err) {
+      console.error(err);
+      el.innerHTML = '<p class="empty-note">Couldn\'t load contributions right now.</p>';
+    }
+  }
+
+  document.getElementById('welfare-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const amount = Number(document.getElementById('welfare-amount').value);
+    const note = document.getElementById('welfare-note').value.trim();
+    if (!amount || !currentUser) return;
+    try {
+      await addDoc(collection(db, 'welfareContributions'), {
+        uid: currentUser.uid,
+        name: currentUser.name || currentUser.email,
+        amount, note,
+        createdAt: serverTimestamp(),
+      });
+      e.target.reset();
+      loadWelfare();
+    } catch (err) {
+      console.error(err);
+      alert('Could not log contribution — check your connection and try again.');
+    }
+  });
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+</script>
+
+</body>
+</html>
