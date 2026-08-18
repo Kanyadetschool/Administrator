@@ -537,12 +537,6 @@ a{color:inherit;text-decoration:none;}
 .pg-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);}
 .pg-btn:disabled{opacity:.4;cursor:not-allowed;}
 .pg-info{font-size:11.5px;color:var(--text2);font-weight:700;}
-.link-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.link-card{border:1px solid var(--border);border-radius:14px;padding:16px;background:var(--surface2);display:flex;flex-direction:column;gap:8px;transition:var(--transition);cursor:pointer;text-decoration:none;}
-.link-card:hover{border-color:var(--border-strong);transform:translateY(-2px)}
-.link-card .lc-icon{font-size:24px}
-.link-card .lc-title{font-size:13px;font-weight:800;color:var(--text)}
-.link-card .lc-desc{font-size:11px;color:var(--text2);line-height:1.4}
 .stu-av-wrap.has-photo{cursor:pointer;}
 .stu-name-cell{display:flex;align-items:center;gap:10px;}
 .att-cell .stu-av-wrap{margin:0 auto 6px;}
@@ -829,7 +823,6 @@ a{color:inherit;text-decoration:none;}
       <div class="s-label" style="margin-top:14px;">Admin</div>
       <div class="nav-item" data-view="leave" data-title="Leave Requests" data-crumb="Request and track leave"><span class="nav-icon">🌴</span>Leave Requests</div>
       <div class="nav-item" data-view="welfare" data-title="Staff Welfare" data-crumb="Welfare fund contributions"><span class="nav-icon">🤝</span>Staff Welfare</div>
-      <div class="nav-item" data-view="portals" data-title="Linked Portals" data-crumb="Jump to specialized school tools"><span class="nav-icon">🔗</span>Linked Portals</div>
       <div class="nav-item" data-view="settings" data-title="Settings" data-crumb="Account &amp; security"><span class="nav-icon">⚙️</span>Settings</div>
       <button id="pwa-install-btn" type="button" onclick="installPwaApp()" aria-label="Install teachers app">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
@@ -1013,6 +1006,10 @@ const TT_SECTIONS = {
     ]
   }
 };
+// Full class list across all sections — used to give Advanced Admin
+// accounts (no assignedGrades of their own) visibility into every class
+// instead of the "No classes assigned yet" empty state.
+const ALL_GRADES = Object.values(TT_SECTIONS).flatMap(s => s.grades);
 function ttKey(name){ return String(name||'').trim().replace(/[.#$\[\]/]/g,'').replace(/\s+/g,'_'); }
 function guessTtSection(grades){
   const list = (grades||[]).map(String);
@@ -1020,10 +1017,6 @@ function guessTtSection(grades){
   if(list.some(g=>/\b[1-3]\b/.test(g))) return 'lowerPrimary';
   return 'primary';
 }
-// Full grade list (1–9), derived from the same TT_SECTIONS groups already
-// used for the timetable, so Advanced Admin accounts (who have
-// Advancedadmin:true but no assignedGrades) get every class instead of none.
-const ALL_GRADES = Object.values(TT_SECTIONS).flatMap(s => s.grades);
 
 window._KTP = { app, auth, fs, rtdb, ref, onValue, push, rtSet, rtUpdate, rtRemove, rtQuery,
   orderByChild, limitToLast, rtServerTimestamp, rtGet, doc, getDoc, setDoc, updateDoc, collection,
@@ -1694,7 +1687,13 @@ VIEW_RENDERERS['dashboard'] = async function(area){
     <div class="analytics-grid">
       <div class="card">
         <div class="card-hdr"><div class="card-title">Class Coverage Snapshot</div><span class="badge badge-blue" id="dash-coverage-label">0%</span></div>
-        <div style="height:220px;position:relative;"><canvas id="dash-coverage-chart"></canvas></div>
+        <div class="analytics-list" id="dash-grade-mix">
+          <div class="analytics-list-loader">
+            <div class="skeleton-line long"></div>
+            <div class="skeleton-line mid"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+        </div>
       </div>
       <div class="card">
         <div class="card-hdr"><div class="card-title">Attendance Trend</div><span class="badge badge-green" id="dash-trend-label">Ahead of target</span></div>
@@ -1948,53 +1947,18 @@ VIEW_RENDERERS['dashboard'] = async function(area){
     gradeMix.push(...todayGradeStats);
 
     const coverage = Math.min(100, Math.round((totalAssignedStudents / Math.max(1, grades.length * 45)) * 100));
-    const coverageCanvas = document.getElementById('dash-coverage-chart');
-    if(coverageCanvas && typeof Chart !== 'undefined'){
-      if(window.__dashCoverageChart) window.__dashCoverageChart.destroy();
-      const ctx = coverageCanvas.getContext('2d');
-      const fillGrad = ctx.createLinearGradient(0, 0, 0, 220);
-      fillGrad.addColorStop(0, 'rgba(41,128,185,.32)');
-      fillGrad.addColorStop(1, 'rgba(41,128,185,0)');
-      window.__dashCoverageChart = new Chart(coverageCanvas, {
-        type:'line',
-        data:{
-          labels: gradeMix.map(item => item.grade),
-          datasets:[{
-            label:'Attendance rate',
-            data: gradeMix.map(item => item.rate),
-            borderColor:'#2980b9',
-            backgroundColor: fillGrad,
-            borderWidth: 2.5,
-            tension: 0.42,
-            cubicInterpolationMode: 'monotone',
-            fill: true,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            pointBackgroundColor: '#fff',
-            pointBorderColor: '#2980b9',
-            pointBorderWidth: 2,
-          }]
-        },
-        options:{
-          responsive:true, maintainAspectRatio:false,
-          interaction:{ intersect:false, mode:'index' },
-          plugins:{
-            legend:{ display:false },
-            tooltip:{
-              backgroundColor:'#1a2436', titleColor:'#fff', bodyColor:'#dfe8f5',
-              padding:10, cornerRadius:8, displayColors:false,
-              callbacks:{
-                label: (c)=> `${c.parsed.y}% attendance`,
-                afterLabel: (c)=> `${gradeMix[c.dataIndex]?.students ?? 0} students`
-              }
-            }
-          },
-          scales:{
-            x:{ grid:{ display:false }, ticks:{ font:{ size:10, weight:700 } } },
-            y:{ beginAtZero:true, max:100, grid:{ color:'rgba(41,128,185,.08)' }, ticks:{ font:{ size:10 }, callback:(v)=>v+'%' } }
-          }
-        }
-      });
+    const analyticsHolder = document.getElementById('dash-grade-mix');
+    if(analyticsHolder){
+      analyticsHolder.innerHTML = gradeMix.map(item => `
+        <div class="analytics-row">
+          <div>
+            <div class="analytics-name">${esc(item.grade)}</div>
+            <div class="analytics-meta">${item.students} students</div>
+            <div class="analytics-bar"><span style="width:${Math.max(8, Math.min(100, item.rate))}%"></span></div>
+          </div>
+          <div class="badge ${item.rate >= 85 ? 'badge-green' : item.rate >= 70 ? 'badge-orange' : 'badge-red'}">${item.rate}%</div>
+        </div>
+      `).join('');
     }
     const topGrade = gradeMix.slice().sort((a,b)=>b.rate-a.rate)[0];
     const setText = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
@@ -3304,30 +3268,6 @@ VR4['welfare'] = async function(area){
   }
   periodSel.addEventListener('change', ()=>loadPeriod(periodSel.value));
   await loadPeriod(defaultPeriod);
-};
-
-/* ══════════════════════════════════════════
-   LINKED PORTALS — mirrors the "Linked Portals" view in the admin
-   index.html, so teachers can jump to the other school tools from
-   one place too.
-══════════════════════════════════════════ */
-VR4['portals'] = async function(area){
-  area.innerHTML = `
-    <div class="sec-hdr"><h2>Linked Portals</h2></div>
-    <div class="card">
-      <div class="card-hdr"><div class="card-title">About this view</div></div>
-      <div style="font-size:12.5px;color:var(--text2);line-height:1.6;">
-        Jump into other specialized school tools without leaving this login.
-      </div>
-    </div>
-    <div class="link-grid" style="margin-top:14px;">
-      <a class="link-card" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, and analytics.</div></a>
-      <a class="link-card" href="./main-result-portal.html" target="_blank"><div class="lc-icon">📝</div><div class="lc-title">Quick Entry</div><div class="lc-desc">Fast score entry for your classes.</div></a>
-      <a class="link-card" href="https://kanyadet-school-admin.web.app/index.html" target="_blank"><div class="lc-icon">🏫</div><div class="lc-title">Admin Command Center</div><div class="lc-desc">School-wide dashboard, roster, and analytics (admin access required).</div></a>
-      <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with student records.</div></a>
-      <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
-      <a class="link-card" href="https://kanyadet-school-admin.web.app/Results.html" target="_blank"><div class="lc-icon">📄</div><div class="lc-title">Results Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
-    </div>`;
 };
 
 /* ══════════════════════════════════════════
