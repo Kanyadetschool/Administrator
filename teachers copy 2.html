@@ -65,9 +65,9 @@
 // ── Teachers-only Service Worker registration (standalone PWA entry) ──────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    window._swRegistrationPromise = navigator.serviceWorker.register('./teachers-sw.js')
-      .then((reg) => { console.log('[SW] teachers PWA registered, scope:', reg.scope); return reg; })
-      .catch((err) => { console.warn('[SW] teachers PWA registration failed:', err); return null; });
+    navigator.serviceWorker.register('./teachers-sw.js')
+      .then((reg) => console.log('[SW] teachers PWA registered, scope:', reg.scope))
+      .catch((err) => console.warn('[SW] teachers PWA registration failed:', err));
   });
 }
 
@@ -893,8 +893,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
   GoogleAuthProvider, signInWithPopup, signInWithCredential, sendPasswordResetEmail, setPersistence,
-  indexedDBLocalPersistence, browserLocalPersistence,
-  updatePassword, reauthenticateWithCredential, EmailAuthProvider
+  indexedDBLocalPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, onSnapshot,
@@ -904,9 +903,6 @@ import {
   getDatabase, ref, onValue, push, set as rtSet, update as rtUpdate, remove as rtRemove,
   query as rtQuery, orderByChild, limitToLast, serverTimestamp as rtServerTimestamp, get as rtGet
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import {
-  getMessaging, getToken as getFcmToken, onMessage as onFcmMessage, isSupported as isFcmSupported
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 /* ══════════════════════════════════════════
    CONFIG — same Firebase project as the Results Portal / KSS,
@@ -916,11 +912,7 @@ import {
 ══════════════════════════════════════════ */
 import { FIREBASE_CONFIG, PATHS } from "./js/config.js";
 const FB_CONFIG = FIREBASE_CONFIG;
-let app, auth, fs, rtdb, messaging;
-// Fill this in from Firebase Console → Project Settings → Cloud Messaging →
-// "Web Push certificates" once generated there. Push subscription silently
-// no-ops (falls back to in-tab notifications only) until this is set.
-const FCM_VAPID_KEY = PATHS.FCM_VAPID_KEY || '';
+let app, auth, fs, rtdb;
 try{
   app  = initializeApp(FB_CONFIG);
   auth = getAuth(app);
@@ -929,7 +921,6 @@ try{
   setPersistence(auth, indexedDBLocalPersistence).catch(()=>{
     setPersistence(auth, browserLocalPersistence).catch(()=>{});
   });
-  window._fcmReadyPromise = isFcmSupported().then(ok => { if(ok) messaging = getMessaging(app); return messaging; }).catch(()=>null);
 }catch(initErr){
   console.error('Firebase failed to initialize:', initErr);
   const bl = document.getElementById('boot-loader');
@@ -1037,7 +1028,6 @@ const ALL_GRADES = Object.values(TT_SECTIONS).flatMap(s => s.grades);
 window._KTP = { app, auth, fs, rtdb, ref, onValue, push, rtSet, rtUpdate, rtRemove, rtQuery,
   orderByChild, limitToLast, rtServerTimestamp, rtGet, doc, getDoc, setDoc, updateDoc, collection,
   getDocs, onSnapshot, query, where, orderBy, fsLimit, fsServerTimestamp, sendPasswordResetEmail,
-  updatePassword, reauthenticateWithCredential, EmailAuthProvider,
   DB_STUDENTS_PATH, ANNOUNCEMENTS_PATH, ATTENDANCE_PATH, TIMETABLE_PATH, RESOURCES_PATH, LEAVE_PATH, WELFARE_PATH,
   TEACHER_TT_PATH, TT_SECTIONS, ttKey, guessTtSection, CALENDAR_PATH,
   // Exchanges a Google One Tap ID token for a Firebase session. Once this
@@ -1411,22 +1401,6 @@ function mountPaginated(items, pageSize, renderRows, bodyElId, controlsElId){
   render();
   return { goTo:(p)=>{ page = Math.max(0, Math.min(totalPages-1, p)); render(); } };
 }
-
-/* ── CSV export — builds a CSV blob from rows and triggers a download. ── */
-function exportRowsToCsv(filename, headers, rows){
-  const escCsv = (v) => {
-    const s = v===null||v===undefined ? '' : String(v);
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
-  };
-  const lines = [headers.map(escCsv).join(','), ...rows.map(r=>r.map(escCsv).join(','))];
-  const blob = new Blob([lines.join('\r\n')], { type:'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 
 function enterApp(){
   document.getElementById('auth-screen').style.display = 'none';
@@ -2402,7 +2376,6 @@ VR2['classes'] = async function(area){
       ${grades.map((g,i)=>`<div class="chip ${i===0?'active':''}" data-g="${esc2(g)}" onclick="_KTP_switchClass(this)">${esc2(g)}</div>`).join('')}
     </div></div>
     <div class="card"><div class="card-hdr"><div class="card-title" id="roster-title">Roster — ${esc2(grades[0])}</div><span class="badge badge-blue" id="roster-count">…</span></div>
-      <input type="text" class="f-input" id="roster-search" placeholder="🔍 Search students…" style="width:100%;max-width:280px;margin-bottom:12px;">
       <div id="roster-body"><div class="empty-state"><div class="es-icon">⏳</div></div></div>
     </div>`;
   window._KTP_switchClass = async function(el){
@@ -2411,8 +2384,6 @@ VR2['classes'] = async function(area){
     const g = el.dataset.g;
     document.getElementById('roster-title').textContent = 'Roster — ' + g;
     const body = document.getElementById('roster-body');
-    const searchInput = document.getElementById('roster-search');
-    searchInput.value = '';
     body.innerHTML = '<div class="empty-state"><div class="es-icon">⏳</div></div>';
     try{
       const roster = await fetchRoster(g);
@@ -2424,21 +2395,9 @@ VR2['classes'] = async function(area){
       body.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Gender</th><th>Assessment No.</th><th>UPI</th></tr></thead>
         <tbody id="roster-tbody"></tbody></table></div>
         <div id="roster-pg"></div>`;
-      const renderRoster = (list) => {
-        if(!list.length){
-          document.getElementById('roster-tbody').innerHTML = '';
-          document.getElementById('roster-pg').innerHTML = `<div class="empty-state"><div class="es-sub">No students match your search.</div></div>`;
-          return;
-        }
-        mountPaginated(list, 15, (pageItems, start) =>
-          pageItems.map((s,i)=>`<tr><td>${start+i+1}</td><td><div class="stu-name-cell">${makePhotoAvatar(s.name, g, 'stu-av-sm')}<span>${esc2(s.name)}</span></div></td><td>${esc2(s.gender)}</td><td>${esc2(s.assessmentNo)}</td><td>${esc2(s.UPI)}</td></tr>`).join(''),
-          'roster-tbody', 'roster-pg');
-      };
-      renderRoster(roster);
-      searchInput.oninput = () => {
-        const q = searchInput.value.trim().toLowerCase();
-        renderRoster(!q ? roster : roster.filter(s => (s.name||'').toLowerCase().includes(q) || (s.assessmentNo||'').toLowerCase().includes(q) || (s.UPI||'').toLowerCase().includes(q)));
-      };
+      mountPaginated(roster, 15, (pageItems, start) =>
+        pageItems.map((s,i)=>`<tr><td>${start+i+1}</td><td><div class="stu-name-cell">${makePhotoAvatar(s.name, g, 'stu-av-sm')}<span>${esc2(s.name)}</span></div></td><td>${esc2(s.gender)}</td><td>${esc2(s.assessmentNo)}</td><td>${esc2(s.UPI)}</td></tr>`).join(''),
+        'roster-tbody', 'roster-pg');
     }catch(e){ body.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-sub">${esc2(e.message)}</div></div>`; }
   };
   window._KTP_switchClass(document.querySelector('.chip[data-g]'));
@@ -2659,28 +2618,21 @@ VR3['gradebook'] = async function(area){
 
     body.innerHTML = `
       <div class="card" style="margin-bottom:14px;">
-        <div class="card-hdr"><div class="card-title">Struggling Students (avg below 50)</div>${strugglingStudents.length ? `<button class="btn btn-blue btn-sm" id="gb-export-btn">⬇️ Export CSV</button>` : ''}</div>
-        ${strugglingStudents.length ? strugglingStudents.map(s=>`<div class="analytics-row"><div class="stu-name-cell">${makePhotoAvatar(s.name, s.grade, 'stu-av-sm')}<div><div class="analytics-name">${esc3(s.name)}</div><div class="analytics-meta">${esc3(s.grade)}</div></div></div><div class="badge badge-red">${s.avg.toFixed(1)}</div></div>`).join('')
+        <div class="card-hdr"><div class="card-title">Struggling Students (avg below 50)</div></div>
+        ${strugglingStudents.length ? strugglingStudents.map(s=>`<div class="analytics-row"><div><div class="analytics-name">${esc3(s.name)}</div><div class="analytics-meta">${esc3(s.grade)}</div></div><div class="badge badge-red">${s.avg.toFixed(1)}</div></div>`).join('')
           : `<div class="empty-state"><div class="es-icon">🎉</div><div class="es-sub">No student is currently averaging below 50.</div></div>`}
       </div>
       ${trending.length ? `
       <div class="grid-2">
         <div class="card"><div class="card-hdr"><div class="card-title">Most Improved (term-to-term)</div></div>
-          ${mostImproved.length ? mostImproved.map(t=>`<div class="analytics-row"><div class="stu-name-cell">${makePhotoAvatar(t.name, t.grade, 'stu-av-sm')}<div><div class="analytics-name">${esc3(t.name)}</div><div class="analytics-meta">${esc3(t.fromTerm)} → ${esc3(t.toTerm)}</div></div></div><div class="badge badge-green">+${t.delta.toFixed(1)}</div></div>`).join('') : `<div class="empty-state"><div class="es-sub">No upward movers yet.</div></div>`}
+          ${mostImproved.length ? mostImproved.map(t=>`<div class="analytics-row"><div><div class="analytics-name">${esc3(t.name)}</div><div class="analytics-meta">${esc3(t.fromTerm)} → ${esc3(t.toTerm)}</div></div><div class="badge badge-green">+${t.delta.toFixed(1)}</div></div>`).join('') : `<div class="empty-state"><div class="es-sub">No upward movers yet.</div></div>`}
         </div>
         <div class="card"><div class="card-hdr"><div class="card-title">Most Declined (term-to-term)</div></div>
-          ${mostDeclined.length ? mostDeclined.map(t=>`<div class="analytics-row"><div class="stu-name-cell">${makePhotoAvatar(t.name, t.grade, 'stu-av-sm')}<div><div class="analytics-name">${esc3(t.name)}</div><div class="analytics-meta">${esc3(t.fromTerm)} → ${esc3(t.toTerm)}</div></div></div><div class="badge badge-red">${t.delta.toFixed(1)}</div></div>`).join('') : `<div class="empty-state"><div class="es-sub">No decliners yet.</div></div>`}
+          ${mostDeclined.length ? mostDeclined.map(t=>`<div class="analytics-row"><div><div class="analytics-name">${esc3(t.name)}</div><div class="analytics-meta">${esc3(t.fromTerm)} → ${esc3(t.toTerm)}</div></div><div class="badge badge-red">${t.delta.toFixed(1)}</div></div>`).join('') : `<div class="empty-state"><div class="es-sub">No decliners yet.</div></div>`}
         </div>
       </div>` : `<div class="card"><div class="card-hdr"><div class="card-title">Term-to-Term Trend</div></div>
         <div style="font-size:12px;color:var(--text2);">Needs at least two terms of scores per student to show movement — not enough data yet.</div></div>`}
     `;
-    const gbExportBtn = document.getElementById('gb-export-btn');
-    if(gbExportBtn){
-      gbExportBtn.onclick = () => {
-        exportRowsToCsv('struggling-students.csv', ['Student','Class','Average'],
-          strugglingStudents.map(s => [s.name, s.grade, s.avg.toFixed(1)]));
-      };
-    }
   }catch(e){ body.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-sub">${esc3(e.message)}</div></div>`; }
 };
 
@@ -2795,37 +2747,16 @@ VR3['insights'] = async function(area){
         <div class="card"><div class="card-hdr"><div class="card-title">High Risk (both score &amp; attendance)</div></div><div style="font-size:26px;font-weight:800;color:var(--red,#e74c3c);">${highCount}</div></div>
         <div class="card"><div class="card-hdr"><div class="card-title">Medium Risk (one flag)</div></div><div style="font-size:26px;font-weight:800;color:var(--orange,#f39c12);">${medCount}</div></div>
       </div>
-      <div class="actions-row" style="margin-bottom:12px;align-items:center;gap:10px;">
-        <input type="text" class="f-input" id="risk-search" placeholder="🔍 Search students…" style="width:100%;max-width:280px;">
-        <button class="btn btn-blue btn-sm" id="risk-export-btn">⬇️ Export CSV</button>
-      </div>
       <div class="table-wrap"><table class="data-table"><thead><tr><th>Student</th><th>Class</th><th>Avg Score</th><th>Attendance (${RISK_ATT_DAYS}d)</th><th>Risk</th></tr></thead>
       <tbody id="risk-tbody"></tbody></table></div>
       <div id="risk-pg"></div>`;
-    const renderRisky = (list) => {
-      if(!list.length){
-        document.getElementById('risk-tbody').innerHTML = '';
-        document.getElementById('risk-pg').innerHTML = `<div class="empty-state"><div class="es-sub">No students match your search.</div></div>`;
-        return;
-      }
-      mountPaginated(list, 15, (pageItems) => pageItems.map(r=>`<tr>
-        <td><div class="stu-name-cell">${makePhotoAvatar(r.name, r.grade, 'stu-av-sm')}<span>${esc3(r.name)}</span></div></td>
+    mountPaginated(risky, 15, (pageItems) => pageItems.map(r=>`<tr>
+        <td>${esc3(r.name)}</td>
         <td>${esc3(r.grade)}</td>
         <td>${r.scoreAvg!==null ? `<b style="${r.scoreAvg<RISK_SCORE_THRESHOLD?'color:var(--red,#e74c3c);':''}">${r.scoreAvg.toFixed(1)}</b>` : '—'}</td>
         <td>${r.attRate!==null ? `<b style="${r.attRate<RISK_ATT_THRESHOLD?'color:var(--red,#e74c3c);':''}">${r.attRate}%</b>` : '—'}</td>
         <td><span class="badge ${r.level==='High'?'badge-red':'badge-orange'}">${r.level}</span></td>
       </tr>`).join(''), 'risk-tbody', 'risk-pg');
-    };
-    renderRisky(risky);
-    const riskSearch = document.getElementById('risk-search');
-    riskSearch.oninput = () => {
-      const q = riskSearch.value.trim().toLowerCase();
-      renderRisky(!q ? risky : risky.filter(r => (r.name||'').toLowerCase().includes(q) || (r.grade||'').toLowerCase().includes(q)));
-    };
-    document.getElementById('risk-export-btn').onclick = () => {
-      exportRowsToCsv('at-risk-students.csv', ['Student','Class','Avg Score','Attendance %','Risk'],
-        risky.map(r => [r.name, r.grade, r.scoreAvg!==null?r.scoreAvg.toFixed(1):'', r.attRate!==null?r.attRate:'', r.level]));
-    };
   }catch(e){ body.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-sub">${esc3(e.message)}</div></div>`; }
 };
 
@@ -3428,14 +3359,6 @@ VR4['settings'] = async function(area){
         <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Manage passkey unlock from your Profile page.</div>
         <button class="btn btn-outline btn-sm" onclick="_navTo('profile')">Go to Profile →</button>
       </div>
-      <div class="card" id="set-pw-card">
-        <div class="card-hdr"><div class="card-title">Change Password</div></div>
-        <div id="set-pw-body"></div>
-      </div>
-      <div class="card" id="set-push-card">
-        <div class="card-hdr"><div class="card-title">Push Notifications</div></div>
-        <div id="set-push-body"></div>
-      </div>
       <div class="card">
         <div class="card-hdr"><div class="card-title">Export My Data</div></div>
         <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Download your profile, assigned classes, and timetable as a JSON file for your own records.</div>
@@ -3450,83 +3373,6 @@ VR4['settings'] = async function(area){
     document.getElementById('theme-toggle-btn').click();
     VR4['settings'](area);
   });
-  {
-    const pwBody = document.getElementById('set-pw-body');
-    const hasPasswordProvider = (window._currentUser?.providerData||[]).some(pr => pr.providerId === 'password');
-    if(!hasPasswordProvider){
-      pwBody.innerHTML = `<div style="font-size:12px;color:var(--text2);">You sign in with Google, so there's no separate portal password to change. Manage your Google account password from your Google account settings instead.</div>`;
-    }else{
-      pwBody.innerHTML = `
-        <div class="f-group"><label class="f-label">Current password</label><input class="f-input" type="password" id="pw-current" autocomplete="current-password"></div>
-        <div class="f-group"><label class="f-label">New password</label><input class="f-input" type="password" id="pw-new" autocomplete="new-password"></div>
-        <div class="f-group"><label class="f-label">Confirm new password</label><input class="f-input" type="password" id="pw-confirm" autocomplete="new-password"></div>
-        <div id="pw-msg" style="font-size:11.5px;margin:6px 0;"></div>
-        <button class="btn btn-blue btn-sm" id="pw-submit-btn">🔒 Update Password</button>`;
-      document.getElementById('pw-submit-btn').addEventListener('click', async ()=>{
-        const msgEl = document.getElementById('pw-msg');
-        const current = document.getElementById('pw-current').value;
-        const next = document.getElementById('pw-new').value;
-        const confirm = document.getElementById('pw-confirm').value;
-        msgEl.style.color = 'var(--red)';
-        if(!current || !next || !confirm){ msgEl.textContent = 'Fill in all three fields.'; return; }
-        if(next.length < 6){ msgEl.textContent = 'New password must be at least 6 characters.'; return; }
-        if(next !== confirm){ msgEl.textContent = 'New password and confirmation don\u2019t match.'; return; }
-        const btn = document.getElementById('pw-submit-btn');
-        btn.disabled = true; btn.textContent = 'Updating…';
-        try{
-          const cred = EmailAuthProvider.credential(window._currentUser.email, current);
-          await reauthenticateWithCredential(window._currentUser, cred);
-          await updatePassword(window._currentUser, next);
-          msgEl.style.color = 'var(--green)';
-          msgEl.textContent = 'Password updated.';
-          document.getElementById('pw-current').value = '';
-          document.getElementById('pw-new').value = '';
-          document.getElementById('pw-confirm').value = '';
-        }catch(e){
-          msgEl.style.color = 'var(--red)';
-          msgEl.textContent = e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'
-            ? 'Current password is incorrect.'
-            : (e.code === 'auth/too-many-requests' ? 'Too many attempts. Try again later.' : 'Could not update password: ' + (e.message||e.code));
-        }finally{
-          btn.disabled = false; btn.textContent = '🔒 Update Password';
-        }
-      });
-    }
-  }
-  {
-    const pushBody = document.getElementById('set-push-body');
-    const renderPushCard = () => {
-      const state = pushSupportState();
-      if(state === 'unsupported'){
-        pushBody.innerHTML = `<div style="font-size:12px;color:var(--text2);">Push notifications aren't supported in this browser.</div>`;
-      }else if(state === 'unconfigured'){
-        pushBody.innerHTML = `<div style="font-size:12px;color:var(--text2);">Push isn't set up for this school yet — an admin needs to add a Web Push (VAPID) key.</div>`;
-      }else if(state === 'denied'){
-        pushBody.innerHTML = `<div style="font-size:12px;color:var(--text2);">Notifications are blocked for this site. Enable them in your browser's site settings, then reload this page.</div>`;
-      }else if(state === 'granted'){
-        pushBody.innerHTML = `<div style="font-size:12px;color:var(--green);display:flex;align-items:center;gap:6px;">✅ Push notifications are on for this device.</div>`;
-      }else{
-        pushBody.innerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Get notified about new messages, leave approvals, and announcements even when this tab isn't open.</div>
-          <button class="btn btn-blue btn-sm" id="push-enable-btn">🔔 Enable Push Notifications</button>
-          <div id="push-msg" style="font-size:11.5px;margin-top:8px;"></div>`;
-        const btn = document.getElementById('push-enable-btn');
-        btn?.addEventListener('click', async ()=>{
-          const msgEl = document.getElementById('push-msg');
-          btn.disabled = true; btn.textContent = 'Enabling…';
-          try{
-            await enablePushNotifications();
-            renderPushCard();
-          }catch(e){
-            msgEl.style.color = 'var(--red)';
-            msgEl.textContent = e.message || 'Could not enable push notifications.';
-            btn.disabled = false; btn.textContent = '🔔 Enable Push Notifications';
-          }
-        });
-      }
-    };
-    pushBody.innerHTML = `<div style="font-size:12px;color:var(--text2);">Checking…</div>`;
-    Promise.resolve(window._fcmReadyPromise).finally(renderPushCard);
-  }
   document.getElementById('export-my-data-btn').addEventListener('click', async ()=>{
     try{
       const grades = myGrades();
@@ -3749,57 +3595,10 @@ async function renderNotifPop(){
 }
 
 /* ══════════════════════════════════════════
-   PUSH NOTIFICATIONS — client-side plumbing only. This handles
-   permission + FCM token registration + showing notifications while
-   the tab is open. Waking a fully-closed app for a NEW message/leave-
-   approval/announcement additionally needs a Cloud Function on the
-   backend to call admin.messaging().send() when those records are
-   written — that half lives outside this file.
-══════════════════════════════════════════ */
-function pushSupportState(){
-  if(!('Notification' in window)) return 'unsupported';
-  if(!messaging) return 'unsupported';
-  if(!FCM_VAPID_KEY) return 'unconfigured';
-  return Notification.permission; // 'default' | 'granted' | 'denied'
-}
-async function enablePushNotifications(){
-  if(!('Notification' in window)) throw new Error('Push notifications aren\u2019t supported in this browser.');
-  if(window._fcmReadyPromise) await window._fcmReadyPromise;
-  if(!messaging) throw new Error('Push notifications aren\u2019t supported in this browser.');
-  if(!FCM_VAPID_KEY) throw new Error('Push isn\u2019t configured yet (missing VAPID key) — ask an admin to set FCM_VAPID_KEY.');
-  const perm = await Notification.requestPermission();
-  if(perm !== 'granted') throw new Error(perm === 'denied' ? 'Notifications are blocked for this site in your browser settings.' : 'Permission not granted.');
-  const reg = window._swRegistrationPromise ? await window._swRegistrationPromise : await navigator.serviceWorker.getRegistration();
-  const token = await getFcmToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: reg || undefined });
-  if(!token) throw new Error('Could not get a push token — try again.');
-  const uid = myUid();
-  if(uid){
-    await updateDoc(doc(fs,'users',uid), { fcmTokens: { [token]: true }, fcmTokenUpdatedAt: fsServerTimestamp() }).catch(async ()=>{
-      // fallback if the doc / field doesn't support dotted-merge shape yet
-      await setDoc(doc(fs,'users',uid), { fcmTokens: { [token]: true }, fcmTokenUpdatedAt: fsServerTimestamp() }, { merge:true });
-    });
-  }
-  return token;
-}
-if(window._fcmReadyPromise){
-  window._fcmReadyPromise.then(m=>{
-    if(!m) return;
-    onFcmMessage(m, (payload)=>{
-      const title = payload.notification?.title || payload.data?.title || 'Kanyadet Teachers Portal';
-      const body  = payload.notification?.body  || payload.data?.body  || '';
-      renderNotifPop().catch(()=>{});
-      if(Notification.permission === 'granted'){
-        try{ new Notification(title, { body, icon: './icons/icon-192.png' }); }catch(e){}
-      }
-    });
-  });
-}
-
-/* ══════════════════════════════════════════
    GLOBAL SEARCH / COMMAND PALETTE (Ctrl+K)
 ══════════════════════════════════════════ */
 function cmdkNavIcon(id){
-  const map = { dashboard:'📊', profile:'👤', classes:'🏷️', attendance:'✅', gradebook:'📝', insights:'🚨', timetable:'🗓️', calendar:'📅', messages:'💬', announcements:'📢', resources:'📚', leave:'🌴', welfare:'🤝', portals:'🔗', settings:'⚙️' };
+  const map = { dashboard:'📊', profile:'👤', classes:'🏷️', attendance:'✅', gradebook:'📝', timetable:'🗓️', calendar:'📅', messages:'💬', announcements:'📢', resources:'📚', leave:'🌴', welfare:'🤝', settings:'⚙️' };
   return map[id] || '•';
 }
 let cmdkFlatItems = [];
