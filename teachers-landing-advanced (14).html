@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanyadet Primary &amp; Junior School — Teacher Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2980b9; --blue-dk:#1a5276; --blue-lt:#5dade2; --blue-glow:rgba(41,128,185,.35);
+  --orange:#e67e22; --orange-dk:#d35400; --gold:#f39c12;
+  --green:#27ae60; --red:#e74c3c;
+  --purple:#8e44ad; --teal:#16a085;
+  --brand-1:#0f4c81; --brand-2:#3f8fc5; --brand-3:#ffb84d;
+  --radius-xl:24px; --radius-lg:18px; --radius-md:12px; --radius-sm:8px;
+  --transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="light"]{
+  --bg:linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%);
+  --surface:#ffffff; --surface2:#fdfaf2; --surface3:#f8eed6;
+  --border:rgba(211,164,55,.2); --border-strong:rgba(211,164,55,.45);
+  --text:#0c1e33; --text2:#5a5342; --text3:#a89b7a;
+  --topbar:rgba(250,244,225,.86); --card-shadow:0 4px 20px rgba(211,164,55,.14);
+}
+[data-theme="dark"]{
+  --bg:#090f1a; --surface:#111d2e; --surface2:#162438; --surface3:#1c2e44;
+  --border:rgba(41,128,185,.18); --border-strong:rgba(41,128,185,.4);
+  --text:#ddeeff; --text2:#7aaec9; --text3:#4a7a9b;
+  --topbar:rgba(9,15,26,.88); --card-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
+}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden;
+  transition:background .3s,color .3s;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(circle at 10% 10%, rgba(41,128,185,.20), transparent 26%),
+    radial-gradient(circle at 88% 92%, rgba(230,126,34,.20), transparent 24%),
+    linear-gradient(120deg, rgba(255,255,255,.08), transparent 60%);
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(41,128,185,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(41,128,185,.045) 1px, transparent 1px);
+  background-size:26px 26px;
+  mask-image:radial-gradient(circle at center, black 50%, transparent 92%);
+}
+a{color:inherit;text-decoration:none;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:8px;}
+.mono{font-family:'JetBrains Mono',monospace;}
+.wrap{max-width:1220px;margin:0 auto;padding:0 clamp(20px,4vw,56px);position:relative;z-index:1;}
+a:focus-visible, button:focus-visible{outline:3px solid var(--blue-lt);outline-offset:3px;border-radius:4px;}
+
+/* ---------- TOPBAR ---------- */
+.topbar{
+  position:sticky;top:0;z-index:600;
+  background:var(--topbar); backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 10px 24px rgba(0,0,0,.06);
+}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:12px clamp(20px,4vw,56px);max-width:1220px;margin:0 auto;position:relative;z-index:1;}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-icon{width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--brand-1),var(--brand-2),var(--brand-3));display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(20,63,110,.35);}
+.brand-icon svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8;}
+.brand-text .b-name{font-size:14px;font-weight:900;letter-spacing:-.01em;color:var(--text);}
+.brand-text .b-role{font-size:10px;color:var(--blue-lt);font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.nav-links{display:flex;align-items:center;gap:22px;margin-right:8px;}
+.nav-links a{font-size:13px;font-weight:700;color:var(--text2);transition:var(--transition);}
+.nav-links a:hover{color:var(--text);}
+.theme-toggle{width:52px;height:28px;border-radius:14px;background:var(--surface2);border:1.5px solid var(--border);cursor:pointer;position:relative;display:flex;align-items:center;padding:3px;flex-shrink:0;}
+.theme-toggle::after{content:'';width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+[data-theme="dark"] .theme-toggle::after{transform:translateX(24px);}
+.theme-icon{position:absolute;font-size:11px;pointer-events:none;}
+.theme-icon.moon{left:6px;opacity:.4;}
+.theme-icon.sun{right:5px;}
+[data-theme="dark"] .theme-icon.moon{opacity:1;}
+[data-theme="dark"] .theme-icon.sun{opacity:.4;}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);font-size:13px;gap:2px;}
+.icon-btn:hover{color:var(--text);border-color:var(--border-strong);}
+.cmdk-btn{display:flex;align-items:center;gap:8px;padding:0 12px;width:auto;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text3);}
+.cmdk-btn kbd{font-size:10px;border:1px solid var(--border);padding:1px 5px;border-radius:5px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-weight:800;font-size:13px;border:none;cursor:pointer;transition:var(--transition);}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;box-shadow:0 12px 28px var(--blue-glow);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px var(--blue-glow);}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--border-strong);}
+.btn.large{padding:14px 26px;font-size:14px;}
+
+/* ---------- HERO ---------- */
+.hero{padding:clamp(56px,8vw,96px) 0 clamp(50px,7vw,80px);position:relative;z-index:1;}
+.hero-inner{display:grid;grid-template-columns:1.05fr 0.95fr;gap:clamp(30px,5vw,60px);align-items:center;}
+.eyebrow-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 10px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);font-size:11px;font-weight:800;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:22px;}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+.hero h1{font-size:clamp(2.3rem,4.6vw,3.4rem);font-weight:900;letter-spacing:-.03em;line-height:1.08;color:var(--text);}
+.hero h1 span{background:linear-gradient(135deg,var(--blue),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero p.lede{margin-top:20px;max-width:48ch;font-size:1.05rem;line-height:1.65;color:var(--text2);}
+.hero-ctas{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap;}
+
+.chip-row{display:flex;gap:12px;margin-top:38px;flex-wrap:wrap;}
+.chip{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);}
+.chip .chip-num{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:1.05rem;color:var(--blue);}
+.chip .chip-label{font-size:10.5px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+
+/* ---------- WAVE PANEL (hero right) ---------- */
+.wave-panel{position:relative;border-radius:var(--radius-xl);overflow:hidden;min-height:440px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2.2rem;color:#fff;text-align:center;box-shadow:0 30px 90px rgba(10,30,60,.28);}
+.wave-panel::before{content:'';position:absolute;inset:0;z-index:0;background:linear-gradient(160deg,var(--blue-dk) 0%,#132a45 55%,#0a1c30 100%);}
+.wp-blob{position:absolute;border-radius:50%;pointer-events:none;z-index:0;}
+.wp-blob-1{width:260px;height:260px;top:-90px;right:-90px;background:rgba(255,255,255,.055);}
+.wp-blob-2{width:220px;height:220px;bottom:-80px;left:-70px;background:rgba(93,173,226,.18);}
+.wp-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.22);z-index:0;}
+.wp-dot-1{width:12px;height:12px;top:16%;right:20%;}
+.wp-dot-2{width:9px;height:9px;bottom:24%;left:14%;background:var(--blue-lt);opacity:.9;}
+.wp-illustration{position:relative;z-index:1;width:100%;max-width:220px;margin:0 auto 2rem;}
+.wp-illustration svg{width:100%;height:auto;display:block;}
+.wp-brand{position:relative;z-index:1;}
+.wp-brand-name{font-size:1.35rem;font-weight:900;margin-bottom:.6rem;letter-spacing:-.01em;}
+.wp-brand-tag{font-size:.9rem;color:rgba(255,255,255,.75);font-weight:500;line-height:1.55;max-width:300px;margin:0 auto;min-height:2.7em;transition:opacity .35s ease;}
+.wp-brand-tag.fading{opacity:0;}
+.wp-tip-dots{display:flex;justify-content:center;gap:.4rem;margin-top:1.1rem;position:relative;z-index:1;}
+.wp-tip-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28);transition:background .25s,width .25s;}
+.wp-tip-dot.active{background:var(--blue-lt);width:18px;border-radius:3px;}
+
+/* ---------- LIVE STATUS STRIP ---------- */
+.status-strip{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface2);}
+.status-strip-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;padding:14px clamp(20px,4vw,56px);max-width:1220px;margin:0 auto;position:relative;z-index:1;}
+.status-left{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:var(--text2);}
+.status-right{display:flex;align-items:center;gap:20px;font-size:11.5px;color:var(--text3);}
+.status-right .mono{color:var(--text2);}
+
+/* ---------- SECTIONS ---------- */
+section{padding:clamp(64px,9vw,96px) 0;position:relative;z-index:1;}
+.section-head{max-width:640px;margin-bottom:clamp(36px,5vw,52px);}
+.eyebrow-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:12px;}
+.section-head h2{font-size:clamp(1.7rem,3.2vw,2.3rem);font-weight:900;letter-spacing:-.02em;color:var(--text);}
+.section-head p{margin-top:12px;color:var(--text2);font-size:1rem;line-height:1.6;}
+
+/* ---------- FEATURES ---------- */
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;transition:var(--transition);position:relative;box-shadow:var(--card-shadow);}
+.feature-card:hover{transform:translateY(-4px);border-color:var(--border-strong);}
+.f-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.f-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.f-icon svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8;}
+.f-icon.blue{background:linear-gradient(135deg,var(--blue),var(--blue-dk));box-shadow:0 8px 20px var(--blue-glow);}
+.f-icon.orange{background:linear-gradient(135deg,var(--orange),var(--orange-dk));box-shadow:0 8px 20px rgba(230,126,34,.35);}
+.f-icon.purple{background:linear-gradient(135deg,var(--purple),#6c3483);box-shadow:0 8px 20px rgba(142,68,173,.32);}
+.f-icon.teal{background:linear-gradient(135deg,var(--teal),#0e6b56);box-shadow:0 8px 20px rgba(22,160,133,.32);}
+.f-icon.gold{background:linear-gradient(135deg,var(--gold),var(--orange-dk));box-shadow:0 8px 20px rgba(243,156,18,.32);}
+.f-icon.red{background:linear-gradient(135deg,var(--red),#a5281b);box-shadow:0 8px 20px rgba(231,76,60,.32);}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;}
+.pill.blue{background:rgba(41,128,185,.12);color:var(--blue);}
+.pill.orange{background:rgba(230,126,34,.12);color:var(--orange-dk);}
+.pill.purple{background:rgba(142,68,173,.12);color:var(--purple);}
+.pill.teal{background:rgba(22,160,133,.12);color:var(--teal);}
+.pill.gold{background:rgba(243,156,18,.14);color:var(--orange-dk);}
+.pill.red{background:rgba(231,76,60,.12);color:var(--red);}
+.feature-card h3{font-size:1.05rem;font-weight:800;color:var(--text);margin-bottom:8px;letter-spacing:-.01em;}
+.feature-card p{font-size:.92rem;color:var(--text2);line-height:1.6;}
+
+/* ---------- STATS ---------- */
+.stats-band{background:var(--surface2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:22px 20px;box-shadow:var(--card-shadow);}
+.stat-card .stat-num{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;}
+.stat-card .stat-num sup{font-size:1rem;color:var(--blue);}
+.stat-card .stat-label{margin-top:6px;font-size:.82rem;color:var(--text3);font-weight:600;}
+
+/* ---------- HOW IT WORKS ---------- */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;position:relative;}
+.steps::before{content:'';position:absolute;top:26px;left:8%;right:8%;height:1px;background:repeating-linear-gradient(90deg, var(--border-strong) 0 8px, transparent 8px 16px);z-index:0;}
+.step{position:relative;z-index:1;}
+.step-num{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:1.05rem;color:#fff;margin-bottom:18px;box-shadow:0 10px 24px var(--blue-glow);}
+.step h3{font-size:1.02rem;font-weight:800;color:var(--text);margin-bottom:8px;}
+.step p{color:var(--text2);font-size:.92rem;line-height:1.6;}
+
+/* ---------- QUOTE ---------- */
+.quote-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:clamp(32px,5vw,48px);box-shadow:var(--card-shadow);display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:flex-start;}
+.quote-mark{font-family:'Plus Jakarta Sans',sans-serif;font-size:3rem;font-weight:900;color:var(--blue-lt);line-height:1;}
+.quote-card p{font-size:1.1rem;line-height:1.6;color:var(--text);font-weight:500;}
+.quote-attr{margin-top:16px;font-size:.85rem;color:var(--text3);font-weight:700;}
+.quote-attr span{color:var(--blue);}
+
+/* ---------- CTA ---------- */
+.cta-banner{position:relative;border-radius:var(--radius-xl);overflow:hidden;padding:clamp(40px,6vw,64px);display:flex;align-items:center;justify-content:space-between;gap:30px;flex-wrap:wrap;color:#fff;}
+.cta-banner::before{content:'';position:absolute;inset:0;z-index:0;background:linear-gradient(150deg,var(--blue-dk) 0%,#132a45 60%,#0a1c30 100%);}
+.cta-banner::after{content:'';position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle, rgba(243,156,18,.28), transparent 70%);z-index:0;}
+.cta-banner > *{position:relative;z-index:1;}
+.cta-banner h2{font-size:clamp(1.6rem,3vw,2.1rem);font-weight:900;max-width:16ch;letter-spacing:-.02em;}
+.cta-banner p{color:rgba(255,255,255,.72);margin-top:10px;max-width:40ch;}
+
+/* ---------- FOOTER ---------- */
+footer{border-top:1px solid var(--border);padding:36px 0 60px;position:relative;z-index:1;}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.footer-links{display:flex;gap:20px;font-size:12.5px;font-weight:700;color:var(--text2);}
+.fine{margin-top:22px;text-align:center;font-size:11px;color:var(--text3);}
+
+/* ---------- COMMAND PALETTE ---------- */
+.cmdk-backdrop{position:fixed;inset:0;z-index:3000;background:rgba(5,12,22,.55);display:none;align-items:flex-start;justify-content:center;padding-top:12vh;backdrop-filter:blur(2px);}
+.cmdk-backdrop.open{display:flex;}
+.cmdk-box{width:100%;max-width:540px;max-height:64vh;background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 30px 90px rgba(0,0,0,.4);border:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;margin:0 12px;}
+.cmdk-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.cmdk-input-wrap span{font-size:16px;opacity:.6;}
+.cmdk-input{flex:1;border:none;outline:none;background:transparent;font-family:inherit;font-size:15px;color:var(--text);}
+.cmdk-results{overflow-y:auto;flex:1;padding:6px;}
+.cmdk-group-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:8px 10px 4px;}
+.cmdk-item{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;}
+.cmdk-item.active,.cmdk-item:hover{background:var(--surface2);}
+.cmdk-item-ico{width:30px;height:30px;border-radius:9px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.cmdk-item-title{font-size:13px;font-weight:700;color:var(--text);}
+.cmdk-item-sub{font-size:10.5px;color:var(--text3);}
+
+/* ---------- BACK TO TOP ---------- */
+.back-to-top-wrap{position:fixed;right:18px;bottom:18px;z-index:1200;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface);backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.16);border:1px solid var(--border-strong);transition:opacity .25s,transform .25s;}
+.back-to-top-wrap.hidden{opacity:0;pointer-events:none;transform:translateY(8px);}
+.back-to-top-ring{position:absolute;inset:0;border-radius:50%;transform:rotate(-90deg);}
+.back-to-top-ring circle{fill:none;stroke:var(--border);stroke-width:5;}
+.back-to-top-ring .progress{stroke:var(--gold);stroke-linecap:round;stroke-dasharray:157.08;stroke-dashoffset:157.08;transition:stroke-dashoffset .16s ease;}
+.back-to-top-btn{position:relative;z-index:1;background:none;border:none;cursor:pointer;color:var(--text2);font-size:16px;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.back-to-top-btn:hover{color:var(--blue);}
+
+/* ---------- SCROLL PROGRESS ---------- */
+.scroll-progress{position:absolute;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--teal),var(--gold));width:0%;z-index:2;}
+
+/* ---------- NOTIFICATIONS ---------- */
+.icon-btn{position:relative;}
+.icon-dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--surface);display:none;}
+.icon-dot.show{display:block;}
+.notif-pop{position:absolute;top:46px;right:0;width:310px;max-width:calc(100vw - 24px);max-height:380px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 20px 50px rgba(10,30,60,.25);z-index:1500;display:none;flex-direction:column;}
+.notif-pop.open{display:flex;}
+.notif-pop-hdr{padding:12px 16px;border-bottom:1px solid var(--border);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:space-between;color:var(--text);}
+.notif-pop-hdr button{background:none;border:none;color:var(--blue-lt);font-size:11px;font-weight:700;cursor:pointer;}
+.notif-item{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;}
+.notif-item:last-child{border-bottom:none;}
+.notif-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--surface3);}
+.notif-body{flex:1;min-width:0;}
+.notif-title{font-size:12.5px;font-weight:700;line-height:1.4;color:var(--text);}
+.notif-meta{font-size:10.5px;color:var(--text3);margin-top:2px;}
+
+/* ---------- TRY-IT DEMOS ---------- */
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.demo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--card-shadow);}
+.demo-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);gap:10px;}
+.demo-card-hdr .title{font-weight:800;font-size:.92rem;color:var(--text);}
+.demo-card-hdr .count{font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:800;color:var(--teal);white-space:nowrap;}
+.reg-row{display:flex;align-items:center;justify-content:space-between;padding:9px 2px;border-bottom:1px dashed var(--border);font-size:.88rem;}
+.reg-row:last-child{border-bottom:none;}
+.reg-row .name{font-weight:600;color:var(--text);}
+.att-actions{display:flex;gap:5px;}
+.att-btn{width:27px;height:27px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;font-size:10.5px;font-weight:800;transition:var(--transition);color:var(--text2);}
+.att-btn.P.on{background:rgba(39,174,96,.16);border-color:var(--green);color:var(--green);}
+.att-btn.A.on{background:rgba(231,76,60,.16);border-color:var(--red);color:var(--red);}
+.att-btn.L.on{background:rgba(230,126,34,.16);border-color:var(--orange);color:var(--orange-dk);}
+.demo-reset{margin-top:14px;font-size:.78rem;font-weight:700;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;}
+.tt-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.tt-tab{padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface2);font-size:11.5px;font-weight:700;color:var(--text2);cursor:pointer;transition:var(--transition);}
+.tt-tab.active{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border-color:transparent;}
+.tt-period{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.tt-period:last-child{border-bottom:none;}
+.tt-time{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text3);width:52px;flex-shrink:0;}
+.tt-subject{font-weight:700;font-size:.88rem;color:var(--text);}
+.tt-room{font-size:.76rem;color:var(--text3);}
+
+/* ---------- FAQ ---------- */
+.faq-list{display:flex;flex-direction:column;gap:10px;}
+.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--card-shadow);}
+.faq-q{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 20px;cursor:pointer;font-weight:700;font-size:.93rem;color:var(--text);}
+.faq-q .chev{transition:transform .3s var(--transition);color:var(--text3);font-size:12px;flex-shrink:0;}
+.faq-item.open .faq-q .chev{transform:rotate(180deg);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.faq-item.open .faq-a{max-height:220px;}
+.faq-a p{padding:0 20px 18px;font-size:.87rem;color:var(--text2);line-height:1.6;}
+
+/* ---------- SHORTCUTS MODAL ---------- */
+.shortcuts-modal{position:fixed;inset:0;z-index:3000;background:rgba(5,12,22,.55);display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.shortcuts-modal.open{display:flex;}
+.shortcuts-box{width:100%;max-width:360px;background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 30px 90px rgba(0,0,0,.4);border:1px solid var(--border);padding:22px;margin:0 12px;}
+.shortcuts-box h3{font-size:1rem;font-weight:800;margin-bottom:14px;color:var(--text);}
+.shortcut-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:.85rem;color:var(--text2);}
+.shortcut-row:last-child{border-bottom:none;}
+.shortcut-row .keys{display:flex;gap:4px;align-items:center;}
+.shortcut-row kbd{font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--border);padding:3px 7px;border-radius:6px;color:var(--text);background:var(--surface2);}
+
+/* ---------- ACCESSIBILITY PANEL ---------- */
+.a11y-pop{position:absolute;top:46px;right:0;width:250px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 20px 50px rgba(10,30,60,.25);z-index:1500;display:none;flex-direction:column;padding:16px;gap:13px;}
+.a11y-pop.open{display:flex;}
+.a11y-pop .a11y-title{font-size:12.5px;font-weight:800;color:var(--text);}
+.a11y-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.a11y-row .label{font-size:12px;color:var(--text2);font-weight:600;}
+.a11y-stepper{display:flex;align-items:center;gap:7px;}
+.a11y-stepper button{width:25px;height:25px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-weight:800;cursor:pointer;font-size:12px;}
+.a11y-stepper span{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text3);min-width:30px;text-align:center;}
+.a11y-switch{width:36px;height:21px;border-radius:11px;background:var(--surface3);border:1px solid var(--border);position:relative;cursor:pointer;flex-shrink:0;}
+.a11y-switch::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:var(--blue);transition:transform .25s;}
+.a11y-switch.on::after{transform:translateX(15px);background:var(--green);}
+.a11y-reset{font-size:11px;font-weight:700;color:var(--blue);background:none;border:none;cursor:pointer;text-align:left;padding:0;margin-top:2px;}
+[data-contrast="high"]{--border:var(--border-strong);}
+[data-theme="light"][data-contrast="high"]{--text2:#2c3646;--text3:#5a5342;}
+[data-theme="dark"][data-contrast="high"]{--text2:#bcdcf0;--text3:#8fc2de;}
+html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-motion="reduced"] *::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
+
+/* ---------- COUNTDOWN + TERM CALENDAR ---------- */
+.countdown-chip{display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(135deg,var(--blue-dk),#132a45);color:#fff;border-radius:var(--radius-lg);padding:18px 24px;box-shadow:0 16px 34px var(--blue-glow);margin-bottom:28px;flex-wrap:wrap;}
+.countdown-label{font-size:.76rem;color:rgba(255,255,255,.68);text-transform:uppercase;letter-spacing:.06em;font-weight:700;}
+.countdown-event{font-size:1rem;font-weight:800;margin-top:3px;}
+.countdown-num{font-family:'JetBrains Mono',monospace;font-size:2.1rem;font-weight:800;line-height:1;}
+.countdown-num sup{font-size:.85rem;font-weight:700;margin-left:3px;color:rgba(255,255,255,.7);}
+.term-timeline{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow);padding:6px 22px;}
+.term-item{display:flex;gap:16px;padding:15px 0;border-bottom:1px solid var(--border);align-items:baseline;}
+.term-item:last-child{border-bottom:none;}
+.term-date{width:92px;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--blue);font-weight:700;}
+.term-body .t-title{font-weight:800;font-size:.92rem;color:var(--text);}
+.term-body .t-sub{font-size:.8rem;color:var(--text3);margin-top:2px;}
+.cal-source{display:inline-flex;align-items:center;gap:7px;margin-top:14px;font-size:11.5px;font-weight:700;color:var(--text3);}
+.cal-source-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;}
+.cal-source.live{color:var(--green);}
+.cal-source.live .cal-source-dot{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+
+/* ---------- TESTIMONIAL CAROUSEL ---------- */
+.quote-dots{display:flex;gap:6px;margin-top:18px;}
+.quote-dot{width:7px;height:7px;border-radius:50%;background:var(--border-strong);cursor:pointer;transition:var(--transition);border:none;padding:0;}
+.quote-dot.active{background:var(--blue);width:20px;border-radius:4px;}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:960px){
+  .hero-inner{grid-template-columns:1fr;}
+  .wave-panel{min-height:320px;}
+  .feature-grid{grid-template-columns:repeat(2,1fr);}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .steps{grid-template-columns:1fr;gap:30px;}
+  .steps::before{display:none;}
+  .quote-card{grid-template-columns:1fr;}
+  .demo-grid{grid-template-columns:1fr;}
+}
+@media (max-width:640px){
+  .nav-links{display:none;}
+  .feature-grid{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .cta-banner{flex-direction:column;align-items:flex-start;}
+  .notif-pop{right:-60px;}
+  .a11y-pop{right:-60px;}
+  .term-item{flex-direction:column;gap:3px;}
+  .term-date{width:auto;}
+  .countdown-chip{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <div class="topbar-inner">
+    <a href="#top" class="brand">
+      <span class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M6 11v5c0 1.5 2.5 3 6 3s6-1.5 6-3v-5"/></svg>
+      </span>
+      <span class="brand-text">
+        <div class="b-name">Kanyadet Primary &amp; Junior School</div>
+        <div class="b-role">Teacher Portal</div>
+      </span>
+    </a>
+    <div class="topbar-right">
+      <nav class="nav-links">
+        <a href="#features">What's inside</a>
+        <a href="#try-it">Try it</a>
+        <a href="#how">How it works</a>
+        <a href="#term-dates">Term dates</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <button class="icon-btn" id="notifBtn" type="button" aria-label="Announcements">
+        🔔<span class="icon-dot show" id="notifDot"></span>
+      </button>
+      <div class="notif-pop" id="notifPop">
+        <div class="notif-pop-hdr">Announcements <button id="notifClear" type="button">Mark all read</button></div>
+        <div class="notif-item"><div class="notif-ico">📝</div><div class="notif-body"><div class="notif-title">Mid-term exams begin Monday</div><div class="notif-meta">Posted 2 days ago</div></div></div>
+        <div class="notif-item"><div class="notif-ico">👪</div><div class="notif-body"><div class="notif-title">PTA meeting moved to Friday, 2pm</div><div class="notif-meta">Posted 4 days ago</div></div></div>
+        <div class="notif-item"><div class="notif-ico">🏅</div><div class="notif-body"><div class="notif-title">Sports day photos uploaded to the gallery</div><div class="notif-meta">Posted 1 week ago</div></div></div>
+      </div>
+      <button class="icon-btn" id="shortcutsBtn" type="button" aria-label="Keyboard shortcuts">?</button>
+      <button class="icon-btn" id="a11yBtn" type="button" aria-label="Accessibility settings">♿</button>
+      <div class="a11y-pop" id="a11yPop">
+        <div class="a11y-title">Accessibility</div>
+        <div class="a11y-row">
+          <span class="label">Text size</span>
+          <span class="a11y-stepper">
+            <button id="fontDown" type="button" aria-label="Decrease text size">A−</button>
+            <span id="fontLevel">100%</span>
+            <button id="fontUp" type="button" aria-label="Increase text size">A+</button>
+          </span>
+        </div>
+        <div class="a11y-row">
+          <span class="label">High contrast</span>
+          <span class="a11y-switch" id="contrastSwitch" role="switch" aria-checked="false"></span>
+        </div>
+        <div class="a11y-row">
+          <span class="label">Reduce motion</span>
+          <span class="a11y-switch" id="motionSwitch" role="switch" aria-checked="false"></span>
+        </div>
+        <button class="a11y-reset" id="a11yReset" type="button">Reset to default</button>
+      </div>
+      <button class="icon-btn cmdk-btn" id="cmdkBtn" type="button" aria-label="Quick search">
+        <span>⌘</span> Quick launch <kbd>Ctrl K</kbd>
+      </button>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+        <span class="theme-icon moon">🌙</span><span class="theme-icon sun">☀️</span>
+      </button>
+      <a href="teachers-portal.html" class="btn btn-primary">Sign in</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div>
+        <div class="eyebrow-pill"><span class="status-dot"></span> Live for Term II · Week 4</div>
+        <h1>Every classroom, run from <span>one dashboard.</span></h1>
+        <p class="lede">Gradebook, register, timetable and staffroom notices — one sign-in, synced in real time with the same records the school office uses.</p>
+        <div class="hero-ctas">
+          <a href="teachers-portal.html" class="btn btn-primary large">Sign in to your portal</a>
+          <a href="#features" class="btn btn-ghost large">See what's inside</a>
+        </div>
+        <div class="chip-row">
+          <div class="chip"><span class="chip-num">6</span><span class="chip-label">tools · one login</span></div>
+          <div class="chip"><span class="chip-num">CBC</span><span class="chip-label">auto-banded results</span></div>
+          <div class="chip"><span class="chip-num">↻</span><span class="chip-label">synced with the office</span></div>
+        </div>
+      </div>
+
+      <div class="wave-panel" aria-hidden="true">
+        <div class="wp-blob wp-blob-1"></div>
+        <div class="wp-blob wp-blob-2"></div>
+        <div class="wp-dot wp-dot-1"></div>
+        <div class="wp-dot wp-dot-2"></div>
+        <div class="wp-illustration">
+          <svg viewBox="0 0 200 200" fill="none">
+            <rect x="30" y="46" width="140" height="100" rx="10" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+            <path d="M30 56h140" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+            <circle cx="46" cy="51" r="3" fill="#e67e22"/>
+            <circle cx="58" cy="51" r="3" fill="#f39c12"/>
+            <circle cx="70" cy="51" r="3" fill="#27ae60"/>
+            <path d="M50 100l24 20 46-40" stroke="#5dade2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="60" y="150" width="80" height="10" rx="5" fill="rgba(255,255,255,.18)"/>
+            <rect x="75" y="166" width="50" height="8" rx="4" fill="rgba(255,255,255,.1)"/>
+          </svg>
+        </div>
+        <div class="wp-brand">
+          <div class="wp-brand-name">Kanyadet Teacher Portal</div>
+          <div class="wp-brand-tag" id="wpTag">Take attendance in under a minute, every morning.</div>
+          <div class="wp-tip-dots" id="wpDots"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="status-strip" id="status">
+    <div class="status-strip-inner">
+      <div class="status-left"><span class="status-dot"></span> All systems operational — student records, results and attendance are syncing normally.</div>
+      <div class="status-right">
+        <span>Local time <span class="mono" id="liveClock">--:--:--</span></span>
+        <span>Last sync <span class="mono" id="lastSync">just now</span></span>
+      </div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow-label">What's inside</span>
+        <h2>Six tools, one login.</h2>
+        <p>Everything replaces the loose spreadsheets and paper registers with one place that reads and writes the same student records the office relies on.</p>
+      </div>
+      <div class="feature-grid">
+
+        <div class="feature-card">
+          <div class="f-top"><div class="f-icon blue"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div><span class="pill blue">Core</span></div>
+          <h3>Gradebook</h3>
+          <p>Enter marks per subject and Kanyadet turns them into CBC-banded results automatically — no manual grade lookup.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="f-top"><div class="f-icon teal"><svg viewBox="0 0 24 24"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><span class="pill teal">Daily</span></div>
+          <h3>Attendance</h3>
+          <p>Mark a class present in seconds — the same roll the office and parents both see, kept in sync.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="f-top"><div class="f-icon orange"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><span class="pill orange">Weekly</span></div>
+          <h3>Timetable</h3>
+          <p>See exactly where you're meant to be, period by period, without hunting for the printed sheet in the staffroom.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="f-top"><div class="f-icon red"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></div><span class="pill red">Flag</span></div>
+          <h3>Class welfare</h3>
+          <p>Flag a pupil who needs a follow-up — lunch contribution gaps, wellbeing notes — routed straight to the office.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="f-top"><div class="f-icon gold"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div><span class="pill gold">Feed</span></div>
+          <h3>Announcements</h3>
+          <p>Staff notices and term dates in one feed, so nothing important gets lost in a WhatsApp thread.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="f-top"><div class="f-icon purple"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><span class="pill purple">Directory</span></div>
+          <h3>Staff profiles</h3>
+          <p>Each teacher's classes, subjects and contact details, kept current for the office and for parents who need to reach them.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="try-it">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow-label">See it in action</span>
+        <h2>Try it, right here.</h2>
+        <p>A live preview — no sign-in needed. Mark a few pupils present, absent or late, and flip through a sample week's timetable.</p>
+      </div>
+      <div class="demo-grid">
+        <div class="demo-card">
+          <div class="demo-card-hdr"><span class="title">Sample register (demo)</span><span class="count" id="demoCount">0 / 6 present</span></div>
+          <div id="demoRegister"></div>
+          <button class="demo-reset" id="demoReset" type="button">Reset register</button>
+        </div>
+        <div class="demo-card">
+          <div class="demo-card-hdr"><span class="title">Sample timetable (demo)</span><span class="count mono" id="ttActiveLabel">MON</span></div>
+          <div class="tt-tabs" id="ttTabs"></div>
+          <div id="ttPeriods"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-band">
+    <div class="wrap" style="padding:56px 0;">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" data-count="6">0</div><div class="stat-label">tools behind one sign-in</div></div>
+        <div class="stat-card"><div class="stat-num" data-count="60"><sup>&lt;</sup>0<sup>s</sup></div><div class="stat-label">to mark a full register</div></div>
+        <div class="stat-card"><div class="stat-num" data-count="1">0</div><div class="stat-label">shared student record, no duplicates</div></div>
+        <div class="stat-card"><div class="stat-num" data-count="24">0<sup>/7</sup></div><div class="stat-label">access from any device</div></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow-label">Getting started</span>
+        <h2>Three steps, first day of term.</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Sign in with your school account</h3>
+          <p>Use the email and password the office set up for you. Forgotten it? Ask the admin office to reset it.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>Open your class</h3>
+          <p>Your assigned classes and subjects load automatically — nothing to configure on your end.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Mark, enter, and go</h3>
+          <p>Take attendance, enter scores, or check the timetable — each one saves straight to the school's records.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="term-dates">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow-label">This term</span>
+        <h2>Key dates at a glance.</h2>
+        <p>The same term calendar every teacher works from — exams, meetings and the next break, in one place.</p>
+        <div class="cal-source" id="calSource"><span class="cal-source-dot"></span>Sample dates — connecting…</div>
+      </div>
+      <div class="countdown-chip">
+        <div>
+          <div class="countdown-label">Counting down to</div>
+          <div class="countdown-event" id="countdownEvent">—</div>
+        </div>
+        <div class="countdown-num" id="countdownNum">—<sup>days</sup></div>
+      </div>
+      <div class="term-timeline" id="termTimeline"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="quote-card">
+        <div class="quote-mark">"</div>
+        <div>
+          <p id="quoteText">I used to carry three notebooks to every lesson. Now attendance, scores and the timetable are all in the same place my phone already has open.</p>
+          <div class="quote-attr" id="quoteAttr">Grade 6 class teacher · <span>Kanyadet Primary &amp; Junior School</span></div>
+          <div class="quote-dots" id="quoteDots"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow-label">Questions</span>
+        <h2>Frequently asked.</h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q">I forgot my password — what do I do?<span class="chev">▾</span></div>
+          <div class="faq-a"><p>Ask the school admin office to reset it for you. You'll be given a new temporary password to sign in with, and can change it once you're in.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Can I use the portal on my phone?<span class="chev">▾</span></div>
+          <div class="faq-a"><p>Yes — it works in any mobile browser, no app to install. Everything from the register to the gradebook is built to work on a small screen.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">What if I mark the wrong attendance?<span class="chev">▾</span></div>
+          <div class="faq-a"><p>You can correct it any time before the office locks the day's register. Tap the pupil's row again and choose the right status.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Do parents see everything I enter?<span class="chev">▾</span></div>
+          <div class="faq-a"><p>No — parents only see their own child's grades, attendance and notices, never the whole class or other pupils' records.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Who do I contact if something looks wrong?<span class="chev">▾</span></div>
+          <div class="faq-a"><p>Flag it from the portal's welfare tool, or speak to the admin office directly — either way it routes straight to them.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="cta-banner">
+        <div>
+          <h2>Everything a teacher needs, in one place.</h2>
+          <p>Sign in with the account the school office set up for you.</p>
+        </div>
+        <a href="teachers-portal.html" class="btn btn-primary large">Sign in to your portal</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div class="brand">
+        <span class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M6 11v5c0 1.5 2.5 3 6 3s6-1.5 6-3v-5"/></svg>
+        </span>
+        <span class="brand-text">
+          <div class="b-name">Kanyadet Primary &amp; Junior School</div>
+          <div class="b-role">Akala, Kenya</div>
+        </span>
+      </div>
+      <div class="footer-links">
+        <a href="#features">What's inside</a>
+        <a href="#how">How it works</a>
+        <a href="teachers-portal.html">Sign in</a>
+      </div>
+    </div>
+    <div class="fine mono">© <span id="year"></span> KANYADET PRIMARY &amp; JUNIOR SCHOOL — STAFF USE ONLY</div>
+  </div>
+</footer>
+
+<!-- Command palette -->
+<div class="cmdk-backdrop" id="cmdkBackdrop">
+  <div class="cmdk-box">
+    <div class="cmdk-input-wrap">
+      <span>🔍</span>
+      <input class="cmdk-input" id="cmdkInput" placeholder="Jump to a tool or section…" autocomplete="off">
+      <kbd style="font-size:10px;border:1px solid var(--border);padding:2px 6px;border-radius:6px;color:var(--text3);">Esc</kbd>
+    </div>
+    <div class="cmdk-results" id="cmdkResults"></div>
+  </div>
+</div>
+
+<!-- Back to top -->
+<div class="back-to-top-wrap hidden" id="backToTopWrap">
+  <svg class="back-to-top-ring" viewBox="0 0 56 56">
+    <circle cx="28" cy="28" r="25"></circle>
+    <circle class="progress" cx="28" cy="28" r="25"></circle>
+  </svg>
+  <button class="back-to-top-btn" id="backToTopBtn" aria-label="Back to top">↑</button>
+</div>
+
+<!-- Keyboard shortcuts -->
+<div class="shortcuts-modal" id="shortcutsModal">
+  <div class="shortcuts-box">
+    <h3>Keyboard shortcuts</h3>
+    <div class="shortcut-row"><span>Open quick launch</span><span class="keys"><kbd>Ctrl</kbd><kbd>K</kbd></span></div>
+    <div class="shortcut-row"><span>Show this panel</span><span class="keys"><kbd>?</kbd></span></div>
+    <div class="shortcut-row"><span>Close any panel</span><span class="keys"><kbd>Esc</kbd></span></div>
+    <div class="shortcut-row"><span>Jump to top</span><span class="keys"><kbd>Home</kbd></span></div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  /* Theme toggle, persisted */
+  const root = document.documentElement;
+  const themeToggle = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem('kanyadet-theme');
+  if (savedTheme) root.setAttribute('data-theme', savedTheme);
+  themeToggle.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('kanyadet-theme', next);
+  });
+
+  /* Rotating taglines in the wave panel */
+  const tags = [
+    'Take attendance in under a minute, every morning.',
+    'Enter scores once — CBC bands calculate themselves.',
+    'Check the weekly timetable without leaving your desk.',
+    'One shared register the office can see too.'
+  ];
+  let tagIndex = 0;
+  const tagEl = document.getElementById('wpTag');
+  const dotsEl = document.getElementById('wpDots');
+  dotsEl.innerHTML = tags.map((_, i) => `<span class="wp-tip-dot${i === 0 ? ' active' : ''}"></span>`).join('');
+  const dotEls = Array.from(dotsEl.children);
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function rotateTag(){
+    tagEl.classList.add('fading');
+    setTimeout(() => {
+      tagIndex = (tagIndex + 1) % tags.length;
+      tagEl.textContent = tags[tagIndex];
+      dotEls.forEach((d, i) => d.classList.toggle('active', i === tagIndex));
+      tagEl.classList.remove('fading');
+    }, 350);
+  }
+  if (!prefersReduced) setInterval(rotateTag, 4200);
+
+  /* Live clock + last-sync ticker */
+  const clockEl = document.getElementById('liveClock');
+  function tickClock(){
+    clockEl.textContent = new Date().toLocaleTimeString('en-GB', { hour12:false });
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  let syncSeconds = 0;
+  const syncEl = document.getElementById('lastSync');
+  setInterval(() => {
+    syncSeconds += 5;
+    syncEl.textContent = syncSeconds < 60 ? `${syncSeconds}s ago` : `${Math.floor(syncSeconds/60)}m ago`;
+  }, 5000);
+
+  /* Count-up stats on scroll into view */
+  const statEls = document.querySelectorAll('.stat-num');
+  function animateCount(el){
+    const target = Number(el.dataset.count);
+    if (!target || prefersReduced){ return; }
+    const supStart = el.querySelector('sup:first-child');
+    const supEnd = el.querySelector('sup:last-child');
+    const prefix = supStart ? supStart.outerHTML : '';
+    const suffix = supEnd && supEnd !== supStart ? supEnd.outerHTML : '';
+    let current = 0;
+    const step = Math.max(1, Math.round(target / 30));
+    const iv = setInterval(() => {
+      current += step;
+      if (current >= target){ current = target; clearInterval(iv); }
+      el.innerHTML = prefix + current + suffix;
+    }, 25);
+  }
+  if ('IntersectionObserver' in window){
+    const statIO = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting){
+          animateCount(entry.target);
+          statIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    statEls.forEach(el => statIO.observe(el));
+  }
+
+  /* Reveal on scroll */
+  const revealTargets = document.querySelectorAll('.feature-card, .step, .stat-card, .demo-card, .faq-item, .term-item');
+  revealTargets.forEach(el => { el.style.opacity = 0; el.style.transform = 'translateY(14px)'; });
+  if ('IntersectionObserver' in window && !prefersReduced){
+    const revealIO = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting){
+          entry.target.style.transition = 'opacity .55s ease, transform .55s ease';
+          entry.target.style.opacity = 1;
+          entry.target.style.transform = 'translateY(0)';
+          revealIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealTargets.forEach(el => revealIO.observe(el));
+  } else {
+    revealTargets.forEach(el => { el.style.opacity = 1; el.style.transform = 'none'; });
+  }
+
+  /* Command palette */
+  const cmdItems = [
+    { icon:'📊', title:'Sign in to your portal', sub:'Gradebook, register, timetable', action:() => location.href = 'teachers-portal.html' },
+    { icon:'📝', title:'Gradebook', sub:'Enter subject scores', action:() => document.getElementById('features').scrollIntoView({behavior:'smooth'}) },
+    { icon:'🧾', title:'Attendance', sub:'Mark today\'s register', action:() => document.getElementById('features').scrollIntoView({behavior:'smooth'}) },
+    { icon:'🗓️', title:'Timetable', sub:'This week\'s periods', action:() => document.getElementById('features').scrollIntoView({behavior:'smooth'}) },
+    { icon:'📢', title:'Announcements', sub:'Staff notices and term dates', action:() => document.getElementById('features').scrollIntoView({behavior:'smooth'}) },
+    { icon:'🎮', title:'Try it', sub:'Live register + timetable demo', action:() => document.getElementById('try-it').scrollIntoView({behavior:'smooth'}) },
+    { icon:'⚙️', title:'How it works', sub:'Three steps to get started', action:() => document.getElementById('how').scrollIntoView({behavior:'smooth'}) },
+    { icon:'📅', title:'Term dates', sub:'Key dates and countdown', action:() => document.getElementById('term-dates').scrollIntoView({behavior:'smooth'}) },
+    { icon:'❓', title:'FAQ', sub:'Frequently asked questions', action:() => document.getElementById('faq').scrollIntoView({behavior:'smooth'}) },
+    { icon:'🟢', title:'System status', sub:'Sync and uptime', action:() => document.getElementById('status').scrollIntoView({behavior:'smooth'}) }
+  ];
+  const cmdkBackdrop = document.getElementById('cmdkBackdrop');
+  const cmdkInput = document.getElementById('cmdkInput');
+  const cmdkResults = document.getElementById('cmdkResults');
+  let cmdkActive = 0, cmdkFiltered = cmdItems;
+
+  function cmdkRender(){
+    const q = cmdkInput.value.trim().toLowerCase();
+    cmdkFiltered = cmdItems.filter(it => (it.title + it.sub).toLowerCase().includes(q));
+    cmdkActive = 0;
+    if (!cmdkFiltered.length){
+      cmdkResults.innerHTML = '<div style="padding:30px 16px;text-align:center;color:var(--text3);font-size:12.5px;">No matches — try a different word.</div>';
+      return;
+    }
+    cmdkResults.innerHTML = `<div class="cmdk-group-label">Quick launch</div>` + cmdkFiltered.map((it, i) => `
+      <div class="cmdk-item${i === 0 ? ' active' : ''}" data-i="${i}">
+        <div class="cmdk-item-ico">${it.icon}</div>
+        <div><div class="cmdk-item-title">${it.title}</div><div class="cmdk-item-sub">${it.sub}</div></div>
+      </div>
+    `).join('');
+    cmdkResults.querySelectorAll('[data-i]').forEach(el => {
+      el.addEventListener('click', () => { cmdkFiltered[Number(el.dataset.i)].action(); cmdkClose(); });
+    });
+  }
+  function cmdkSetActive(i){
+    cmdkActive = Math.max(0, Math.min(i, cmdkFiltered.length - 1));
+    cmdkResults.querySelectorAll('.cmdk-item').forEach(el => el.classList.toggle('active', Number(el.dataset.i) === cmdkActive));
+  }
+  function cmdkOpen(){ cmdkBackdrop.classList.add('open'); cmdkInput.value = ''; cmdkRender(); setTimeout(() => cmdkInput.focus(), 30); }
+  function cmdkClose(){ cmdkBackdrop.classList.remove('open'); }
+
+  document.getElementById('cmdkBtn').addEventListener('click', cmdkOpen);
+  cmdkBackdrop.addEventListener('click', (e) => { if (e.target === cmdkBackdrop) cmdkClose(); });
+  cmdkInput.addEventListener('input', cmdkRender);
+  cmdkInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown'){ e.preventDefault(); cmdkSetActive(cmdkActive + 1); }
+    else if (e.key === 'ArrowUp'){ e.preventDefault(); cmdkSetActive(cmdkActive - 1); }
+    else if (e.key === 'Enter'){ e.preventDefault(); cmdkFiltered[cmdkActive]?.action(); cmdkClose(); }
+    else if (e.key === 'Escape'){ cmdkClose(); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
+      e.preventDefault();
+      cmdkBackdrop.classList.contains('open') ? cmdkClose() : cmdkOpen();
+    }
+  });
+
+  /* Back to top with progress ring */
+  const backWrap = document.getElementById('backToTopWrap');
+  const backBtn = document.getElementById('backToTopBtn');
+  const progressRing = backWrap.querySelector('.progress');
+  const circumference = 2 * Math.PI * 25;
+  function updateBackToTop(){
+    const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+    const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+    const progress = Math.min(scrollTop / maxScroll, 1);
+    progressRing.style.strokeDashoffset = String(circumference * (1 - progress));
+    backWrap.classList.toggle('hidden', progress <= 0.02);
+  }
+  updateBackToTop();
+  window.addEventListener('scroll', updateBackToTop, { passive:true });
+  backBtn.addEventListener('click', () => window.scrollTo({ top:0, behavior:'smooth' }));
+
+  /* Scroll progress bar */
+  const scrollProgress = document.getElementById('scrollProgress');
+  function updateScrollProgress(){
+    const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+    const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+    scrollProgress.style.width = (Math.min(scrollTop / maxScroll, 1) * 100) + '%';
+  }
+  updateScrollProgress();
+  window.addEventListener('scroll', updateScrollProgress, { passive:true });
+
+  /* Notifications dropdown */
+  const notifBtn = document.getElementById('notifBtn');
+  const notifPop = document.getElementById('notifPop');
+  const notifDot = document.getElementById('notifDot');
+  const notifClear = document.getElementById('notifClear');
+  notifBtn.addEventListener('click', (e) => { e.stopPropagation(); notifPop.classList.toggle('open'); });
+  notifClear.addEventListener('click', () => { notifDot.classList.remove('show'); notifPop.classList.remove('open'); });
+  document.addEventListener('click', (e) => {
+    if (!notifPop.contains(e.target) && e.target !== notifBtn) notifPop.classList.remove('open');
+  });
+
+  /* Try-it: interactive attendance register */
+  const demoStudents = ['A. Otieno', 'B. Adhiambo', 'C. Wafula', 'D. Nyambura', 'E. Kiptoo', 'F. Achieng'];
+  const demoState = {};
+  const demoRegisterEl = document.getElementById('demoRegister');
+  const demoCountEl = document.getElementById('demoCount');
+  function renderDemoRegister(){
+    demoRegisterEl.innerHTML = demoStudents.map((name, i) => `
+      <div class="reg-row">
+        <span class="name">${name}</span>
+        <span class="att-actions">
+          <button class="att-btn P${demoState[i] === 'P' ? ' on' : ''}" data-i="${i}" data-v="P" type="button">P</button>
+          <button class="att-btn A${demoState[i] === 'A' ? ' on' : ''}" data-i="${i}" data-v="A" type="button">A</button>
+          <button class="att-btn L${demoState[i] === 'L' ? ' on' : ''}" data-i="${i}" data-v="L" type="button">L</button>
+        </span>
+      </div>
+    `).join('');
+    demoRegisterEl.querySelectorAll('.att-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = btn.dataset.i, v = btn.dataset.v;
+        demoState[i] = demoState[i] === v ? undefined : v;
+        renderDemoRegister();
+        updateDemoCount();
+      });
+    });
+  }
+  function updateDemoCount(){
+    const present = Object.values(demoState).filter(v => v === 'P').length;
+    demoCountEl.textContent = `${present} / ${demoStudents.length} present`;
+  }
+  renderDemoRegister();
+  updateDemoCount();
+  document.getElementById('demoReset').addEventListener('click', () => {
+    Object.keys(demoState).forEach(k => delete demoState[k]);
+    renderDemoRegister();
+    updateDemoCount();
+  });
+
+  /* Try-it: weekly timetable preview */
+  const ttData = {
+    MON: [{ time:'8:00', subj:'Mathematics', room:'Rm 5' }, { time:'9:40', subj:'English', room:'Rm 5' }, { time:'11:20', subj:'Science', room:'Lab 1' }],
+    TUE: [{ time:'8:00', subj:'Kiswahili', room:'Rm 5' }, { time:'9:40', subj:'Social Studies', room:'Rm 5' }, { time:'11:20', subj:'CRE', room:'Rm 5' }],
+    WED: [{ time:'8:00', subj:'Mathematics', room:'Rm 5' }, { time:'9:40', subj:'Physical Ed.', room:'Field' }, { time:'11:20', subj:'English', room:'Rm 5' }],
+    THU: [{ time:'8:00', subj:'Science', room:'Lab 1' }, { time:'9:40', subj:'Art & Craft', room:'Rm 5' }, { time:'11:20', subj:'Mathematics', room:'Rm 5' }],
+    FRI: [{ time:'8:00', subj:'English', room:'Rm 5' }, { time:'9:40', subj:'Kiswahili', room:'Rm 5' }, { time:'11:20', subj:'Games', room:'Field' }]
+  };
+  const ttDays = Object.keys(ttData);
+  let ttActive = 'MON';
+  const ttTabsEl = document.getElementById('ttTabs');
+  const ttPeriodsEl = document.getElementById('ttPeriods');
+  const ttActiveLabelEl = document.getElementById('ttActiveLabel');
+  function renderTT(){
+    ttTabsEl.innerHTML = ttDays.map(d => `<button class="tt-tab${d === ttActive ? ' active' : ''}" data-d="${d}" type="button">${d}</button>`).join('');
+    ttPeriodsEl.innerHTML = ttData[ttActive].map(p => `
+      <div class="tt-period">
+        <span class="tt-time">${p.time}</span>
+        <span><span class="tt-subject">${p.subj}</span><br><span class="tt-room">${p.room}</span></span>
+      </div>
+    `).join('');
+    ttActiveLabelEl.textContent = ttActive;
+    ttTabsEl.querySelectorAll('.tt-tab').forEach(btn => {
+      btn.addEventListener('click', () => { ttActive = btn.dataset.d; renderTT(); });
+    });
+  }
+  renderTT();
+
+  /* FAQ accordion */
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => item.classList.toggle('open'));
+  });
+
+  /* Keyboard shortcuts modal */
+  const shortcutsBtn = document.getElementById('shortcutsBtn');
+  const shortcutsModal = document.getElementById('shortcutsModal');
+  function openShortcuts(){ shortcutsModal.classList.add('open'); }
+  function closeShortcuts(){ shortcutsModal.classList.remove('open'); }
+  shortcutsBtn.addEventListener('click', openShortcuts);
+  shortcutsModal.addEventListener('click', (e) => { if (e.target === shortcutsModal) closeShortcuts(); });
+  document.addEventListener('keydown', (e) => {
+    const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+    if (e.key === '?' && !typing){ e.preventDefault(); openShortcuts(); }
+    else if (e.key === 'Escape'){ closeShortcuts(); }
+    else if (e.key === 'Home' && !typing){ e.preventDefault(); window.scrollTo({ top:0, behavior:'smooth' }); }
+  });
+
+  /* Accessibility panel */
+  const a11yBtn = document.getElementById('a11yBtn');
+  const a11yPop = document.getElementById('a11yPop');
+  const fontLevelEl = document.getElementById('fontLevel');
+  const contrastSwitch = document.getElementById('contrastSwitch');
+  const motionSwitch = document.getElementById('motionSwitch');
+  const fontSteps = [87.5, 100, 112.5, 125, 137.5];
+  let fontIdx = Number(localStorage.getItem('kanyadet-font-idx')) || 1;
+  let contrastOn = localStorage.getItem('kanyadet-contrast') === '1';
+  let motionOn = localStorage.getItem('kanyadet-motion') === '1';
+
+  function applyA11y(){
+    document.documentElement.style.fontSize = fontSteps[fontIdx] + '%';
+    fontLevelEl.textContent = fontSteps[fontIdx] + '%';
+    document.documentElement.setAttribute('data-contrast', contrastOn ? 'high' : 'normal');
+    contrastSwitch.classList.toggle('on', contrastOn);
+    contrastSwitch.setAttribute('aria-checked', String(contrastOn));
+    document.documentElement.setAttribute('data-motion', motionOn ? 'reduced' : 'normal');
+    motionSwitch.classList.toggle('on', motionOn);
+    motionSwitch.setAttribute('aria-checked', String(motionOn));
+  }
+  applyA11y();
+
+  a11yBtn.addEventListener('click', (e) => { e.stopPropagation(); a11yPop.classList.toggle('open'); });
+  document.addEventListener('click', (e) => {
+    if (!a11yPop.contains(e.target) && e.target !== a11yBtn) a11yPop.classList.remove('open');
+  });
+  document.getElementById('fontUp').addEventListener('click', () => {
+    fontIdx = Math.min(fontIdx + 1, fontSteps.length - 1);
+    localStorage.setItem('kanyadet-font-idx', fontIdx);
+    applyA11y();
+  });
+  document.getElementById('fontDown').addEventListener('click', () => {
+    fontIdx = Math.max(fontIdx - 1, 0);
+    localStorage.setItem('kanyadet-font-idx', fontIdx);
+    applyA11y();
+  });
+  contrastSwitch.addEventListener('click', () => {
+    contrastOn = !contrastOn;
+    localStorage.setItem('kanyadet-contrast', contrastOn ? '1' : '0');
+    applyA11y();
+  });
+  motionSwitch.addEventListener('click', () => {
+    motionOn = !motionOn;
+    localStorage.setItem('kanyadet-motion', motionOn ? '1' : '0');
+    applyA11y();
+  });
+  document.getElementById('a11yReset').addEventListener('click', () => {
+    fontIdx = 1; contrastOn = false; motionOn = false;
+    localStorage.removeItem('kanyadet-font-idx');
+    localStorage.removeItem('kanyadet-contrast');
+    localStorage.removeItem('kanyadet-motion');
+    applyA11y();
+  });
+
+  /* Term calendar + countdown — starts with sample dates, replaced live by Firebase below */
+  const fallbackTermDates = [
+    { date: new Date('2026-08-24'), title: 'Mid-term exams begin', type: 'exam', notes: 'All grades — CBC continuous assessment' },
+    { date: new Date('2026-08-28'), title: 'PTA meeting', type: 'meeting', notes: '2:00 PM — school hall' },
+    { date: new Date('2026-09-04'), title: 'Sports day', type: 'event', notes: 'Whole-school event — field' },
+    { date: new Date('2026-09-18'), title: 'Term II closes', type: 'holiday', notes: 'Reports released to parents' }
+  ];
+  const termTimelineEl = document.getElementById('termTimeline');
+  const countdownEventEl = document.getElementById('countdownEvent');
+  const countdownNumEl = document.getElementById('countdownNum');
+  const calSourceEl = document.getElementById('calSource');
+  const dateFmt = { month: 'short', day: 'numeric' };
+  const CAL_TYPE_PILL = { exam: 'purple', holiday: 'teal', meeting: 'blue', deadline: 'red', event: 'orange' };
+  const CAL_TYPE_LABEL = { exam: 'Exam', holiday: 'Holiday', meeting: 'Meeting', deadline: 'Deadline', event: 'Event' };
+
+  function renderTermCalendar(events, opts){
+    opts = opts || {};
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const upcoming = events.filter(ev => ev.date >= today).slice(0, 6);
+
+    if (calSourceEl){
+      calSourceEl.textContent = opts.live ? 'Synced with the school calendar' : 'Sample dates — connecting…';
+      calSourceEl.classList.toggle('live', !!opts.live);
+    }
+
+    if (!upcoming.length){
+      termTimelineEl.innerHTML = '<div class="term-item"><span class="term-body"><span class="t-title">No upcoming events</span><br><span class="t-sub">Check back once the office adds new term dates.</span></span></div>';
+      countdownEventEl.textContent = 'No upcoming dates';
+      countdownNumEl.textContent = '—';
+      return;
+    }
+
+    termTimelineEl.innerHTML = upcoming.map(d => `
+      <div class="term-item">
+        <span class="term-date">${d.date.toLocaleDateString('en-GB', dateFmt).toUpperCase()}</span>
+        <span class="term-body">
+          <span class="t-title">${d.title}${d.type ? ` <span class="pill ${CAL_TYPE_PILL[d.type] || 'orange'}">${CAL_TYPE_LABEL[d.type] || 'Event'}</span>` : ''}</span>
+          <br><span class="t-sub">${d.notes || ''}</span>
+        </span>
+      </div>
+    `).join('');
+
+    const next = upcoming[0];
+    const daysLeft = Math.round((next.date - today) / 86400000);
+    countdownEventEl.textContent = next.title;
+    countdownNumEl.innerHTML = daysLeft <= 0 ? 'Today' : `${daysLeft}<sup>${daysLeft === 1 ? 'day' : 'days'}</sup>`;
+  }
+  window.renderTermCalendar = renderTermCalendar;
+  renderTermCalendar(fallbackTermDates, { live: false });
+
+  /* Rotating testimonials */
+  const testimonials = [
+    { text: 'I used to carry three notebooks to every lesson. Now attendance, scores and the timetable are all in the same place my phone already has open.', attr: 'Grade 6 class teacher' },
+    { text: 'Entering exam marks used to take a whole evening. With the CBC bands calculated for me, it takes about twenty minutes now.', attr: 'Grade 3 class teacher' },
+    { text: 'The register syncing straight to the office means I stop getting asked for attendance figures I already submitted.', attr: 'Grade 8 class teacher' }
+  ];
+  const quoteTextEl = document.getElementById('quoteText');
+  const quoteAttrEl = document.getElementById('quoteAttr');
+  const quoteDotsEl = document.getElementById('quoteDots');
+  let quoteIdx = 0;
+  quoteDotsEl.innerHTML = testimonials.map((_, i) => `<button class="quote-dot${i === 0 ? ' active' : ''}" data-i="${i}" type="button" aria-label="Testimonial ${i + 1}"></button>`).join('');
+  const quoteDotEls = Array.from(quoteDotsEl.children);
+
+  function renderQuote(){
+    quoteTextEl.textContent = testimonials[quoteIdx].text;
+    quoteAttrEl.innerHTML = `${testimonials[quoteIdx].attr} · <span>Kanyadet Primary &amp; Junior School</span>`;
+    quoteDotEls.forEach((d, i) => d.classList.toggle('active', i === quoteIdx));
+  }
+  quoteDotEls.forEach(dot => dot.addEventListener('click', () => { quoteIdx = Number(dot.dataset.i); renderQuote(); }));
+  if (!prefersReduced){
+    setInterval(() => { quoteIdx = (quoteIdx + 1) % testimonials.length; renderQuote(); }, 6000);
+  }
+</script>
+
+<!--
+  Live calendar sync — reuses the school's existing Firebase config and paths
+  (the same js/config.js imported by index.html), so no keys are duplicated
+  here. This page only ever reads CALENDAR_PATH; it never writes.
+  Deploy this file in the same folder as index.html (next to /js/config.js)
+  for the sync to connect. If that file isn't reachable — e.g. previewing
+  this page on its own — the section quietly falls back to the sample
+  dates above instead of breaking.
+-->
+<script type="module">
+  (async () => {
+    try {
+      const [{ initializeApp, getApps }, { getDatabase, ref, onValue }, configModule] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js'),
+        import('./js/config.js')
+      ]);
+      const { FIREBASE_CONFIG, PATHS } = configModule;
+      const app = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
+      const db = getDatabase(app);
+
+      onValue(ref(db, PATHS.CALENDAR_PATH), (snap) => {
+        const data = snap.val() || {};
+        const events = Object.values(data)
+          .filter(ev => ev && ev.date)
+          .map(ev => ({
+            title: ev.title || 'Untitled',
+            date: new Date(ev.date + 'T00:00:00'),
+            type: ev.type || 'event',
+            notes: ev.notes || ''
+          }))
+          .filter(ev => !isNaN(ev.date))
+          .sort((a, b) => a.date - b.date);
+
+        if (typeof window.renderTermCalendar === 'function'){
+          window.renderTermCalendar(events, { live: true });
+        }
+      }, (err) => {
+        console.warn('Calendar sync unavailable — showing sample term dates.', err);
+      });
+    } catch (err) {
+      console.warn('Firebase calendar not connected — showing sample term dates.', err);
+    }
+  })();
+</script>
+
+</body>
+</html>
