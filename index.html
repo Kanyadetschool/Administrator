@@ -332,6 +332,11 @@
     .pill.bad{background:rgba(231,76,60,.12);color:var(--red)}
     .pill.blue{background:rgba(41,128,185,.12);color:var(--blue)}
     .pill.purple{background:rgba(142,68,173,.12);color:var(--purple)}
+    .feedback-thread{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+    .feedback-reply{padding:8px 12px;border-radius:10px;font-size:.82rem;}
+    .feedback-reply.is-admin{background:rgba(41,128,185,.08);border:1px solid rgba(41,128,185,.18);}
+    .feedback-reply.is-parent{background:var(--surface2);border:1px solid var(--border);}
+    .feedback-reply strong{display:block;font-size:.76rem;margin-bottom:2px;}
     .empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
     .empty-state .es-icon{font-size:36px;margin-bottom:8px}
     .empty-state .es-title{font-size:14px;font-weight:800;color:var(--text2);margin-bottom:4px}
@@ -529,6 +534,7 @@
         <div class="s-label">Navigation</div>
         <div class="nav-item active" data-view="dashboard"><span class="nav-icon">📊</span>Dashboard <span class="nav-badge" id="nav-pending">0</span></div>
         <div class="nav-item" data-view="students"><span class="nav-icon">🎓</span>Students <span class="nav-badge" id="nav-students">—</span></div>
+        <div class="nav-item" data-view="admissions"><span class="nav-icon">📝</span>Admissions <span class="nav-badge orange" id="nav-admissions">0</span></div>
         <div class="nav-item" data-view="teachers"><span class="nav-icon">👩‍🏫</span>Teachers <span class="nav-badge" id="nav-teachers">—</span></div>
         <div class="nav-item" data-view="attendance"><span class="nav-icon">🧾</span>Attendance</div>
         <div class="nav-item" data-view="results"><span class="nav-icon">📝</span>Results</div>
@@ -540,6 +546,7 @@
         <div class="s-label">Operations</div>
         <div class="nav-item" data-view="audit"><span class="nav-icon">🛡️</span>Audit Trail <span class="nav-badge red" id="nav-audit">Live</span></div>
         <div class="nav-item" data-view="messages"><span class="nav-icon">📢</span>Announcements <span class="nav-badge orange" id="nav-ann">0</span></div>
+        <div class="nav-item" data-view="feedback"><span class="nav-icon">🐞</span>Feedback <span class="nav-badge red" id="nav-feedback">0</span></div>
         <div class="nav-item" data-view="calendar"><span class="nav-icon">🗓️</span>Calendar <span class="nav-badge" id="nav-cal">0</span></div>
         <div class="nav-item" data-view="portals"><span class="nav-icon">🔗</span>Linked Portals</div>
       </div>
@@ -719,6 +726,37 @@
           </div>
         </section>
 
+        <!-- ADMISSIONS -->
+        <section class="view" id="admissions">
+          <div class="sec-hdr">
+            <div>
+              <h2>Admission Requests</h2>
+              <div class="sec-sub">Requests submitted by parents through the Parent Portal.</div>
+            </div>
+          </div>
+          <div class="kpi-grid" style="margin-bottom:16px">
+            <div class="kpi-card"><div class="kpi-label">Pending</div><div class="kpi-value" id="adm-kpi-pending">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Approved</div><div class="kpi-value" id="adm-kpi-approved">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Rejected</div><div class="kpi-value" id="adm-kpi-rejected">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Total</div><div class="kpi-value" id="adm-kpi-total">—</div></div>
+          </div>
+          <div class="panel">
+            <div class="toolbar">
+              <select class="sel" id="adm-filter">
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="all">All</option>
+              </select>
+              <input class="search-input" id="adm-search" placeholder="Search child name, guardian, grade…" />
+            </div>
+            <div class="activity-list" id="adm-list">
+              <div class="empty-state"><div class="es-icon">📝</div><div class="es-title">No admission requests</div></div>
+            </div>
+            <div class="pager" id="adm-pager"></div>
+          </div>
+        </section>
+
         <!-- TEACHERS -->
         <section class="view" id="teachers">
           <div class="sec-hdr">
@@ -727,7 +765,7 @@
               <div class="sec-sub">Staff accounts from Firestore — Advanced Admin management.</div>
             </div>
             <div class="actions-row">
-              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank">Teachers Portal ↗</a>
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/teachers.htm" target="_blank">Teachers Portal ↗</a>
               <a class="btn btn-outline btn-sm" href=/Results/Results-portal.html" target="_blank">Manage in Results Portal ↗</a>
             </div>
           </div>
@@ -1112,6 +1150,21 @@
           </div>
         </section>
 
+        <!-- FEEDBACK -->
+        <section class="view" id="feedback">
+          <div class="sec-hdr">
+            <div>
+              <h2>Feedback</h2>
+              <div class="sec-sub">Issues from the teacher landing page and inquiries from the Parent Portal.</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="activity-list" id="feedback-list">
+              <div class="empty-state"><div class="es-icon">🐞</div><div class="es-title">No feedback yet</div></div>
+            </div>
+          </div>
+        </section>
+
         <!-- PORTALS -->
         <!-- CALENDAR -->
         <section class="view" id="calendar">
@@ -1175,7 +1228,7 @@
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
               <a class="link-card" href="./Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
               <a class="link-card" href="./Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
-              <a class="link-card" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/teachers.htm" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
               <a class="link-card" href="./lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Full lunch contribution tool — payments, reminders, history, and exports.</div></a>
               <a class="link-card" href="./Results.html" target="_blank"><div class="lc-icon">📝</div><div class="lc-title">Results Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
               <a class="link-card" href="./testing/dashboard.html" target="_blank"><div class="lc-icon">📝</div><div class="lc-title">Testing</div><div class="lc-desc">Alternate results viewing surface.</div></a>
@@ -1259,6 +1312,10 @@
       results: [],
       audits: [],
       announcements: [],
+      feedback: [],
+      admissions: [],
+      admissionsFilter: 'pending',
+      admPage: 1,
       lunchRaw: {},
       lunchPeriod: '',
       lunchStd: 620,
@@ -1278,6 +1335,7 @@
     const VIEW_META = {
       dashboard: ['Dashboard', 'School command center / overview'],
       students: ['Students', 'Active enrollment registry'],
+      admissions: ['Admissions', 'Review and decide on new admission requests'],
       teachers: ['Teachers', 'Staff roster & roles'],
       attendance: ['Attendance', 'Daily compliance tracking'],
       results: ['Results', 'Exam performance oversight'],
@@ -1285,6 +1343,7 @@
       settings: ['Settings', 'Portal preferences'],
       audit: ['Audit Trail', 'System activity log'],
       messages: ['Announcements', 'School-wide broadcasts'],
+      feedback: ['Feedback', 'Teacher reports & parent inquiries'],
       calendar: ['Calendar', 'Term dates, exams & school events'],
       portals: ['Linked Portals', 'Jump to specialized tools']
     };
@@ -2276,6 +2335,44 @@
       if(cacheChanged('announcements', data)) computeAnnouncements(data);
     }
 
+    /* ── Feedback — combines "Report an issue" from the teacher landing
+       page (type:'landing_feedback') and "Contact School" messages from
+       the Parent Portal (type:'parent_inquiry'). Both write straight into
+       the top-level RTDB "activities" node (auth != null write already
+       permitted by rules), so this just reads and filters both types. ── */
+    function computeFeedback(data){
+      state.feedback = Object.entries(data)
+        .map(([key,v]) => ({key, ...v}))
+        .filter(f => f.type === 'landing_feedback' || f.type === 'parent_inquiry')
+        .sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+      renderFeedback();
+      $('nav-feedback').textContent = String(state.feedback.length);
+    }
+    async function loadFeedback(){
+      const snap = await get(ref(db, 'activities'));
+      const data = snap.exists() ? snap.val() : {};
+      if(cacheChanged('feedback', data)) computeFeedback(data);
+    }
+
+    /* ── Admissions — parent-submitted requests written to the top-level
+       RTDB "admissionRequests" node by the Parent Portal's Request
+       Admission form. Each record starts status:'pending'; approving
+       or rejecting here just updates that field (+ an optional note)
+       so the parent's own status list reflects the decision live. ── */
+    function computeAdmissions(data){
+      state.admissions = Object.entries(data)
+        .map(([key,v]) => ({key, ...v}))
+        .sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+      renderAdmissions();
+      const pending = state.admissions.filter(a => (a.status||'pending') === 'pending').length;
+      $('nav-admissions').textContent = String(pending);
+    }
+    async function loadAdmissions(){
+      const snap = await get(ref(db, 'admissionRequests'));
+      const data = snap.exists() ? snap.val() : {};
+      if(cacheChanged('admissions', data)) computeAdmissions(data);
+    }
+
     /* ── Notification Center ── */
     function renderNotifPop(){
       const box = $('notifPopList');
@@ -2791,6 +2888,7 @@
       const r = cacheGet('raw_results'); if(r){ computeResults(r); any = true; }
       const a = cacheGet('raw_audits'); if(a){ computeAudits(a); any = true; }
       const an = cacheGet('raw_announcements'); if(an){ computeAnnouncements(an); any = true; }
+      const fb = cacheGet('raw_feedback'); if(fb){ computeFeedback(fb); any = true; }
       const cal = cacheGet('raw_calendar'); if(cal){ computeCalendar(cal); any = true; }
       const l = cacheGet('raw_lunch'); if(l){ computeLunch(l); any = true; }
       const att = cacheGet('raw_attendance_'+todayISO()); if(att){ computeAttendance(att); any = true; }
@@ -2803,6 +2901,8 @@
         loadResults().catch(e => console.error('results', e)),
         loadAudits().catch(e => console.error('audits', e)),
         loadAnnouncements().catch(e => console.error('ann', e)),
+        loadFeedback().catch(e => console.error('feedback', e)),
+        loadAdmissions().catch(e => console.error('admissions', e)),
         loadLunch().catch(e => console.error('lunch', e)),
         loadAttendanceForDate(todayISO()).catch(e => console.error('att', e)),
         loadCalendar().catch(e => console.error('calendar', e))
@@ -2821,6 +2921,8 @@
         }
       });
       onValue(ref(db, ANNOUNCEMENTS_PATH), () => loadAnnouncements());
+      onValue(ref(db, 'activities'), () => loadFeedback());
+      onValue(ref(db, 'admissionRequests'), () => loadAdmissions());
       onValue(ref(db, LUNCH_PATH), () => loadLunch());
       onValue(ref(db, CALENDAR_PATH), () => loadCalendar());
       onValue(ref(db, QE_ACTIVE_PATH), snap => {
@@ -3877,7 +3979,235 @@
       renderDashAnnouncements();
     }
 
-    /* ── Global Search / Command Palette (Ctrl+K) ── */
+    function renderFeedback(){
+      const box = $('feedback-list');
+      if(!box) return;
+      if(!state.feedback.length){
+        box.innerHTML = '<div class="empty-state"><div class="es-icon">🐞</div><div class="es-title">No feedback yet</div><div class="muted">Reports from the teacher landing page and parent inquiries will show up here.</div></div>';
+        return;
+      }
+      box.innerHTML = state.feedback.map(f => {
+        const isParent = f.type === 'parent_inquiry';
+        const sourcePill = isParent
+          ? '<span class="pill blue">Parent</span>'
+          : '<span class="pill warn">Teacher</span>';
+        const childLine = isParent && f.childName ? ` · re: ${escapeHtml(f.childName)}` : '';
+        const replies = f.replies ? Object.entries(f.replies).map(([rk,r]) => ({rk, ...r})).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0)) : [];
+        const answered = replies.some(r => r.from === 'admin');
+        const statusPill = answered ? '<span class="pill ok">Answered</span>' : '<span class="pill">Open</span>';
+        const threadHtml = replies.length ? `
+          <div class="feedback-thread">
+            ${replies.map(r => `
+              <div class="feedback-reply ${r.from==='admin'?'is-admin':'is-parent'}">
+                <strong>${escapeHtml(r.byName||(r.from==='admin'?'Admin office':'Parent'))}</strong>
+                <span>${escapeHtml(r.text||'')}</span>
+                <div class="muted" style="margin-top:3px">${escapeHtml(fmtTime(r.timestamp))}</div>
+              </div>`).join('')}
+          </div>` : '';
+        return `
+        <div class="activity-item feedback-item" data-feedback-key="${f.key}">
+          <div class="dot" style="background:${isParent?'var(--blue)':'var(--red)'}"></div>
+          <div style="flex:1;min-width:0">
+            <strong>${escapeHtml(f.userName||f.userEmail||'Unknown')} ${sourcePill} ${statusPill}</strong>
+            <span>${escapeHtml(f.message||'')}</span>
+            <div class="muted" style="margin-top:6px">${escapeHtml(f.userEmail||'')}${childLine} · ${escapeHtml(fmtTime(f.timestamp))}</div>
+            ${threadHtml}
+            <div class="feedback-reply-box" id="reply-box-${f.key}" style="display:none;margin-top:10px;">
+              <textarea class="field-input" id="reply-text-${f.key}" placeholder="Write a reply…" style="min-height:60px;"></textarea>
+              <div class="actions-row" style="margin-top:6px;">
+                <button class="btn btn-blue btn-sm" data-send-reply="${f.key}">Send reply</button>
+                <button class="btn btn-outline btn-sm" data-cancel-reply="${f.key}">Cancel</button>
+              </div>
+            </div>
+            <div class="actions-row" style="margin-top:8px;">
+              <button class="btn btn-outline btn-xs" data-toggle-reply="${f.key}">💬 Reply</button>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-xs" data-del-feedback="${f.key}">Delete</button>
+        </div>`;
+      }).join('');
+
+      box.querySelectorAll('[data-del-feedback]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const ok = await Swal.fire({ title:'Delete this feedback?', icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c' });
+          if(!ok.isConfirmed) return;
+          try{
+            await remove(ref(db, `activities/${btn.dataset.delFeedback}`));
+            toast('Deleted','ok');
+          }catch(err){ toast(err.message,'err'); }
+        });
+      });
+
+      box.querySelectorAll('[data-toggle-reply]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.toggleReply;
+          const box2 = $('reply-box-'+key);
+          box2.style.display = box2.style.display === 'none' ? 'block' : 'none';
+          if(box2.style.display === 'block') $('reply-text-'+key).focus();
+        });
+      });
+      box.querySelectorAll('[data-cancel-reply]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.cancelReply;
+          $('reply-box-'+key).style.display = 'none';
+          $('reply-text-'+key).value = '';
+        });
+      });
+      box.querySelectorAll('[data-send-reply]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const key = btn.dataset.sendReply;
+          const textEl = $('reply-text-'+key);
+          const text = textEl.value.trim();
+          if(!text) return;
+          btn.disabled = true;
+          try{
+            await push(ref(db, `activities/${key}/replies`), {
+              text,
+              from: 'admin',
+              byName: state.user?.displayName || state.user?.email || 'Admin',
+              byUid: state.user?.uid || '',
+              timestamp: Date.now()
+            });
+            await update(ref(db, `activities/${key}`), { status: 'answered' });
+            toast('Reply sent','ok');
+          }catch(err){
+            toast(err.message,'err');
+          }finally{
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    function renderAdmissions(){
+      const box = $('adm-list');
+      if(!box) return;
+
+      const q = ($('adm-search')?.value || '').trim().toLowerCase();
+      const filter = state.admissionsFilter || 'pending';
+      let rows = state.admissions.filter(a => filter === 'all' || (a.status||'pending') === filter);
+      if(q){
+        rows = rows.filter(a =>
+          String(a.childName||'').toLowerCase().includes(q) ||
+          String(a.guardianName||'').toLowerCase().includes(q) ||
+          String(a.gradeApplyingFor||'').toLowerCase().includes(q)
+        );
+      }
+
+      $('adm-kpi-pending').textContent = String(state.admissions.filter(a => (a.status||'pending')==='pending').length);
+      $('adm-kpi-approved').textContent = String(state.admissions.filter(a => a.status==='approved').length);
+      $('adm-kpi-rejected').textContent = String(state.admissions.filter(a => a.status==='rejected').length);
+      $('adm-kpi-total').textContent = String(state.admissions.length);
+
+      const { pageRows, page, totalPages } = paginate(rows, state.admPage);
+      state.admPage = page;
+
+      if(!pageRows.length){
+        box.innerHTML = '<div class="empty-state"><div class="es-icon">📝</div><div class="es-title">No admission requests</div><div class="muted">Requests submitted through the Parent Portal will show up here.</div></div>';
+        renderPager('adm-pager', page, totalPages, p => { state.admPage = p; renderAdmissions(); });
+        return;
+      }
+
+      const statusPill = st => {
+        st = st || 'pending';
+        if(st === 'approved') return '<span class="pill ok">Approved</span>';
+        if(st === 'rejected') return '<span class="pill bad">Rejected</span>';
+        return '<span class="pill warn">Pending</span>';
+      };
+
+      box.innerHTML = pageRows.map(a => {
+        const isPending = (a.status||'pending') === 'pending';
+        const noteLine = a.adminNote ? `<div class="muted" style="margin-top:6px">Admin note: ${escapeHtml(a.adminNote)}</div>` : '';
+        const decidedLine = a.decidedAt ? ` · decided ${escapeHtml(fmtTime(a.decidedAt))} by ${escapeHtml(a.decidedBy||'—')}` : '';
+        return `
+        <div class="activity-item" data-adm-key="${a.key}">
+          <div class="dot" style="background:${isPending?'var(--orange)':a.status==='approved'?'var(--green)':'var(--red)'}"></div>
+          <div style="flex:1;min-width:0">
+            <strong>${escapeHtml(a.childName||'Unnamed child')} ${statusPill(a.status)}</strong>
+            <span>${escapeHtml(a.gradeApplyingFor||'—')} · ${escapeHtml(a.gender||'—')} · DOB ${escapeHtml(a.dob||'—')}${a.prevSchool ? ' · from ' + escapeHtml(a.prevSchool) : ''}</span>
+            <div class="muted" style="margin-top:6px">Guardian: ${escapeHtml(a.guardianName||'—')} (${escapeHtml(a.relationship||'Parent')}) · ${escapeHtml(a.phone||'—')}${a.email ? ' · ' + escapeHtml(a.email) : ''}</div>
+            ${a.address ? `<div class="muted">${escapeHtml(a.address)}</div>` : ''}
+            ${a.notes ? `<div class="muted" style="margin-top:4px;font-style:italic;">"${escapeHtml(a.notes)}"</div>` : ''}
+            <div class="muted" style="margin-top:6px">Submitted ${escapeHtml(fmtTime(a.timestamp))}${decidedLine}</div>
+            ${noteLine}
+            ${isPending ? `
+            <div class="actions-row" style="margin-top:10px;">
+              <button class="btn btn-green btn-sm" data-approve-adm="${a.key}">✅ Approve</button>
+              <button class="btn btn-outline btn-sm" data-reject-adm="${a.key}">✖ Reject</button>
+            </div>` : ''}
+          </div>
+          <button class="btn btn-outline btn-xs" data-del-adm="${a.key}">Delete</button>
+        </div>`;
+      }).join('');
+
+      box.querySelectorAll('[data-approve-adm]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const key = btn.dataset.approveAdm;
+          const { value: note, isConfirmed } = await Swal.fire({
+            title: 'Approve this admission?',
+            input: 'text',
+            inputPlaceholder: 'Optional note for the parent (e.g. resumption date)',
+            showCancelButton: true,
+            confirmButtonColor: '#27ae60',
+            confirmButtonText: 'Approve'
+          });
+          if(!isConfirmed) return;
+          try{
+            await update(ref(db, `admissionRequests/${key}`), {
+              status: 'approved',
+              adminNote: note || '',
+              decidedAt: Date.now(),
+              decidedBy: state.user?.displayName || state.user?.email || 'Admin'
+            });
+            toast('Admission approved', 'ok');
+          }catch(err){ toast(err.message, 'err'); }
+        });
+      });
+      box.querySelectorAll('[data-reject-adm]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const key = btn.dataset.rejectAdm;
+          const { value: note, isConfirmed } = await Swal.fire({
+            title: 'Reject this admission?',
+            input: 'text',
+            inputPlaceholder: 'Reason for the parent (optional but recommended)',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            confirmButtonText: 'Reject'
+          });
+          if(!isConfirmed) return;
+          try{
+            await update(ref(db, `admissionRequests/${key}`), {
+              status: 'rejected',
+              adminNote: note || '',
+              decidedAt: Date.now(),
+              decidedBy: state.user?.displayName || state.user?.email || 'Admin'
+            });
+            toast('Admission rejected', 'ok');
+          }catch(err){ toast(err.message, 'err'); }
+        });
+      });
+      box.querySelectorAll('[data-del-adm]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const ok = await Swal.fire({ title:'Delete this request?', icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c' });
+          if(!ok.isConfirmed) return;
+          try{
+            await remove(ref(db, `admissionRequests/${btn.dataset.delAdm}`));
+            toast('Deleted','ok');
+          }catch(err){ toast(err.message,'err'); }
+        });
+      });
+
+      renderPager('adm-pager', page, totalPages, p => { state.admPage = p; renderAdmissions(); });
+    }
+    $('adm-filter')?.addEventListener('change', () => {
+      state.admissionsFilter = $('adm-filter').value;
+      state.admPage = 1;
+      renderAdmissions();
+    });
+    $('adm-search')?.addEventListener('input', () => {
+      state.admPage = 1;
+      renderAdmissions();
+    });
     const CMDK_SECTIONS = Object.entries(VIEW_META).map(([id,[title,sub]]) => ({ id, title, sub }));
     let cmdkActiveIndex = 0;
     let cmdkFlatItems = [];
