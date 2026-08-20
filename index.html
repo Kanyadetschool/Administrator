@@ -740,6 +740,12 @@
             <div class="kpi-card"><div class="kpi-label">Rejected</div><div class="kpi-value" id="adm-kpi-rejected">—</div></div>
             <div class="kpi-card"><div class="kpi-label">Total</div><div class="kpi-value" id="adm-kpi-total">—</div></div>
           </div>
+
+          <div class="panel" id="enroll-panel" style="display:none;margin-bottom:16px;">
+            <div class="panel-title">🎓 Ready to Enroll <span class="muted" style="font-weight:400;">— approved, not yet added to the Students DB</span></div>
+            <div class="activity-list" id="enroll-list"></div>
+          </div>
+
           <div class="panel">
             <div class="toolbar">
               <select class="sel" id="adm-filter">
@@ -765,7 +771,7 @@
               <div class="sec-sub">Staff accounts from Firestore — Advanced Admin management.</div>
             </div>
             <div class="actions-row">
-              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/teachers.htm" target="_blank">Teachers Portal ↗</a>
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank">Teachers Portal ↗</a>
               <a class="btn btn-outline btn-sm" href=/Results/Results-portal.html" target="_blank">Manage in Results Portal ↗</a>
             </div>
           </div>
@@ -1228,7 +1234,7 @@
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
               <a class="link-card" href="./Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
               <a class="link-card" href="./Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/teachers.htm" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
+              <a class="link-card" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
               <a class="link-card" href="./lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Full lunch contribution tool — payments, reminders, history, and exports.</div></a>
               <a class="link-card" href="./Results.html" target="_blank"><div class="lc-icon">📝</div><div class="lc-title">Results Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
               <a class="link-card" href="./testing/dashboard.html" target="_blank"><div class="lc-icon">📝</div><div class="lc-title">Testing</div><div class="lc-desc">Alternate results viewing surface.</div></a>
@@ -1316,6 +1322,7 @@
       admissions: [],
       admissionsFilter: 'pending',
       admPage: 1,
+      pendingEnrollments: [],
       lunchRaw: {},
       lunchPeriod: '',
       lunchStd: 620,
@@ -2373,6 +2380,24 @@
       if(cacheChanged('admissions', data)) computeAdmissions(data);
     }
 
+    /* ── Pending Enrollments — draft records created when an admission
+       request is approved (see the Approve handler in renderAdmissions).
+       These sit in their own RTDB node so nothing writes to the live
+       Students DB automatically; an admin finishes each one by assigning
+       an Assessment No / Class and entering it in the Students DB, then
+       clicks "Mark Enrolled" here to clear it off the queue. ── */
+    function computePendingEnrollments(data){
+      state.pendingEnrollments = Object.entries(data)
+        .map(([key,v]) => ({key, ...v}))
+        .sort((a,b) => (b.approvedAt||0) - (a.approvedAt||0));
+      renderPendingEnrollments();
+    }
+    async function loadPendingEnrollments(){
+      const snap = await get(ref(db, 'pendingEnrollments'));
+      const data = snap.exists() ? snap.val() : {};
+      if(cacheChanged('pendingEnrollments', data)) computePendingEnrollments(data);
+    }
+
     /* ── Notification Center ── */
     function renderNotifPop(){
       const box = $('notifPopList');
@@ -2903,6 +2928,7 @@
         loadAnnouncements().catch(e => console.error('ann', e)),
         loadFeedback().catch(e => console.error('feedback', e)),
         loadAdmissions().catch(e => console.error('admissions', e)),
+        loadPendingEnrollments().catch(e => console.error('pendingEnrollments', e)),
         loadLunch().catch(e => console.error('lunch', e)),
         loadAttendanceForDate(todayISO()).catch(e => console.error('att', e)),
         loadCalendar().catch(e => console.error('calendar', e))
@@ -2923,6 +2949,7 @@
       onValue(ref(db, ANNOUNCEMENTS_PATH), () => loadAnnouncements());
       onValue(ref(db, 'activities'), () => loadFeedback());
       onValue(ref(db, 'admissionRequests'), () => loadAdmissions());
+      onValue(ref(db, 'pendingEnrollments'), () => loadPendingEnrollments());
       onValue(ref(db, LUNCH_PATH), () => loadLunch());
       onValue(ref(db, CALENDAR_PATH), () => loadCalendar());
       onValue(ref(db, QE_ACTIVE_PATH), snap => {
@@ -4153,11 +4180,34 @@
           });
           if(!isConfirmed) return;
           try{
+            const admRec = state.admissions.find(x => x.key === key) || {};
             await update(ref(db, `admissionRequests/${key}`), {
               status: 'approved',
               adminNote: note || '',
               decidedAt: Date.now(),
               decidedBy: state.user?.displayName || state.user?.email || 'Admin'
+            });
+            // Draft record for the Students DB, using the same field names as
+            // the Admin Biodata Editor (Official Student Name, DOB, Gender,
+            // Grade, Parent/Guardian Name/Phone, Email Address, Home Address)
+            // so it can be pasted straight into that schema once an Assessment
+            // No / Class is assigned — see the "Ready to Enroll" panel above.
+            await set(ref(db, `pendingEnrollments/${key}`), {
+              'Official Student Name': admRec.childName || '',
+              'Assessment No': admRec.assessmentNo || '',
+              'ULI': admRec.uli || '',
+              'DOB': admRec.dob || '',
+              'Gender': admRec.gender || '',
+              'Grade': admRec.gradeApplyingFor || '',
+              'Parent/Guardian Name': admRec.guardianName || '',
+              'Parent/Guardian Phone': admRec.phone || '',
+              'Email Address': admRec.email || '',
+              'Home Address': admRec.address || '',
+              previousSchool: admRec.prevSchool || '',
+              notes: admRec.notes || '',
+              admissionRequestKey: key,
+              approvedAt: Date.now(),
+              approvedBy: state.user?.displayName || state.user?.email || 'Admin'
             });
             toast('Admission approved', 'ok');
           }catch(err){ toast(err.message, 'err'); }
@@ -4208,6 +4258,149 @@
       state.admPage = 1;
       renderAdmissions();
     });
+
+    function renderPendingEnrollments(){
+      const panel = $('enroll-panel');
+      const box = $('enroll-list');
+      if(!panel || !box) return;
+      if(!state.pendingEnrollments.length){
+        panel.style.display = 'none';
+        return;
+      }
+      panel.style.display = 'block';
+      box.innerHTML = state.pendingEnrollments.map(p => {
+        const details = [
+          `Name: ${p['Official Student Name']||''}`,
+          `Assessment No: ${p['Assessment No']||''}`,
+          `ULI: ${p['ULI']||''}`,
+          `DOB: ${p['DOB']||''}`,
+          `Gender: ${p['Gender']||''}`,
+          `Grade: ${p['Grade']||''}`,
+          `Parent/Guardian Name: ${p['Parent/Guardian Name']||''}`,
+          `Parent/Guardian Phone: ${p['Parent/Guardian Phone']||''}`,
+          `Email Address: ${p['Email Address']||''}`,
+          `Home Address: ${p['Home Address']||''}`,
+          p.previousSchool ? `Previous School: ${p.previousSchool}` : null,
+        ].filter(Boolean).join('\n');
+        return `
+        <div class="activity-item" data-enroll-key="${p.key}">
+          <div class="dot" style="background:var(--purple)"></div>
+          <div style="flex:1;min-width:0">
+            <strong>${escapeHtml(p['Official Student Name']||'Unnamed child')}</strong>
+            <span>${escapeHtml(p['Grade']||'—')} · ${escapeHtml(p['Gender']||'—')} · DOB ${escapeHtml(p['DOB']||'—')}</span>
+            <div class="muted" style="margin-top:6px">Assessment No: ${escapeHtml(p['Assessment No']||'—')} · ULI: ${escapeHtml(p['ULI']||'—')}</div>
+            <div class="muted" style="margin-top:2px">Approved ${escapeHtml(fmtTime(p.approvedAt))} by ${escapeHtml(p.approvedBy||'—')} — confirm the Class/stream to enroll.</div>
+            <div class="actions-row" style="margin-top:10px;">
+              <button class="btn btn-outline btn-sm" data-copy-enroll="${p.key}">📋 Copy details</button>
+              <a class="btn btn-outline btn-sm" href="./Report-Cards/Active-Students-Database.html" target="_blank">Open Students DB ↗</a>
+              <button class="btn btn-green btn-sm" data-mark-enrolled="${p.key}">✅ Enroll</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      box.querySelectorAll('[data-copy-enroll]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const p = state.pendingEnrollments.find(x => x.key === btn.dataset.copyEnroll);
+          if(!p) return;
+          const text = [
+            `Official Student Name: ${p['Official Student Name']||''}`,
+            `Assessment No: ${p['Assessment No']||''}`,
+            `ULI: ${p['ULI']||''}`,
+            `DOB: ${p['DOB']||''}`,
+            `Gender: ${p['Gender']||''}`,
+            `Grade: ${p['Grade']||''}`,
+            `Parent/Guardian Name: ${p['Parent/Guardian Name']||''}`,
+            `Parent/Guardian Phone: ${p['Parent/Guardian Phone']||''}`,
+            `Email Address: ${p['Email Address']||''}`,
+            `Home Address: ${p['Home Address']||''}`,
+            p.previousSchool ? `Previous School: ${p.previousSchool}` : null,
+            p.notes ? `Notes: ${p.notes}` : null,
+          ].filter(Boolean).join('\n');
+          try{
+            await navigator.clipboard.writeText(text);
+            toast('Details copied — paste into the Students DB', 'ok');
+          }catch(e){ toast('Could not copy — select and copy manually.', 'err'); }
+        });
+      });
+      box.querySelectorAll('[data-mark-enrolled]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const key = btn.dataset.markEnrolled;
+          const p = state.pendingEnrollments.find(x => x.key === key);
+          if(!p) return;
+
+          const { value: formVals, isConfirmed } = await Swal.fire({
+            title: 'Enroll ' + (p['Official Student Name'] || 'this child'),
+            html:
+              `<div class="swal2-input" style="display:flex;align-items:center;background:#f4f4f5;color:#555;cursor:default;">Assessment No: ${escapeHtml(p['Assessment No'] || '— not submitted —')}</div>` +
+              '<input id="swal-class" class="swal2-input" placeholder="Class / stream (e.g. Blue, East)">' +
+              `<input id="swal-uli" class="swal2-input" placeholder="ULI (optional)" value="${escapeHtml(p['ULI'] || '')}">`,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonColor: '#27ae60',
+            confirmButtonText: 'Enroll',
+            preConfirm: () => {
+              const assNo = (p['Assessment No'] || '').trim();
+              const klass = document.getElementById('swal-class').value.trim();
+              const uli = document.getElementById('swal-uli').value.trim();
+              if(!assNo){
+                Swal.showValidationMessage('This admission request has no Assessment No on file — check the request in the Admissions tab before enrolling');
+                return false;
+              }
+              return { assNo, klass, uli };
+            }
+          });
+          if(!isConfirmed || !formVals) return;
+
+          // Full biodata-schema record, same field names as the Admin
+          // Biodata Editor — written to BOTH candidate master student
+          // paths seen across the system (artifacts/{appId}/students per
+          // the Biodata Editor, and Results/default-app-id/students per
+          // the Parent Portal's child-linking) so the record lands
+          // correctly regardless of which one is actually canonical.
+          const record = {
+            'Grade': p['Grade'] || '',
+            'Class': formVals.klass || '',
+            'Official Student Name': p['Official Student Name'] || '',
+            'Assessment No': formVals.assNo,
+            'UPI': formVals.uli || '',
+            'DOB': p['DOB'] || '',
+            'Gender': p['Gender'] || '',
+            'Mobile No': '',
+            'Email Address': p['Email Address'] || '',
+            'Parent/Guardian Name': p['Parent/Guardian Name'] || '',
+            'Parent/Guardian Phone': p['Parent/Guardian Phone'] || '',
+            'Home Address': p['Home Address'] || '',
+            'Emergency Contact Name': '',
+            'Emergency Contact Phone': '',
+            previousSchool: p.previousSchool || '',
+            notes: p.notes || '',
+            enrolledFromAdmissionKey: p.admissionRequestKey || p.key,
+            enrolledAt: Date.now(),
+            enrolledBy: state.user?.displayName || state.user?.email || 'Admin'
+          };
+
+          const PRIMARY_PATH = `artifacts/${APP_ID}/students`;
+          const SECONDARY_PATH = `Results/default-app-id/students`;
+
+          try{
+            const newRef = push(ref(db, PRIMARY_PATH));
+            const newKey = newRef.key;
+            await set(newRef, record);
+            await set(ref(db, `${SECONDARY_PATH}/${newKey}`), record);
+
+            if(p.admissionRequestKey){
+              await update(ref(db, `admissionRequests/${p.admissionRequestKey}`), {
+                enrolledStudentKey: newKey,
+                enrolledAt: Date.now()
+              }).catch(()=>{});
+            }
+            await remove(ref(db, `pendingEnrollments/${key}`));
+            toast('Student enrolled — record created in both Students DB paths', 'ok');
+          }catch(err){ toast(err.message, 'err'); }
+        });
+      });
+    }
     const CMDK_SECTIONS = Object.entries(VIEW_META).map(([id,[title,sub]]) => ({ id, title, sub }));
     let cmdkActiveIndex = 0;
     let cmdkFlatItems = [];
