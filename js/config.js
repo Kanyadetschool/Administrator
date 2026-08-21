@@ -40,6 +40,7 @@ export const PATHS = {
   TEACHER_TT_PATH: 'teacherTimetables', // teacherTimetables/{section}/{teacherKey} = { name, days: {...} }
   TIMETABLE_TIMES_PATH: 'timetableTimes', // timetableTimes/{section} = [time strings, index-aligned to TT_SECTIONS periods] — legacy override, still mirrored by teachers.html for the Admin Command Center's Timetable screen
   TIMETABLE_STRUCTURE_PATH: 'timetableStructure', // timetableStructure/{section} = { days:[[key,label],...], periods:[{time,brk},...] } — full grid shape override set from teachers.html's "🏗️ Structure" editor
+  CLASS_TT_PATH:'classTimetables', // classTimetables/{section}/{grade} = { name, days: {...} } — full grid shape override set from teachers.html's "🏗️ Structure" editor
 };
 
 // Compulsory session length used by session-manager.js's SessionManager/guardPage.

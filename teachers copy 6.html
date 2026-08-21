@@ -8,8 +8,6 @@
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <!-- <link rel="stylesheet" href="./css/swalOnly.css"> -->
 
 <link rel="manifest" href="./teachers-manifest.json">
@@ -986,14 +984,6 @@ const WELFARE_PATH    = PATHS.WELFARE_PATH; // Firestore collection (read-only s
 // each day has 13 fixed period slots; periods 0,3,6,9,12 are structural breaks (assembly/short
 // break/lunch/close) and are never editable — only the 8 teaching slots in between are.
 const TEACHER_TT_PATH = PATHS.TEACHER_TT_PATH;
-// classTimetables/{section}/{classKey} = { name, days: { mon: { periodIdx: {subject, teacher} } } }
-// Deliberately separate from TEACHER_TT_PATH above: a class export (one table
-// per grade — "Grade 7", "Grade 8"...) is a different view of the same
-// schedule, not teacher data. Earlier this got flattened into per-teacher
-// records on import, which broke sorting/display (a class timetable showing
-// up grouped by teacher instead of by class) — this path keeps it genuinely
-// class-keyed instead.
-const CLASS_TT_PATH = PATHS.CLASS_TT_PATH || 'classTimetables';
 // Not yet in config.js — falls back to a literal path so this works without
 // that file needing a matching edit. Same RTDB root the Admin Command
 // Center's Timetable section writes period-time overrides to.
@@ -3040,7 +3030,6 @@ VR3['timetable'] = async function(area){
   const myName = (window._profile||{}).name || '';
   const myGradesList = myGrades3();
   let editMode = false;
-  let classEditMode = false;
   // Structural override per section: { days:[[key,label],...], periods:[{time,brk},...] }.
   // A section only appears here once an Advanced Admin has touched its
   // structure via "🏗️ Structure" — until then everything falls back to
@@ -3133,38 +3122,18 @@ VR3['timetable'] = async function(area){
       </div>
     </div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Breaks (assembly, short break, lunch, close) are shown greyed out — only teaching periods can hold a class. Advanced Admin can reshape the grid itself from "🏗️ Structure" — add/rename/delete days and periods, or flip a period between lesson/break.</div>
-    <div class="card" id="tt-print-card">
+    <div class="card">
       <div class="card-hdr" style="border-bottom:1px solid var(--border); background-color:var(--bg2); padding:10px; border-radius:6px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
         <div class="card-title" id="tt-title-text" style="font-size:14px;">${esc3(ttTitle || 'TERM III 2026 CLASS PERSONAL TIMETABLE')}</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-          ${admin ? `<button class="btn btn-outline btn-sm" id="tt-title-edit-btn" style="padding:2px 8px;font-size:11px;">✏️ Edit Title</button>` : ''}
-          <button class="btn btn-outline btn-sm" id="tt-print-btn" style="padding:2px 8px;font-size:11px;">🖨️ Download PDF</button>
-        </div>
+        ${admin ? `<button class="btn btn-outline btn-sm" id="tt-title-edit-btn" style="padding:2px 8px;font-size:11px;flex-shrink:0;">✏️ Edit Title</button>` : ''}
       </div>
       <div class="card-hdr"><div class="card-title" id="ttv-title">—</div></div>
       <div style="overflow-x:auto;"><div class="ttv-grid" id="ttv-grid"></div><br></div>
       
-    </div>
-    <div class="sec-hdr" style="margin-top:28px;"><h2>Class Timetable</h2>
-      <div class="actions-row">
-        <select class="f-select" id="ct-class" style="width:180px;"></select>
-        ${admin ? `<button class="btn btn-outline btn-sm" id="tt-import-class-btn">📥 Import Class Timetable</button>
-                   <input type="file" id="tt-import-class-file" accept=".html,.htm" style="display:none;">
-                   <button class="btn btn-orange btn-sm" id="ct-edit-toggle">✏️ Edit Mode: Off</button>` : ''}
-      </div>
-    </div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">The class's own view of the same schedule — organized by grade instead of by teacher. Importing here reads a per-class FET export (subject + teacher in each cell, one table per grade) and writes it in under each class, without touching the personal timetable above.</div>
-    <div class="card" id="ct-print-card">
-      <div class="card-hdr" style="border-bottom:1px solid var(--border); background-color:var(--bg2); padding:10px; border-radius:6px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-        <div class="card-title" id="ctv-title" style="font-size:14px;">—</div>
-        <button class="btn btn-outline btn-sm" id="ct-print-btn" style="padding:2px 8px;font-size:11px;flex-shrink:0;">🖨️ Download PDF</button>
-      </div>
-      <div style="overflow-x:auto;"><div class="ttv-grid" id="ctv-grid"></div><br></div>
     </div>`;
 
   const sectionSel = document.getElementById('tt-section');
   const teacherSel = document.getElementById('tt-teacher');
-  const classSel = document.getElementById('ct-class');
   sectionSel.value = guessTtSection(myGradesList);
   if(!admin){
     sectionSel.disabled = true;
@@ -3210,14 +3179,6 @@ VR3['timetable'] = async function(area){
     if(mineOpt) teacherSel.value = mineOpt;
   }
 
-  // Unlike teachers (a variable set built from accounts + whoever's been
-  // imported), a section's classes are just its fixed grade list — no need
-  // to query anything.
-  function loadClassList(section){
-    const conf = TT_SECTIONS[section];
-    classSel.innerHTML = conf.grades.map(g=>`<option value="${esc3(g)}">${esc3(g)}</option>`).join('');
-  }
-
   function openCellEditor(section, teacherName, day, periodIdx){
     const conf = TT_SECTIONS[section];
     const periods = effectivePeriods(section);
@@ -3250,39 +3211,6 @@ VR3['timetable'] = async function(area){
       try{
         await rtRemove(ref(rtdb, `${TEACHER_TT_PATH}/${section}/${key}/days/${day}/${periodIdx}`));
         toast('Slot cleared.', 'success'); closeModal(); renderGrid();
-      }catch(e){ toast('Could not clear: '+e.message, 'error'); }
-    });
-  }
-
-  function openClassCellEditor(section, className, day, periodIdx){
-    const periods = effectivePeriods(section);
-    const dayMatch = effectiveDays(section).find(d=>d[0]===day);
-    const dayLabel = dayMatch ? dayMatch[1] : day;
-    openModal(`<div class="modal-hdr"><h3>Edit Slot — ${esc3(className)}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div class="modal-body">
-        <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px;">${esc3(dayLabel)} · ${esc3(periods[periodIdx].time)}</div>
-        <div class="f-group"><label class="f-label">Subject</label><input class="f-input" id="cte-subject" placeholder="e.g. MATHS"></div>
-        <div class="f-group"><label class="f-label">Teacher</label><input class="f-input" id="cte-teacher" placeholder="e.g. Mr Stephen"></div>
-      </div>
-      <div class="modal-ftr">
-        <button class="btn btn-outline" id="cte-clear">Clear Slot</button>
-        <button class="btn btn-blue" id="cte-save">Save</button>
-      </div>`);
-    const key = ttKey(className);
-    document.getElementById('cte-save').addEventListener('click', async ()=>{
-      const subject = document.getElementById('cte-subject').value.trim();
-      const teacher = document.getElementById('cte-teacher').value.trim();
-      if(!subject){ toast('Subject is required.', 'warning'); return; }
-      try{
-        await rtSet(ref(rtdb, `${CLASS_TT_PATH}/${section}/${key}/days/${day}/${periodIdx}`), { subject, teacher });
-        await rtSet(ref(rtdb, `${CLASS_TT_PATH}/${section}/${key}/name`), className);
-        toast('Slot saved.', 'success'); closeModal(); renderClassGrid();
-      }catch(e){ toast('Could not save: '+e.message, 'error'); }
-    });
-    document.getElementById('cte-clear').addEventListener('click', async ()=>{
-      try{
-        await rtRemove(ref(rtdb, `${CLASS_TT_PATH}/${section}/${key}/days/${day}/${periodIdx}`));
-        toast('Slot cleared.', 'success'); closeModal(); renderClassGrid();
       }catch(e){ toast('Could not clear: '+e.message, 'error'); }
     });
   }
@@ -3535,118 +3463,6 @@ VR3['timetable'] = async function(area){
     });
   }
 
-  // Alternate FET export shape: one table per CLASS (caption .name = grade,
-  // e.g. "Grade 7"), each cell holding subject then teacher — the transpose of
-  // parseFetTimetableHtml's per-teacher tables. Kept as its own parser since
-  // the cell contents are in the opposite order (subject first, not grade).
-  function parseFetClassTimetableHtml(htmlText){
-    const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-    const classes = [];
-    doc.querySelectorAll('table').forEach(table=>{
-      const nameEl = table.querySelector('caption .name');
-      if(!nameEl) return;
-      const name = nameEl.textContent.trim();
-      if(!name) return;
-      const headCells = Array.from(table.querySelectorAll('thead th.xAxis'));
-      const periodCount = headCells.length;
-      const rows = [];
-      table.querySelectorAll('tbody tr').forEach(tr=>{
-        if(tr.classList.contains('foot')) return;
-        const dayEl = tr.querySelector('th.yAxis');
-        if(!dayEl) return;
-        const dayLabel = dayEl.textContent.trim();
-        const cells = Array.from(tr.querySelectorAll('td')).map(td=>{
-          const raw = td.innerHTML.replace(/<br\s*\/?>/gi, '\n');
-          const tmp = document.createElement('div'); tmp.innerHTML = raw;
-          const lines = tmp.textContent.split('\n').map(s=>s.trim()).filter(Boolean);
-          const joined = lines.join(' ');
-          if(joined === '-X-') return { type:'break' };
-          if(joined === '---' || !lines.length) return { type:'empty' };
-          return { type:'lesson', subject: lines[0]||'', teacher: lines[1]||'' };
-        });
-        rows.push({ dayLabel, cells });
-      });
-      classes.push({ name, periodCount, rows });
-    });
-    return classes;
-  }
-
-  // Imports parsed class tables straight into CLASS_TT_PATH, keyed by class
-  // name (e.g. "Grade 7") — kept separate from the personal per-teacher
-  // import above on purpose, so a class timetable stays a class timetable
-  // instead of being flattened into teacher records.
-  function openClassImportModal(fileName, classes){
-    const guess = /junior/i.test(fileName) ? 'junior' : /lower/i.test(fileName) ? 'lowerPrimary' : /primary/i.test(fileName) ? 'primary' : sectionSel.value;
-    openModal(`<div class="modal-hdr"><h3>Import Class Timetable</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div class="modal-body">
-        <div class="f-group"><label class="f-label">Import into section</label>
-          <select class="f-select" id="cti-section">
-            ${Object.keys(TT_SECTIONS).map(k=>`<option value="${k}" ${k===guess?'selected':''}>${esc3(TT_SECTIONS[k].label)}</option>`).join('')}
-          </select>
-        </div>
-        <div style="font-size:12px;color:var(--text2);margin:10px 0;">Found <strong>${classes.length}</strong> class${classes.length===1?'':'es'} in <em>${esc3(fileName)}</em>:</div>
-        <div style="max-height:140px;overflow-y:auto;font-size:12px;color:var(--text2);margin-bottom:10px;">${classes.map(c=>esc3(c.name)).join(', ')}</div>
-        <div id="cti-warn" style="font-size:12px;color:#e74c3c;margin-bottom:10px;"></div>
-        <div style="font-size:11.5px;color:var(--text3);">This overwrites this section's Class Timetable for these classes wherever the file has a lesson or explicitly marks a period free. Break periods aren't touched. Classes not matching one of the section's grades are still imported under the name in the file.</div>
-      </div>
-      <div class="modal-ftr"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-blue" id="cti-run">Import</button></div>`);
-
-    function checkSection(){
-      const section = document.getElementById('cti-section').value;
-      const periodsArr = effectivePeriods(section);
-      const warnEl = document.getElementById('cti-warn');
-      const mismatched = classes.filter(c=>c.periodCount !== periodsArr.length);
-      const unknownGrades = classes.filter(c=>!TT_SECTIONS[section].grades.includes(c.name));
-      const runBtn = document.getElementById('cti-run');
-      if(mismatched.length){
-        warnEl.textContent = `${TT_SECTIONS[section].label} has ${periodsArr.length} periods, but this file has ${mismatched[0].periodCount} columns per class — pick the matching section, or fix the section's Structure first.`;
-        runBtn.disabled = true;
-      }else if(unknownGrades.length){
-        warnEl.textContent = `Note: ${unknownGrades.map(c=>c.name).join(', ')} ${unknownGrades.length===1?"isn't":"aren't"} one of ${TT_SECTIONS[section].label}'s grades — will still import under that name.`;
-        runBtn.disabled = false;
-      }else{
-        warnEl.textContent = '';
-        runBtn.disabled = false;
-      }
-    }
-    document.getElementById('cti-section').addEventListener('change', checkSection);
-    checkSection();
-
-    document.getElementById('cti-run').addEventListener('click', async ()=>{
-      const section = document.getElementById('cti-section').value;
-      const periodsArr = effectivePeriods(section);
-      const daysArr = effectiveDays(section);
-      const updates = {};
-      let lessonCount = 0, clearCount = 0;
-      classes.forEach(cls=>{
-        const key = ttKey(cls.name);
-        updates[`${CLASS_TT_PATH}/${section}/${key}/name`] = cls.name;
-        cls.rows.forEach(row=>{
-          const dl = row.dayLabel.toLowerCase();
-          const match = daysArr.find(([,label])=> dl.startsWith(label.toLowerCase()) || label.toLowerCase().startsWith(dl.slice(0,3)));
-          if(!match) return;
-          const dayKey = match[0];
-          row.cells.forEach((cell,i)=>{
-            if(i >= periodsArr.length || periodsArr[i].brk || cell.type === 'break') return;
-            const path = `${CLASS_TT_PATH}/${section}/${key}/days/${dayKey}/${i}`;
-            if(cell.type === 'empty'){ updates[path] = null; clearCount++; }
-            else if(cell.type === 'lesson' && (cell.subject || cell.teacher)){ updates[path] = { subject: cell.subject, teacher: cell.teacher }; lessonCount++; }
-          });
-        });
-      });
-      const r = await Swal.fire({title:'Import class timetable?', html:`This will write <strong>${lessonCount}</strong> lesson${lessonCount===1?'':'s'} and clear <strong>${clearCount}</strong> free slot${clearCount===1?'':'s'} across <strong>${classes.length}</strong> class${classes.length===1?'':'es'} in ${esc3(TT_SECTIONS[section].label)}. This can't be undone.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c', background:'var(--surface)', color:'var(--text)'});
-      if(!r.isConfirmed) return;
-      try{
-        await rtUpdate(ref(rtdb), updates);
-        toast(`Imported ${lessonCount} lessons for ${classes.length} classes.`, 'success');
-        closeModal();
-        sectionSel.value = section;
-        await loadClassList(section);
-        renderClassGrid();
-      }catch(e){ toast('Import failed: '+e.message, 'error'); }
-    });
-  }
-
   function openImportModal(fileName, teachers){
     const guess = /junior/i.test(fileName) ? 'junior' : /lower/i.test(fileName) ? 'lowerPrimary' : /primary/i.test(fileName) ? 'primary' : sectionSel.value;
     openModal(`<div class="modal-hdr"><h3>Import Timetable</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
@@ -3755,119 +3571,8 @@ VR3['timetable'] = async function(area){
     }
   }
 
-  async function renderClassGrid(){
-    const section = sectionSel.value;
-    const className = classSel.value;
-    const conf = TT_SECTIONS[section];
-    const periods = effectivePeriods(section);
-    const days = effectiveDays(section);
-    const grid = document.getElementById('ctv-grid');
-    const titleEl = document.getElementById('ctv-title');
-    titleEl.textContent = className ? `${className} — ${conf.label}` : conf.label;
-    grid.style.gridTemplateColumns = `60px repeat(${periods.length}, minmax(74px,1fr))`;
-    const head = `<div class="ttv-head"></div>` + periods.map(p=>
-      `<div class="ttv-head">${esc3(p.time)}${p.brk ? '<br><span style="opacity:.6;">break</span>' : ''}</div>`).join('');
-    if(!className){ grid.innerHTML = head; return; }
-
-    let data = {};
-    try{
-      const snap = await rtGet(ref(rtdb, `${CLASS_TT_PATH}/${section}/${ttKey(className)}/days`));
-      data = snap.exists() ? snap.val() : {};
-    }catch(e){}
-
-    let rows = '';
-    days.forEach(([dk,dl])=>{
-      rows += `<div class="ttv-day">${dl}</div>`;
-      periods.forEach((p,i)=>{
-        if(p.brk){ rows += `<div class="ttv-cell ttv-brk">—</div>`; return; }
-        const cell = (data[dk]||{})[i] || null;
-        const editable = admin && classEditMode;
-        rows += `<div class="ttv-cell${editable?' ttv-editable':''}" data-day="${dk}" data-period="${i}">
-          ${cell ? `<b>${esc3(cell.subject||'')}</b><span>${esc3(cell.teacher||'')}</span>` : `<span style="opacity:.35;">—</span>`}
-        </div>`;
-      });
-    });
-    grid.innerHTML = head + rows;
-    if(admin && classEditMode){
-      grid.querySelectorAll('.ttv-editable').forEach(cellEl=>{
-        cellEl.addEventListener('click', ()=>openClassCellEditor(section, className, cellEl.dataset.day, Number(cellEl.dataset.period)));
-      });
-    }
-  }
-
-  sectionSel.addEventListener('change', async ()=>{
-    await loadTeacherList(sectionSel.value);
-    await renderGrid();
-    loadClassList(sectionSel.value);
-    await renderClassGrid();
-  });
+  sectionSel.addEventListener('change', async ()=>{ await loadTeacherList(sectionSel.value); await renderGrid(); });
   teacherSel.addEventListener('change', renderGrid);
-  classSel.addEventListener('change', renderClassGrid);
-
-  document.getElementById('tt-print-btn').addEventListener('click', async ()=>{
-    if(!teacherSel.value){ toast('Select a teacher to download a PDF first.', 'warning'); return; }
-    const btn = document.getElementById('tt-print-btn');
-    const card = document.getElementById('tt-print-card');
-    const editBtn = document.getElementById('tt-title-edit-btn');
-    const origText = btn.textContent;
-    btn.textContent = '⏳ Generating…';
-    btn.disabled = true;
-    if(editBtn) editBtn.style.visibility = 'hidden';
-    btn.style.visibility = 'hidden';
-    try{
-      const canvas = await html2canvas(card, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--surface') || '#fff' });
-      const imgData = canvas.toDataURL('image/png');
-      const { jsPDF } = window.jspdf;
-      const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
-      const pdf = new jsPDF({ orientation, unit: 'pt', format: 'a4' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-      const imgW = canvas.width * ratio;
-      const imgH = canvas.height * ratio;
-      pdf.addImage(imgData, 'PNG', (pageW - imgW) / 2, (pageH - imgH) / 2, imgW, imgH);
-      const safeName = String(teacherSel.value).replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_') || 'timetable';
-      pdf.save(`Timetable_${safeName}_${sectionSel.value}.pdf`);
-    }catch(e){
-      toast('Could not generate PDF: '+e.message, 'error');
-    }finally{
-      btn.textContent = origText;
-      btn.disabled = false;
-      btn.style.visibility = 'visible';
-      if(editBtn) editBtn.style.visibility = 'visible';
-    }
-  });
-
-  document.getElementById('ct-print-btn').addEventListener('click', async ()=>{
-    if(!classSel.value){ toast('Select a class to download a PDF first.', 'warning'); return; }
-    const btn = document.getElementById('ct-print-btn');
-    const card = document.getElementById('ct-print-card');
-    const origText = btn.textContent;
-    btn.textContent = '⏳ Generating…';
-    btn.disabled = true;
-    btn.style.visibility = 'hidden';
-    try{
-      const canvas = await html2canvas(card, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--surface') || '#fff' });
-      const imgData = canvas.toDataURL('image/png');
-      const { jsPDF } = window.jspdf;
-      const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
-      const pdf = new jsPDF({ orientation, unit: 'pt', format: 'a4' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-      const imgW = canvas.width * ratio;
-      const imgH = canvas.height * ratio;
-      pdf.addImage(imgData, 'PNG', (pageW - imgW) / 2, (pageH - imgH) / 2, imgW, imgH);
-      const safeName = String(classSel.value).replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_') || 'class-timetable';
-      pdf.save(`ClassTimetable_${safeName}_${sectionSel.value}.pdf`);
-    }catch(e){
-      toast('Could not generate PDF: '+e.message, 'error');
-    }finally{
-      btn.textContent = origText;
-      btn.disabled = false;
-      btn.style.visibility = 'visible';
-    }
-  });
 
   if(admin){
     document.getElementById('tt-edit-times-btn').addEventListener('click', ()=>openStructureEditor(sectionSel.value));
@@ -3946,31 +3651,10 @@ VR3['timetable'] = async function(area){
         openTeacherMatchModal(file.name, teachers);
       }catch(err){ toast('Could not read file: '+err.message, 'error'); }
     });
-    document.getElementById('tt-import-class-btn').addEventListener('click', ()=>{
-      document.getElementById('tt-import-class-file').click();
-    });
-    document.getElementById('tt-import-class-file').addEventListener('change', async (e)=>{
-      const file = e.target.files[0];
-      e.target.value = '';
-      if(!file) return;
-      try{
-        const text = await file.text();
-        const classes = parseFetClassTimetableHtml(text);
-        if(!classes.length){ toast('No per-class tables found in that file.', 'warning'); return; }
-        openClassImportModal(file.name, classes);
-      }catch(err){ toast('Could not read file: '+err.message, 'error'); }
-    });
-    document.getElementById('ct-edit-toggle').addEventListener('click', (e)=>{
-      classEditMode = !classEditMode;
-      e.target.textContent = classEditMode ? '✅ Edit Mode: On' : '✏️ Edit Mode: Off';
-      renderClassGrid();
-    });
   }
 
   await loadTeacherList(sectionSel.value);
   await renderGrid();
-  loadClassList(sectionSel.value);
-  await renderClassGrid();
 };
 
 /* ══════════════════════════════════════════
@@ -4553,8 +4237,7 @@ VR4['portals'] = async function(area){
       <a class="link-card" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, and analytics.</div></a>
       <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with student records.</div></a>
       <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">📝</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Restore deleted students without stress </div></a>
-                <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch/lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch/food.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Food budget Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
+      <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
     </div>`;
 };
 
