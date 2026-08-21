@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Teachers Portal</title>
+<title>Kanyadet School — Teachers Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -220,7 +220,7 @@ a{color:inherit;text-decoration:none;}
 .auth-divider-wave{display:none;}
 @media(min-width:901px){
   #auth-screen{justify-content:flex-start;--auth-panel-w:min(42%,600px);--auth-wave-amp:72px;}
-  .auth-side-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--auth-panel-w);flex-shrink:0;min-height:100vh;position:relative;overflow:hidden;padding:4rem 3rem;color:#fff; }
+  .auth-side-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--auth-panel-w);flex-shrink:0;min-height:100vh;position:relative;overflow:hidden;padding:4rem 3rem;color:#fff;}
   .auth-side-panel::before{content:'';position:absolute;top:0;bottom:0;left:0;right:var(--auth-wave-amp);background:linear-gradient(160deg,var(--blue-dk) 0%,#132a45 55%,#0a1c30 100%);}
   .auth-side-panel .asp-blob{position:absolute;border-radius:50%;pointer-events:none;}
   .auth-side-panel .asp-blob-1{width:360px;height:360px;top:-130px;right:-130px;background:rgba(255,255,255,.055);}
@@ -726,9 +726,7 @@ a{color:inherit;text-decoration:none;}
         <circle cx="188" cy="120" r="10" fill="var(--blue-dk)" opacity=".22"/>
         <path d="M170 40 l10 -10 m0 10 l-10 -10" stroke="var(--blue-lt)" stroke-width="3" stroke-linecap="round" opacity=".6"/>
       </svg>
-      <!-- <div class="auth-logo">🏫</div> -->
-              <img src="./images/logo.png" alt="" class="auth-logo" style="filter: grayscale(); " >
-
+      <div class="auth-logo">🏫</div>
     </div>
     <div class="auth-heading">Login</div>
     <div class="auth-subtitle">Sign in to access the Teachers Portal.</div>
@@ -807,9 +805,8 @@ a{color:inherit;text-decoration:none;}
 <div id="app-shell">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <!-- <div class="brand-icon">🏫</div> -->
-              <img src="./images/logo.png" alt="" class="brand-icon" style="filter: grayscale();" >
-
+      <!-- <div class="brand-icon">🏫 </div> -->
+      <img class="brand-icon" src="./images/logo.png" alt="" style="filter: grayscale();" >
       <div class="brand-text"><div class="b-name">Kanyadet TP</div><div class="b-role">Teachers Portal</div></div>
     </div>
     <div class="sidebar-section">
@@ -1665,17 +1662,6 @@ async function getCachedUsersColl(){
   snap.forEach(d => docs.push({ id: d.id, data: d.data() }));
   __usersCollCache = { docs, at: Date.now() };
   return docs;
-}
-// Official, de-duped teacher names from the same users/ collection — used by
-// the Timetable import's matching step so an HTML export's name (e.g. "Mr
-// Oduor") can be pinned to the exact name already on that teacher's account
-// (e.g. "Oduor Peter") instead of silently being written in as a lookalike.
-async function getOfficialTeacherNames(){
-  try{
-    const docs = await getCachedUsersColl();
-    const names = docs.filter(({data:u})=>u && u.name && !u.disabled).map(({data:u})=>u.name);
-    return Array.from(new Set(names)).sort((a,b)=>a.localeCompare(b));
-  }catch(e){ return []; }
 }
 
 // ── Dashboard instant-revisit cache ────────────────────────────────────
@@ -3019,16 +3005,12 @@ VR3['timetable'] = async function(area){
         </select>
         <select class="f-select" id="tt-teacher" style="width:180px;"></select>
         ${admin ? `<button class="btn btn-outline btn-sm" id="tt-add-teacher-btn">+ Add Teacher</button>
-                   <button class="btn btn-outline btn-sm" id="tt-delete-teacher-btn">🗑️ Delete Teacher</button>
-                   <button class="btn btn-outline btn-sm" id="tt-import-btn">📥 Import HTML</button>
-                   <input type="file" id="tt-import-file" accept=".html,.htm" style="display:none;">
                    <button class="btn btn-outline btn-sm" id="tt-edit-times-btn">🏗️ Structure</button>
                    <button class="btn btn-orange btn-sm" id="tt-edit-toggle">✏️ Edit Mode: Off</button>` : ''}
       </div>
     </div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Breaks (assembly, short break, lunch, close) are shown greyed out — only teaching periods can hold a class. Advanced Admin can reshape the grid itself from "🏗️ Structure" — add/rename/delete days and periods, or flip a period between lesson/break.</div>
     <div class="card">
-      <div class="card-hdr"><div class="card-title" style="font-size:14px; border-bottom:1px solid var(--border); background-color:var(--bg2); padding:10px; border-radius:6px ">TERM III 2026 CLASS PERSONAL TIMETABLE </div></div>
       <div class="card-hdr"><div class="card-title" id="ttv-title">—</div></div>
       <div style="overflow-x:auto;"><div class="ttv-grid" id="ttv-grid"></div></div>
     </div>`;
@@ -3256,182 +3238,6 @@ VR3['timetable'] = async function(area){
     render();
   }
 
-  // Bulk import from an FET-exported per-teacher HTML timetable (one
-  // <table> per teacher, day rows × period columns, "-X-" = break,
-  // "---" = free period, else "Grade N<br>SUBJECT"). Matches columns to
-  // this section's periods by position (so the column count must match —
-  // exports are normally generated straight from the same period grid)
-  // and matches day rows to this section's days by label prefix, so it
-  // still works if a day's been renamed via Structure.
-  function parseFetTimetableHtml(htmlText){
-    const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-    const teachers = [];
-    doc.querySelectorAll('table').forEach(table=>{
-      const nameEl = table.querySelector('caption .name');
-      if(!nameEl) return;
-      const name = nameEl.textContent.trim();
-      if(!name) return;
-      const headCells = Array.from(table.querySelectorAll('thead th.xAxis'));
-      const periodCount = headCells.length;
-      const rows = [];
-      table.querySelectorAll('tbody tr').forEach(tr=>{
-        if(tr.classList.contains('foot')) return;
-        const dayEl = tr.querySelector('th.yAxis');
-        if(!dayEl) return;
-        const dayLabel = dayEl.textContent.trim();
-        const cells = Array.from(tr.querySelectorAll('td')).map(td=>{
-          const raw = td.innerHTML.replace(/<br\s*\/?>/gi, '\n');
-          const tmp = document.createElement('div'); tmp.innerHTML = raw;
-          const lines = tmp.textContent.split('\n').map(s=>s.trim()).filter(Boolean);
-          const joined = lines.join(' ');
-          if(joined === '-X-') return { type:'break' };
-          if(joined === '---' || !lines.length) return { type:'empty' };
-          return { type:'lesson', grade: lines[0]||'', subject: lines[1]||'' };
-        });
-        rows.push({ dayLabel, cells });
-      });
-      teachers.push({ name, periodCount, rows });
-    });
-    return teachers;
-  }
-
-  // Step 0 of import: match each name found in the HTML file to the official
-  // name on that teacher's system account (Firestore users/), so lessons don't
-  // get written in under a lookalike name that never shows up on the teacher's
-  // own timetable view. Each row resolves to: an existing account, the typed
-  // name kept as-is (new teacher, current behavior), or excluded entirely.
-  async function openTeacherMatchModal(fileName, teachers){
-    openModal(`<div class="modal-hdr"><h3>Match Teachers</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div class="modal-body">
-        <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px;">Match each name found in <em>${esc3(fileName)}</em> to the official name already on that teacher's system account, keep it as typed (adds a new teacher), or exclude it from this import. Likely matches are pre-selected — double-check them before continuing.</div>
-        <div id="ttm-rows" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;"><div class="empty-state"><div class="es-icon">⏳</div></div></div>
-        <div id="ttm-warn" style="font-size:12px;color:#e74c3c;margin-top:10px;"></div>
-      </div>
-      <div class="modal-ftr"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-blue" id="ttm-next">Next</button></div>`);
-
-    const officialNames = await getOfficialTeacherNames();
-    const rowsEl = document.getElementById('ttm-rows');
-    if(!rowsEl) return; // modal was closed/replaced while names were loading
-
-    const rows = teachers.map(t=>{
-      const suggestion = officialNames.find(n=>namesMatch4(n, t.name));
-      return { raw: t.name, value: suggestion || '__new__' };
-    });
-
-    rowsEl.innerHTML = rows.map((r,i)=>`
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div style="flex:1;min-width:0;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc3(r.raw)}">${esc3(r.raw)}</div>
-        <div style="opacity:.5;">→</div>
-        <select class="f-select ttm-select" data-idx="${i}" style="flex:1.3;min-width:0;">
-          <option value="__new__" ${r.value==='__new__'?'selected':''}>— Keep "${esc3(r.raw)}" as typed (new) —</option>
-          ${officialNames.map(n=>`<option value="${esc3(n)}" ${r.value===n?'selected':''}>${esc3(n)}</option>`).join('')}
-          <option value="__exclude__">✕ Exclude from import</option>
-        </select>
-      </div>`).join('');
-
-    function checkDuplicates(){
-      const selects = Array.from(rowsEl.querySelectorAll('.ttm-select'));
-      const counts = new Map();
-      selects.forEach(sel=>{
-        if(sel.value === '__exclude__' || sel.value === '__new__') return;
-        counts.set(sel.value, (counts.get(sel.value)||0) + 1);
-      });
-      const dupes = Array.from(counts.entries()).filter(([,c])=>c>1).map(([n])=>n);
-      const warnEl = document.getElementById('ttm-warn');
-      const nextBtn = document.getElementById('ttm-next');
-      if(dupes.length){
-        warnEl.textContent = `More than one row is matched to the same account (${dupes.join(', ')}) — fix that before continuing, or they'll overwrite each other.`;
-        nextBtn.disabled = true;
-      }else{
-        warnEl.textContent = '';
-        nextBtn.disabled = false;
-      }
-    }
-    rowsEl.addEventListener('change', checkDuplicates);
-    checkDuplicates();
-
-    document.getElementById('ttm-next').addEventListener('click', ()=>{
-      const selects = Array.from(rowsEl.querySelectorAll('.ttm-select'));
-      const resolved = [];
-      selects.forEach(sel=>{
-        const val = sel.value;
-        if(val === '__exclude__') return;
-        const t = teachers[Number(sel.dataset.idx)];
-        resolved.push(val === '__new__' ? t : { ...t, name: val });
-      });
-      if(!resolved.length){ toast('All teachers excluded — nothing to import.', 'warning'); return; }
-      openImportModal(fileName, resolved);
-    });
-  }
-
-  function openImportModal(fileName, teachers){
-    const guess = /junior/i.test(fileName) ? 'junior' : /lower/i.test(fileName) ? 'lowerPrimary' : /primary/i.test(fileName) ? 'primary' : sectionSel.value;
-    openModal(`<div class="modal-hdr"><h3>Import Timetable</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div class="modal-body">
-        <div class="f-group"><label class="f-label">Import into section</label>
-          <select class="f-select" id="tti-section">
-            ${Object.keys(TT_SECTIONS).map(k=>`<option value="${k}" ${k===guess?'selected':''}>${esc3(TT_SECTIONS[k].label)}</option>`).join('')}
-          </select>
-        </div>
-        <div style="font-size:12px;color:var(--text2);margin:10px 0;">Found <strong>${teachers.length}</strong> teacher${teachers.length===1?'':'s'} in <em>${esc3(fileName)}</em>:</div>
-        <div style="max-height:140px;overflow-y:auto;font-size:12px;color:var(--text2);margin-bottom:10px;">${teachers.map(t=>esc3(t.name)).join(', ')}</div>
-        <div id="tti-warn" style="font-size:12px;color:#e74c3c;margin-bottom:10px;"></div>
-        <div style="font-size:11.5px;color:var(--text3);">This overwrites existing lessons for these teachers in the chosen section wherever the file has a class or explicitly marks a period free. Break periods aren't touched. Teachers not already in this section's list are added automatically.</div>
-      </div>
-      <div class="modal-ftr"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-blue" id="tti-run">Import</button></div>`);
-
-    function checkSection(){
-      const section = document.getElementById('tti-section').value;
-      const periodsArr = effectivePeriods(section);
-      const warnEl = document.getElementById('tti-warn');
-      const mismatched = teachers.filter(t=>t.periodCount !== periodsArr.length);
-      const runBtn = document.getElementById('tti-run');
-      if(mismatched.length){
-        warnEl.textContent = `${TT_SECTIONS[section].label} has ${periodsArr.length} periods, but this file has ${mismatched[0].periodCount} columns per teacher — pick the matching section, or fix the section's Structure first.`;
-        runBtn.disabled = true;
-      }else{
-        warnEl.textContent = '';
-        runBtn.disabled = false;
-      }
-    }
-    document.getElementById('tti-section').addEventListener('change', checkSection);
-    checkSection();
-
-    document.getElementById('tti-run').addEventListener('click', async ()=>{
-      const section = document.getElementById('tti-section').value;
-      const periodsArr = effectivePeriods(section);
-      const daysArr = effectiveDays(section);
-      const updates = {};
-      let lessonCount = 0, clearCount = 0, skippedDays = new Set();
-      teachers.forEach(t=>{
-        const key = ttKey(t.name);
-        updates[`${TEACHER_TT_PATH}/${section}/${key}/name`] = t.name;
-        t.rows.forEach(row=>{
-          const dl = row.dayLabel.toLowerCase();
-          const match = daysArr.find(([,label])=> dl.startsWith(label.toLowerCase()) || label.toLowerCase().startsWith(dl.slice(0,3)));
-          if(!match){ skippedDays.add(row.dayLabel); return; }
-          const dayKey = match[0];
-          row.cells.forEach((cell,i)=>{
-            if(i >= periodsArr.length || periodsArr[i].brk || cell.type === 'break') return;
-            const path = `${TEACHER_TT_PATH}/${section}/${key}/days/${dayKey}/${i}`;
-            if(cell.type === 'empty'){ updates[path] = null; clearCount++; }
-            else if(cell.type === 'lesson' && (cell.grade || cell.subject)){ updates[path] = { grade: cell.grade, subject: cell.subject }; lessonCount++; }
-          });
-        });
-      });
-      const r = await Swal.fire({title:'Import timetable?', html:`This will write <strong>${lessonCount}</strong> lesson${lessonCount===1?'':'s'} and clear <strong>${clearCount}</strong> free slot${clearCount===1?'':'s'} across <strong>${teachers.length}</strong> teacher${teachers.length===1?'':'s'} in ${esc3(TT_SECTIONS[section].label)}. This can't be undone.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c', background:'var(--surface)', color:'var(--text)'});
-      if(!r.isConfirmed) return;
-      try{
-        await rtUpdate(ref(rtdb), updates);
-        toast(`Imported ${lessonCount} lessons for ${teachers.length} teachers.`, 'success');
-        closeModal();
-        sectionSel.value = section;
-        await loadTeacherList(section);
-        renderGrid();
-      }catch(e){ toast('Import failed: '+e.message, 'error'); }
-    });
-  }
-
   async function renderGrid(){
     const section = sectionSel.value;
     const teacherName = teacherSel.value;
@@ -3499,38 +3305,6 @@ VR3['timetable'] = async function(area){
           await loadTeacherList(section); teacherSel.value = name; renderGrid();
         }catch(e){ toast('Could not add: '+e.message, 'error'); }
       });
-    });
-    document.getElementById('tt-delete-teacher-btn').addEventListener('click', async ()=>{
-      const section = sectionSel.value;
-      const teacherName = teacherSel.value;
-      if(!teacherName){ toast('Select a teacher first.', 'warning'); return; }
-      const r = await Swal.fire({
-        title: 'Delete teacher?',
-        html: `This removes <strong>${esc3(teacherName)}</strong> and their entire timetable from ${esc3(TT_SECTIONS[section].label)}. This can't be undone.<br><br><span style="font-size:12px;opacity:.75;">This only removes the timetable entry — it does not touch the teacher's portal account.</span>`,
-        icon: 'warning', showCancelButton: true, confirmButtonColor: '#e74c3c', confirmButtonText: 'Delete',
-        background: 'var(--surface)', color: 'var(--text)'
-      });
-      if(!r.isConfirmed) return;
-      try{
-        await rtRemove(ref(rtdb, `${TEACHER_TT_PATH}/${section}/${ttKey(teacherName)}`));
-        toast(`${teacherName} removed from ${TT_SECTIONS[section].label}.`, 'success');
-        await loadTeacherList(section);
-        renderGrid();
-      }catch(e){ toast('Could not delete: '+e.message, 'error'); }
-    });
-    document.getElementById('tt-import-btn').addEventListener('click', ()=>{
-      document.getElementById('tt-import-file').click();
-    });
-    document.getElementById('tt-import-file').addEventListener('change', async (e)=>{
-      const file = e.target.files[0];
-      e.target.value = '';
-      if(!file) return;
-      try{
-        const text = await file.text();
-        const teachers = parseFetTimetableHtml(text);
-        if(!teachers.length){ toast('No per-teacher tables found in that file.', 'warning'); return; }
-        openTeacherMatchModal(file.name, teachers);
-      }catch(err){ toast('Could not read file: '+err.message, 'error'); }
     });
   }
 
