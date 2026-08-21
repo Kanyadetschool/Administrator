@@ -1609,6 +1609,23 @@
       const m = s.match(/Grade\s*\d+/i);
       return m ? m[0].replace(/\s+/g,' ').trim() : (s.trim() || 'N/A');
     }
+    // Chronological ordering for exam identities like "Grade 1-2026-A2-End-Term 1".
+    // The "-A2-", "-B1-" etc. cycle code (letter = term-in-year run, number =
+    // sub-cycle within it) increases in issue order, so year -> letter ->
+    // number -> term number gives a reliable latest-first sort even when two
+    // exams share the same "Term N" label (e.g. Mid-Term 1 = A1, End-Term 1 =
+    // A2 -- both "Term 1" but A2 is later). Same convention as the Results
+    // Portal's Quick Entry exam picker (_qeCompoundOrderKey) -- kept in sync
+    // with that so "latest" means the same thing across both apps.
+    function gradeTermSortKey(compound){
+      const c = String(compound||'');
+      const year = (c.match(/(\d{4})/)||['','0'])[1];
+      const cyc = c.match(/-([A-Za-z])(\d+)-/);
+      const letter = cyc ? cyc[1].toUpperCase() : 'A';
+      const num = cyc ? parseInt(cyc[2],10) : 0;
+      const term = (c.match(/Term\s*(\d+)/i)||['','0'])[1];
+      return `${year}_${letter}_${String(num).padStart(2,'0')}_${String(term).padStart(2,'0')}`;
+    }
     // Results is a per-exam-sitting table (several rows per student across
     // terms), not a student master list, so the roster needs a stable
     // per-student key to dedupe on — Assessment No first, then UPI, then
@@ -2302,12 +2319,36 @@
 
     /* ── Data loaders ── */
     // Students no longer has its own fetch — the roster is derived from the
-    // same Results-path read as computeResults() below, deduped to one row
-    // per student via studentIdentityKey() (Results has one row per exam
-    // sitting, several per student across terms).
+    // same Results-path read as computeResults() below. The roster is the
+    // CURRENT class list PER GRADE (school runs Grade 1 through Grade 9, each
+    // on its own exam cadence) — so "latest header" is found separately for
+    // each grade, not once across the whole dataset, otherwise whichever
+    // single grade happens to have the most recent sitting would wipe out
+    // every other grade's roster entirely. Within each grade, only students
+    // with a record under THAT grade's latest header are included, matched
+    // by Assessment No via studentIdentityKey(). A student whose only
+    // records are under an older header for their grade is not "still
+    // enrolled" as of today and must not show up just because they were
+    // seen once, historically.
     function deriveStudentsFromResults(records){
+      // Latest header, per grade.
+      const latestHeaderByGrade = new Map(); // gShortRes(grade) -> { header, key }
+      records.forEach(rec => {
+        const header = String(rec.Grade || rec.grade || '').trim();
+        if(!header) return;
+        const grade = gShortRes(header);
+        const key = gradeTermSortKey(header);
+        const current = latestHeaderByGrade.get(grade);
+        if(!current || key.localeCompare(current.key) > 0) latestHeaderByGrade.set(grade, { header, key });
+      });
+      const latestRecords = records.filter(rec => {
+        const header = String(rec.Grade || rec.grade || '').trim();
+        if(!header) return false;
+        const entry = latestHeaderByGrade.get(gShortRes(header));
+        return !!entry && header === entry.header;
+      });
       const byIdentity = new Map();
-      records.forEach(rec => { byIdentity.set(studentIdentityKey(rec), rec); }); // last sitting wins
+      latestRecords.forEach(rec => { byIdentity.set(studentIdentityKey(rec), rec); }); // one row per Assessment No
       state.students = Array.from(byIdentity.entries()).map(([key, v]) => ({
         firebaseKey: key,
         id: key,

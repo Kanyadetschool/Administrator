@@ -984,12 +984,6 @@ const TEACHER_TT_PATH = PATHS.TEACHER_TT_PATH;
 // that file needing a matching edit. Same RTDB root the Admin Command
 // Center's Timetable section writes period-time overrides to.
 const TIMETABLE_TIMES_PATH = PATHS.TIMETABLE_TIMES_PATH || 'timetableTimes';
-// Full structural override (days + periods, not just time labels) an Advanced
-// Admin can build per section — added days/periods, deleted ones, break
-// flags. TIMETABLE_TIMES_PATH above is still written alongside this (mirrored
-// from struct.periods' time strings) purely so the older Admin Command
-// Center's Timetable screen, which only reads that path, keeps working.
-const TIMETABLE_STRUCTURE_PATH = PATHS.TIMETABLE_STRUCTURE_PATH || 'timetableStructure';
 const TT_SECTIONS = {
   lowerPrimary: {
     label: 'Lower Primary (Grade 1–3)',
@@ -2907,93 +2901,27 @@ VR3['insights'] = async function(area){
    TIMETABLE — per-teacher vertical grid (day rows × period columns),
    matching the real Primary (Grade 4-6) / Junior (Grade 7-9) timetable
    PDFs. Everyone can browse any teacher's timetable read-only; Advanced
-   Admin gets an Edit Mode to fill in the teaching slots, plus full control
-   over the grid's shape itself — add/rename/delete days, add/delete
-   periods, flip a period between lesson/break — via "🏗️ Structure".
+   Admin gets an Edit Mode to fill in the teaching slots.
 ══════════════════════════════════════════ */
-const DEFAULT_TT_DAYS = [['mon','Mon'],['tue','Tue'],['wed','Wed'],['thu','Thu'],['fri','Fri']];
-function slugifyDayKey3(label, existingKeys){
-  let base = String(label||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'day';
-  let key = base, n = 2;
-  while(existingKeys.includes(key)){ key = `${base}-${n++}`; }
-  return key;
-}
 VR3['timetable'] = async function(area){
   const admin = isAdmin3();
   const myName = (window._profile||{}).name || '';
   const myGradesList = myGrades3();
+  const days = [['mon','Mon'],['tue','Tue'],['wed','Wed'],['thu','Thu'],['fri','Fri']];
   let editMode = false;
-  // Structural override per section: { days:[[key,label],...], periods:[{time,brk},...] }.
-  // A section only appears here once an Advanced Admin has touched its
-  // structure via "🏗️ Structure" — until then everything falls back to
-  // TT_SECTIONS' hardcoded defaults (and DEFAULT_TT_DAYS for days). Legacy
-  // TIMETABLE_TIMES_PATH (time-strings-only, index-aligned) is still honoured
-  // as a fallback for sections that only ever used the old "Edit Times", and
-  // is kept mirrored going forward so the older Admin Command Center screen
-  // (which only reads that path) keeps working.
-  let ttStructOverrides = {};
+  // Period start/end times can be overridden per section by an admin from
+  // the Admin Command Center's Timetable screen (grade/subject content is
+  // still only editable here). Loaded once per view render; effectivePeriods()
+  // merges an override's time strings over TT_SECTIONS' hardcoded defaults,
+  // index-for-index, falling back to the default wherever no override exists.
   let ttTimesOverrides = {};
   try{
-    const [structSnap, timesSnap] = await Promise.all([
-      rtGet(ref(rtdb, TIMETABLE_STRUCTURE_PATH)),
-      rtGet(ref(rtdb, TIMETABLE_TIMES_PATH))
-    ]);
-    ttStructOverrides = structSnap.exists() ? structSnap.val() : {};
-    ttTimesOverrides = timesSnap.exists() ? timesSnap.val() : {};
-  }catch(e){ ttStructOverrides = {}; ttTimesOverrides = {}; }
-
+    const ttTimesSnap = await rtGet(ref(rtdb, TIMETABLE_TIMES_PATH));
+    ttTimesOverrides = ttTimesSnap.exists() ? ttTimesSnap.val() : {};
+  }catch(e){ ttTimesOverrides = {}; }
   function effectivePeriods(section){
-    const struct = ttStructOverrides[section];
-    if(struct && Array.isArray(struct.periods) && struct.periods.length){
-      return struct.periods.map(p=>({ brk: !!p.brk, time: p.time }));
-    }
-    const legacy = ttTimesOverrides[section] || [];
-    return TT_SECTIONS[section].periods.map((p,i)=>({ brk: !!p.brk, time: legacy[i] || p.time }));
-  }
-  function effectiveDays(section){
-    const struct = ttStructOverrides[section];
-    if(struct && Array.isArray(struct.days) && struct.days.length) return struct.days.map(d=>[d[0],d[1]]);
-    return DEFAULT_TT_DAYS.map(d=>[d[0],d[1]]);
-  }
-  // Persists a full {days,periods} struct for a section and mirrors period
-  // times to the legacy path. Does NOT touch teacher lesson data — callers
-  // that add/remove rows/columns handle that separately (see migrate* below).
-  async function persistStructure(section, struct){
-    await rtSet(ref(rtdb, `${TIMETABLE_STRUCTURE_PATH}/${section}`), struct);
-    await rtSet(ref(rtdb, `${TIMETABLE_TIMES_PATH}/${section}`), struct.periods.map(p=>p.time));
-    ttStructOverrides[section] = struct;
-    ttTimesOverrides[section] = struct.periods.map(p=>p.time);
-  }
-  // Deleting period index `idx` (out of `oldLen` periods) shifts every later
-  // period's saved lesson down by one slot, for every teacher and every day
-  // in this section, so nothing already filled in silently misaligns.
-  async function migrateDeletedPeriod(section, idx, oldLen){
-    const snap = await rtGet(ref(rtdb, `${TEACHER_TT_PATH}/${section}`));
-    if(!snap.exists()) return;
-    const updates = {};
-    snap.forEach(teacherSnap=>{
-      const tKey = teacherSnap.key;
-      const daysData = teacherSnap.child('days').val() || {};
-      Object.keys(daysData).forEach(dayKey=>{
-        const periodsData = daysData[dayKey] || {};
-        for(let i=idx; i<oldLen; i++){
-          const path = `${TEACHER_TT_PATH}/${section}/${tKey}/days/${dayKey}/${i}`;
-          updates[path] = (i < oldLen-1 && periodsData[i+1] !== undefined) ? periodsData[i+1] : null;
-        }
-      });
-    });
-    if(Object.keys(updates).length) await rtUpdate(ref(rtdb), updates);
-  }
-  // Deleting day `dayKey` purges every teacher's saved lessons for that day
-  // in this section, so they don't linger orphaned if the day is re-added later.
-  async function migrateDeletedDay(section, dayKey){
-    const snap = await rtGet(ref(rtdb, `${TEACHER_TT_PATH}/${section}`));
-    if(!snap.exists()) return;
-    const updates = {};
-    snap.forEach(teacherSnap=>{
-      updates[`${TEACHER_TT_PATH}/${section}/${teacherSnap.key}/days/${dayKey}`] = null;
-    });
-    if(Object.keys(updates).length) await rtUpdate(ref(rtdb), updates);
+    const override = ttTimesOverrides[section] || [];
+    return TT_SECTIONS[section].periods.map((p,i)=>({ brk: !!p.brk, time: override[i] || p.time }));
   }
 
   area.innerHTML = `
@@ -3004,11 +2932,11 @@ VR3['timetable'] = async function(area){
         </select>
         <select class="f-select" id="tt-teacher" style="width:180px;"></select>
         ${admin ? `<button class="btn btn-outline btn-sm" id="tt-add-teacher-btn">+ Add Teacher</button>
-                   <button class="btn btn-outline btn-sm" id="tt-edit-times-btn">🏗️ Structure</button>
+                   <button class="btn btn-outline btn-sm" id="tt-edit-times-btn">🕐 Edit Times</button>
                    <button class="btn btn-orange btn-sm" id="tt-edit-toggle">✏️ Edit Mode: Off</button>` : ''}
       </div>
     </div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Breaks (assembly, short break, lunch, close) are shown greyed out — only teaching periods can hold a class. Advanced Admin can reshape the grid itself from "🏗️ Structure" — add/rename/delete days and periods, or flip a period between lesson/break.</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Breaks (assembly, short break, lunch, close) are fixed and shown greyed out — only teaching periods can hold a class.</div>
     <div class="card">
       <div class="card-hdr"><div class="card-title" id="ttv-title">—</div></div>
       <div style="overflow-x:auto;"><div class="ttv-grid" id="ttv-grid"></div></div>
@@ -3064,8 +2992,7 @@ VR3['timetable'] = async function(area){
   function openCellEditor(section, teacherName, day, periodIdx){
     const conf = TT_SECTIONS[section];
     const periods = effectivePeriods(section);
-    const dayMatch = effectiveDays(section).find(d=>d[0]===day);
-    const dayLabel = dayMatch ? dayMatch[1] : day;
+    const dayLabel = days.find(d=>d[0]===day)[1];
     openModal(`<div class="modal-hdr"><h3>Edit Slot — ${esc3(teacherName)}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
       <div class="modal-body">
         <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px;">${esc3(dayLabel)} · ${esc3(periods[periodIdx].time)}</div>
@@ -3097,144 +3024,48 @@ VR3['timetable'] = async function(area){
     });
   }
 
-  // Full structure editor: Advanced Admin can add/rename/delete days,
-  // add/delete periods, flip a period between lesson/break, and edit period
-  // times — all for this section's grid shape. Add/delete act immediately
-  // (they touch saved lesson data, via migrateDeletedPeriod/migrateDeletedDay,
-  // so they can't be silently discarded by closing the modal); renaming a day
-  // label or editing period times/break-flag is non-destructive and batches
-  // under "💾 Save Changes".
-  function openStructureEditor(section){
+  function openTimesEditor(section){
     const conf = TT_SECTIONS[section];
-    let struct = { days: effectiveDays(section), periods: effectivePeriods(section) };
-
-    function render(){
-      openModal(`<div class="modal-hdr"><h3>Timetable Structure — ${esc3(conf.label)}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
-        <div class="modal-body">
-          <div style="font-size:11.5px;color:var(--text3);margin-bottom:12px;">Applies school-wide for this section. Adding/deleting a day or period takes effect immediately; renaming a day or editing period times/type is saved with the button below.</div>
-
-          <div class="f-label" style="margin-bottom:6px;">Days</div>
-          <table class="data-table" style="width:100%;margin-bottom:8px;">
-            <tbody id="tts-days-tbody">
-              ${struct.days.map(([k,l],i)=>`<tr>
-                <td><input class="f-input tts-day-label" data-idx="${i}" value="${esc3(l)}" style="max-width:160px;"></td>
-                <td style="width:1%;"><button class="btn btn-xs btn-red" data-idx="${i}" data-key="${esc3(k)}" id="tts-day-del-${i}">Delete</button></td>
+    const periods = effectivePeriods(section);
+    openModal(`<div class="modal-hdr"><h3>Edit Period Times — ${esc3(conf.label)}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px;">These times apply school-wide for this section and also show up in the Admin Command Center's Timetable screen — grade/subject content per slot is still edited from the grid itself.</div>
+        <div style="max-height:340px;overflow-y:auto;">
+          <table class="data-table" style="width:100%;">
+            <thead><tr><th>#</th><th>Type</th><th>Time</th></tr></thead>
+            <tbody id="tte-times-tbody">
+              ${periods.map((p,i)=>`<tr>
+                <td>${i+1}</td>
+                <td>${p.brk ? '<span class="muted">Break</span>' : 'Lesson'}</td>
+                <td><input class="f-input tte-time-input" data-idx="${i}" value="${esc3(p.time)}" style="max-width:160px;"></td>
               </tr>`).join('')}
             </tbody>
           </table>
-          <div class="actions-row" style="margin-bottom:18px;">
-            <input class="f-input" id="tts-new-day" placeholder="e.g. Saturday" style="max-width:180px;">
-            <button class="btn btn-outline btn-sm" id="tts-day-add">+ Add Day</button>
-          </div>
-
-          <div class="f-label" style="margin-bottom:6px;">Periods</div>
-          <div style="max-height:300px;overflow-y:auto;">
-            <table class="data-table" style="width:100%;">
-              <thead><tr><th>#</th><th>Break?</th><th>Time</th><th></th></tr></thead>
-              <tbody id="tts-periods-tbody">
-                ${struct.periods.map((p,i)=>`<tr>
-                  <td>${i+1}</td>
-                  <td><input type="checkbox" class="tts-period-brk" data-idx="${i}" ${p.brk?'checked':''}></td>
-                  <td><input class="f-input tts-period-time" data-idx="${i}" value="${esc3(p.time)}" style="max-width:150px;"></td>
-                  <td style="width:1%;"><button class="btn btn-xs btn-red" data-idx="${i}" id="tts-period-del-${i}">Delete</button></td>
-                </tr>`).join('')}
-              </tbody>
-            </table>
-          </div>
-          <div class="actions-row" style="margin-top:8px;">
-            <input class="f-input" id="tts-new-period-time" placeholder="e.g. 04:10–04:45" style="max-width:150px;">
-            <label style="font-size:12px;display:flex;align-items:center;gap:5px;"><input type="checkbox" id="tts-new-period-brk"> Break</label>
-            <button class="btn btn-outline btn-sm" id="tts-period-add">+ Add Period</button>
-          </div>
         </div>
-        <div class="modal-ftr">
-          <button class="btn btn-outline" id="tts-reset">Reset Section to Default</button>
-          <button class="btn btn-blue" id="tts-save">💾 Save Changes</button>
-        </div>`);
-      wire();
-    }
-
-    function wire(){
-      document.getElementById('tts-day-add').addEventListener('click', async ()=>{
-        const label = document.getElementById('tts-new-day').value.trim();
-        if(!label){ toast('Enter a day name.', 'warning'); return; }
-        const key = slugifyDayKey3(label, struct.days.map(d=>d[0]));
-        struct.days.push([key, label]);
-        try{ await persistStructure(section, struct); toast('Day added.', 'success'); render(); }
-        catch(e){ struct.days.pop(); toast('Could not add day: '+e.message, 'error'); }
-      });
-      struct.days.forEach((d,i)=>{
-        const btn = document.getElementById(`tts-day-del-${i}`);
-        if(!btn) return;
-        btn.addEventListener('click', async ()=>{
-          if(struct.days.length<=1){ toast('At least one day is required.', 'warning'); return; }
-          const [key,label] = struct.days[i];
-          const r = await Swal.fire({title:`Delete ${esc3(label)}?`, html:`This removes ${esc3(label)} from the grid and clears every teacher's saved lessons for it in ${esc3(conf.label)}. This can't be undone.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c', background:'var(--surface)', color:'var(--text)'});
-          if(!r.isConfirmed) return;
-          try{
-            await migrateDeletedDay(section, key);
-            struct.days.splice(i,1);
-            await persistStructure(section, struct);
-            toast('Day deleted.', 'success'); render();
-          }catch(e){ toast('Could not delete: '+e.message, 'error'); }
-        });
-      });
-
-      document.getElementById('tts-period-add').addEventListener('click', async ()=>{
-        const time = document.getElementById('tts-new-period-time').value.trim();
-        const brk = document.getElementById('tts-new-period-brk').checked;
-        if(!time){ toast('Enter a time for the new period.', 'warning'); return; }
-        struct.periods.push({ time, brk });
-        try{ await persistStructure(section, struct); toast('Period added.', 'success'); render(); }
-        catch(e){ struct.periods.pop(); toast('Could not add period: '+e.message, 'error'); }
-      });
-      struct.periods.forEach((p,i)=>{
-        const btn = document.getElementById(`tts-period-del-${i}`);
-        if(!btn) return;
-        btn.addEventListener('click', async ()=>{
-          if(struct.periods.length<=1){ toast('At least one period is required.', 'warning'); return; }
-          const r = await Swal.fire({title:`Delete period ${i+1}?`, html:`This removes the <strong>${esc3(p.time)}</strong> slot and shifts every later period's saved lessons down one, for every teacher in ${esc3(conf.label)}. This can't be undone.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c', background:'var(--surface)', color:'var(--text)'});
-          if(!r.isConfirmed) return;
-          try{
-            const oldLen = struct.periods.length;
-            await migrateDeletedPeriod(section, i, oldLen);
-            struct.periods.splice(i,1);
-            await persistStructure(section, struct);
-            toast('Period deleted.', 'success'); render();
-          }catch(e){ toast('Could not delete: '+e.message, 'error'); }
-        });
-      });
-
-      document.getElementById('tts-save').addEventListener('click', async ()=>{
-        const dayLabels = Array.from(document.querySelectorAll('.tts-day-label'));
-        const times = Array.from(document.querySelectorAll('.tts-period-time'));
-        const brks = Array.from(document.querySelectorAll('.tts-period-brk'));
-        if(dayLabels.some(inp=>!inp.value.trim()) || times.some(inp=>!inp.value.trim())){
-          toast('Every day and period needs a name/time.', 'warning'); return;
-        }
-        dayLabels.forEach(inp=>{ struct.days[Number(inp.dataset.idx)][1] = inp.value.trim(); });
-        times.forEach(inp=>{ struct.periods[Number(inp.dataset.idx)].time = inp.value.trim(); });
-        brks.forEach(inp=>{ struct.periods[Number(inp.dataset.idx)].brk = inp.checked; });
-        try{
-          await persistStructure(section, struct);
-          toast(`${conf.label} structure saved.`, 'success'); closeModal(); renderGrid();
-        }catch(e){ toast('Could not save: '+e.message, 'error'); }
-      });
-
-      document.getElementById('tts-reset').addEventListener('click', async ()=>{
-        const r = await Swal.fire({title:'Reset to default?', html:`Reset <strong>${esc3(conf.label)}</strong> back to the school's default days and period times? This removes the section's structure override — it does not touch already-saved lessons, which may then land on different periods if the shape changed.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c', background:'var(--surface)', color:'var(--text)'});
-        if(!r.isConfirmed) return;
-        try{
-          await rtRemove(ref(rtdb, `${TIMETABLE_STRUCTURE_PATH}/${section}`));
-          await rtRemove(ref(rtdb, `${TIMETABLE_TIMES_PATH}/${section}`));
-          delete ttStructOverrides[section];
-          delete ttTimesOverrides[section];
-          toast(`${conf.label} reset to default.`, 'success'); closeModal(); renderGrid();
-        }catch(e){ toast('Could not reset: '+e.message, 'error'); }
-      });
-    }
-
-    render();
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-outline" id="tte-times-reset">Reset to Default</button>
+        <button class="btn btn-blue" id="tte-times-save">Save</button>
+      </div>`);
+    document.getElementById('tte-times-save').addEventListener('click', async ()=>{
+      const inputs = Array.from(document.querySelectorAll('.tte-time-input'));
+      const times = inputs.map(inp=>inp.value.trim()).filter(Boolean);
+      if(times.length !== inputs.length){ toast('All period times must be filled in.', 'warning'); return; }
+      try{
+        await rtSet(ref(rtdb, `${TIMETABLE_TIMES_PATH}/${section}`), times);
+        ttTimesOverrides[section] = times;
+        toast(`${conf.label} times saved.`, 'success'); closeModal(); renderGrid();
+      }catch(e){ toast('Could not save: '+e.message, 'error'); }
+    });
+    document.getElementById('tte-times-reset').addEventListener('click', async ()=>{
+      const r = await Swal.fire({title:'Reset to default times?', html:`Reset <strong>${esc3(conf.label)}</strong> back to the school's default period times? This removes any override.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c', background:'var(--surface)', color:'var(--text)'});
+      if(!r.isConfirmed) return;
+      try{
+        await rtRemove(ref(rtdb, `${TIMETABLE_TIMES_PATH}/${section}`));
+        delete ttTimesOverrides[section];
+        toast(`${conf.label} reset to default.`, 'success'); closeModal(); renderGrid();
+      }catch(e){ toast('Could not reset: '+e.message, 'error'); }
+    });
   }
 
   async function renderGrid(){
@@ -3242,7 +3073,6 @@ VR3['timetable'] = async function(area){
     const teacherName = teacherSel.value;
     const conf = TT_SECTIONS[section];
     const periods = effectivePeriods(section);
-    const days = effectiveDays(section);
     const grid = document.getElementById('ttv-grid');
     const titleEl = document.getElementById('ttv-title');
     titleEl.textContent = teacherName ? `${teacherName} — ${conf.label}` : conf.label;
@@ -3281,7 +3111,7 @@ VR3['timetable'] = async function(area){
   teacherSel.addEventListener('change', renderGrid);
 
   if(admin){
-    document.getElementById('tt-edit-times-btn').addEventListener('click', ()=>openStructureEditor(sectionSel.value));
+    document.getElementById('tt-edit-times-btn').addEventListener('click', ()=>openTimesEditor(sectionSel.value));
     document.getElementById('tt-edit-toggle').addEventListener('click', (e)=>{
       editMode = !editMode;
       e.target.textContent = editMode ? '✅ Edit Mode: On' : '✏️ Edit Mode: Off';
