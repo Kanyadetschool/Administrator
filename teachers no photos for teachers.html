@@ -1311,74 +1311,6 @@ function initials(name){
 window._initials = initials;
 
 /* ══════════════════════════════════════════
-   TEACHER/STAFF PHOTO AVATARS — ported from lunch.html's Firestore photo
-   loader: reads users/{uid}.photoURL, caches it by uid and by normalized
-   name for fuzzy lookup, so any teacher-facing avatar (self, colleagues in
-   Messages, etc.) can show a real photo instead of just initials.
-══════════════════════════════════════════ */
-const teacherPhotoCache = {}; // uid / normalized-name → photoURL
-function normKeyT(str){
-  return (str||'').replace(/^(Mr\.|Md\.|Mrs\.|Ms\.|Dr\.|Prof\.)\s*/i, '').trim().toLowerCase();
-}
-function teacherPhotoFor(name, uid){
-  if(uid && teacherPhotoCache[uid]) return teacherPhotoCache[uid];
-  const key = normKeyT(name);
-  if(key && teacherPhotoCache[key]) return teacherPhotoCache[key];
-  const parts = key.split(/\s+/);
-  for(const p of parts){
-    for(const k of Object.keys(teacherPhotoCache)){
-      if(p.length > 2 && k.includes(p)) return teacherPhotoCache[k];
-    }
-  }
-  return '';
-}
-// Populates teacherPhotoCache from the already-fetched/cached users
-// collection (no extra Firestore read beyond what Messages/Timetable
-// already do) — call, then re-render whatever view is showing avatars.
-async function loadTeacherPhotos(){
-  try{
-    const docs = await getCachedUsersColl();
-    docs.forEach(({id, data:d}) => {
-      const url = d.photoURL || '';
-      if(!url) return;
-      teacherPhotoCache[id] = url;
-      if(d.name) teacherPhotoCache[normKeyT(d.name)] = url;
-      if(d.displayName) teacherPhotoCache[normKeyT(d.displayName)] = url;
-    });
-  }catch(e){ console.warn('Could not load teacher photos:', e.message); }
-}
-// Swaps a broken/failed <img> avatar back to the initials placeholder div,
-// matching the visual box it was inside (same class/style).
-function teacherAvatarFallback(img, name){
-  const span = document.createElement('div');
-  span.className = img.className;
-  span.setAttribute('style', img.getAttribute('style')||'');
-  span.textContent = initials(name||'');
-  img.replaceWith(span);
-}
-window._teacherAvatarFallback = teacherAvatarFallback;
-// Builds avatar HTML for a teacher/staff member: a real photo <img> when one
-// is cached, else the existing initials box. cls is the avatar CSS class
-// (avatar-ring / chat-av / me-av); extraStyle is optional inline style
-// (e.g. the compact 56x56 Profile Snapshot variant).
-function teacherAvatarHtml(name, uid, cls, extraStyle){
-  const url = teacherPhotoFor(name, uid);
-  const styleAttr = extraStyle ? ` style="${extraStyle}object-fit:cover;"` : ' style="object-fit:cover;"';
-  if(url) return `<img class="${cls}"${styleAttr} src="${esc(url)}" alt="${esc(name||'')}" onerror="window._teacherAvatarFallback(this,${JSON.stringify(name||'')})">`;
-  return `<div class="${cls}"${extraStyle?` style="${extraStyle}"`:''}>${esc(initials(name||''))}</div>`;
-}
-window._teacherAvatarHtml = teacherAvatarHtml;
-// Variant for spots where the container div already carries the size/shape
-// class (me-av, lock-avatar) — fills it with a photo <img> or just the
-// initials text, instead of nesting another classed box inside it.
-function teacherAvatarFillHtml(name, uid){
-  const url = teacherPhotoFor(name, uid);
-  if(!url) return esc(initials(name||''));
-  return `<img src="${esc(url)}" alt="${esc(name||'')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.replaceWith(document.createTextNode(${JSON.stringify(initials(name||''))}))">`;
-}
-window._teacherAvatarFillHtml = teacherAvatarFillHtml;
-
-/* ══════════════════════════════════════════
    STUDENT PHOTO AVATARS — ported from Results/Results-portal.html and
    admin index.html's approach: look for a real photo on disk at
    ./Report-Cards/student_images/{Grade}/{Name}.jpg (a few path variants
@@ -1534,14 +1466,6 @@ function enterApp(){
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').classList.add('active');
   window.dispatchEvent(new CustomEvent('ktp:ready'));
-  // Load real staff photos in the background (initials render instantly
-  // above), then refresh the topbar avatar and re-render the current view
-  // if it's one that shows teacher/colleague avatars.
-  loadTeacherPhotos().then(()=>{
-    const av = document.getElementById('me-av');
-    if(av) av.innerHTML = teacherAvatarFillHtml(me().name || (window._currentUser && window._currentUser.email) || '', myUid());
-    if(currentView === 'dashboard' || currentView === 'profile' || currentView === 'messages' || currentView === 'welfare') navTo(currentView);
-  });
 }
 
 onAuthStateChanged(auth, async (user)=>{
@@ -1586,29 +1510,18 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
   window._profile = profile;
-  // Same fix as the Staff Welfare Fund table: don't make the topbar/lock/
-  // dashboard/profile avatars wait on the bulk users-collection fetch
-  // (loadTeacherPhotos, which only resolves inside enterApp — after these
-  // render) or fall back to fuzzy name matching. We already have this
-  // exact user's own doc (profile = users/{uid}) with an exact uid, so
-  // seed the cache from it directly, the same way lunch.html's m.photoUrl
-  // is checked before the shared Firestore-cache lookup.
-  if(profile.photoURL){
-    teacherPhotoCache[user.uid] = profile.photoURL;
-    if(profile.name) teacherPhotoCache[normKeyT(profile.name)] = profile.photoURL;
-  }
 
   // Fill sidebar identity
   document.getElementById('me-name').textContent = profile.name || user.email;
   document.getElementById('me-role').textContent = profile.Advancedadmin ? 'Advanced Admin' : (profile.role || 'Teacher');
-  document.getElementById('me-av').innerHTML = teacherAvatarFillHtml(profile.name || user.email, user.uid);
+  document.getElementById('me-av').textContent = initials(profile.name || user.email);
 
   // Passkey gate: if this device has a passkey saved for this uid AND we
   // haven't already unlocked this session, show the lock screen.
   const pk = pkGet(user.uid);
   if(pk && !sessionStorage.getItem('ktp_unlocked_'+user.uid)){
     window._pendingLockUid = user.uid;
-    document.getElementById('lock-avatar').innerHTML = teacherAvatarFillHtml(profile.name || user.email, user.uid);
+    document.getElementById('lock-avatar').textContent = initials(profile.name || user.email);
     document.getElementById('lock-name').textContent = profile.name || 'Welcome back';
     document.getElementById('lock-email').textContent = user.email;
     setErr('lock-error','');
@@ -1920,7 +1833,7 @@ VIEW_RENDERERS['dashboard'] = async function(area){
         <div class="card">
           <div class="card-hdr"><div class="card-title">Profile Snapshot</div></div>
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-            ${window._teacherAvatarHtml(p.name||'', myUid(), 'avatar-ring', 'width:56px;height:56px;border-radius:16px;font-size:20px;')}
+            <div class="avatar-ring" style="width:56px;height:56px;border-radius:16px;font-size:20px;">${esc(window._initials(p.name||''))}</div>
             <div>
               <div style="font-weight:900;font-size:14px;color:var(--text);">${esc(p.name||'Teacher')}</div>
               <div style="font-size:11.5px;color:var(--text2);">${esc(p.role||'Teacher')} · ${esc(p.email||'')}</div>
@@ -2447,7 +2360,7 @@ VIEW_RENDERERS['profile'] = async function(area){
       <div class="card">
         <div class="card-hdr"><div class="card-title">Profile Details</div></div>
         <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;">
-          ${window._teacherAvatarHtml(p.name||'', myUid(), 'avatar-ring')}
+          <div class="avatar-ring">${esc(window._initials(p.name||''))}</div>
           <div>
             <div style="font-weight:900;font-size:16px;color:var(--text);">${esc(p.name||'—')}</div>
             <div style="font-size:12px;color:var(--text2);">${esc(p.email||'')}</div>
@@ -2493,7 +2406,7 @@ VIEW_RENDERERS['profile'] = async function(area){
       await updateDoc(doc(fs,'users',myUid()), updates);
       window._profile = { ...window._profile, ...updates };
       document.getElementById('me-name').textContent = updates.name;
-      document.getElementById('me-av').innerHTML = window._teacherAvatarFillHtml(updates.name, myUid());
+      document.getElementById('me-av').textContent = window._initials(updates.name);
       toast('Profile updated.', 'success');
     }catch(e){ toast('Could not save: '+e.message, 'error'); }
     finally{ btn.disabled=false; btn.textContent='💾 Save Changes'; }
@@ -3803,22 +3716,11 @@ VR4['messages'] = async function(area){
   try{
     const docs = await getCachedUsersColl();
     const contacts = [];
-    docs.forEach(({id, data:v}) => {
-      // Same fix as the login self-avatar seed: we already have this
-      // contact's doc (with photoURL) in hand here, so seed the shared
-      // cache directly instead of waiting on the separate loadTeacherPhotos()
-      // bulk fetch + re-render round-trip. Covers the contact list, thread
-      // header, and message bubbles below — none of which need to change.
-      if(v.photoURL){
-        teacherPhotoCache[id] = v.photoURL;
-        if(v.name) teacherPhotoCache[normKeyT(v.name)] = v.photoURL;
-      }
-      if(id !== myUid && !v.disabled) contacts.push({uid:id, ...v});
-    });
+    docs.forEach(({id, data:v}) => { if(id !== myUid && !v.disabled) contacts.push({uid:id, ...v}); });
     contacts.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
     document.getElementById('msg-contact-list').innerHTML = contacts.length ? contacts.map(c=>`
       <div class="chat-list-item" data-uid="${c.uid}">
-        ${window._teacherAvatarHtml(c.name||'', c.uid, 'chat-av')}
+        <div class="chat-av">${esc4(window._initials(c.name||''))}</div>
         <div style="min-width:0;flex:1;"><div style="font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc4(c.name||c.email)}</div>
         <div style="font-size:10.5px;color:var(--text3);">${c.Advancedadmin?'Advanced Admin':(c.role||'Teacher')}</div></div>
       </div>`).join('') : `<div class="empty-state"><div class="es-sub">No other staff found.</div></div>`;
@@ -3835,7 +3737,7 @@ VR4['messages'] = async function(area){
   function openThread(peer){
     if(chatUnsub){ chatUnsub(); chatUnsub = null; }
     activePeer = peer;
-    document.getElementById('msg-thread-hdr').innerHTML = `<div class="card-title" style="display:flex;align-items:center;gap:8px;">${window._teacherAvatarHtml(peer.name||'', peer.uid, 'chat-av', 'width:28px;height:28px;font-size:11px;')}${esc4(peer.name||peer.email)}</div>`;
+    document.getElementById('msg-thread-hdr').innerHTML = `<div class="card-title">${esc4(peer.name||peer.email)}</div>`;
     document.getElementById('msg-input-row').style.display = 'flex';
     const cid = chatId(myUid, peer.uid);
     const threadEl = document.getElementById('msg-thread');
@@ -3844,16 +3746,9 @@ VR4['messages'] = async function(area){
       const msgs = [];
       if(snap.exists()) snap.forEach(c=>{ msgs.push({id:c.key, ...c.val()}); });
       msgs.sort((a,b)=>(a.ts||0)-(b.ts||0));
-      threadEl.innerHTML = msgs.length ? msgs.map(m=>{
-        const mine = m.senderUid===myUid;
-        const avName = mine ? ((window._profile||{}).name||'') : (peer.name||'');
-        const avUid = mine ? myUid : peer.uid;
-        return `
-        <div class="msg-row" style="display:flex;align-items:flex-end;gap:8px;${mine?'flex-direction:row-reverse;':''}">
-          ${window._teacherAvatarHtml(avName, avUid, 'chat-av', 'width:26px;height:26px;font-size:10px;')}
-          <div class="msg-bubble ${mine?'mine':'theirs'}">${esc4(m.text||'')}<div class="msg-time">${timeAgo4(m.ts)}</div></div>
-        </div>`;
-      }).join('') : `<div class="empty-state"><div class="es-icon">💬</div><div class="es-sub">Say hello to ${esc4(peer.name||'them')}.</div></div>`;
+      threadEl.innerHTML = msgs.length ? msgs.map(m=>`
+        <div class="msg-bubble ${m.senderUid===myUid?'mine':'theirs'}">${esc4(m.text||'')}<div class="msg-time">${timeAgo4(m.ts)}</div></div>
+      `).join('') : `<div class="empty-state"><div class="es-icon">💬</div><div class="es-sub">Say hello to ${esc4(peer.name||'them')}.</div></div>`;
       threadEl.scrollTop = threadEl.scrollHeight;
     });
   }
@@ -4091,18 +3986,6 @@ function periodTitle4(key){
   if(mon && yr && /^\d{4}$/.test(String(yr))) return `${mon} ${yr}`;
   return normalized;
 }
-// Avatar for a welfare-fund row — mirrors lunch.html's own priority order
-// exactly: a photo saved directly on the member record (m.photoUrl, set via
-// the Lunch Contribution Manager's Edit Member modal — file upload or pasted
-// URL) wins first, since that's the photo lunch.html itself displays for
-// that row. Only when the member has no photoUrl of their own do we fall
-// back to the Firestore users/{uid}.photoURL cache (teacherPhotoFor) this
-// portal already loads for colleague avatars elsewhere.
-function wfAvatarHtml(m){
-  const url = m.photoUrl || teacherPhotoFor(m.name||'', m.uid);
-  if(url) return `<img class="chat-av" style="object-fit:cover;" src="${esc4(url)}" alt="${esc4(m.name||'')}" onerror="window._teacherAvatarFallback(this, ${JSON.stringify(m.name||'')})">`;
-  return `<div class="chat-av">${esc4(initials(m.name||''))}</div>`;
-}
 VR4['welfare'] = async function(area){
   area.innerHTML = `
     <div class="sec-hdr"><h2>Staff Welfare Fund</h2>
@@ -4164,7 +4047,7 @@ VR4['welfare'] = async function(area){
         const st = amt===0 ? {label:'Nil', cls:'badge-red'} : amt>=cStd ? {label:'Paid', cls:'badge-green'} : {label:'Partial', cls:'badge-orange'};
         const isMine = mine && m === mine;
         return `<tr${isMine ? ' style="background:rgba(41,128,185,.12);font-weight:600;"' : ''}>
-          <td><div class="stu-name-cell">${wfAvatarHtml(m)}<span>${esc4(m.name)}${isMine ? ' <span style="font-size:10px;color:var(--text3);font-weight:400;">(you)</span>' : ''}</span></div></td>
+          <td>${esc4(m.name)}${isMine ? ' <span style="font-size:10px;color:var(--text3);font-weight:400;">(you)</span>' : ''}</td>
           <td>KES ${amt.toLocaleString()}</td>
           <td>KES ${cStd.toLocaleString()}</td>
           <td><span class="badge ${st.cls}">${st.label}</span></td>

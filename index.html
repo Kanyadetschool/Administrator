@@ -372,6 +372,10 @@
     .stu-av-md{width:40px;height:40px;border-radius:11px;font-size:14px;}
     .stu-av-wrap.has-photo{cursor:pointer;}
     .stu-name-cell{display:flex;align-items:center;gap:10px;}
+    /* Teacher photo avatars — same 32px circle used for Live Sessions, now
+       also used for the Teachers table row and detail modal. */
+    .tch-av{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+    .tch-name-cell{display:flex;align-items:center;gap:10px;}
 
     .att-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:11px;font-weight:700}
     .att-legend span{display:inline-flex;align-items:center;gap:5px}
@@ -1456,6 +1460,25 @@
     function initials(name){
       const p = String(name||'A').trim().split(/\s+/);
       return ((p[0]?.[0]||'A') + (p[1]?.[0]||'')).toUpperCase();
+    }
+    // Teacher photo avatars — same pattern as Teachers Portal/lunch.html's
+    // wfAvatarHtml: a photoURL on the teacher's own users/{uid} doc (the
+    // same field the Teachers Portal profile page writes) wins first, else
+    // the existing initials circle. state.teachers already has the doc
+    // (with photoURL) in hand, so no extra fetch/cache is needed here.
+    function teacherAvatarFallback(img, name){
+      const div = document.createElement('div');
+      div.className = img.className;
+      div.setAttribute('style', img.getAttribute('style')||'');
+      div.textContent = initials(name||'');
+      img.replaceWith(div);
+    }
+    function teacherAvatarHtml(t, cls, extraStyle){
+      const name = (t && (t.displayName || t.name || [t.firstName,t.lastName].filter(Boolean).join(' '))) || '';
+      const url = t && (t.photoURL || t.photoUrl);
+      const styleAttr = extraStyle ? ` style="${extraStyle}object-fit:cover;"` : ' style="object-fit:cover;"';
+      if(url) return `<img class="${cls}"${styleAttr} src="${escapeHtml(url)}" alt="${escapeHtml(name)}" onerror="teacherAvatarFallback(this, ${JSON.stringify(name)})">`;
+      return `<div class="${cls}"${extraStyle?` style="${extraStyle}"`:''}>${escapeHtml(initials(name))}</div>`;
     }
     function studentName(s){
       return s['Official Student Name'] || s.StudentFullName || s.name || s.Name || 'Unnamed';
@@ -3066,8 +3089,9 @@
         const cellHtml = cell
           ? `<div style="font-size:11px;color:var(--text3);margin-top:3px;">${escapeHtml(cell.studentName||'Student')} · ${escapeHtml(cell.subject||'—')} · <strong style="color:var(--blue)">${escapeHtml(cell.value===undefined||cell.value===''?'empty':String(cell.value))}</strong> · ${timeAgoShort(cell.updatedAt)}</div>`
           : `<div style="font-size:11px;color:var(--text3);font-style:italic;margin-top:3px;">Hasn't entered a score yet</div>`;
+        const teacher = state.teachers.find(t => t.uid === s.uid) || { name: s.name };
         return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--rule);border-radius:10px;margin-bottom:8px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;">${escapeHtml(initials(s.name))}</div>
+          ${teacherAvatarHtml(teacher, 'tch-av')}
           <div style="flex:1;min-width:0;">
             <div style="font-size:12px;font-weight:700;color:var(--text);">${escapeHtml(s.name||'Teacher')}</div>
             <div style="font-size:11px;color:var(--text3);">${escapeHtml(s.compound||s.grade||'—')} · started ${timeAgoShort(s.startedAt)}</div>
@@ -3550,7 +3574,7 @@
         const role = t.Advancedadmin ? 'Advanced Admin' : 'Teacher';
         const status = t.disabled ? 'Disabled' : 'Active';
         return `<tr data-row-id="${escapeHtml(t.uid)}">
-          <td><strong style="color:var(--text)">${escapeHtml(name)}</strong></td>
+          <td><div class="tch-name-cell">${teacherAvatarHtml(t, 'tch-av')}<strong style="color:var(--text)">${escapeHtml(name)}</strong></div></td>
           <td>${escapeHtml(t.email||'—')}</td>
           <td>${escapeHtml(subj)}</td>
           <td><span class="pill ${t.Advancedadmin?'purple':'blue'}">${role}</span></td>
@@ -3569,6 +3593,7 @@
       const name = t.displayName || t.name || [t.firstName,t.lastName].filter(Boolean).join(' ') || '—';
       const grades = Array.isArray(t.assignedGrades) ? t.assignedGrades.join(', ') : (t.assignedGrade || '—');
       const viewHtml = `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">${teacherAvatarHtml(t, 'tch-av', 'width:52px;height:52px;font-size:18px;')}<div style="font-weight:900;font-size:14px;color:var(--text);">${escapeHtml(name)}</div></div>
         <div class="dfield-row"><div class="dfk">Email</div><div class="dfv">${escapeHtml(t.email||'—')}</div></div>
         <div class="dfield-row"><div class="dfk">Phone</div><div class="dfv">${escapeHtml(t.phone||'—')}</div></div>
         <div class="dfield-row"><div class="dfk">Subject</div><div class="dfv">${escapeHtml(t.subject||t.mainSubject||'—')}</div></div>
