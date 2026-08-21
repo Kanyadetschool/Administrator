@@ -6,6 +6,8 @@
   <title>Kanyadet School — Advanced Admin Portal</title>
   <link rel="icon" type="image/x-icon" href="./images/logo.png">
 <link rel="manifest" href="./manifest.json">
+<link rel="stylesheet" href="./css/swalOnly.css">
+
 
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
@@ -317,6 +319,17 @@
     textarea.field-input{min-height:90px;resize:vertical}
 
     .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface2);max-height:520px}
+    /* ── Audit entry detail: field-level diff table (mirrors Results Portal) ── */
+    .audit-diff-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px}
+    .audit-diff-table th{padding:6px 10px;text-align:left;font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;background:rgba(41,128,185,.06);border-bottom:1px solid var(--border)}
+    .audit-diff-table td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+    .audit-diff-table tr:last-child td{border-bottom:none}
+    .audit-diff-table .field-name{font-weight:700;color:var(--text2);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+    .audit-diff-table .val-before{color:var(--red)}
+    .audit-diff-table .val-after{color:var(--green)}
+    .audit-snapshot{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11.5px;font-family:'JetBrains Mono',monospace;color:var(--text2);line-height:1.8;max-height:220px;overflow-y:auto;text-align:left}
+    .audit-no-diff{font-size:12px;color:var(--text3);font-style:italic}
+    .audit-section-lbl{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin:10px 0 4px}
     .pager{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
     .pager-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.03em}
     .pager button:disabled{opacity:.4;cursor:not-allowed}
@@ -332,6 +345,8 @@
     .pill.bad{background:rgba(231,76,60,.12);color:var(--red)}
     .pill.blue{background:rgba(41,128,185,.12);color:var(--blue)}
     .pill.purple{background:rgba(142,68,173,.12);color:var(--purple)}
+    .pill.teal{background:rgba(22,160,133,.12);color:var(--teal)}
+    .pill.gray{background:rgba(90,83,66,.12);color:var(--text3)}
     .feedback-thread{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
     .feedback-reply{padding:8px 12px;border-radius:10px;font-size:.82rem;}
     .feedback-reply.is-admin{background:rgba(41,128,185,.08);border:1px solid rgba(41,128,185,.18);}
@@ -1103,13 +1118,28 @@
               <div class="sec-sub">Meaningful changes across the school system.</div>
             </div>
             <div class="actions-row">
+              <span id="audit-count" class="muted" style="font-size:11px;font-weight:700;align-self:center;"></span>
+              <button class="btn btn-outline btn-sm" id="audit-refresh-btn">🔄 Refresh</button>
               <button class="btn btn-outline btn-sm" id="audit-export-btn">Export CSV</button>
               <a class="btn btn-outline btn-sm" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank">Full Audit in Results Portal ↗</a>
             </div>
           </div>
           <div class="panel">
-            <div class="toolbar">
-              <input class="search-input" id="audit-search" placeholder="Search actions, admin, module…" />
+            <div class="toolbar" style="flex-wrap:wrap;gap:8px;">
+              <input class="search-input" id="audit-search" placeholder="Search actions, admin, module…" style="flex:1;min-width:180px;" />
+              <select class="sel" id="audit-actor-sel">
+                <option value="">All Admins</option>
+              </select>
+              <select class="sel" id="audit-cat-sel">
+                <option value="">All Categories</option>
+                <option value="edit">✏️ Edits</option>
+                <option value="add">➕ Additions</option>
+                <option value="delete">🗑️ Deletions</option>
+                <option value="import">📥 Imports</option>
+                <option value="export">📤 Exports</option>
+                <option value="auth">🔐 Auth</option>
+                <option value="system">⚙️ System</option>
+              </select>
             </div>
             <div class="table-wrap">
               <table>
@@ -1231,12 +1261,17 @@
           </div>
           <div class="panel">
             <div class="link-grid">
+              <a class="link-card" href="https://kanyadet-school-portal.web.app/login.html" target="_blank"><div class="lc-icon">📄</div><div class="lc-title">Home Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/index.html" target="_blank"><div class="lc-icon">⚙️</div><div class="lc-title">Admin Command Center</div><div class="lc-desc">School-wide dashboard, roster, and analytics (admin access required).</div></a>
+              <a class="link-card" href="https://kanyadet-school-parents.web.app/" target="_blank"><div class="lc-icon">👨‍👩‍👧‍👦</div><div class="lc-title">Parents Portal</div><div class="lc-desc">Access to student information and communication with teachers.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Individual-student-portal.html" target="_blank"><div class="lc-icon">🏫</div><div class="lc-title">Student Portal</div><div class="lc-desc">Access to student information and communication with teachers.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch/lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch/food.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Food budget Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
-              <a class="link-card" href="./Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
-              <a class="link-card" href="./Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
               <a class="link-card" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
-              <a class="link-card" href="./lunch/lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Full lunch contribution tool — payments, reminders, history, and exports.</div></a>
-              <a class="link-card" href="https://kanyadet-school-parents.web.app/" target="_blank"><div class="lc-icon">📝</div><div class="lc-title">Parents Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
+              <a class="link-card" href="https://kanyadet-school-portal.web.app/Home.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Resources</div><div class="lc-desc">Get advanced learning resources instantly  </div></a>
             </div>
           </div>
         </section>
@@ -1731,7 +1766,12 @@
           action,
           admin: state.user?.displayName || state.user?.email || 'Admin',
           category,
-          time: Date.now()
+          // NOTE: must match the Results Portal's format (ISO string), not a
+          // numeric Date.now() timestamp — audit_logs is a shared node, and
+          // Firebase's orderByChild('time') sorts by value TYPE first
+          // (numbers before strings). Mixing types under the same indexed
+          // field breaks limitToLast() so it silently drops/reorders entries.
+          time: new Date().toISOString()
         });
         loadAudits();
       }catch(e){ console.error('audit log', e); }
@@ -2308,21 +2348,22 @@
       renderDashAudit();
     }
     async function loadAudits(){
+      // Mirrors Results-portal.html's loadAuditLogs(): orderByChild('time') +
+      // limitToLast(500), then sort with new Date() (not raw subtraction,
+      // which breaks on ISO-string time values).
       let rows;
       try{
-        const q = query(ref(db, AUDIT_PATH), orderByChild('time'), limitToLast(200));
+        const q = query(ref(db, AUDIT_PATH), orderByChild('time'), limitToLast(500));
         const snap = await get(q);
-        rows = [];
-        if(snap.exists()){
-          snap.forEach(c => rows.push({ key: c.key, ...c.val() }));
-        }
-        rows.sort((a,b) => (b.time||0) - (a.time||0));
+        const data = snap.val();
+        rows = data
+          ? Object.entries(data).map(([key,v]) => ({ key, ...v }))
+              .sort((a,b) => new Date(b.time) - new Date(a.time))
+          : [];
+        if(rows.length > 200) rows = rows.slice(0, 200);
       }catch(e){
-        // Fallback without orderBy if index missing
-        const snap = await get(ref(db, AUDIT_PATH));
-        const data = snap.exists() ? snap.val() : {};
-        rows = Object.entries(data).map(([key,v]) => ({key, ...v}))
-          .sort((a,b) => (b.time||0) - (a.time||0)).slice(0,200);
+        console.error('loadAudits', e);
+        rows = [];
       }
       if(cacheChanged('audits', rows)) computeAudits(rows);
     }
@@ -2556,7 +2597,7 @@
           action: `Added calendar event: ${title}`,
           admin: state.user?.displayName || state.user?.email,
           category: 'Calendar',
-          time: Date.now()
+          time: new Date().toISOString()
         });
         ['cal-title','cal-date','cal-notes'].forEach(id => $(id).value = '');
         $('cal-form').style.display = 'none';
@@ -3112,13 +3153,16 @@
         body.innerHTML = '<tr><td colspan="4" class="muted">No recent activity.</td></tr>';
         return;
       }
-      body.innerHTML = rows.map(a => `
+      body.innerHTML = rows.map(a => {
+        const cfg = AUDIT_CAT[auditCatKey(a)] || AUDIT_CAT.system;
+        return `
         <tr>
           <td>${escapeHtml(a.action || a.text || a.message || 'Action')}</td>
           <td>${escapeHtml(a.admin || a.user || a.by || '—')}</td>
-          <td>${escapeHtml(a.category || a.module || 'System')}</td>
+          <td><span class="pill ${cfg.pill}">${cfg.icon} ${cfg.label}</span></td>
           <td>${escapeHtml(fmtTime(a.time || a.createdAt))}</td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
     }
     $('dash-audit-body').addEventListener('click', (e) => {
       if(e.target.closest('tr')) navTo('audit');
@@ -3622,7 +3666,7 @@
           action: `Saved attendance for ${grade} on ${date}`,
           admin: state.user?.displayName || state.user?.email,
           category: 'Attendance',
-          time: Date.now()
+          time: new Date().toISOString()
         });
         toast('Attendance saved','ok');
         loadAudits();
@@ -3891,27 +3935,116 @@
     });
 
     /* ── Audit ── */
+    // Mirrors Results-portal.html's _AUDIT_CAT config, restricted to the
+    // pill color classes available on this page.
+    const AUDIT_CAT = {
+      edit:   { label:'Edit',   pill:'blue',   icon:'✏️' },
+      add:    { label:'Add',    pill:'ok',     icon:'➕' },
+      delete: { label:'Delete', pill:'bad',    icon:'🗑️' },
+      import: { label:'Import', pill:'purple', icon:'📥' },
+      export: { label:'Export', pill:'teal',   icon:'📤' },
+      auth:   { label:'Auth',   pill:'warn',   icon:'🔐' },
+      system: { label:'System', pill:'gray',   icon:'⚙️' }
+    };
+    // Same fallback used by Results-portal's logActivity: infer a category
+    // from the action text when an entry doesn't carry one explicitly.
+    function inferAuditCategory(text){
+      const t = text || '';
+      if(/✏️|Edited|Updated/.test(t))  return 'edit';
+      if(/➕|Added|Created|Published/.test(t)) return 'add';
+      if(/🗑️|Deleted|Removed/.test(t)) return 'delete';
+      if(/📥|Imported/.test(t)) return 'import';
+      if(/📤|Exported|Downloaded|PDF|CSV/.test(t)) return 'export';
+      if(/🔐|🚪|sign|Sign/.test(t)) return 'auth';
+      return 'system';
+    }
+    function auditCatKey(a){
+      const raw = (a.category || a.module || '').toLowerCase();
+      if(AUDIT_CAT[raw]) return raw;
+      return inferAuditCategory(a.action || a.text || a.message || '');
+    }
+    state.auditFilterActor = state.auditFilterActor || '';
+    state.auditFilterCat = state.auditFilterCat || '';
     function filteredAuditRows(){
       const q = ($('audit-search').value||'').trim().toLowerCase();
       return state.audits.filter(a => {
-        if(!q) return true;
-        return [a.action,a.text,a.message,a.admin,a.user,a.category,a.module].join(' ').toLowerCase().includes(q);
+        if(q && !([a.action,a.text,a.message,a.admin,a.user,a.category,a.module].join(' ').toLowerCase().includes(q))) return false;
+        if(state.auditFilterActor && (a.admin||a.user||a.by) !== state.auditFilterActor) return false;
+        if(state.auditFilterCat && auditCatKey(a) !== state.auditFilterCat) return false;
+        return true;
       });
     }
+    // Rebuilds the "All Admins" dropdown from whatever admins currently
+    // appear in the log, preserving the current selection.
+    function populateAuditActorFilter(){
+      const sel = $('audit-actor-sel');
+      if(!sel) return;
+      const current = sel.value;
+      while(sel.options.length > 1) sel.remove(1);
+      [...new Set(state.audits.map(a => a.admin||a.user||a.by).filter(Boolean))].sort().forEach(name => {
+        const o = document.createElement('option');
+        o.value = name; o.textContent = name;
+        sel.appendChild(o);
+      });
+      sel.value = current;
+    }
+    // Field-level diff — mirrors Results-portal's _buildDiffHTML, minus the
+    // restore/undo actions (this trail is read-only by design here).
+    function buildAuditDiffHTML(a){
+      const cat = auditCatKey(a);
+      if(cat === 'edit' && a.before && a.after){
+        const keys = [...new Set([...Object.keys(a.before), ...Object.keys(a.after)])].sort();
+        const changed = keys.filter(k => String(a.before[k] ?? '') !== String(a.after[k] ?? ''));
+        if(!changed.length) return '<div class="audit-no-diff">No field-level changes recorded.</div>';
+        let html = `<div class="audit-section-lbl">Fields Changed (${changed.length})</div>
+          <table class="audit-diff-table"><thead><tr><th>Field</th><th>Before</th><th>After</th></tr></thead><tbody>`;
+        changed.forEach(k => {
+          html += `<tr><td class="field-name">${escapeHtml(k)}</td><td><span class="val-before">${escapeHtml(a.before[k] ?? '—')}</span></td><td><span class="val-after">${escapeHtml(a.after[k] ?? '—')}</span></td></tr>`;
+        });
+        return html + '</tbody></table>';
+      }
+      if(cat === 'add' && a.after){
+        let html = `<div class="audit-section-lbl">New Record Created</div>
+          <table class="audit-diff-table"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>`;
+        Object.entries(a.after).filter(([,v]) => v != null && v !== '').forEach(([k,v]) => {
+          html += `<tr><td class="field-name">${escapeHtml(k)}</td><td>${escapeHtml(v)}</td></tr>`;
+        });
+        return html + '</tbody></table>';
+      }
+      if(cat === 'delete' && a.before){
+        let html = `<div class="audit-section-lbl">Deleted Record Snapshot</div><div class="audit-snapshot">`;
+        Object.entries(a.before).filter(([k]) => k !== 'id').forEach(([k,v]) => {
+          if(v != null && v !== '') html += `<div><strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}</div>`;
+        });
+        return html + '</div>';
+      }
+      if(a.extra) return `<div class="audit-section-lbl">Details</div><div class="audit-snapshot">${escapeHtml(a.extra)}</div>`;
+      return '<div class="audit-no-diff">No additional detail available for this action.</div>';
+    }
     function renderAudit(){
-      const rows = filteredAuditRows().slice(0, 150);
+      const filtered = filteredAuditRows();
+      $('audit-count').textContent = `${filtered.length} entr${filtered.length===1?'y':'ies'}`;
+      const { pageRows, page, totalPages } = paginate(filtered, state.auditPage);
+      state.auditPage = page;
       const body = $('audit-tbody');
-      if(!rows.length){
-        body.innerHTML = '<tr><td colspan="4" class="muted">No audit entries.</td></tr>';
+      if(!pageRows.length){
+        body.innerHTML = '<tr><td colspan="4" class="muted">No audit entries match your filter.</td></tr>';
+        $('audit-pager').innerHTML = '';
+        renderDashAudit();
         return;
       }
-      body.innerHTML = rows.map(a => `
+      body.innerHTML = pageRows.map(a => {
+        const cfg = AUDIT_CAT[auditCatKey(a)] || AUDIT_CAT.system;
+        return `
         <tr data-row-id="${escapeHtml(a.key||'')}">
           <td>${escapeHtml(a.action || a.text || a.message || '—')}</td>
           <td>${escapeHtml(a.admin || a.user || a.by || '—')}</td>
-          <td><span class="pill blue">${escapeHtml(a.category || a.module || 'System')}</span></td>
+          <td><span class="pill ${cfg.pill}">${cfg.icon} ${cfg.label}</span></td>
           <td>${escapeHtml(fmtTime(a.time || a.createdAt))}</td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
+      renderPager('audit-pager', page, totalPages, p => { state.auditPage = p; renderAudit(); });
+      populateAuditActorFilter();
       renderDashAudit();
     }
     $('audit-tbody').addEventListener('click', (e) => {
@@ -3919,25 +4052,32 @@
       if(!tr || !tr.dataset.rowId) return;
       const a = state.audits.find(x => x.key === tr.dataset.rowId);
       if(!a) return;
+      const cfg = AUDIT_CAT[auditCatKey(a)] || AUDIT_CAT.system;
       // Audit entries are a read-only trail by design — no edit/delete here,
-      // just the full detail that doesn't fit in the table row.
+      // just the full detail (including field-level diff, when available)
+      // that doesn't fit in the table row.
       Swal.fire({
         title: 'Audit Entry',
         html: `<div style="text-align:left;font-size:13px;line-height:1.7;">
           <p><strong>Action:</strong> ${escapeHtml(a.action||a.text||a.message||'—')}</p>
           <p><strong>Admin:</strong> ${escapeHtml(a.admin||a.user||a.by||'—')}</p>
-          <p><strong>Category:</strong> ${escapeHtml(a.category||a.module||'System')}</p>
+          <p><strong>Category:</strong> <span class="pill ${cfg.pill}">${cfg.icon} ${cfg.label}</span></p>
           <p><strong>Time:</strong> ${escapeHtml(fmtTime(a.time||a.createdAt))}</p>
+          ${buildAuditDiffHTML(a)}
         </div>`,
+        width: 520,
         confirmButtonText: 'Close', confirmButtonColor: '#2980b9'
       });
     });
-    $('audit-search').addEventListener('input', renderAudit);
+    $('audit-search').addEventListener('input', () => { state.auditPage = 1; renderAudit(); });
+    $('audit-actor-sel').addEventListener('change', (e) => { state.auditFilterActor = e.target.value; state.auditPage = 1; renderAudit(); });
+    $('audit-cat-sel').addEventListener('change', (e) => { state.auditFilterCat = e.target.value; state.auditPage = 1; renderAudit(); });
+    $('audit-refresh-btn').addEventListener('click', () => { loadAudits(); toast('Refreshing audit log…','info'); });
     $('audit-export-btn').addEventListener('click', () => {
       const rows = filteredAuditRows();
       const header = ['Action','Admin','Category','Time'];
       const csv = [header.join(',')].concat(rows.map(a =>
-        [a.action||a.text||a.message||'—', a.admin||a.user||a.by||'—', a.category||a.module||'System', fmtTime(a.time||a.createdAt)]
+        [a.action||a.text||a.message||'—', a.admin||a.user||a.by||'—', (AUDIT_CAT[auditCatKey(a)]||AUDIT_CAT.system).label, fmtTime(a.time||a.createdAt)]
           .map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
       )).join('\n');
       const a2 = document.createElement('a');
@@ -3966,7 +4106,7 @@
           action: `Published announcement: ${title}`,
           admin: state.user?.displayName || state.user?.email,
           category: 'Announcements',
-          time: Date.now()
+          time: new Date().toISOString()
         });
         $('ann-title').value = '';
         $('ann-body').value = '';

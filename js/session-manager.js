@@ -16,7 +16,7 @@
  */
 
 const DEFAULT_STORAGE_KEY = 'kanyadet_session_expiry';
-const DEFAULT_SESSION_DURATION_MS = 15 * 60 * 1000; // 15 minutes, compulsory
+const DEFAULT_SESSION_DURATION_MS = 35 * 60 * 1000; // 30 minutes, compulsory
 
 export class SessionManager {
   /**

@@ -19,9 +19,9 @@ const RUNTIME_CACHE = `kanyadet-runtime-${CACHE_VERSION}`;
 // Add/remove paths here to match your actual file layout.
 const PRECACHE_URLS = [
   './',
-  './index.html',
-  './lunch.html',
-  './food.html',
+  './Results-portal.html',
+  './lunch/lunch.html',
+  './lunch/food.html',
   './images/logo.png',
   './imgs/logo.png',
   './image-popup.js',
