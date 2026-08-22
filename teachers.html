@@ -429,6 +429,22 @@ a{color:inherit;text-decoration:none;}
 .analytics-bar > span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg, var(--brand-2), var(--brand-3));}
 .analytics-chart-box{position:relative;height:150px;width:100%;}
 .analytics-chart-box canvas{display:block;width:100% !important;height:150px !important;}
+.analytics-chart-box.tt-tall{height:260px;}
+.analytics-chart-box.tt-tall canvas{height:260px !important;}
+.tta-panel{animation:fadeIn .2s ease;}
+.tta-heat-table{border-collapse:collapse;font-size:11px;}
+.tta-heat-table th{padding:6px 10px;font-size:9.5px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;text-align:center;white-space:nowrap;}
+.tta-heat-table th:first-child{text-align:left;}
+.tta-heat-table td{padding:0;text-align:center;}
+.tta-heat-name{padding:6px 12px 6px 0;font-size:11.5px;font-weight:700;color:var(--text);white-space:nowrap;text-align:left;}
+.tta-heat-cell{width:56px;height:34px;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px;border-radius:6px;margin:2px;display:flex;align-items:center;justify-content:center;color:#fff;}
+.tta-heat-cell.zero{background:var(--surface2)!important;color:var(--text3);}
+.tta-heat-cell.brk{background:transparent!important;color:var(--text3);font-size:9px;}
+.tta-heat-total{font-weight:900;color:var(--blue-lt);}
+.tta-heat-foot td{padding-top:6px;border-top:1px solid var(--border);font-weight:800;}
+.data-table th.sortable{cursor:pointer;user-select:none;}
+.data-table th.sortable:hover{color:var(--blue);}
+.data-table th.sortable .sort-arrow{opacity:.5;margin-left:3px;}
 .analytics-chart-box .chart-loader-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;z-index:2;background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(245,249,255,.92));border-radius:14px;color:var(--text2);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
 .analytics-chart-box .chart-loader-overlay .mini-spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(41,128,185,.2);border-top-color:var(--blue-lt);animation:spin .8s linear infinite;}
 .analytics-chart-box.is-loaded .chart-loader-overlay{display:none;}
@@ -3192,6 +3208,8 @@ VR3['timetable'] = async function(area){
   let ttStructOverrides = {};
   let ttTimesOverrides = {};
   let ttTitle = '';
+  let ttaChart = null; // Chart.js instance for the workload-analytics bar chart, torn down/rebuilt on section change
+  let ttaSubjChart = null; // Chart.js instance for the subject-mix doughnut chart
   try{
     const [structSnap, timesSnap, titleSnap] = await Promise.all([
       rtGet(ref(rtdb, TIMETABLE_STRUCTURE_PATH)),
@@ -3273,6 +3291,50 @@ VR3['timetable'] = async function(area){
       </div>
     </div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Breaks (assembly, short break, lunch, close) are shown greyed out — only teaching periods can hold a class. Advanced Admin can reshape the grid itself from "🏗️ Structure" — add/rename/delete days and periods, or flip a period between lesson/break.</div>
+    <div class="card" id="tt-analytics-card">
+      <div class="card-hdr"><div class="card-title">📊 Workload Analytics — <span id="tta-section-label">—</span></div>
+        <button class="btn btn-outline btn-sm" id="tta-export-btn" style="padding:2px 8px;font-size:11px;">⬇️ Export CSV</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin:2px 0 14px;">Computed live from every teacher's timetable in this section — total load, day-by-day distribution, subject mix, and school-wide congestion, all in one place.</div>
+
+      <div class="kpi-grid" id="tta-kpis"></div>
+      <div id="tta-alerts" class="analytics-insight" style="margin-top:2px;"></div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 14px;">
+        <div class="chip active" data-tta-tab="ranking">📊 Load Ranking</div>
+        <div class="chip" data-tta-tab="heatmap">🗓️ Day Heatmap</div>
+        <div class="chip" data-tta-tab="subjects">🥯 Subject Mix</div>
+        <div class="chip" data-tta-tab="density">🔥 Period Density</div>
+        <div class="chip" data-tta-tab="table">📋 Detailed Table</div>
+      </div>
+
+      <div id="tta-panel-ranking" class="tta-panel">
+        <div class="analytics-chart-box tt-tall" id="tta-chart-wrap"><canvas id="tta-chart"></canvas></div>
+        <div class="analytics-list analytics-list-scroll" id="tta-list" style="max-height:280px;margin-top:16px;"></div>
+      </div>
+
+      <div id="tta-panel-heatmap" class="tta-panel" style="display:none;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Lessons taught per day, per teacher. Darker = heavier that day (relative to ${'that section\'s'} teaching periods/day).</div>
+        <div style="overflow-x:auto;"><div id="tta-heatmap-grid"></div></div>
+      </div>
+
+      <div id="tta-panel-subjects" class="tta-panel" style="display:none;">
+        <div class="grid-60-40" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,320px);gap:18px;align-items:start;">
+          <div class="analytics-chart-box tt-tall" id="tta-subj-chart-wrap"><canvas id="tta-subj-chart"></canvas></div>
+          <div class="analytics-list analytics-list-scroll" id="tta-subj-list" style="max-height:280px;"></div>
+        </div>
+      </div>
+
+      <div id="tta-panel-density" class="tta-panel" style="display:none;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">How many teachers are teaching at the same time. Darker cells are congestion peaks across the whole section.</div>
+        <div style="overflow-x:auto;"><div id="tta-density-grid"></div></div>
+      </div>
+
+      <div id="tta-panel-table" class="tta-panel" style="display:none;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">Click a column header to sort.</div>
+        <div style="overflow-x:auto;"><table class="data-table" id="tta-table" style="width:100%;"></table></div>
+      </div>
+    </div>
     <div class="card" id="tt-print-card">
       <div class="card-hdr" style="border-bottom:1px solid var(--border); background-color:var(--bg2); padding:10px; border-radius:6px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
         <div class="card-title" id="tt-title-text" style="font-size:14px;">${esc3(ttTitle || 'TERM III 2026 CLASS PERSONAL TIMETABLE')}</div>
@@ -3939,11 +4001,348 @@ VR3['timetable'] = async function(area){
     }
   }
 
+  // ══════════════════════════════════════════
+  // WORKLOAD ANALYTICS — one Realtime DB read per section (no per-teacher
+  // fetch loop) fans out into five linked views: load ranking, a day×teacher
+  // heatmap, section-wide subject mix, a day×period congestion heatmap, and
+  // a sortable/exportable table. Purely a read-side computed layer — never
+  // writes anything — so it's shown to everyone the same way the grid
+  // itself is read-only-by-default for non-admins.
+  // ══════════════════════════════════════════
+  let ttaData = null;      // last computed dataset, reused across tab switches
+  let ttaTableSort = { key: 'total', dir: 'desc' };
+
+  function ttaLoadColor(pct){
+    if(pct >= 0.8) return '#e74c3c';
+    if(pct >= 0.55) return '#f39c12';
+    return '#27ae60';
+  }
+  function ttaHeatColor(pct){
+    // 0 -> transparent/neutral, ramps green -> gold -> red as pct climbs.
+    if(pct <= 0) return null;
+    const c = pct >= 0.8 ? [231,76,60] : pct >= 0.5 ? [243,156,18] : [39,174,96];
+    const alpha = Math.min(1, 0.35 + pct*0.65);
+    return `rgba(${c[0]},${c[1]},${c[2]},${alpha.toFixed(2)})`;
+  }
+
+  // Single pass over the section's raw timetable data. Builds per-teacher
+  // rows plus three section-wide aggregates (day totals, day×period density,
+  // subject totals) so every tab renders from the same computed object
+  // instead of re-reading the database.
+  async function computeWorkloadData(section){
+    const conf = TT_SECTIONS[section];
+    const periods = effectivePeriods(section);
+    const days = effectiveDays(section);
+    const teachingSlotsPerDay = periods.filter(p=>!p.brk).length;
+    const maxWeeklySlots = teachingSlotsPerDay * days.length;
+
+    let snap = null;
+    try{ snap = await rtGet(ref(rtdb, `${TEACHER_TT_PATH}/${section}`)); }catch(e){ snap = null; }
+
+    const rows = [];
+    const dayTotals = {}; days.forEach(([dk])=>dayTotals[dk]=0);
+    const density = days.map(()=>periods.map(()=>0)); // [dayIdx][periodIdx] = teachers occupied
+    const subjectTotals = new Map();
+
+    if(snap && snap.exists()){
+      snap.forEach(teacherSnap=>{
+        const name = teacherSnap.child('name').val() || teacherSnap.key;
+        const daysData = teacherSnap.child('days').val() || {};
+        const subjects = new Set();
+        const grades = new Set();
+        const perDay = {};
+        let total = 0, busiestDay = '—', busiestCount = -1;
+        days.forEach(([dk,dl],dIdx)=>{
+          const dayCells = daysData[dk] || {};
+          let dayCount = 0;
+          periods.forEach((p,i)=>{
+            if(p.brk) return;
+            const cell = dayCells[i];
+            if(cell && (cell.subject || cell.grade)){
+              dayCount++;
+              density[dIdx][i]++;
+              dayTotals[dk]++;
+              if(cell.subject){ subjects.add(cell.subject); subjectTotals.set(cell.subject, (subjectTotals.get(cell.subject)||0)+1); }
+              if(cell.grade) grades.add(cell.grade);
+            }
+          });
+          perDay[dk] = dayCount;
+          total += dayCount;
+          if(dayCount > busiestCount){ busiestCount = dayCount; busiestDay = dl; }
+        });
+        rows.push({
+          name, total, perDay,
+          subjectCount: subjects.size, gradeCount: grades.size,
+          busiestDay, busiestCount: Math.max(busiestCount,0),
+          freeSlots: Math.max(0, maxWeeklySlots - total),
+          loadPct: maxWeeklySlots ? total/maxWeeklySlots : 0
+        });
+      });
+    }
+    rows.sort((a,b)=>b.total-a.total);
+
+    const teacherCount = rows.length;
+    const totalLessons = rows.reduce((s,r)=>s+r.total, 0);
+    const avgLoad = teacherCount ? totalLessons/teacherCount : 0;
+    const variance = teacherCount ? rows.reduce((s,r)=>s+Math.pow(r.total-avgLoad,2),0)/teacherCount : 0;
+    const stdDev = Math.sqrt(variance);
+    const cv = avgLoad ? stdDev/avgLoad : 0;
+    const fairness = teacherCount ? Math.max(0, Math.round(100 - cv*100)) : 0;
+    const overloaded = rows.filter(r=>r.loadPct >= 0.8);
+    const underloaded = rows.filter(r=>r.total > 0 && r.loadPct < 0.3);
+    const noSchedule = rows.filter(r=>r.total === 0);
+    const idleSlots = Math.max(0, teacherCount*maxWeeklySlots - totalLessons);
+    const subjectRows = Array.from(subjectTotals.entries()).map(([subject,count])=>({subject,count})).sort((a,b)=>b.count-a.count);
+
+    return { conf, periods, days, teachingSlotsPerDay, maxWeeklySlots, rows, teacherCount, totalLessons, avgLoad, fairness, overloaded, underloaded, noSchedule, idleSlots, dayTotals, density, subjectRows };
+  }
+
+  function renderTtaKpisAndAlerts(d){
+    const kpiBox = document.getElementById('tta-kpis');
+    const labelEl = document.getElementById('tta-section-label');
+    if(labelEl) labelEl.textContent = d.conf.label;
+    const busiest = d.rows[0] || null;
+    const fairnessLabel = d.fairness >= 80 ? 'Balanced' : d.fairness >= 55 ? 'Uneven' : 'Imbalanced';
+    kpiBox.innerHTML = `
+      <div class="kpi-card"><div class="kpi-icon">👩‍🏫</div><div class="kpi-val">${d.teacherCount}</div><div class="kpi-label">Teachers Tracked</div></div>
+      <div class="kpi-card"><div class="kpi-icon">📚</div><div class="kpi-val">${d.totalLessons}</div><div class="kpi-label">Weekly Lessons — Section</div></div>
+      <div class="kpi-card"><div class="kpi-icon">⚖️</div><div class="kpi-val">${d.avgLoad.toFixed(1)}</div><div class="kpi-label">Avg Lessons / Teacher</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🎯</div><div class="kpi-val">${d.fairness}%</div><div class="kpi-label">Fairness Index — ${fairnessLabel}</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🕳️</div><div class="kpi-val">${d.idleSlots}</div><div class="kpi-label">Idle Teaching Slots</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🔥</div><div class="kpi-val" style="font-size:15px;">${busiest ? esc3(busiest.name) : '—'}</div><div class="kpi-label">Heaviest Load${busiest ? ' · '+busiest.total+'/wk' : ''}</div></div>
+    `;
+    const pills = [];
+    if(d.overloaded.length) pills.push(`<span class="analytics-pill" style="background:rgba(231,76,60,.12);border-color:rgba(231,76,60,.3);color:var(--red-dk);">⚠️ ${d.overloaded.length} overloaded (≥80%): ${d.overloaded.slice(0,4).map(r=>esc3(r.name)).join(', ')}${d.overloaded.length>4?'…':''}</span>`);
+    if(d.underloaded.length) pills.push(`<span class="analytics-pill" style="background:rgba(243,156,18,.12);border-color:rgba(243,156,18,.32);color:var(--orange-dk);">💤 ${d.underloaded.length} under 30% load: ${d.underloaded.slice(0,4).map(r=>esc3(r.name)).join(', ')}${d.underloaded.length>4?'…':''}</span>`);
+    if(d.noSchedule.length) pills.push(`<span class="analytics-pill">📭 ${d.noSchedule.length} with no timetable entered yet</span>`);
+    document.getElementById('tta-alerts').innerHTML = pills.join('');
+  }
+
+  function renderTtaRankingTab(d){
+    if(ttaChart){ ttaChart.destroy(); ttaChart = null; }
+    const canvasEl = document.getElementById('tta-chart');
+    if(canvasEl && d.rows.length && window.Chart){
+      const overloadLine = d.maxWeeklySlots * 0.8;
+      ttaChart = new Chart(canvasEl, {
+        type: 'line',
+        data: {
+          labels: d.rows.map(r=>r.name),
+          datasets: [
+            {
+              label: 'Lessons / Week',
+              data: d.rows.map(r=>r.total),
+              borderColor: '#2980b9',
+              backgroundColor: 'rgba(41,128,185,.14)',
+              pointBackgroundColor: d.rows.map(r=>ttaLoadColor(r.loadPct)),
+              pointBorderColor: '#fff',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              borderWidth: 2.5,
+              tension: 0.35,
+              fill: true,
+              order: 1
+            },
+            {
+              label: 'Average Load',
+              data: d.rows.map(()=>d.avgLoad),
+              borderColor: '#8e44ad',
+              borderDash: [6,4],
+              borderWidth: 1.5,
+              pointRadius: 0,
+              fill: false,
+              order: 2
+            },
+            {
+              label: 'Overload Threshold (80%)',
+              data: d.rows.map(()=>overloadLine),
+              borderColor: '#e74c3c',
+              borderDash: [3,3],
+              borderWidth: 1.5,
+              pointRadius: 0,
+              fill: false,
+              order: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 10 } } },
+            tooltip: { callbacks: { label: (item)=> item.dataset.label==='Lessons / Week' ? `${item.raw} lessons/wk${d.maxWeeklySlots ? ` (${Math.round(item.raw/d.maxWeeklySlots*100)}% of ${d.maxWeeklySlots} slots)` : ''}` : `${item.dataset.label}: ${Math.round(item.raw*10)/10}` } }
+          },
+          scales: {
+            x: { ticks: { font: { size: 10 }, maxRotation: 45, minRotation: d.rows.length > 6 ? 30 : 0 } },
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+          }
+        }
+      });
+    }
+    const listEl = document.getElementById('tta-list');
+    const maxTotal = d.rows.length ? d.rows[0].total : 0;
+    listEl.innerHTML = d.rows.length ? d.rows.map(r=>{
+      const pct = Math.round(r.loadPct*100);
+      return `<div class="analytics-row">
+        <div>
+          <div class="analytics-name">${esc3(r.name)}</div>
+          <div class="analytics-meta">${r.total} lessons/wk · ${pct}% load · ${r.subjectCount} subject${r.subjectCount===1?'':'s'} · ${r.freeSlots} free slot${r.freeSlots===1?'':'s'} · busiest ${esc3(r.busiestDay)} (${r.busiestCount})</div>
+          <div class="analytics-bar"><span style="width:${maxTotal ? Math.max(6, Math.round(r.total/maxTotal*100)) : 6}%;background:${ttaLoadColor(r.loadPct)};"></span></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:13px;white-space:nowrap;">${r.total}</div>
+      </div>`;
+    }).join('') : `<div class="empty-state"><div class="es-icon">📊</div><div class="es-sub">No timetable data yet for ${esc3(d.conf.label)}.</div></div>`;
+  }
+
+  function renderTtaHeatmapTab(d){
+    const box = document.getElementById('tta-heatmap-grid');
+    if(!d.rows.length){ box.innerHTML = `<div class="empty-state"><div class="es-icon">🗓️</div><div class="es-sub">No timetable data yet for ${esc3(d.conf.label)}.</div></div>`; return; }
+    const head = `<tr><th>Teacher</th>${d.days.map(([,dl])=>`<th>${esc3(dl)}</th>`).join('')}<th>Total</th></tr>`;
+    const body = d.rows.map(r=>{
+      const cells = d.days.map(([dk])=>{
+        const v = r.perDay[dk] || 0;
+        const pct = d.teachingSlotsPerDay ? v/d.teachingSlotsPerDay : 0;
+        const bg = ttaHeatColor(pct);
+        return `<td><div class="tta-heat-cell${v===0?' zero':''}"${bg?` style="background:${bg};"`:''}>${v}</div></td>`;
+      }).join('');
+      return `<tr><td class="tta-heat-name">${esc3(r.name)}</td>${cells}<td><div class="tta-heat-cell tta-heat-total" style="background:transparent;color:var(--blue-lt);">${r.total}</div></td></tr>`;
+    }).join('');
+    const grandTotal = d.rows.reduce((s,r)=>s+r.total,0);
+    const foot = `<tr class="tta-heat-foot"><td class="tta-heat-name">Section Total</td>${d.days.map(([dk])=>`<td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${d.dayTotals[dk]||0}</td>`).join('')}<td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue-lt);">${grandTotal}</td></tr>`;
+    box.innerHTML = `<table class="tta-heat-table"><thead>${head}</thead><tbody>${body}${foot}</tbody></table>`;
+  }
+
+  function renderTtaSubjectsTab(d){
+    const listEl = document.getElementById('tta-subj-list');
+    const total = d.subjectRows.reduce((s,r)=>s+r.count,0);
+    if(ttaSubjChart){ ttaSubjChart.destroy(); ttaSubjChart = null; }
+    const palette = ['#2980b9','#e67e22','#27ae60','#8e44ad','#16a085','#e74c3c','#f39c12','#1a5276','#d35400','#5dade2'];
+    const canvasEl = document.getElementById('tta-subj-chart');
+    if(canvasEl && d.subjectRows.length && window.Chart){
+      ttaSubjChart = new Chart(canvasEl, {
+        type: 'doughnut',
+        data: {
+          labels: d.subjectRows.map(r=>r.subject),
+          datasets: [{ data: d.subjectRows.map(r=>r.count), backgroundColor: d.subjectRows.map((r,i)=>palette[i%palette.length]), borderWidth: 2, borderColor: 'var(--surface)' }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display:false }, tooltip: { callbacks: { label:(item)=> `${item.label}: ${item.raw} lessons (${total?Math.round(item.raw/total*100):0}%)` } } }
+        }
+      });
+    }
+    listEl.innerHTML = d.subjectRows.length ? d.subjectRows.map((r,i)=>{
+      const pct = total ? Math.round(r.count/total*100) : 0;
+      return `<div class="analytics-row">
+        <div>
+          <div class="analytics-name"><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${palette[i%palette.length]};margin-right:6px;"></span>${esc3(r.subject)}</div>
+          <div class="analytics-meta">${r.count} lessons/wk · ${pct}% of section load</div>
+          <div class="analytics-bar"><span style="width:${Math.max(6,pct)}%;background:${palette[i%palette.length]};"></span></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:13px;">${r.count}</div>
+      </div>`;
+    }).join('') : `<div class="empty-state"><div class="es-icon">🥯</div><div class="es-sub">No subjects recorded yet.</div></div>`;
+  }
+
+  function renderTtaDensityTab(d){
+    const box = document.getElementById('tta-density-grid');
+    if(!d.rows.length){ box.innerHTML = `<div class="empty-state"><div class="es-icon">🔥</div><div class="es-sub">No timetable data yet for ${esc3(d.conf.label)}.</div></div>`; return; }
+    const head = `<tr><th>Period</th>${d.days.map(([,dl])=>`<th>${esc3(dl)}</th>`).join('')}</tr>`;
+    const body = d.periods.map((p,i)=>{
+      const cells = d.days.map((dArr,dIdx)=>{
+        if(p.brk) return `<td><div class="tta-heat-cell brk">—</div></td>`;
+        const v = d.density[dIdx][i] || 0;
+        const pct = d.teacherCount ? v/d.teacherCount : 0;
+        const bg = ttaHeatColor(pct);
+        return `<td><div class="tta-heat-cell${v===0?' zero':''}"${bg?` style="background:${bg};"`:''}>${v}</div></td>`;
+      }).join('');
+      return `<tr><td class="tta-heat-name" style="font-size:10px;">${esc3(p.time)}${p.brk?' <span style="opacity:.6;">(break)</span>':''}</td>${cells}</tr>`;
+    }).join('');
+    box.innerHTML = `<table class="tta-heat-table"><thead>${head}</thead><tbody>${body}</tbody></table>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:8px;">Cell = teachers occupied out of ${d.teacherCount} tracked. Darker red = closer to every teacher being booked at once.</div>`;
+  }
+
+  function ttaTableColumns(){
+    return [
+      { key:'name', label:'Teacher', numeric:false },
+      { key:'total', label:'Lessons/Wk', numeric:true },
+      { key:'loadPct', label:'Load %', numeric:true },
+      { key:'subjectCount', label:'Subjects', numeric:true },
+      { key:'gradeCount', label:'Grades', numeric:true },
+      { key:'busiestDay', label:'Busiest Day', numeric:false },
+      { key:'freeSlots', label:'Free Slots', numeric:true }
+    ];
+  }
+  function renderTtaTableTab(d){
+    const cols = ttaTableColumns();
+    const dir = ttaTableSort.dir === 'asc' ? 1 : -1;
+    const sorted = [...d.rows].sort((a,b)=>{
+      const av = a[ttaTableSort.key], bv = b[ttaTableSort.key];
+      if(typeof av === 'string') return av.localeCompare(bv) * dir;
+      return (av - bv) * dir;
+    });
+    const table = document.getElementById('tta-table');
+    table.innerHTML = `<thead><tr>${cols.map(c=>{
+      const active = ttaTableSort.key === c.key;
+      return `<th class="sortable" data-sort-key="${c.key}">${esc3(c.label)}${active ? `<span class="sort-arrow">${ttaTableSort.dir==='asc'?'▲':'▼'}</span>` : ''}</th>`;
+    }).join('')}</tr></thead>
+    <tbody>${sorted.length ? sorted.map(r=>`<tr>
+      <td>${esc3(r.name)}</td>
+      <td>${r.total}</td>
+      <td>${Math.round(r.loadPct*100)}%</td>
+      <td>${r.subjectCount}</td>
+      <td>${r.gradeCount}</td>
+      <td>${esc3(r.busiestDay)}</td>
+      <td>${r.freeSlots}</td>
+    </tr>`).join('') : `<tr><td colspan="${cols.length}" style="text-align:center;color:var(--text3);">No timetable data yet for ${esc3(d.conf.label)}.</td></tr>`}</tbody>`;
+    table.querySelectorAll('th.sortable').forEach(th=>{
+      th.addEventListener('click', ()=>{
+        const key = th.dataset.sortKey;
+        if(ttaTableSort.key === key){ ttaTableSort.dir = ttaTableSort.dir === 'asc' ? 'desc' : 'asc'; }
+        else{ ttaTableSort = { key, dir: 'desc' }; }
+        renderTtaTableTab(d);
+      });
+    });
+  }
+
+  function ttaSwitchTab(tab){
+    document.querySelectorAll('#tt-analytics-card [data-tta-tab]').forEach(chip=>chip.classList.toggle('active', chip.dataset.ttaTab===tab));
+    ['ranking','heatmap','subjects','density','table'].forEach(t=>{
+      const panel = document.getElementById(`tta-panel-${t}`);
+      if(panel) panel.style.display = t===tab ? '' : 'none';
+    });
+  }
+  document.querySelectorAll('#tt-analytics-card [data-tta-tab]').forEach(chip=>{
+    chip.addEventListener('click', ()=>ttaSwitchTab(chip.dataset.ttaTab));
+  });
+  document.getElementById('tta-export-btn').addEventListener('click', ()=>{
+    if(!ttaData || !ttaData.rows.length){ toast('Nothing to export yet.', 'warning'); return; }
+    const cols = ttaTableColumns();
+    exportRowsToCsv(
+      `Workload_${ttaData.conf.label.replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_')}.csv`,
+      cols.map(c=>c.label),
+      ttaData.rows.map(r=>cols.map(c=>c.key==='loadPct' ? Math.round(r.loadPct*100)+'%' : r[c.key]))
+    );
+  });
+
+  async function renderWorkloadAnalytics(section){
+    const kpiBox = document.getElementById('tta-kpis');
+    if(!kpiBox) return; // view already navigated away
+    ttaData = await computeWorkloadData(section);
+    renderTtaKpisAndAlerts(ttaData);
+    renderTtaRankingTab(ttaData);
+    renderTtaHeatmapTab(ttaData);
+    renderTtaSubjectsTab(ttaData);
+    renderTtaDensityTab(ttaData);
+    renderTtaTableTab(ttaData);
+  }
+
   sectionSel.addEventListener('change', async ()=>{
     await loadTeacherList(sectionSel.value);
     await renderGrid();
     loadClassList(sectionSel.value);
     await renderClassGrid();
+    renderWorkloadAnalytics(sectionSel.value);
   });
   teacherSel.addEventListener('change', renderGrid);
   classSel.addEventListener('change', renderClassGrid);
@@ -4165,6 +4564,7 @@ VR3['timetable'] = async function(area){
   await renderGrid();
   loadClassList(sectionSel.value);
   await renderClassGrid();
+  renderWorkloadAnalytics(sectionSel.value);
 };
 
 /* ══════════════════════════════════════════
@@ -5533,4 +5933,5 @@ window.addEventListener('ktp:ready', ()=>{ window._navTo('dashboard'); });
 </script>
     <script src="http://kanyadet-school-portal.web.app/js/landingNotifications.js" ></script>
 
-</body></html>
+</body>
+</html>
