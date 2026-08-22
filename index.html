@@ -2578,7 +2578,7 @@
     function renderDashUpcomingEvents(){
       const box = $('dash-upcoming-events');
       if(!box) return;
-      const upcoming = upcomingCalendarEvents(30).slice(0,5);
+      const upcoming = upcomingCalendarEvents(null).slice(0,5);
       if(!upcoming.length){
         box.innerHTML = '<div class="empty-state"><div class="es-icon">🗓️</div><div class="es-title">No upcoming events</div><div class="muted">Add term dates, exams, or meetings from the Calendar.</div></div>';
         return;
