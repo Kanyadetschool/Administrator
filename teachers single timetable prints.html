@@ -2763,43 +2763,11 @@ function esc3(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&a
 // from the same system. Always landscape (a timetable grid is wide, not
 // tall). Draws the grid as real table cells instead of a screenshot, so text
 // stays crisp and selectable at any zoom.
-
-// Loads ./images/logo.png once and caches it as a PNG data URL for
-// doc.addImage (jsPDF can't add an <img src> directly, only base64/data
-// URLs). Resolves to null instead of throwing if the logo is missing or
-// fails to load, so a missing file never blocks PDF generation — the header
-// just prints without it.
-let _schoolLogoDataUrlPromise = null;
-function getSchoolLogoDataUrl(){
-  if(_schoolLogoDataUrlPromise) return _schoolLogoDataUrlPromise;
-  _schoolLogoDataUrlPromise = new Promise((resolve)=>{
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = ()=>{
-      try{
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
-        canvas.getContext('2d').drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
-      }catch(e){ resolve(null); }
-    };
-    img.onerror = ()=> resolve(null);
-    img.src = './images/logo.png';
-  });
-  return _schoolLogoDataUrlPromise;
-}
-
-// Draws one timetable grid onto the CURRENT page of an already-created jsPDF
-// doc. Shared by exportTimetablePdf (single, standalone save) and
-// exportBulkTimetablePdf (many, one page each, one save at the end) so a
-// bulk PDF's pages look identical to an individually-downloaded one.
-function drawTimetablePage(doc, { subtitle, metaLines, days, periods, getCell, cellLine1, cellLine2, logoDataUrl, showStampFooter }){
+function exportTimetablePdf({ subtitle, metaLines, days, periods, getCell, cellLine1, cellLine2, filenameBase }){
+  if(!window.jspdf){ toast('The PDF library is still loading — try again in a moment.', 'warning'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-
-  if(logoDataUrl){
-    try{ doc.addImage(logoDataUrl, 'PNG', 28, 12, 36, 36); }catch(e){}
-  }
 
   doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
@@ -2841,59 +2809,6 @@ function drawTimetablePage(doc, { subtitle, metaLines, days, periods, getCell, c
     }
   });
 
-  // Stamp/signature footer — class timetables only (personal teacher
-  // timetables don't get this), and worded as a recommendation rather than
-  // a requirement. Fixed a set distance from the bottom so it lands in the
-  // same place on every page regardless of how many table rows came before.
-  if(showStampFooter){
-    const footerLineY = pageHeight - 46;
-    doc.setDrawColor(120);
-    doc.setLineWidth(0.7);
-    doc.line(28, footerLineY, 230, footerLineY);
-    doc.setFontSize(8.5);
-    doc.setFont(undefined, 'normal');
-    doc.setTextColor(80);
-    doc.text("Head Teacher's Signature & Date", 28, footerLineY + 11);
-
-    const stampW = 140, stampH = 46;
-    const stampX = pageWidth - 28 - stampW;
-    const stampY = footerLineY - stampH + 10;
-    doc.setDrawColor(140);
-    if(doc.setLineDash) doc.setLineDash([3,2], 0);
-    doc.rect(stampX, stampY, stampW, stampH);
-    if(doc.setLineDash) doc.setLineDash([]);
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text('SCHOOL STAMP', stampX + stampW/2, stampY + stampH/2, { align:'center' });
-
-    doc.setFontSize(7.5);
-    doc.setTextColor(130);
-    doc.text('Recommended: sign and stamp for official use.', pageWidth/2, pageHeight - 15, { align:'center' });
-    doc.setTextColor(0);
-  }
-}
-async function exportTimetablePdf({ subtitle, metaLines, days, periods, getCell, cellLine1, cellLine2, filenameBase, showStampFooter }){
-  if(!window.jspdf){ toast('The PDF library is still loading — try again in a moment.', 'warning'); return; }
-  const { jsPDF } = window.jspdf;
-  const logoDataUrl = await getSchoolLogoDataUrl();
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-  drawTimetablePage(doc, { subtitle, metaLines, days, periods, getCell, cellLine1, cellLine2, logoDataUrl, showStampFooter });
-  doc.save(`${filenameBase}.pdf`);
-}
-// Bulk export — one PDF, one page per entry in `pages` (each shaped like the
-// object passed to drawTimetablePage above), in the order given. Used for
-// "print all teachers" / "print all classes" so office staff can download a
-// single file to print for a whole section instead of one-by-one.
-async function exportBulkTimetablePdf(pages, filenameBase){
-  if(!window.jspdf){ toast('The PDF library is still loading — try again in a moment.', 'warning'); return; }
-  if(!pages || !pages.length){ toast('Nothing to print.', 'warning'); return; }
-  const { jsPDF } = window.jspdf;
-  const logoDataUrl = await getSchoolLogoDataUrl();
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-  pages.forEach((page, i)=>{
-    if(i > 0) doc.addPage();
-    drawTimetablePage(doc, { ...page, logoDataUrl });
-  });
   doc.save(`${filenameBase}.pdf`);
 }
 function myGrades3(){ const p = window._profile||{}; if(p.Advancedadmin) return ALL_GRADES; return (Array.isArray(p.assignedGrades)&&p.assignedGrades.length) ? p.assignedGrades : (p.assignedGrade?[p.assignedGrade]:[]); }
@@ -3279,7 +3194,6 @@ VR3['timetable'] = async function(area){
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
           ${admin ? `<button class="btn btn-outline btn-sm" id="tt-title-edit-btn" style="padding:2px 8px;font-size:11px;">✏️ Edit Title</button>` : ''}
           <button class="btn btn-outline btn-sm" id="tt-print-btn" style="padding:2px 8px;font-size:11px;">🖨️ Download PDF</button>
-          <button class="btn btn-outline btn-sm" id="tt-print-all-btn" style="padding:2px 8px;font-size:11px;">🖨️ Print All Teachers</button>
         </div>
       </div>
       <div class="card-hdr"><div class="card-title" id="ttv-title">—</div></div>
@@ -3298,10 +3212,7 @@ VR3['timetable'] = async function(area){
     <div class="card" id="ct-print-card">
       <div class="card-hdr" style="border-bottom:1px solid var(--border); background-color:var(--bg2); padding:10px; border-radius:6px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
         <div class="card-title" id="ctv-title" style="font-size:14px;">—</div>
-        <div style="display:flex;gap:8px;flex-shrink:0;">
-          <button class="btn btn-outline btn-sm" id="ct-print-btn" style="padding:2px 8px;font-size:11px;">🖨️ Download PDF</button>
-          <button class="btn btn-outline btn-sm" id="ct-print-all-btn" style="padding:2px 8px;font-size:11px;">🖨️ Print All Classes</button>
-        </div>
+        <button class="btn btn-outline btn-sm" id="ct-print-btn" style="padding:2px 8px;font-size:11px;flex-shrink:0;">🖨️ Download PDF</button>
       </div>
       <div style="overflow-x:auto;"><div class="ttv-grid" id="ctv-grid"></div><br></div>
     </div>`;
@@ -3962,7 +3873,7 @@ VR3['timetable'] = async function(area){
       const snap = await rtGet(ref(rtdb, `${TEACHER_TT_PATH}/${section}/${ttKey(teacherName)}/days`));
       const data = snap.exists() ? snap.val() : {};
       const safeName = String(teacherName).replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_') || 'timetable';
-      await exportTimetablePdf({
+      exportTimetablePdf({
         subtitle: ttTitle || 'TERM III 2026 CLASS PERSONAL TIMETABLE',
         metaLines: [`Teacher: ${teacherName}`, `Section: ${conf.label}`],
         days, periods,
@@ -3989,76 +3900,15 @@ VR3['timetable'] = async function(area){
       const snap = await rtGet(ref(rtdb, `${CLASS_TT_PATH}/${section}/${ttKey(className)}/days`));
       const data = snap.exists() ? snap.val() : {};
       const safeName = String(className).replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_') || 'class-timetable';
-      await exportTimetablePdf({
+      exportTimetablePdf({
         subtitle: `${ttTitle || 'TERM III 2026 CLASS TIMETABLE'} — Class View`,
         metaLines: [`Class: ${className}`, `Section: ${conf.label}`],
         days, periods,
         getCell: (dk,i)=> (data[dk]||{})[i] || null,
         cellLine1: cell=> cell.subject||'',
         cellLine2: cell=> cell.teacher||'',
-        filenameBase: `ClassTimetable_${safeName}_${section}`,
-        showStampFooter: true
+        filenameBase: `ClassTimetable_${safeName}_${section}`
       });
-    }catch(e){ toast('Could not generate PDF: '+e.message, 'error'); }
-    finally{ btn.textContent = origText; btn.disabled = false; }
-  });
-
-  // Bulk print — every teacher currently listed for this section, one page
-  // each, in a single PDF (in the same order shown in the teacher dropdown).
-  document.getElementById('tt-print-all-btn').addEventListener('click', async ()=>{
-    const names = Array.from(teacherSel.options).map(o=>o.value).filter(Boolean);
-    if(!names.length){ toast('No teachers found for this section.', 'warning'); return; }
-    const btn = document.getElementById('tt-print-all-btn');
-    const origText = btn.textContent;
-    btn.textContent = '⏳ Generating…'; btn.disabled = true;
-    try{
-      const section = sectionSel.value;
-      const conf = TT_SECTIONS[section];
-      const periods = effectivePeriods(section);
-      const days = effectiveDays(section);
-      const pages = await Promise.all(names.map(async teacherName=>{
-        const snap = await rtGet(ref(rtdb, `${TEACHER_TT_PATH}/${section}/${ttKey(teacherName)}/days`));
-        const data = snap.exists() ? snap.val() : {};
-        return {
-          subtitle: ttTitle || 'TERM III 2026 CLASS PERSONAL TIMETABLE',
-          metaLines: [`Teacher: ${teacherName}`, `Section: ${conf.label}`],
-          days, periods,
-          getCell: (dk,i)=> (data[dk]||{})[i] || null,
-          cellLine1: cell=> cell.grade||'',
-          cellLine2: cell=> cell.subject||''
-        };
-      }));
-      await exportBulkTimetablePdf(pages, `Timetables_All_Teachers_${section}`);
-    }catch(e){ toast('Could not generate PDF: '+e.message, 'error'); }
-    finally{ btn.textContent = origText; btn.disabled = false; }
-  });
-
-  // Bulk print — every class in this section, one page each, in a single PDF.
-  document.getElementById('ct-print-all-btn').addEventListener('click', async ()=>{
-    const classNames = Array.from(classSel.options).map(o=>o.value).filter(Boolean);
-    if(!classNames.length){ toast('No classes found for this section.', 'warning'); return; }
-    const btn = document.getElementById('ct-print-all-btn');
-    const origText = btn.textContent;
-    btn.textContent = '⏳ Generating…'; btn.disabled = true;
-    try{
-      const section = sectionSel.value;
-      const conf = TT_SECTIONS[section];
-      const periods = effectivePeriods(section);
-      const days = effectiveDays(section);
-      const pages = await Promise.all(classNames.map(async className=>{
-        const snap = await rtGet(ref(rtdb, `${CLASS_TT_PATH}/${section}/${ttKey(className)}/days`));
-        const data = snap.exists() ? snap.val() : {};
-        return {
-          subtitle: `${ttTitle || 'TERM III 2026 CLASS TIMETABLE'} — Class View`,
-          metaLines: [`Class: ${className}`, `Section: ${conf.label}`],
-          days, periods,
-          getCell: (dk,i)=> (data[dk]||{})[i] || null,
-          cellLine1: cell=> cell.subject||'',
-          cellLine2: cell=> cell.teacher||'',
-          showStampFooter: true
-        };
-      }));
-      await exportBulkTimetablePdf(pages, `ClassTimetables_All_${section}`);
     }catch(e){ toast('Could not generate PDF: '+e.message, 'error'); }
     finally{ btn.textContent = origText; btn.disabled = false; }
   });
