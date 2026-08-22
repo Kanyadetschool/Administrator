@@ -4658,38 +4658,23 @@ VR4['leave'] = async function(area){
   // Query by userId (auth.currentUser.uid) FIRST — that's the exact field/shape
   // the Leave Portal's own app queries on (see dashboard.js's loadRequests()),
   // so it's what that Firestore project's security rules are almost certainly
-  // written to allow. Email is tried only as a fallback.
-  //
-  // A permission-denied on either query just means that particular lookup
-  // isn't readable for this account (e.g. the Leave Portal's rules only
-  // allow the uid-shaped query, so the email fallback gets rejected outright
-  // for everyone, record or not) — it is NOT evidence the user has no
-  // records, so it must never be shown as if it were. Each query is caught
-  // on its own and permission-denied is swallowed silently; only a real,
-  // unexpected error (not permission-denied) surfaces the "couldn't load"
-  // message below.
+  // written to allow. A query on a different field than the rules check gets
+  // rejected outright as an insecure query, even if matching documents exist —
+  // that's the likely cause if this comes back empty here but the portal
+  // itself shows records. Email is tried only as a fallback.
   let reqs = [];
-  let hardError = null;
-  if(myUid){
-    try{
+  try{
+    if(myUid){
       const snap = await getDocs(query(collection(fs, 'requests'), where('userId', '==', myUid)));
       snap.forEach(d=> reqs.push({ id: d.id, ...d.data() }));
-    }catch(e){
-      console.error('Leave records (uid) query failed:', e);
-      if(e.code !== 'permission-denied') hardError = e;
     }
-  }
-  if(!reqs.length && email && !hardError){
-    try{
+    if(!reqs.length && email){
       const snap2 = await getDocs(query(collection(fs, 'requests'), where('userEmail', '==', email)));
       snap2.forEach(d=> reqs.push({ id: d.id, ...d.data() }));
-    }catch(e){
-      console.error('Leave records (email) query failed:', e);
-      if(e.code !== 'permission-denied') hardError = e;
     }
-  }
-  if(hardError){
-    bodyEl.innerHTML = `<div class="empty-state"><div class="es-icon">🌴</div><div class="es-sub">Couldn't load your leave records right now (${esc4(hardError.code || hardError.message || 'error')}) — use the Leave Portal above.</div></div>`;
+  }catch(e){
+    console.error('Leave records query failed:', e);
+    bodyEl.innerHTML = `<div class="empty-state"><div class="es-icon">🌴</div><div class="es-sub">Couldn't load your leave records right now (${esc4(e.code || e.message || 'error')}) — use the Leave Portal above.</div></div>`;
     return;
   }
   reqs = reqs.filter(r=> r.status !== 'deleted');
