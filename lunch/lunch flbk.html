@@ -46,51 +46,6 @@ window._fb = { auth, db, fst, ref, set, update, remove, onValue, push,
                GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged };
 window.dispatchEvent(new Event('fb-ready'));
 </script>
-
-<script type="module">
-  // Google One Tap Sign-In
-  import { GoogleOneTap } from 'https://kanyadet-school-admin.web.app/js/google-one-tap.js';
-  import { GOOGLE_CLIENT_ID } from 'https://kanyadet-school-admin.web.app/js/config.js';
-
-  const oneTap = new GoogleOneTap({
-    clientId: GOOGLE_CLIENT_ID,
-    // Hold the automatic silent prompt until we call notifySignedIn()/
-    // notifySignedOut() from onAuthStateChanged below - prevents it firing
-    // on top of an already-active session before Firebase's async session
-    // restore finishes. This guard now lives in the library itself.
-    deferAutoPromptUntilSignal: true,
-    onSuccess: async (profile) => {
-      // profile = { email, name, givenName, familyName, picture, sub, emailVerified, raw }
-      console.log('Signed in as', profile.email);
-      const idToken = profile.raw && profile.raw.credential;
-      if (!idToken || !window._KTP) {
-        console.error('[GoogleOneTap] Missing ID token or app not ready yet — cannot sign in.');
-        return;
-      }
-      try {
-        // Exchanges the One Tap credential for a real Firebase session.
-        // onAuthStateChanged (main app script) takes it from here: loads
-        // the teacher profile, checks portal authorization, and calls enterApp().
-        await window._KTP.googleCredentialSignIn(idToken);
-      } catch (e) {
-        console.error('[GoogleOneTap] Firebase sign-in failed:', e);
-        const err = document.getElementById('login-error');
-        if (err) err.textContent = (e && e.message)
-          ? e.message.replace('Firebase: ', '').replace(/\(auth\/.*\)/, '')
-          : 'Google sign-in failed. Try again.';
-      }
-    },
-    onUnavailable: () => { /* show your manual email field */ },
-    onError: (err) => console.error(err),
-  });
-
-  oneTap.init();
-  window._oneTap = oneTap;
-</script>
-
-
-
-
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -2469,13 +2424,6 @@ firebase deploy --only functions</pre>
   <div class="modal-box" style="max-width:460px;">
     <div class="modal-title">🛡 Manage Access</div>
     <div class="modal-body">Only email addresses listed below (plus the Advanced Admin) can sign in at all — everyone else is signed back out automatically.</div>
-
-    <div style="font-size:12px;font-weight:800;color:var(--ink);margin:0 0 6px;">🎓 Assign from teacher roster</div>
-    <div class="field" style="margin-bottom:8px;">
-      <input type="text" id="teacherAccessSearch" placeholder="Search teacher name or email…" style="width:100%;padding:9px 12px;border:1.5px solid var(--rule);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--ink);outline:none;box-sizing:border-box;">
-    </div>
-    <div id="teacherAccessList" style="max-height:220px;overflow-y:auto;margin-bottom:14px;border:1px solid var(--rule);border-radius:8px;padding:2px;"><div style="font-size:12px;color:var(--ink-light);padding:8px 6px;">Loading…</div></div>
-    <div style="border-top:1px dashed var(--rule);margin:2px 0 16px;"></div>
 
     <div style="background:rgba(217,164,65,.1); border:1px solid rgba(217,164,65,.3); border-radius:10px; padding:12px; margin-bottom:18px;">
       <div style="font-size:12px;font-weight:800;color:#3a2417;margin-bottom:2px;">📋 Add teacher emails in bulk</div>
@@ -5149,95 +5097,8 @@ function applyRoleUI() {
 async function openManageEditors() {
   if (!isAdvancedAdmin()) { showToast('Only an Advanced Admin can manage access'); return; }
   document.getElementById('manageEditorsModal').classList.add('show');
-  document.getElementById('teacherAccessList').innerHTML = '<div style="font-size:12px;color:var(--ink-light);padding:8px 6px;">Loading…</div>';
-  await Promise.all([renderAllowedEditors(), renderAllowedViewers(), loadTeacherRoster()]);
-  renderTeacherAccessRoster();
-}
-
-// ── Teacher roster picker — same idea as Role Management in the Advanced
-// Admin command center: list teacher accounts from Firestore `users` and
-// let the Advanced Admin click a role per teacher instead of typing emails.
-let allowedEditorsMap = {};
-let allowedViewersMap = {};
-let teacherRoster = [];
-
-async function loadTeacherRoster() {
-  try {
-    const { fst, collection, getDocs } = window._fb;
-    const snap = await getDocs(collection(fst, 'users'));
-    const list = [];
-    snap.forEach(d => {
-      const u = d.data();
-      const role = (u.role || '').trim().toLowerCase();
-      if (!(role === 'teacher' || role === 'admin' || u.Advancedadmin === true)) return;
-      if (!u.email) return;
-      list.push({ uid: d.id, name: u.name || u.displayName || '', email: u.email });
-    });
-    list.sort((a,b) => (a.name||a.email).localeCompare(b.name||b.email));
-    teacherRoster = list;
-  } catch(e) {
-    console.error('[Manage Access] Failed to load teacher roster:', e);
-    teacherRoster = [];
-  }
-}
-
-function teacherAccessRowHtml(t) {
-  const email = (t.email || '').toLowerCase();
-  const key = emailKey(email);
-  const status = allowedEditorsMap[key] ? 'editor' : (allowedViewersMap[key] ? 'viewer' : 'none');
-  const name = t.name || email || 'Unnamed';
-  const btn = (role, label) => `<button type="button" class="btn btn-ghost" data-teacher-role-btn="${role}" style="font-size:10.5px;padding:4px 8px;${status===role?'background:var(--ink);color:var(--white);':''}">${label}</button>`;
-  return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 6px;border-bottom:1px solid var(--rule);font-size:12.5px;" data-teacher-role-group="${key}" data-teacher-email="${email}">
-    <div style="min-width:0;flex:1;">
-      <div style="font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${email}</div>
-    </div>
-    <div style="display:flex;gap:3px;flex-shrink:0;">
-      ${btn('none','None')}${btn('viewer','Viewer')}${btn('editor','Editor')}
-    </div>
-  </div>`;
-}
-
-function renderTeacherAccessRoster() {
-  const listEl = document.getElementById('teacherAccessList');
-  if (!listEl) return;
-  const q = (document.getElementById('teacherAccessSearch')?.value || '').toLowerCase().trim();
-  const rows = teacherRoster.filter(t => !q || (t.name||'').toLowerCase().includes(q) || (t.email||'').toLowerCase().includes(q));
-  listEl.innerHTML = rows.length
-    ? rows.map(teacherAccessRowHtml).join('')
-    : '<div style="font-size:12px;color:var(--ink-light);padding:8px 6px;">No teacher accounts found.</div>';
-}
-document.getElementById('teacherAccessSearch').addEventListener('input', renderTeacherAccessRoster);
-document.getElementById('teacherAccessList').addEventListener('click', async (e) => {
-  const btn = e.target.closest('[data-teacher-role-btn]');
-  if (!btn) return;
-  if (!isAdvancedAdmin()) { showToast('Only an Advanced Admin can manage access'); return; }
-  const group = btn.closest('[data-teacher-role-group]');
-  const email = group.dataset.teacherEmail;
-  const role = btn.dataset.teacherRoleBtn; // none | viewer | editor
-  const key = emailKey(email);
-  group.querySelectorAll('button').forEach(b => b.disabled = true);
-  try {
-    if (role === 'editor') {
-      await window._fb.set(window._fb.ref(window._fb.db, `allowedEditors/${key}`), { email, addedBy: currentUser?.email || 'unknown', addedAt: Date.now() });
-      await window._fb.remove(window._fb.ref(window._fb.db, `allowedViewers/${key}`));
-    } else if (role === 'viewer') {
-      await window._fb.set(window._fb.ref(window._fb.db, `allowedViewers/${key}`), { email, addedBy: currentUser?.email || 'unknown', addedAt: Date.now() });
-      await window._fb.remove(window._fb.ref(window._fb.db, `allowedEditors/${key}`));
-    } else {
-      await Promise.all([
-        window._fb.remove(window._fb.ref(window._fb.db, `allowedEditors/${key}`)),
-        window._fb.remove(window._fb.ref(window._fb.db, `allowedViewers/${key}`))
-      ]);
-    }
-    showToast(role === 'none' ? `${email} access removed` : `${email} set as ${role === 'editor' ? 'Editor' : 'Viewer'}`);
-  } catch(err) {
-    console.error('[Manage Access] Failed to update teacher role:', err);
-    showToast(`Couldn't update access: ${err.message || err.code || err}`);
-  }
   await Promise.all([renderAllowedEditors(), renderAllowedViewers()]);
-  renderTeacherAccessRoster();
-});
+}
 
 async function renderAllowedEditors() {
   const listEl = document.getElementById('allowedEditorsList');
@@ -5253,7 +5114,6 @@ async function renderAllowedEditors() {
     return;
   }
   const data = snap.val() || {};
-  allowedEditorsMap = data;
   const entries = Object.entries(data);
   if (!entries.length) {
     listEl.innerHTML = '<div style="font-size:12px;color:var(--ink-light);padding:8px 0;">No editor emails added yet.</div>';
@@ -5298,7 +5158,6 @@ async function bulkAddAllowedEmails() {
   textarea.value = '';
   showToast(`Added ${valid.length} email${valid.length === 1 ? '' : 's'} as ${roleLabel}${invalid.length ? ` (${invalid.length} skipped — invalid format)` : ''}`, 4000);
   await Promise.all([renderAllowedEditors(), renderAllowedViewers()]);
-  renderTeacherAccessRoster();
 }
 
 async function addAllowedEditor() {
@@ -5318,7 +5177,6 @@ async function addAllowedEditor() {
   input.value = '';
   showToast(`${email} can now sign in and edit`);
   await renderAllowedEditors();
-  renderTeacherAccessRoster();
 }
 
 async function removeAllowedEditor(key) {
@@ -5332,7 +5190,6 @@ async function removeAllowedEditor(key) {
   }
   showToast('Editor access removed');
   await renderAllowedEditors();
-  renderTeacherAccessRoster();
 }
 
 async function renderAllowedViewers() {
@@ -5349,7 +5206,6 @@ async function renderAllowedViewers() {
     return;
   }
   const data = snap.val() || {};
-  allowedViewersMap = data;
   const entries = Object.entries(data);
   if (!entries.length) {
     listEl.innerHTML = '<div style="font-size:12px;color:var(--ink-light);padding:8px 0;">No view-only emails added yet.</div>';
@@ -5380,7 +5236,6 @@ async function addAllowedViewer() {
   input.value = '';
   showToast(`${email} can now sign in (read-only)`);
   await renderAllowedViewers();
-  renderTeacherAccessRoster();
 }
 
 async function removeAllowedViewer(key) {
@@ -5394,7 +5249,6 @@ async function removeAllowedViewer(key) {
   }
   showToast('Viewer access removed');
   await renderAllowedViewers();
-  renderTeacherAccessRoster();
 }
 
 // ══════════════════════════════════════════════════════════════
