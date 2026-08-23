@@ -304,6 +304,8 @@ tbody td{padding:10px 13px;vertical-align:middle;color:var(--text);}
 .badge{display:inline-flex;padding:3px 8px;border-radius:10px;font-size:10.5px;font-weight:700;font-family:'JetBrains Mono',monospace;}
 .badge-results{background:rgba(41,128,185,.15);color:var(--blue-lt);}
 .badge-birth{background:rgba(39,174,96,.15);color:#4dbb77;}
+.badge-new{background:rgba(243,156,18,.18);color:var(--gold);}
+.badge-existing{background:var(--surface3);color:var(--text3);}
 .preview-empty{padding:36px;text-align:center;color:var(--text3);font-size:14px;}
 .count-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
 .count-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 11px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text2);}
@@ -730,7 +732,7 @@ tbody td{padding:10px 13px;vertical-align:middle;color:var(--text);}
         </div>
         <div class="card-body">
           <div class="info-box teal">
-            <strong>How it works:</strong> Select the grade, then upload the "Learners Per Grade Per Institution" report. Each row's <em>KCPE/KCSE Index Number</em> is matched against that grade's <em>Assessment No.</em> independently in each selected database, and the matching student's <strong>UPI</strong> field is set to the row's <em>ULI</em> value. Records where UPI is already correct are skipped automatically. Always <em>Preview</em> before running the update.
+            <strong>How it works:</strong> Select the grade, then upload the "Learners Per Grade Per Institution" report. Each row's <em>KCPE/KCSE Index Number</em> is matched against that grade's <em>Assessment No.</em> independently in each selected database, and the matching student's <strong>UPI</strong> field is set to the row's <em>ULI</em> value. If a row has no matching student in a selected database, a <strong>new student record</strong> is created there (Name, Assessment No., Grade, and UPI). Records where UPI is already correct are skipped automatically. Always <em>Preview</em> before running the update.
           </div>
 
           <div class="uli-controls">
@@ -770,6 +772,30 @@ tbody td{padding:10px 13px;vertical-align:middle;color:var(--text);}
               <span id="uli-update-icon">⚡</span> Run Update
             </button>
             <button class="btn btn-clear" onclick="clearUliPanel()">✕ Clear</button>
+            <button class="btn btn-preview" id="uli-btn-history" onclick="loadUliNewHistory()">
+              <span id="uli-history-icon">📜</span> New Students History
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-section" id="uli-history-section">
+        <div class="card">
+          <div class="card-head" style="background:linear-gradient(135deg,var(--teal),#0e6655);">
+            <div class="card-head-icon" style="background:rgba(255,255,255,.2);">🕘</div>
+            <div>
+              <div class="card-head-title">New Students Added \u2014 History</div>
+              <div class="card-head-sub" id="uli-history-sub">0 records</div>
+            </div>
+          </div>
+          <div class="card-body" style="padding:18px;">
+            <div class="preview-table-wrap">
+              <table>
+                <thead><tr><th>#</th><th>Student Name</th><th>Assessment No.</th><th>Grade</th><th>Database</th><th>Added On</th></tr></thead>
+                <tbody id="uli-history-tbody"></tbody>
+              </table>
+              <div class="preview-empty" id="uli-history-empty" style="display:none;">No new students recorded yet.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -787,7 +813,7 @@ tbody td{padding:10px 13px;vertical-align:middle;color:var(--text);}
             <div class="count-row" id="uli-count-row"></div>
             <div class="preview-table-wrap">
               <table>
-                <thead><tr><th>#</th><th>Student Name</th><th>Assessment No.</th><th>Old UPI</th><th>New ULI</th><th>Database</th><th>Key</th></tr></thead>
+                <thead><tr><th>#</th><th>Student Name</th><th>Assessment No.</th><th>Old UPI</th><th>New ULI</th><th>Status</th><th>Database</th><th>Key</th></tr></thead>
                 <tbody id="uli-tbody"></tbody>
               </table>
               <div class="preview-empty" id="uli-empty" style="display:none;">No matching records found.</div>
@@ -815,6 +841,15 @@ tbody td{padding:10px 13px;vertical-align:middle;color:var(--text);}
                 <div class="summary-stats" id="uli-sum-stats"></div>
               </div>
             </div>
+            <div id="uli-new-wrap" style="display:none;margin-top:16px;">
+              <div class="section-label" style="margin-bottom:10px;">\U0001f195 New Students Added</div>
+              <div class="preview-table-wrap">
+                <table>
+                  <thead><tr><th>#</th><th>Student Name</th><th>Assessment No.</th><th>Grade</th><th>Database</th></tr></thead>
+                  <tbody id="uli-new-tbody"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -830,7 +865,7 @@ tbody td{padding:10px 13px;vertical-align:middle;color:var(--text);}
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getDatabase, ref, get, update, onValue }
+import { getDatabase, ref, get, update, onValue, push, query, orderByChild, equalTo }
   from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
@@ -1453,24 +1488,35 @@ window.runUliPreview = async () => {
   try {
     if (!searchCache.records.length) await loadSearchCache();
 
-    // Candidate DB records for the selected grade + selected databases only.
-    // Matching is strictly by Assessment No. — independently in each selected DB.
-    const byAdm = {};
+    // Candidate DB records for the selected grade, indexed per selected DB —
+    // matching is strictly by Assessment No., independently in each DB.
+    const byDbAdm = {};
+    selectedDBs.forEach(dbCfg => { byDbAdm[dbCfg.checkboxIdPrefix] = {}; });
     searchCache.records.forEach(r => {
       const dbCfg = DB_CONFIGS[r.dbKey];
       if (!dbCfg || !selectedDBs.includes(dbCfg)) return;
       if ((r.grade || '').trim() !== grade) return;
       const admKey = (r.admNo || '').toLowerCase();
       if (!admKey) return;
-      (byAdm[admKey] = byAdm[admKey] || []).push({ r, dbCfg });
+      const bucket = byDbAdm[dbCfg.checkboxIdPrefix];
+      (bucket[admKey] = bucket[admKey] || []).push(r);
     });
 
-    const matches = [];
-    let unmatched = 0;
+    const matches = [];    // existing records to update
+    const newEntries = []; // rows with no record in a given selected DB — created there
+    let unmatchedAll = 0;  // rows with no record in ANY selected DB (fully new student)
     uliParsedRows.forEach(row => {
-      const hits = byAdm[row.admNo.toLowerCase()];
-      if (!hits || !hits.length) { unmatched++; return; }
-      hits.forEach(h => matches.push({ row, r: h.r, dbCfg: h.dbCfg }));
+      let matchedAny = false;
+      selectedDBs.forEach(dbCfg => {
+        const hits = byDbAdm[dbCfg.checkboxIdPrefix][row.admNo.toLowerCase()];
+        if (hits && hits.length) {
+          matchedAny = true;
+          hits.forEach(r => matches.push({ row, r, dbCfg }));
+        } else {
+          newEntries.push({ row, dbCfg });
+        }
+      });
+      if (!matchedAny) unmatchedAll++;
     });
 
     // Fetch each candidate's live record \u2014 the search cache only carries
@@ -1496,8 +1542,28 @@ window.runUliPreview = async () => {
         dbConfig: m.dbCfg,
         studentName: m.rec[m.dbCfg.nameField] || m.r.name,
         admNo: m.r.admNo,
+        grade,
         oldUpi: m.oldUpi || '\u2014',
-        newUli: m.row.uli
+        newUli: m.row.uli,
+        isNew: false
+      });
+    });
+
+    // New entries: generate a client-side push key for each (doesn't write
+    // anything yet — just reserves a unique id we can show in the preview
+    // and reuse verbatim in the actual write).
+    newEntries.forEach(m => {
+      const newKey = push(ref(db, m.dbCfg.path)).key;
+      state.uli.preview.push({
+        recordKey: newKey,
+        record: {},
+        dbConfig: m.dbCfg,
+        studentName: m.row.name || '\u2014',
+        admNo: m.row.admNo,
+        grade,
+        oldUpi: '\u2014',
+        newUli: m.row.uli,
+        isNew: true
       });
     });
 
@@ -1508,7 +1574,7 @@ window.runUliPreview = async () => {
     if (!total) {
       document.getElementById('uli-empty').style.display = 'block';
       document.getElementById('uli-preview-sub').textContent = 'No matching records found';
-      countRow.innerHTML = unmatched ? `<div class="count-chip"><b>${unmatched}</b> unmatched excel row(s)</div>` : '';
+      countRow.innerHTML = '';
     } else {
       state.uli.preview.forEach((item, i) => {
         const tr = document.createElement('tr');
@@ -1518,22 +1584,25 @@ window.runUliPreview = async () => {
           <td class="td-db" style="font-family:'JetBrains Mono',monospace;">${esc(item.admNo)}</td>
           <td class="td-old">${esc(item.oldUpi)}</td>
           <td class="td-new">${esc(item.newUli)}</td>
+          <td><span class="badge ${item.isNew ? 'badge-new' : 'badge-existing'}">${item.isNew ? '\U0001f195 NEW' : 'UPDATE'}</span></td>
           <td><span class="badge ${item.dbConfig.badgeClass}">${item.dbConfig.label}</span></td>
           <td class="td-key">${esc(item.recordKey)}</td>`;
         tbody.appendChild(tr);
       });
-      document.getElementById('uli-preview-sub').textContent = `${total} record${total!==1?'s':''} will be updated`;
+      const updateCount = state.uli.preview.filter(x => !x.isNew).length;
+      const newCount    = state.uli.preview.filter(x => x.isNew).length;
+      document.getElementById('uli-preview-sub').textContent =
+        `${updateCount} to update, ${newCount} new record${newCount!==1?'s':''} to create`;
       const byDB = {};
       state.uli.preview.forEach(x => { byDB[x.dbConfig.label] = (byDB[x.dbConfig.label]||0)+1; });
-      countRow.innerHTML =
-        Object.entries(byDB).map(([k,v]) => `<div class="count-chip"><b>${v}</b> in ${k}</div>`).join('')
-        + (unmatched ? `<div class="count-chip"><b>${unmatched}</b> unmatched excel row(s)</div>` : '');
+      countRow.innerHTML = Object.entries(byDB).map(([k,v]) => `<div class="count-chip"><b>${v}</b> in ${k}</div>`).join('')
+        + (newCount ? `<div class="count-chip"><b>${newCount}</b> new</div>` : '');
       document.getElementById('uli-btn-update').disabled = false;
     }
 
     document.getElementById('uli-preview-section').classList.add('on');
     document.getElementById('uli-log-section').classList.remove('on');
-    notify(`Preview: ${total} record(s) to update${unmatched ? `, ${unmatched} unmatched` : ''}.`, total ? 'success' : '');
+    notify(`Preview: ${total} record(s) ready (${newEntries.length ? state.uli.preview.filter(x=>x.isNew).length + ' new' : 'no new'}).`, total ? 'success' : '');
   } catch(e) {
     notify('Preview failed: ' + e.message, 'error');
     console.error(e);
@@ -1548,8 +1617,10 @@ window.runUliUpdate = async () => {
   if (!items.length) { notify('Run a preview first.', 'error'); return; }
 
   const grade = document.getElementById('uli-grade').value;
+  const newCount = items.filter(x => x.isNew).length;
+  const updCount = items.length - newCount;
   const confirmed = confirm(
-    `\u26a0\ufe0f You are about to set the UPI field on ${items.length} record(s) in Grade ${grade}.\n\n` +
+    `\u26a0\ufe0f You are about to update ${updCount} record(s) and create ${newCount} new record(s) in Grade ${grade}.\n\n` +
     `This cannot be automatically undone. Continue?`
   );
   if (!confirmed) return;
@@ -1564,7 +1635,7 @@ window.runUliUpdate = async () => {
   const logId = 'uli-log';
   document.getElementById(logId).innerHTML = '';
 
-  addLog(logId, `Starting ULI import \u2014 Grade ${grade}, ${items.length} record(s)`, 'bold');
+  addLog(logId, `Starting ULI import \u2014 Grade ${grade}, ${updCount} update(s), ${newCount} new record(s)`, 'bold');
   addLog(logId, `Across ${[...new Set(items.map(x=>x.dbConfig.label))].join(', ')}`, 'info');
   addLog(logId, '\u2500'.repeat(50), 'info');
 
@@ -1576,13 +1647,22 @@ window.runUliUpdate = async () => {
   items.forEach((item, i) => {
     const { dbConfig, recordKey } = item;
     const path = `${dbConfig.path}/${recordKey}`;
-    batch[`${path}/${dbConfig.upiField}`] = item.newUli;
+
+    if (item.isNew) {
+      // Brand-new student in this DB: write the full minimal record.
+      batch[`${path}/${dbConfig.nameField}`] = item.studentName;
+      batch[`${path}/${dbConfig.assessmentField}`] = item.admNo;
+      batch[`${path}/${dbConfig.gradeField}`] = item.grade;
+      batch[`${path}/${dbConfig.upiField}`] = item.newUli;
+    } else {
+      batch[`${path}/${dbConfig.upiField}`] = item.newUli;
+    }
 
     const auditKey = `AuditLog/${auditTs}_uli_${i}`;
     auditBatch[auditKey] = {
       timestamp: auditTs,
       user: auditUser,
-      action: 'uli_import',
+      action: item.isNew ? 'uli_import_new' : 'uli_import',
       field: 'UPI',
       fieldKey: dbConfig.upiField,
       dbLabel: dbConfig.label,
@@ -1590,7 +1670,8 @@ window.runUliUpdate = async () => {
       recordKey,
       studentName: item.studentName || '',
       assessmentNo: item.admNo,
-      oldValue: item.oldUpi === '\u2014' ? '' : item.oldUpi,
+      grade: item.grade || grade,
+      oldValue: item.isNew ? '' : (item.oldUpi === '\u2014' ? '' : item.oldUpi),
       newValue: item.newUli
     };
   });
@@ -1600,7 +1681,11 @@ window.runUliUpdate = async () => {
     await update(ref(db), batch);
     ok = items.length;
     items.forEach(item => {
-      addLog(logId, `\u2713 [${item.dbConfig.label}] ${item.studentName || item.recordKey}  ${item.oldUpi} \u2192 ${item.newUli}`, 'ok');
+      if (item.isNew) {
+        addLog(logId, `\U0001f195 [${item.dbConfig.label}] ${item.studentName}  new record \u2014 UPI: ${item.newUli}`, 'ok');
+      } else {
+        addLog(logId, `\u2713 [${item.dbConfig.label}] ${item.studentName || item.recordKey}  ${item.oldUpi} \u2192 ${item.newUli}`, 'ok');
+      }
     });
     update(ref(db), auditBatch).catch(e =>
       console.warn('Audit log write skipped (rules may not allow it):', e.message)
@@ -1612,24 +1697,45 @@ window.runUliUpdate = async () => {
   }
 
   addLog(logId, '\u2500'.repeat(50), 'info');
-  addLog(logId, `Done \u2014 ${ok} updated, ${fail} failed.`, 'bold');
+  addLog(logId, `Done \u2014 ${ok} written, ${fail} failed.`, 'bold');
 
   const allOk = fail === 0, allFail = ok === 0;
   const banner = document.getElementById('uli-summary');
   banner.className = `summary-banner on ${allOk?'success':allFail?'error':'partial'}`;
   document.getElementById('uli-sum-icon').textContent = allOk?'\u2705':allFail?'\u274c':'\u26a0\ufe0f';
   document.getElementById('uli-sum-title').textContent = allOk
-    ? 'All UPI values updated successfully!'
+    ? 'All records updated/created successfully!'
     : allFail ? 'Update failed \u2014 no records changed.'
     : 'Partial update \u2014 some records failed.';
   document.getElementById('uli-sum-desc').textContent =
     `UPI set from ULI import \u2014 Grade ${grade}, across ${[...new Set(items.map(x=>x.dbConfig.label))].join(', ')}.`;
   document.getElementById('uli-sum-stats').innerHTML = `
-    <div class="stat"><span class="stat-n ok">${ok}</span>Updated</div>
-    <div class="stat"><span class="stat-n fail">${fail}</span>Failed</div>
-    <div class="stat"><span class="stat-n total">${items.length}</span>Total</div>`;
+    <div class="stat"><span class="stat-n ok">${ok}</span>Written</div>
+    <div class="stat"><span class="stat-n total">${newCount}</span>New</div>
+    <div class="stat"><span class="stat-n total">${updCount}</span>Updated</div>
+    <div class="stat"><span class="stat-n fail">${fail}</span>Failed</div>`;
 
-  notify(allOk ? `\u2705 ${ok} record(s) updated!` : `\u26a0\ufe0f ${fail} record(s) failed \u2014 nothing changed.`, allOk ? 'success' : 'error');
+  const newWrap = document.getElementById('uli-new-wrap');
+  const newTbody = document.getElementById('uli-new-tbody');
+  newTbody.innerHTML = '';
+  if (ok > 0 && newCount > 0) {
+    const created = items.filter(x => x.isNew);
+    created.forEach((item, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:rgba(10,15,26,.3);font-family:var(--mono);font-size:11px;">${i+1}</td>
+        <td style="font-weight:500;">${esc(item.studentName || '\u2014')}</td>
+        <td class="td-db" style="font-family:'JetBrains Mono',monospace;">${esc(item.admNo)}</td>
+        <td>${esc(item.grade || grade)}</td>
+        <td><span class="badge ${item.dbConfig.badgeClass}">${item.dbConfig.label}</span></td>`;
+      newTbody.appendChild(tr);
+    });
+    newWrap.style.display = 'block';
+  } else {
+    newWrap.style.display = 'none';
+  }
+
+  notify(allOk ? `\u2705 ${updCount} updated, ${newCount} created!` : `\u26a0\ufe0f ${fail} record(s) failed \u2014 nothing changed.`, allOk ? 'success' : 'error');
 
   state.uli.preview = [];
   document.getElementById('uli-preview-section').classList.remove('on');
@@ -1656,8 +1762,76 @@ window.clearUliPanel = () => {
   document.getElementById('uli-summary').className = 'summary-banner';
   document.getElementById('uli-count-row').innerHTML = '';
   document.getElementById('uli-empty').style.display = 'none';
+  document.getElementById('uli-new-tbody').innerHTML = '';
+  document.getElementById('uli-new-wrap').style.display = 'none';
   document.getElementById('uli-btn-update').disabled = true;
   state.uli.preview = [];
+};
+
+window.loadUliNewHistory = async () => {
+  if (!auth.currentUser) { notify('Please sign in first.', 'error'); return; }
+
+  const wrap = document.getElementById('uli-history-section');
+  const isOpen = wrap.classList.contains('on');
+  if (isOpen) { wrap.classList.remove('on'); return; } // toggle closed on second click
+
+  const btn  = document.getElementById('uli-btn-history');
+  const icon = document.getElementById('uli-history-icon');
+  const tbody = document.getElementById('uli-history-tbody');
+  btn.disabled = true; icon.className = 'spin'; icon.textContent = '\u23f3';
+  tbody.innerHTML = '';
+  document.getElementById('uli-history-empty').style.display = 'none';
+
+  try {
+    // Reads every AuditLog entry this tool has ever written for newly-created
+    // students (action: 'uli_import_new'), across every past run/session.
+    let snap;
+    try {
+      snap = await get(query(ref(db, 'AuditLog'), orderByChild('action'), equalTo('uli_import_new')));
+    } catch (e) {
+      // Falls back to a full scan + client-side filter if the DB has no
+      // index on "action" (query still works, just less efficient).
+      console.warn('Indexed AuditLog query failed, falling back to full scan:', e.message);
+      snap = await get(ref(db, 'AuditLog'));
+    }
+
+    const rows = [];
+    if (snap.exists()) {
+      snap.forEach(child => {
+        const v = child.val();
+        if (v && v.action === 'uli_import_new') rows.push({ key: child.key, ...v });
+      });
+    }
+    rows.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    if (!rows.length) {
+      document.getElementById('uli-history-empty').style.display = 'block';
+      document.getElementById('uli-history-sub').textContent = 'No new students recorded yet';
+    } else {
+      rows.forEach((item, i) => {
+        const tr = document.createElement('tr');
+        const dt = item.timestamp ? new Date(item.timestamp).toLocaleString() : '\u2014';
+        const badgeClass = item.dbLabel === 'Results DB' ? 'badge-results'
+                          : item.dbLabel === 'Birth Registration DB' ? 'badge-birth' : 'badge-existing';
+        tr.innerHTML = `
+          <td style="color:rgba(10,15,26,.3);font-family:var(--mono);font-size:11px;">${i+1}</td>
+          <td style="font-weight:500;">${esc(item.studentName || '\u2014')}</td>
+          <td class="td-db" style="font-family:'JetBrains Mono',monospace;">${esc(item.assessmentNo || '\u2014')}</td>
+          <td>${esc(item.grade || '\u2014')}</td>
+          <td><span class="badge ${badgeClass}">${esc(item.dbLabel || '\u2014')}</span></td>
+          <td style="font-size:11px;color:var(--text3);">${esc(dt)}</td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('uli-history-sub').textContent = `${rows.length} new student record${rows.length!==1?'s':''} on file`;
+    }
+
+    wrap.classList.add('on');
+  } catch (e) {
+    notify('Could not load history: ' + e.message, 'error');
+    console.error(e);
+  }
+
+  btn.disabled = false; icon.className = ''; icon.textContent = '\U0001f4dc';
 };
 
 // ── PREVIEW ───────────────────────────────────────────────────

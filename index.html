@@ -397,6 +397,22 @@
     .toast.ok{border-left:4px solid var(--green)}
     .toast.err{border-left:4px solid var(--red)}
     .toast.info{border-left:4px solid var(--blue)}
+    .toast-action{pointer-events:auto;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--card-shadow);max-width:340px;width:min(340px,88vw);animation:fadeIn .25s ease;display:flex;flex-direction:column;gap:9px}
+    .toast-action.warn{border-left:4px solid var(--orange)}
+    .toast-action.err{border-left:4px solid var(--red)}
+    .toast-action.ok{border-left:4px solid var(--green)}
+    .toast-action .ta-title{font-size:13px;font-weight:800;color:var(--text);line-height:1.35}
+    .toast-action .ta-msg{font-size:11.5px;color:var(--text2);line-height:1.4}
+    .toast-action .ta-note{width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:12px;box-sizing:border-box;resize:vertical;min-height:44px;outline:none}
+    .toast-action .ta-note:focus{border-color:var(--blue-lt)}
+    .toast-action .ta-err-box{width:100%;min-height:110px;font-family:'SFMono-Regular',Menlo,monospace;font-size:11px;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--red-dk);resize:vertical;box-sizing:border-box}
+    .toast-action .ta-row{display:flex;gap:8px;justify-content:flex-end;margin-top:2px}
+    .toast-action .ta-btn{border:none;border-radius:9px;padding:7px 14px;font-size:11.5px;font-weight:800;cursor:pointer;transition:filter .15s}
+    .toast-action .ta-btn:hover{filter:brightness(1.08)}
+    .toast-action .ta-btn.confirm{background:var(--green);color:#fff}
+    .toast-action .ta-btn.confirm.danger{background:var(--red);color:#fff}
+    .toast-action .ta-btn.confirm.info{background:var(--blue);color:#fff}
+    .toast-action .ta-btn.cancel{background:var(--surface3);color:var(--text)}
 
     .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:590}
     .sidebar-backdrop.show{display:block}
@@ -754,10 +770,10 @@
             </div>
           </div>
           <div class="kpi-grid" style="margin-bottom:16px">
-            <div class="kpi-card"><div class="kpi-label">Pending</div><div class="kpi-value" id="adm-kpi-pending">—</div></div>
-            <div class="kpi-card"><div class="kpi-label">Approved</div><div class="kpi-value" id="adm-kpi-approved">—</div></div>
-            <div class="kpi-card"><div class="kpi-label">Rejected</div><div class="kpi-value" id="adm-kpi-rejected">—</div></div>
-            <div class="kpi-card"><div class="kpi-label">Total</div><div class="kpi-value" id="adm-kpi-total">—</div></div>
+            <div class="kpi-card" data-adm-stat="pending"><div class="kpi-label">Pending</div><div class="kpi-value" id="adm-kpi-pending">—</div></div>
+            <div class="kpi-card" data-adm-stat="approved"><div class="kpi-label">Approved</div><div class="kpi-value" id="adm-kpi-approved">—</div></div>
+            <div class="kpi-card" data-adm-stat="rejected"><div class="kpi-label">Rejected</div><div class="kpi-value" id="adm-kpi-rejected">—</div></div>
+            <div class="kpi-card" data-adm-stat="all"><div class="kpi-label">Total</div><div class="kpi-value" id="adm-kpi-total">—</div></div>
           </div>
 
           <div class="panel" id="enroll-panel" style="display:none;margin-bottom:16px;">
@@ -779,6 +795,42 @@
               <div class="empty-state"><div class="es-icon">📝</div><div class="es-title">No admission requests</div></div>
             </div>
             <div class="pager" id="adm-pager"></div>
+          </div>
+
+          <div class="panel" id="recent-added-panel" style="display:none;margin-top:16px;">
+            <div class="panel-title">🆕 Recently Added to Students DB <span class="muted" style="font-weight:400;">— live feed, newest first</span></div>
+
+            <div class="kpi-grid" style="margin:14px 0;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr))">
+              <div class="kpi-card" style="cursor:default"><div class="kpi-label">Tracked</div><div class="kpi-value" id="ra-kpi-total" style="font-size:22px">—</div></div>
+              <div class="kpi-card" style="cursor:default"><div class="kpi-label">Added Today</div><div class="kpi-value" id="ra-kpi-today" style="font-size:22px">—</div></div>
+              <div class="kpi-card" style="cursor:default"><div class="kpi-label">This Week</div><div class="kpi-value" id="ra-kpi-week" style="font-size:22px">—</div></div>
+              <div class="kpi-card" style="cursor:default"><div class="kpi-label">Via Admissions</div><div class="kpi-value" id="ra-kpi-adm" style="font-size:22px">—</div></div>
+            </div>
+
+            <div style="height:160px;margin-bottom:16px;">
+              <canvas id="raTrendChart"></canvas>
+            </div>
+
+            <div class="toolbar">
+              <select class="sel" id="ra-filter-range">
+                <option value="all">All time</option>
+                <option value="today">Today</option>
+                <option value="week">This week</option>
+                <option value="month">This month</option>
+              </select>
+              <select class="sel" id="ra-filter-grade">
+                <option value="all">All grades</option>
+              </select>
+              <select class="sel" id="ra-filter-source">
+                <option value="all">All sources</option>
+                <option value="admission">Via Admissions</option>
+                <option value="other">Other / manual</option>
+              </select>
+              <input class="search-input" id="ra-search" placeholder="Search name, Assessment No…" />
+            </div>
+
+            <div class="activity-list" id="recent-added-list"></div>
+            <div class="pager" id="ra-pager"></div>
           </div>
         </section>
 
@@ -1362,6 +1414,9 @@
       admissionsFilter: 'pending',
       admPage: 1,
       pendingEnrollments: [],
+      recentlyAddedStudents: [],
+      recentAddedFilter: { grade: 'all', source: 'all', range: 'all' },
+      recentAddedPage: 1,
       lunchRaw: {},
       lunchPeriod: '',
       lunchStd: 620,
@@ -1444,6 +1499,72 @@
       el.textContent = msg;
       host.appendChild(el);
       setTimeout(() => el.remove(), 3500);
+    }
+    // Safety net — if any click handler's promise rejects without being
+    // caught (or throws before reaching its own try/catch), surface it as
+    // a toast instead of failing silently. Without this, a user clicking
+    // "Approve" (or any other async action) could see no feedback at all
+    // if something upstream threw, even though the underlying write may
+    // or may not have gone through.
+    window.addEventListener('unhandledrejection', (e) => {
+      const msg = e.reason?.message || String(e.reason || 'Something went wrong — please try again.');
+      toast(msg, 'err');
+    });
+    window.addEventListener('error', (e) => {
+      if(e.message) toast(e.message, 'err');
+    });
+    // Nicer error surface for flows where a plain toast isn't enough detail
+    // (e.g. a failed DB write during Admission approval) — logs the full
+    // error to the console as usual, and shows a toast-style card (not a
+    // blocking Swal popup) with the message/stack in a copyable box.
+    function errorToast(title, err){
+      const errText = (err && err.stack) ? err.stack : (err?.message || String(err));
+      console.error(`[${title}]`, err);
+      const host = $('toastHost');
+      const el = document.createElement('div');
+      el.className = 'toast-action err';
+      el.innerHTML = `
+        <div class="ta-title">⚠️ ${escapeHtml(title)}</div>
+        <div class="ta-msg">${escapeHtml(errText.split('\n')[0])}</div>
+        <textarea class="ta-err-box" readonly>${escapeHtml(errText)}</textarea>
+        <div class="ta-row">
+          <button class="ta-btn cancel" type="button">Close</button>
+          <button class="ta-btn confirm danger" type="button">📋 Copy error</button>
+        </div>`;
+      host.appendChild(el);
+      el.querySelector('.cancel').addEventListener('click', () => el.remove());
+      el.querySelector('.confirm').addEventListener('click', () => {
+        const text = el.querySelector('.ta-err-box')?.value || errText;
+        (navigator.clipboard?.writeText(text) || Promise.reject())
+          .then(() => toast('Error copied to clipboard', 'ok'))
+          .catch(() => toast('Could not copy — select the text and copy manually.', 'err'));
+      });
+    }
+    // Toast-style confirmation card — replaces blocking Swal popups for
+    // "are you sure?" style prompts. Resolves { confirmed, note } once the
+    // user picks an option; the card removes itself either way.
+    function actionToast({ title, message='', withNote=false, notePlaceholder='', confirmText='Confirm', cancelText='Cancel', tone='warn', danger=false }){
+      return new Promise((resolve) => {
+        const host = $('toastHost');
+        const el = document.createElement('div');
+        el.className = `toast-action ${tone}`;
+        el.innerHTML = `
+          <div class="ta-title">${escapeHtml(title)}</div>
+          ${message ? `<div class="ta-msg">${message}</div>` : ''}
+          ${withNote ? `<textarea class="ta-note" placeholder="${escapeHtml(notePlaceholder)}"></textarea>` : ''}
+          <div class="ta-row">
+            <button class="ta-btn cancel" type="button">${escapeHtml(cancelText)}</button>
+            <button class="ta-btn confirm${danger?' danger':' info'}" type="button">${escapeHtml(confirmText)}</button>
+          </div>`;
+        host.appendChild(el);
+        const settle = (confirmed) => {
+          const note = withNote ? (el.querySelector('.ta-note')?.value || '').trim() : '';
+          el.remove();
+          resolve({ confirmed, note });
+        };
+        el.querySelector('.cancel').addEventListener('click', () => settle(false));
+        el.querySelector('.confirm').addEventListener('click', () => settle(true));
+      });
     }
     function escapeHtml(s){
       return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2538,9 +2659,16 @@
       $('nav-admissions').textContent = String(pending);
     }
     async function loadAdmissions(){
-      const snap = await get(ref(db, 'admissionRequests'));
-      const data = snap.exists() ? snap.val() : {};
-      if(cacheChanged('admissions', data)) computeAdmissions(data);
+      try{
+        const snap = await get(ref(db, 'admissionRequests'));
+        const data = snap.exists() ? snap.val() : {};
+        console.log(`[Admissions] fetched ${Object.keys(data).length} record(s) from admissionRequests`, data);
+        if(cacheChanged('admissions', data)) computeAdmissions(data);
+        else console.log('[Admissions] cacheChanged returned false — data identical to last cached snapshot, using existing state.admissions:', state.admissions.length, 'record(s)');
+      }catch(err){
+        toast(`Can't load admissions: ${err?.message || err}`, 'err');
+        throw err;
+      }
     }
 
     /* ── Pending Enrollments — draft records created when an admission
@@ -2559,6 +2687,53 @@
       const snap = await get(ref(db, 'pendingEnrollments'));
       const data = snap.exists() ? snap.val() : {};
       if(cacheChanged('pendingEnrollments', data)) computePendingEnrollments(data);
+    }
+
+    /* ── Recently Added to Students DB — watches artifacts/{APP_ID}/students
+       (the shared students collection also used by Active-Students-Database
+       and the enrollment flow), so ANY newly created student record shows
+       up here — however it was added: Admissions enrollment, bulk import,
+       or a manual add elsewhere. Records carrying a real enrolledAt (the
+       Admissions flow) use that as their timestamp. Everything else has no
+       reliable "added at" field to read, so we track it ourselves: the
+       first time this browser ever sees a given student key, we stamp it
+       with the current time in localStorage. On that very first run we
+       stamp the WHOLE existing roster silently (bootstrap) without
+       treating it as "just added" or toasting for it — only keys that
+       show up AFTER that baseline count as new. ── */
+    function computeRecentlyAddedStudents(data){
+      const bootstrapping = !cacheGet('student_first_seen');
+      const firstSeen = cacheGet('student_first_seen') || {};
+      const newlyDiscoveredKeys = [];
+
+      Object.keys(data).forEach(key => {
+        if(!(key in firstSeen)){
+          firstSeen[key] = Date.now();
+          if(!bootstrapping) newlyDiscoveredKeys.push(key);
+        }
+      });
+      cacheSet('student_first_seen', firstSeen);
+
+      newlyDiscoveredKeys.forEach(key => {
+        const v = data[key] || {};
+        toast(`New student added: ${v['Official Student Name'] || 'Unnamed'}`, 'ok');
+      });
+
+      const list = Object.entries(data)
+        .map(([key, v]) => {
+          const addedAt = v.enrolledAt || (bootstrapping ? 0 : firstSeen[key]);
+          return { key, ...v, _addedAt: addedAt };
+        })
+        .filter(v => v._addedAt) // hide bootstrap-only entries with no real "added" signal
+        .sort((a,b) => b._addedAt - a._addedAt);
+
+      state.recentlyAddedStudents = list;
+      renderRecentlyAddedStudents();
+    }
+    async function loadRecentlyAddedStudents(){
+      const snap = await get(ref(db, `Results/${APP_ID}/students`));
+      const data = snap.exists() ? snap.val() : {};
+      if(cacheChanged('recentlyAddedStudents', data)) computeRecentlyAddedStudents(data);
     }
 
     /* ── Notification Center ── */
@@ -3080,6 +3255,17 @@
       const cal = cacheGet('raw_calendar'); if(cal){ computeCalendar(cal); any = true; }
       const l = cacheGet('raw_lunch'); if(l){ computeLunch(l); any = true; }
       const att = cacheGet('raw_attendance_'+todayISO()); if(att){ computeAttendance(att); any = true; }
+      // These three were missing, which is exactly what caused the
+      // Admissions tab (and, latently, Pending Enrollments / Recently
+      // Added Students) to render empty on a hard refresh: cacheChanged()
+      // only calls computeX() when the fresh fetch DIFFERS from the last
+      // cached snapshot, but state resets to [] on every reload while
+      // localStorage persists — so if nothing changed since the last
+      // cache write, the render was skipped entirely and state.admissions
+      // was left at its fresh, empty default instead of ever being seeded.
+      const adm = cacheGet('raw_admissions'); if(adm){ computeAdmissions(adm); any = true; }
+      const pe = cacheGet('raw_pendingEnrollments'); if(pe){ computePendingEnrollments(pe); any = true; }
+      const ras = cacheGet('raw_recentlyAddedStudents'); if(ras){ computeRecentlyAddedStudents(ras); any = true; }
       if(any){ updateDashboard(); populateGradeSelects(); }
     }
 
@@ -3092,6 +3278,7 @@
         loadFeedback().catch(e => console.error('feedback', e)),
         loadAdmissions().catch(e => console.error('admissions', e)),
         loadPendingEnrollments().catch(e => console.error('pendingEnrollments', e)),
+        loadRecentlyAddedStudents().catch(e => console.error('recentlyAddedStudents', e)),
         loadLunch().catch(e => console.error('lunch', e)),
         loadAttendanceForDate(todayISO()).catch(e => console.error('att', e)),
         loadCalendar().catch(e => console.error('calendar', e))
@@ -3111,8 +3298,11 @@
       });
       onValue(ref(db, ANNOUNCEMENTS_PATH), () => loadAnnouncements());
       onValue(ref(db, 'activities'), () => loadFeedback());
-      onValue(ref(db, 'admissionRequests'), () => loadAdmissions());
+      onValue(ref(db, 'admissionRequests'), () => loadAdmissions(), (err) => {
+        toast(`Can't load admissions: ${err?.message || err}`, 'err');
+      });
       onValue(ref(db, 'pendingEnrollments'), () => loadPendingEnrollments());
+      onValue(ref(db, `artifacts/${APP_ID}/students`), () => loadRecentlyAddedStudents());
       onValue(ref(db, LUNCH_PATH), () => loadLunch());
       onValue(ref(db, CALENDAR_PATH), () => loadCalendar());
       onValue(ref(db, QE_ACTIVE_PATH), snap => {
@@ -4434,61 +4624,98 @@
       box.querySelectorAll('[data-approve-adm]').forEach(btn => {
         btn.addEventListener('click', async () => {
           const key = btn.dataset.approveAdm;
-          const { value: note, isConfirmed } = await Swal.fire({
-            title: 'Approve this admission?',
-            input: 'text',
-            inputPlaceholder: 'Optional note for the parent (e.g. resumption date)',
-            showCancelButton: true,
-            confirmButtonColor: '#27ae60',
-            confirmButtonText: 'Approve'
+          const admRec = state.admissions.find(x => x.key === key) || {};
+          const assNo = String(admRec.assessmentNo || '').trim();
+
+          if(!assNo){
+            errorToast('Approve failed', new Error(
+              `Admission request "${admRec.childName || key}" has no Assessment No on file. ` +
+              `The student record is keyed by Assessment No, so approval can't proceed until one is added to this request.`
+            ));
+            return;
+          }
+
+          const { confirmed, note } = await actionToast({
+            title: `Approve & enroll ${escapeHtml(admRec.childName || 'this child')}?`,
+            message: `Assessment No: <strong>${escapeHtml(assNo)}</strong> · Class: <strong>${escapeHtml(admRec.gradeApplyingFor || '—')}</strong>`,
+            withNote: true,
+            notePlaceholder: 'Optional note for the parent',
+            confirmText: 'Approve & Enroll',
+            tone: 'ok'
           });
-          if(!isConfirmed) return;
+          if(!confirmed) return;
+
+          // RTDB keys can't contain '.', '#', '$', '/', '[', ']' — sanitize
+          // defensively in case an Assessment No ever has stray characters.
+          const safeKey = assNo.replace(/[.#$/\[\]]/g, '_');
+
           try{
-            const admRec = state.admissions.find(x => x.key === key) || {};
             await update(ref(db, `admissionRequests/${key}`), {
               status: 'approved',
               adminNote: note || '',
               decidedAt: Date.now(),
               decidedBy: state.user?.displayName || state.user?.email || 'Admin'
             });
-            // Draft record for the Students DB, using the same field names as
-            // the Admin Biodata Editor (Official Student Name, DOB, Gender,
-            // Grade, Parent/Guardian Name/Phone, Email Address, Home Address)
-            // so it can be pasted straight into that schema once an Assessment
-            // No / Class is assigned — see the "Ready to Enroll" panel above.
-            await set(ref(db, `pendingEnrollments/${key}`), {
+
+            // Full biodata-schema record, same field names as the Admin
+            // Biodata Editor — written straight to the Students DB, keyed
+            // by Assessment No, to both candidate master student paths seen
+            // across the system (artifacts/{appId}/students per the Biodata
+            // Editor, and Results/default-app-id/students per the Parent
+            // Portal's child-linking) so the record lands correctly
+            // regardless of which one is actually canonical. Grade/Class
+            // both come straight from what the parent requested at
+            // admission time (gradeApplyingFor) — no re-entry needed here.
+            const record = {
+              'Grade': admRec.gradeApplyingFor || '',
+              'Class': admRec.gradeApplyingFor || '',
               'Official Student Name': admRec.childName || '',
-              'Assessment No': admRec.assessmentNo || '',
-              'ULI': admRec.uli || '',
+              'Assessment No': assNo,
+              'UPI': admRec.uli || '',
               'DOB': admRec.dob || '',
               'Gender': admRec.gender || '',
-              'Grade': admRec.gradeApplyingFor || '',
-              'Parent/Guardian Name': admRec.guardianName || '',
-              'Parent/Guardian Phone': admRec.phone || '',
+              'Mobile No': '',
               'Email Address': admRec.email || '',
+              'Parent Guardian Name': admRec.guardianName || '',
+              'Parent Guardian Phone': admRec.phone || '',
               'Home Address': admRec.address || '',
+              'Emergency Contact Name': '',
+              'Emergency Contact Phone': '',
               previousSchool: admRec.prevSchool || '',
               notes: admRec.notes || '',
-              admissionRequestKey: key,
-              approvedAt: Date.now(),
-              approvedBy: state.user?.displayName || state.user?.email || 'Admin'
-            });
-            toast('Admission approved', 'ok');
-          }catch(err){ toast(err.message, 'err'); }
+              enrolledFromAdmissionKey: key,
+              enrolledAt: Date.now(),
+              enrolledBy: state.user?.displayName || state.user?.email || 'Admin'
+            };
+
+            const PRIMARY_PATH = `artifacts/${APP_ID}/students`;
+            const SECONDARY_PATH = `Results/default-app-id/students`;
+
+            await set(ref(db, `${PRIMARY_PATH}/${safeKey}`), record);
+            await set(ref(db, `${SECONDARY_PATH}/${safeKey}`), record);
+
+            await update(ref(db, `admissionRequests/${key}`), {
+              enrolledStudentKey: safeKey,
+              enrolledAt: Date.now()
+            }).catch(()=>{});
+
+            toast(`Enrolled — student saved under Assessment No ${safeKey}`, 'ok');
+          }catch(err){
+            errorToast('Approve failed', err);
+          }
         });
       });
       box.querySelectorAll('[data-reject-adm]').forEach(btn => {
         btn.addEventListener('click', async () => {
           const key = btn.dataset.rejectAdm;
-          const { value: note, isConfirmed } = await Swal.fire({
+          const { confirmed, note } = await actionToast({
             title: 'Reject this admission?',
-            input: 'text',
-            inputPlaceholder: 'Reason for the parent (optional but recommended)',
-            showCancelButton: true,
-            confirmButtonColor: '#e74c3c',
-            confirmButtonText: 'Reject'
+            withNote: true,
+            notePlaceholder: 'Reason for the parent (optional but recommended)',
+            confirmText: 'Reject',
+            danger: true
           });
-          if(!isConfirmed) return;
+          if(!confirmed) return;
           try{
             await update(ref(db, `admissionRequests/${key}`), {
               status: 'rejected',
@@ -4497,17 +4724,22 @@
               decidedBy: state.user?.displayName || state.user?.email || 'Admin'
             });
             toast('Admission rejected', 'ok');
-          }catch(err){ toast(err.message, 'err'); }
+          }catch(err){ errorToast('Reject failed', err); }
         });
       });
       box.querySelectorAll('[data-del-adm]').forEach(btn => {
         btn.addEventListener('click', async () => {
-          const ok = await Swal.fire({ title:'Delete this request?', icon:'warning', showCancelButton:true, confirmButtonColor:'#e74c3c' });
-          if(!ok.isConfirmed) return;
+          const { confirmed } = await actionToast({
+            title: 'Delete this request?',
+            message: 'This can\'t be undone.',
+            confirmText: 'Delete',
+            danger: true
+          });
+          if(!confirmed) return;
           try{
             await remove(ref(db, `admissionRequests/${btn.dataset.delAdm}`));
             toast('Deleted','ok');
-          }catch(err){ toast(err.message,'err'); }
+          }catch(err){ errorToast('Delete failed', err); }
         });
       });
 
@@ -4522,7 +4754,151 @@
       state.admPage = 1;
       renderAdmissions();
     });
+    // Stat cards double as filter shortcuts — click "Pending"/"Approved"/
+    // "Rejected"/"Total" to jump the list straight to that filter.
+    document.querySelectorAll('#admissions .kpi-card[data-adm-stat]').forEach(card => {
+      card.addEventListener('click', () => {
+        const val = card.dataset.admStat;
+        if($('adm-filter')) $('adm-filter').value = val;
+        state.admissionsFilter = val;
+        state.admPage = 1;
+        renderAdmissions();
+        $('adm-list')?.scrollIntoView({ behavior:'smooth', block:'start' });
+      });
+    });
 
+    function renderRecentlyAddedStudents(){
+      const panel = $('recent-added-panel');
+      const box = $('recent-added-list');
+      if(!panel || !box) return;
+      if(!state.recentlyAddedStudents.length){
+        panel.style.display = 'none';
+        return;
+      }
+      panel.style.display = 'block';
+
+      const all = state.recentlyAddedStudents;
+      const now = Date.now();
+      const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+      const DAY = 86400000;
+
+      // Keep the grade filter's option list in sync with whatever grades
+      // actually show up in the tracked records, without clobbering the
+      // user's current selection.
+      const gradeSel = $('ra-filter-grade');
+      if(gradeSel){
+        const grades = Array.from(new Set(all.map(v => v['Grade']).filter(Boolean)))
+          .sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+        const current = gradeSel.value || 'all';
+        gradeSel.innerHTML = '<option value="all">All grades</option>' +
+          grades.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+        gradeSel.value = grades.includes(current) ? current : 'all';
+      }
+
+      // ── Analytics (computed over the FULL tracked set, not the filtered/
+      // paginated view, so the numbers stay stable while filtering the list) ──
+      const addedToday = all.filter(v => v._addedAt >= todayStart.getTime()).length;
+      const addedWeek = all.filter(v => v._addedAt >= now - 7*DAY).length;
+      const viaAdmissions = all.filter(v => !!v.enrolledFromAdmissionKey).length;
+      const admPct = all.length ? Math.round(viaAdmissions / all.length * 100) : 0;
+      if($('ra-kpi-total')) $('ra-kpi-total').textContent = String(all.length);
+      if($('ra-kpi-today')) $('ra-kpi-today').textContent = String(addedToday);
+      if($('ra-kpi-week')) $('ra-kpi-week').textContent = String(addedWeek);
+      if($('ra-kpi-adm')) $('ra-kpi-adm').textContent = `${viaAdmissions} (${admPct}%)`;
+
+      renderRecentAddedTrendChart(all);
+
+      // ── Filters ──
+      const range = $('ra-filter-range')?.value || 'all';
+      const gradeFilter = $('ra-filter-grade')?.value || 'all';
+      const sourceFilter = $('ra-filter-source')?.value || 'all';
+      const q = ($('ra-search')?.value || '').trim().toLowerCase();
+
+      let rows = all.slice();
+      if(range === 'today') rows = rows.filter(v => v._addedAt >= todayStart.getTime());
+      else if(range === 'week') rows = rows.filter(v => v._addedAt >= now - 7*DAY);
+      else if(range === 'month') rows = rows.filter(v => v._addedAt >= now - 30*DAY);
+      if(gradeFilter !== 'all') rows = rows.filter(v => (v['Grade']||'') === gradeFilter);
+      if(sourceFilter === 'admission') rows = rows.filter(v => !!v.enrolledFromAdmissionKey);
+      else if(sourceFilter === 'other') rows = rows.filter(v => !v.enrolledFromAdmissionKey);
+      if(q){
+        rows = rows.filter(v =>
+          String(v['Official Student Name']||'').toLowerCase().includes(q) ||
+          String(v['Assessment No']||'').toLowerCase().includes(q)
+        );
+      }
+
+      const { pageRows, page, totalPages } = paginate(rows, state.recentAddedPage);
+      state.recentAddedPage = page;
+
+      if(!pageRows.length){
+        box.innerHTML = '<div class="empty-state"><div class="es-icon">🔍</div><div class="es-title">No matching students</div></div>';
+        renderPager('ra-pager', page, totalPages, p => { state.recentAddedPage = p; renderRecentlyAddedStudents(); });
+        return;
+      }
+
+      box.innerHTML = pageRows.map(v => `
+        <div class="activity-item">
+          <div class="dot" style="background:var(--green)"></div>
+          <div style="flex:1;min-width:0">
+            <strong>${escapeHtml(v['Official Student Name']||'Unnamed student')}</strong>
+            <span>${escapeHtml(v['Grade']||'—')} · ${escapeHtml(v['Class']||'—')} · Assessment No ${escapeHtml(v['Assessment No']||'—')}</span>
+            <div class="muted" style="margin-top:6px">Added ${escapeHtml(fmtTime(v._addedAt))}${v.enrolledBy ? ' by ' + escapeHtml(v.enrolledBy) : ''}${v.enrolledFromAdmissionKey ? ' · via Admissions' : ''}</div>
+          </div>
+        </div>`).join('');
+
+      renderPager('ra-pager', page, totalPages, p => { state.recentAddedPage = p; renderRecentlyAddedStudents(); });
+    }
+    // 14-day daily-count trend for the tracked "recently added" set — same
+    // gradient-line style as the dashboard's Class Coverage/Enrollment charts.
+    function renderRecentAddedTrendChart(all){
+      const ctx = $('raTrendChart');
+      if(!ctx) return;
+      const DAY = 86400000;
+      const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+      const days = [];
+      for(let i = 13; i >= 0; i--) days.push(todayStart.getTime() - i*DAY);
+      const counts = days.map(dayStart => all.filter(v => v._addedAt >= dayStart && v._addedAt < dayStart + DAY).length);
+      const labels = days.map(ts => new Date(ts).toLocaleDateString('en-KE', { day:'numeric', month:'short' }));
+
+      if(state.raTrendChart) state.raTrendChart.destroy();
+      const gctx = ctx.getContext('2d');
+      const areaFill = gctx.createLinearGradient(0, 0, 0, ctx.clientHeight || 160);
+      areaFill.addColorStop(0, 'rgba(39,174,96,.28)');
+      areaFill.addColorStop(1, 'rgba(39,174,96,.02)');
+      state.raTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Students added',
+            data: counts,
+            fill: true,
+            backgroundColor: areaFill,
+            borderColor: '#27ae60',
+            borderWidth: 3,
+            tension: 0.35,
+            pointRadius: 3,
+            pointBackgroundColor: '#27ae60',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 }, precision: 0 }, grid: { color: 'rgba(39,174,96,.08)' } }
+          }
+        }
+      });
+    }
+    ['ra-filter-range','ra-filter-grade','ra-filter-source'].forEach(id => {
+      $(id)?.addEventListener('change', () => { state.recentAddedPage = 1; renderRecentlyAddedStudents(); });
+    });
+    $('ra-search')?.addEventListener('input', () => { state.recentAddedPage = 1; renderRecentlyAddedStudents(); });
     function renderPendingEnrollments(){
       const panel = $('enroll-panel');
       const box = $('enroll-list');
@@ -4632,8 +5008,8 @@
             'Gender': p['Gender'] || '',
             'Mobile No': '',
             'Email Address': p['Email Address'] || '',
-            'Parent/Guardian Name': p['Parent/Guardian Name'] || '',
-            'Parent/Guardian Phone': p['Parent/Guardian Phone'] || '',
+            'Parent Guardian Name': p['Parent/Guardian Name'] || p['Parent Guardian Name'] || '',
+            'Parent Guardian Phone': p['Parent/Guardian Phone'] || p['Parent Guardian Phone'] || '',
             'Home Address': p['Home Address'] || '',
             'Emergency Contact Name': '',
             'Emergency Contact Phone': '',
@@ -4661,7 +5037,7 @@
             }
             await remove(ref(db, `pendingEnrollments/${key}`));
             toast('Student enrolled — record created in both Students DB paths', 'ok');
-          }catch(err){ toast(err.message, 'err'); }
+          }catch(err){ toast(err?.message || String(err) || 'Unknown error', 'err'); }
         });
       });
     }
