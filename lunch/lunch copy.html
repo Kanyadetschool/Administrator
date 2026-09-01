@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Welfare Contribution Manager — May 2026</title>
+<title>Lunch Contribution Manager — May 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -1163,17 +1163,14 @@ window.dispatchEvent(new Event('fb-ready'));
 
   /* ── FEATURE 01: MULTI-PERIOD MINI DASHBOARD ── */
   .mini-dash {
-    display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
-    gap: 10px; margin-bottom: 20px; padding-bottom: 4px; -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px; margin-bottom: 20px;
   }
-  .mini-dash::-webkit-scrollbar { height: 5px; }
-  .mini-dash::-webkit-scrollbar-thumb { background: var(--rule-strong); border-radius: 99px; }
   .mini-dash-card {
     background: var(--white); border-radius: 10px; border: 1px solid var(--rule);
     padding: 12px 16px; position: relative; overflow: hidden;
     cursor: pointer; transition: transform .12s, box-shadow .12s, border-color .12s;
-    user-select: none; flex: 0 0 180px; width: 180px;
+    user-select: none;
   }
   .mini-dash-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.1); border-color: var(--ink-mid); }
   .mini-dash-card:active { transform: translateY(0); box-shadow: none; }
@@ -1556,7 +1553,7 @@ window.dispatchEvent(new Event('fb-ready'));
     </div>
     <div class="asp-brand">
       <div class="asp-brand-name">Staff Welfare Fund</div>
-      <div class="asp-brand-tag">Welfare contributions, statements and reminders — one shared workspace for Kanyadet staff.</div>
+      <div class="asp-brand-tag">Lunch contributions, statements and reminders — one shared workspace for Kanyadet staff.</div>
     </div>
   </div>
 
@@ -1593,7 +1590,7 @@ window.dispatchEvent(new Event('fb-ready'));
         <div class="auth-logo">🍽️</div>
       </div>
       <div class="auth-heading">Sign in required</div>
-      <div class="auth-subtitle">Welfare Contributions data is private to Kanyadet staff.</div>
+      <div class="auth-subtitle">Lunch Contributions data is private to Kanyadet staff.</div>
       <div class="auth-error" id="authGateError"></div>
       <button class="auth-submit" onclick="handleAuth()">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4c-7.7 0-14.3 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.3 0 10.1-2 13.6-5.4l-6.3-5.3C29.3 34.9 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8.1l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.3 5.3C39.9 36.9 44 31 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
@@ -1612,7 +1609,7 @@ window.dispatchEvent(new Event('fb-ready'));
   </button>
   <div>
     <div class="eyebrow">Staff Welfare Fund..</div>
-    <h1>Welfare Contributions.</h1>
+    <h1>Lunch Contributions.</h1>
   </div>
   <div class="header-actions">
     <div id="header-logo-wrap" style="width:38px;height:38px;border-radius:10px;overflow:hidden;border:1.5px solid var(--rule);display:flex;align-items:center;justify-content:center;background:var(--bg2);flex-shrink:0;">
@@ -1698,7 +1695,7 @@ window.dispatchEvent(new Event('fb-ready'));
   <!-- PRINT-ONLY HEADER -->
   <div class="print-header" id="printHeader">
     <div class="ph-eyebrow">Staff Welfare Fund</div>
-    <h2>Welfare Contribution Statement</h2>
+    <h2>Wedding Contribution Statement</h2>
     <div class="ph-meta">Period: <span id="printPeriod"></span> &nbsp;·&nbsp; Finance Office &nbsp;·&nbsp; Standard Amount: Ksh <span id="printStd"></span></div>
   </div>
 
@@ -1709,7 +1706,7 @@ window.dispatchEvent(new Event('fb-ready'));
     <button onclick="document.getElementById('pwaBanner').classList.remove('show');try{sessionStorage.setItem('pwaDismissed','1')}catch(e){}" style="background:none;border:none;color:#185FA5;cursor:pointer;font-size:16px;">✕</button>
   </div>
 
-  <!-- MINI DASHBOARD - all periods, horizontal scroll (01) -->
+  <!-- MINI DASHBOARD - last 3 periods (01) -->
   <div id="miniDash" class="mini-dash" style="display:none"></div>
 
   <!-- SETTINGS BAR -->
@@ -1841,7 +1838,7 @@ window.dispatchEvent(new Event('fb-ready'));
   <!-- PERIOD NOTES (09) -->
   <div class="period-notes-wrap">
     <div class="period-notes-header" onclick="togglePeriodNotes()">
-      <span class="period-notes-title" id="periodNotesTitle">📝 Notes</span>
+      <span class="period-notes-title">📝 Period Notes &amp; Minutes</span>
       <span id="periodNotesChevron" style="font-size:12px;color:var(--ink-light)">▼</span>
     </div>
     <div class="period-notes-body" id="periodNotesBody">
@@ -2052,7 +2049,7 @@ window.dispatchEvent(new Event('fb-ready'));
         </div>
         <div>
           <label style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-light);display:block;margin-bottom:6px;font-family:'JetBrains Mono',monospace;">Message Template</label>
-          <textarea id="waMsgTemplate" rows="4" style="width:100%;padding:12px 14px;border:1.5px solid var(--rule);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--ink);outline:none;resize:vertical;line-height:1.5;">Dear {name}, this is a reminder that your welfare contribution for {period} is due by {deadline}. Standard: Ksh {standard}. Paid: Ksh {amount_paid}. Balance: Ksh {balance}. Kindly clear your balance at your earliest convenience. Thank you.</textarea>
+          <textarea id="waMsgTemplate" rows="4" style="width:100%;padding:12px 14px;border:1.5px solid var(--rule);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--ink);outline:none;resize:vertical;line-height:1.5;">Dear {name}, this is a reminder that your lunch contribution for {period} is due by {deadline}. Standard: Ksh {standard}. Paid: Ksh {amount_paid}. Balance: Ksh {balance}. Kindly clear your balance at your earliest convenience. Thank you.</textarea>
           <div style="font-size:11px;color:var(--ink-light);margin-top:5px;font-family:'JetBrains Mono',monospace;">Variables: {name} · {standard} · {period} · {deadline} · {amount_paid} · {balance}</div>
         </div>
         <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center;">
@@ -2177,7 +2174,7 @@ exports.<span style="color:#79c0ff">sendLunchReminders</span> = functions.pubsub
     <span style="color:#ff7b72">for</span> (<span style="color:#ff7b72">const</span> [id, m] <span style="color:#ff7b72">of</span> Object.<span style="color:#d2a8ff">entries</span>(data)) {
       <span style="color:#ff7b72">if</span> (!m.phone || m.amount &gt;= STD_AMT) <span style="color:#ff7b72">continue</span>;
       <span style="color:#ff7b72">const</span> balance = STD_AMT - m.amount;
-      <span style="color:#ff7b72">const</span> msg = <span style="color:#a5d6ff">`Dear ${m.name}, your welfare contribution of Ksh ${STD_AMT} for ${month} ${year} is outstanding. Paid: Ksh ${m.amount}. Balance: Ksh ${balance}. Please pay promptly. Thank you.`</span>;
+      <span style="color:#ff7b72">const</span> msg = <span style="color:#a5d6ff">`Dear ${m.name}, your lunch contribution of Ksh ${STD_AMT} for ${month} ${year} is outstanding. Paid: Ksh ${m.amount}. Balance: Ksh ${balance}. Please pay promptly. Thank you.`</span>;
       <span style="color:#ff7b72">const</span> result = <span style="color:#ff7b72">await</span> <span style="color:#d2a8ff">sendWA</span>(m.phone, msg);
       log[id] = { sentAt: now.<span style="color:#d2a8ff">toISOString</span>(), status: result, phone: m.phone };
     }
@@ -2987,9 +2984,6 @@ function recalc() {
   document.getElementById('printStd').textContent     = fmt(std);
   document.getElementById('pfStd').textContent        = fmt(std);
   document.getElementById('pfPeriod').textContent     = getPeriodDisplay();
-
-  const notesTitleEl = document.getElementById('periodNotesTitle');
-  if (notesTitleEl) notesTitleEl.textContent = '📝 ' + getPeriodDisplay() + ' Notes';
 }
 
 // ── ADD ───────────────────────────────────────────────────────
@@ -4800,7 +4794,7 @@ function showReceipt(i) {
     ${bal > 0 ? `<div class="receipt-row"><span>Balance Due</span><span style="color:var(--nil-fg)">Ksh ${fmt(bal)}</span></div>` : ''}
     <div class="receipt-row"><span>Date Paid</span><span>${paidDate}</span></div>
     <div class="receipt-row total"><span>Status</span><span style="color:${m.amount>=std?'var(--ok-fg)':m.amount>0?'var(--warn-fg)':'var(--nil-fg)'}">${s}</span></div>
-    <div class="receipt-stamp">This receipt was generated by the Welfare Contribution Manager. Receipt No. ${rcptNum}</div>`;
+    <div class="receipt-stamp">This receipt was generated by the Lunch Contribution Manager. Receipt No. ${rcptNum}</div>`;
 
   document.getElementById('receiptModal').classList.add('show');
 }
@@ -5417,11 +5411,12 @@ async function loadMiniDash() {
   const globalStd = getStd(); // fallback only for legacy periods without their own stored std
   const periods = Object.keys(data)
     .filter(k => k !== currentKey && k !== '_meta')
-    .sort((a,b) => parsePeriod(b) - parsePeriod(a));
+    .sort((a,b) => parsePeriod(b) - parsePeriod(a))
+    .slice(0, 3);
   if (!periods.length) return;
 
   const el = document.getElementById('miniDash');
-  el.style.display = 'flex';
+  el.style.display = 'grid';
   el.innerHTML = periods.map(pk => {
     const mems  = Object.values(data[pk].members || {});
     const total = mems.reduce((s,m) => s + (m.amount||0), 0);
@@ -5713,7 +5708,7 @@ async function confirmImport() {
 // FEATURE 06: EMAIL SUMMARY REPORT
 // ══════════════════════════════════════════════════════════════
 async function openEmailSummary() {
-  const subject = `Welfare Contributions — ${getPeriodDisplay()} Summary`;
+  const subject = `Lunch Contributions — ${getPeriodDisplay()} Summary`;
   document.getElementById('emailSubject').value = subject;
   const toInput = document.getElementById('emailTo');
   toInput.value = '';
@@ -5752,7 +5747,7 @@ function sendEmailSummary() {
     return `  ${m.name.padEnd(30)} ${s.label.padEnd(10)} Ksh ${fmt(m.amount)}`;
   }).join('\n');
 
-  const body = `Welfare Contribution Summary — ${getPeriodDisplay()}
+  const body = `Lunch Contribution Summary — ${getPeriodDisplay()}
 Standard: Ksh ${fmt(std)}/member
 Generated: ${new Date().toLocaleDateString('en-KE',{day:'numeric',month:'long',year:'numeric'})}
 
@@ -5770,7 +5765,7 @@ MEMBER DETAILS
 ${rows}
 
 ---
-Sent from Welfare Contribution Manager`;
+Sent from Lunch Contribution Manager`;
 
   const mailtoLink = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.open(mailtoLink);
@@ -5922,7 +5917,7 @@ function pwaInstall() {
 // Inject web manifest dynamically
 (function injectManifest() {
   const manifest = {
-    name: 'Welfare Contribution Manager', short_name: 'Welfare Fund',
+    name: 'Lunch Contribution Manager', short_name: 'Lunch Fund',
     start_url: location.pathname, display: 'standalone',
     background_color: '#eef4fb', theme_color: '#2980b9',
     icons: [{ src: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14/assets/72x72/1f371.png', sizes: '72x72', type: 'image/png' }]
@@ -6422,7 +6417,7 @@ function _buildPaymentCardHTML(m, periodKey, std, sparkPts, qrBoxId, photoDataUr
           ${logoHtml}
           <div>
             <div style="font-size:11.5px;font-weight:800;color:#fff;line-height:1.15;text-shadow:0 1px 4px rgba(0,0,0,.5);">Kanyadet Staff Welfare Fund</div>
-            <div style="font-size:8.5px;color:#a8c8e0;letter-spacing:0.6px;margin-top:3px;">Welfare Contribution Card </div>
+            <div style="font-size:8.5px;color:#a8c8e0;letter-spacing:0.6px;margin-top:3px;">Wedding Contribution Card </div>
           </div>
         </div>
         <div style="width:60px;height:60px;border-radius:50%;border:3px solid ${color};box-shadow:0 0 0 3px rgba(255,255,255,0.2);overflow:hidden;background:#1a3045;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:${color};flex-shrink:0;">${photoHtml}</div>
@@ -6431,7 +6426,7 @@ function _buildPaymentCardHTML(m, periodKey, std, sparkPts, qrBoxId, photoDataUr
       <div style="margin-top:6px;">
         <div style="font-size:10px;font-weight:700;color:#a8c8e0;letter-spacing:2.5px;text-transform:uppercase;">Contribution Record</div>
         <div style="font-size:42px;font-weight:900;color:#ffffff;line-height:1;letter-spacing:-1px;margin-top:1px;">${s.label}</div>
-        <div style="font-size:22px;font-weight:800;color:#ffffff;line-height:1.1;margin-top:0px;">Welfare Payment Status Report</div>
+        <div style="font-size:22px;font-weight:800;color:#ffffff;line-height:1.1;margin-top:0px;">Wedding Payment Status Report</div>
       </div>
 
       <div style="margin-top:3px;">
@@ -6468,7 +6463,7 @@ function _buildPaymentCardHTML(m, periodKey, std, sparkPts, qrBoxId, photoDataUr
           <div>
             <div style="font-size:8.5px;color:#3a6080;font-weight:600;line-height:1.7;">
               📅 Generated ${genDate}<br>
-              <span style="color:#2980b9;font-weight:700;">Kanyadet Welfare Contribution Manager</span> · Official
+              <span style="color:#2980b9;font-weight:700;">Kanyadet Lunch Contribution Manager</span> · Official
               ${sparkHtml}
             </div>
           </div>
@@ -6597,7 +6592,7 @@ function shareCardViaWhatsApp() {
       try {
         await navigator.share({
           files: [file],
-          title: 'Welfare Contribution Payment Card',
+          title: 'Lunch Contribution Payment Card',
           text: m ? `${m.name} — ${periodLabel} payment card` : `${periodLabel} payment card`
         });
         showToast('✅ Share sheet opened — choose WhatsApp to send the image.');
@@ -6618,8 +6613,8 @@ function shareCardViaWhatsApp() {
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 
     const msg = m
-      ? `Hi ${m.name}, here is your ${periodLabel} welfare contribution payment card from Kanyadet Staff Welfare Fund.`
-      : `Here is the ${periodLabel} welfare contribution payment card.`;
+      ? `Hi ${m.name}, here is your ${periodLabel} lunch contribution payment card from Kanyadet Staff Welfare Fund.`
+      : `Here is the ${periodLabel} lunch contribution payment card.`;
     const waUrl = (m && m.phone)
       ? `https://wa.me/${waNum(m.phone)}?text=${encodeURIComponent(msg)}`
       : `https://wa.me/?text=${encodeURIComponent(msg)}`;

@@ -259,6 +259,8 @@
     .cards-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:18px}
     .panel{background:linear-gradient(165deg, rgba(255,255,255,.82), rgba(255,255,255,.62));border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow);padding:18px;margin-bottom:16px}
     .panel-title{font-size:14px;font-weight:900;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+    .chart-view-toggle{display:inline-flex;gap:6px;}
+    .chart-view-toggle .btn-outline.active{background:var(--blue);border-color:var(--blue);color:#fff;}
     .mini-chart{height:240px;border-radius:14px;background:linear-gradient(180deg, rgba(41,128,185,.08), rgba(41,128,185,.02));border:1px solid var(--border);padding:8px;position:relative}
     .mini-chart canvas{width:100%!important;height:100%!important}
 
@@ -678,6 +680,16 @@
                 <div class="empty-state"><div class="es-title">Loading…</div></div>
               </div>
             </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Admission Trend by Year
+              <span class="chart-view-toggle" id="admTrendViewToggle">
+                <button class="btn btn-outline btn-xs active" data-view="total" type="button">Total</button>
+                <button class="btn btn-outline btn-xs" data-view="grade" type="button">By Grade</button>
+              </span>
+            </div>
+            <div class="mini-chart" style="height:220px"><canvas id="admissionTrendChart"></canvas></div>
           </div>
 
           <div class="panel">
@@ -1428,6 +1440,7 @@
       tchPage: 1,
       auditPage: 1,
       enrollChart: null,
+      admissionTrendChart: null,
       welDonut: null,
       welHistChart: null,
       calendarEvents: []
@@ -3377,6 +3390,7 @@
 
       updateDashAttendance();
       renderEnrollChart();
+      renderAdmissionTrendChart();
     }
 
     function updateDashAttendance(){
@@ -3393,6 +3407,114 @@
       $('kpi-att-meta').textContent = `${present}/${vals.length} present`;
       $('kpi-att-meta').className = 'kpi-variant up';
     }
+
+    // Admission Trend by Year — there's no dedicated admission-date field
+    // anywhere in the Results records (only per-term exam headers like
+    // "Grade 5-2026-A2-End-Term 1"), so a true admissions-over-time trend
+    // isn't directly storable. This uses the same identity/dedup approach
+    // as deriveStudentsFromResults() above — one row per student via
+    // studentIdentityKey() — but instead of keeping each student's LATEST
+    // record, it keeps their EARLIEST year across every record we have for
+    // them (all grades, all terms, not just the current latest header),
+    // along with the grade on that earliest record (their apparent entry
+    // grade — Grade 1 for most, but a transfer student could enter at any
+    // grade). That earliest year is the closest honest proxy for "when this
+    // student first appears in our records" — it undercounts anyone whose
+    // very first term was never entered/imported, and overstates a
+    // student's true admission year if their earliest surviving record is
+    // from a later term than when they actually joined, but it's the best
+    // signal the data actually contains.
+    const ADM_TREND_COLORS = ['#2980b9','#e67e22','#8e44ad','#27ae60','#e74c3c','#16a085','#f39c12','#34495e','#c0392b'];
+    let admTrendView = 'total';
+    function renderAdmissionTrendChart(){
+      const ctx = $('admissionTrendChart');
+      if(!ctx) return;
+      const earliestByStudent = new Map(); // key -> { year, grade }
+      state.results.forEach(rec => {
+        const header = String(rec.Grade || rec.grade || rec.Term || rec.term || '').trim();
+        if(!header) return;
+        const year = parseInt((header.match(/(\d{4})/) || [])[1], 10);
+        if(!year) return;
+        const key = studentIdentityKey(rec);
+        const current = earliestByStudent.get(key);
+        if(!current || year < current.year) earliestByStudent.set(key, { year, grade: gShortRes(header) });
+      });
+
+      const years = [...new Set([...earliestByStudent.values()].map(v => v.year))].sort((a,b) => a - b);
+      if(state.admissionTrendChart) state.admissionTrendChart.destroy();
+      if(!years.length) return;
+      const labels = years.map(String);
+      const gctx = ctx.getContext('2d');
+      let datasets;
+
+      if(admTrendView === 'grade'){
+        const grades = [...new Set([...earliestByStudent.values()].map(v => v.grade))]
+          .sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+        const counts = {}; // grade -> { year -> n }
+        earliestByStudent.forEach(({year, grade}) => {
+          counts[grade] = counts[grade] || {};
+          counts[grade][year] = (counts[grade][year]||0) + 1;
+        });
+        datasets = grades.map((grade, i) => {
+          const color = ADM_TREND_COLORS[i % ADM_TREND_COLORS.length];
+          return {
+            label: grade,
+            data: years.map(y => counts[grade]?.[y] || 0),
+            fill: false,
+            borderColor: color,
+            backgroundColor: color,
+            borderWidth: 2,
+            tension: 0.4,
+            cubicInterpolationMode: 'monotone',
+            pointRadius: 3,
+            pointBackgroundColor: color,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1
+          };
+        });
+      } else {
+        const counts = {};
+        earliestByStudent.forEach(({year}) => { counts[year] = (counts[year]||0) + 1; });
+        const areaFill = gctx.createLinearGradient(0, 0, 0, ctx.clientHeight || 220);
+        areaFill.addColorStop(0, 'rgba(142,68,173,.28)');
+        areaFill.addColorStop(1, 'rgba(142,68,173,.02)');
+        datasets = [{
+          label: 'New students (first year on record)',
+          data: years.map(y => counts[y] || 0),
+          fill: true,
+          backgroundColor: areaFill,
+          borderColor: '#8e44ad',
+          borderWidth: 3,
+          tension: 0.4,
+          cubicInterpolationMode: 'monotone',
+          pointRadius: 4,
+          pointBackgroundColor: '#8e44ad',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1.5
+        }];
+      }
+
+      state.admissionTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: admTrendView === 'grade', labels: { boxWidth: 12, font: { size: 10 } } } },
+          scales: {
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 }, precision: 0 }, grid: { color: 'rgba(142,68,173,.08)' } }
+          }
+        }
+      });
+    }
+    $('admTrendViewToggle')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-view]');
+      if(!btn) return;
+      admTrendView = btn.dataset.view;
+      $('admTrendViewToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      renderAdmissionTrendChart();
+    });
 
     function renderEnrollChart(){
       const counts = {};
