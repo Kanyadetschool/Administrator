@@ -20,6 +20,7 @@
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
+
   <style>
 
     :root {
@@ -693,6 +694,25 @@
           </div>
 
           <div class="panel">
+            <div class="panel-title">Gender &amp; UPI Analytics
+              <span class="chart-view-toggle" id="dashDemoMetricToggle">
+                <button class="btn btn-outline btn-xs active" data-metric="gender" type="button">Gender</button>
+                <button class="btn btn-outline btn-xs" data-metric="upi" type="button">UPI</button>
+              </span>
+              <span class="chart-view-toggle" id="dashDemoTypeToggle">
+                <button class="btn btn-outline btn-xs" data-type="doughnut" type="button">Doughnut</button>
+                <button class="btn btn-outline btn-xs active" data-type="bar" type="button">Bar</button>
+              </span>
+            </div>
+            <div class="toolbar" style="margin-bottom:10px;">
+              <select class="sel" id="dash-demo-grade"><option value="">All Grades</option></select>
+            </div>
+            <div class="mini-chart" style="height:220px"><canvas id="dashDemoChart"></canvas></div>
+            <div class="muted" style="margin-top:10px;font-size:11px;" id="dash-demo-summary">Click a slice or bar to view and update those students.</div>
+            <div id="dash-demo-drill" style="margin-top:12px;"></div>
+          </div>
+
+          <div class="panel">
             <div class="panel-title">Quick Actions</div>
             <div class="quick-grid">
               <div class="quick-tile" data-goto="students" data-action="add-student"><div class="qt-icon">🧑‍🎓</div><div class="qt-label">Students DB</div><div class="qt-desc">Full admissions tool</div></div>
@@ -1341,6 +1361,8 @@
               <a class="link-card" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
               <a class="link-card" href="./Report-Cards/Admin-Individual-student-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Admin Student Progress</div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
               <a class="link-card" href="./updater.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Bulk Updater</div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Admin-Active -Students.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Admin Student Progress </div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
+
             </div>
           </div>
         </section>
@@ -1441,6 +1463,7 @@
       auditPage: 1,
       enrollChart: null,
       admissionTrendChart: null,
+      dashDemoChart: null,
       welDonut: null,
       welHistChart: null,
       calendarEvents: []
@@ -3391,7 +3414,149 @@
       updateDashAttendance();
       renderEnrollChart();
       renderAdmissionTrendChart();
+      renderDashDemoChart();
     }
+
+    /* ── Dashboard Gender & UPI Analytics (togglable metric + chart type,
+       click a slice/bar to drill into and edit those students' records) ── */
+    let dashDemoMetric = 'gender'; // 'gender' | 'upi'
+    let dashDemoType = 'bar'; // 'doughnut' | 'bar'
+    let dashDemoGrade = ''; // '' = all grades
+    let dashDemoDrillIndex = null;
+    function dashDemoStudents(){
+      return dashDemoGrade ? state.students.filter(s => studentGrade(s) === dashDemoGrade) : state.students;
+    }
+    function dashDemoSegments(){
+      if(dashDemoMetric === 'gender'){
+        return [
+          { label: 'Boys', field: 'Gender', color: 'rgba(41,128,185,.75)', match: s => studentGender(s) === 'Male' },
+          { label: 'Girls', field: 'Gender', color: 'rgba(230,126,34,.75)', match: s => studentGender(s) === 'Female' },
+          { label: 'Unspecified', field: 'Gender', color: 'rgba(150,150,150,.5)', match: s => studentGender(s) !== 'Male' && studentGender(s) !== 'Female' }
+        ];
+      }
+      return [
+        { label: 'Has UPI', field: 'UPI', color: 'rgba(39,174,96,.75)', match: s => !isPlaceholder(studentUpi(s)) },
+        { label: 'Missing UPI', field: 'UPI', color: 'rgba(231,76,60,.75)', match: s => isPlaceholder(studentUpi(s)) }
+      ];
+    }
+    function renderDashDemoChart(){
+      const ctx = $('dashDemoChart');
+      if(!ctx) return;
+      const pool = dashDemoStudents();
+      const segments = dashDemoSegments();
+      const data = segments.map(seg => pool.filter(seg.match).length);
+      const labels = segments.map(seg => seg.label);
+      const colors = segments.map(seg => seg.color);
+      if(state.dashDemoChart) state.dashDemoChart.destroy();
+      state.dashDemoChart = new Chart(ctx, {
+        type: dashDemoType,
+        data: {
+          labels,
+          datasets: [{
+            label: 'Students',
+            data,
+            backgroundColor: colors,
+            borderWidth: 0,
+            borderRadius: dashDemoType === 'bar' ? 6 : 0,
+            maxBarThickness: 60
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: dashDemoType === 'doughnut', position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }
+          },
+          cutout: dashDemoType === 'doughnut' ? '62%' : undefined,
+          scales: dashDemoType === 'bar' ? {
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 }, precision: 0 }, grid: { color: 'rgba(41,128,185,.08)' } }
+          } : undefined,
+          onClick: (evt, elements) => {
+            if(!elements.length) return;
+            dashDemoDrillIndex = elements[0].index;
+            renderDashDemoDrill();
+          }
+        }
+      });
+      const total = pool.length;
+      const gradeNote = dashDemoGrade ? ` in ${escapeHtml(dashDemoGrade)}` : '';
+      const summary = $('dash-demo-summary');
+      if(summary){
+        if(dashDemoMetric === 'gender'){
+          summary.textContent = `${data[0]} boys, ${data[1]} girls${data[2] ? `, ${data[2]} unspecified` : ''} — ${total} students${gradeNote}. Click a slice or bar to view and update those students.`;
+        } else {
+          const pct = total ? Math.round(data[0] / total * 100) : 0;
+          summary.textContent = `${data[0]} of ${total} students${gradeNote} have a UPI on file (${pct}%). Click a slice or bar to view and update those students.`;
+        }
+      }
+      renderDashDemoDrill();
+    }
+    function renderDashDemoDrill(){
+      const box = $('dash-demo-drill');
+      if(!box) return;
+      const segments = dashDemoSegments();
+      const seg = dashDemoDrillIndex != null ? segments[dashDemoDrillIndex] : null;
+      if(!seg){ box.innerHTML = ''; return; }
+      const list = dashDemoStudents().filter(seg.match);
+      box.innerHTML = `
+        <div class="panel-title" style="font-size:12px;margin-bottom:8px;">
+          ${escapeHtml(seg.label)} — ${list.length} student${list.length === 1 ? '' : 's'}
+          <button class="btn btn-outline btn-xs" id="dash-demo-drill-close" type="button" style="float:right">✕ Close</button>
+        </div>
+        <div class="activity-list">
+          ${list.length ? list.slice(0, 50).map(s => `
+            <div class="personnel-row" data-drill-id="${escapeHtml(s.id)}" style="cursor:pointer;">
+              <div class="personnel-name">${escapeHtml(studentName(s))}</div>
+              <div class="personnel-email">${escapeHtml(studentGrade(s))} · ${seg.field}: ${escapeHtml(String(s[seg.field] || s[seg.field.toLowerCase()] || '—'))} · <span style="color:var(--blue);font-weight:700;">Tap to edit</span></div>
+            </div>`).join('') : '<div class="muted">No students in this group.</div>'}
+          ${list.length > 50 ? `<div class="muted" style="margin-top:6px;">Showing first 50 of ${list.length}.</div>` : ''}
+        </div>
+      `;
+      $('dash-demo-drill-close')?.addEventListener('click', () => { dashDemoDrillIndex = null; renderDashDemoDrill(); });
+      box.querySelectorAll('[data-drill-id]').forEach(row => {
+        row.addEventListener('click', () => {
+          const s = state.students.find(x => x.id === row.dataset.drillId);
+          if(!s) return;
+          openDetailModal({
+            title: studentName(s),
+            viewHtml: `
+              <div class="field-group"><label>Grade</label><div>${escapeHtml(studentGrade(s))}</div></div>
+              <div class="field-group"><label>Gender</label><div>${escapeHtml(studentGender(s) || '—')}</div></div>
+              <div class="field-group"><label>UPI</label><div>${escapeHtml(studentUpi(s))}</div></div>
+            `,
+            editFields: [
+              { key: 'Gender', label: 'Gender', value: s.Gender || s.gender || '' },
+              { key: 'UPI', label: 'UPI', value: s.UPI || s.upi || '' }
+            ],
+            onSave: async (values) => {
+              await update(ref(db, `${RESULTS_PATH}/${s.id}`), values);
+              logAudit(`Updated ${Object.keys(values).join('/')} for ${studentName(s)} via dashboard analytics`, 'Students');
+            }
+          });
+        });
+      });
+    }
+    $('dashDemoMetricToggle')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-metric]');
+      if(!btn) return;
+      dashDemoMetric = btn.dataset.metric;
+      dashDemoDrillIndex = null;
+      $('dashDemoMetricToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      renderDashDemoChart();
+    });
+    $('dashDemoTypeToggle')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-type]');
+      if(!btn) return;
+      dashDemoType = btn.dataset.type;
+      $('dashDemoTypeToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      renderDashDemoChart();
+    });
+    $('dash-demo-grade')?.addEventListener('change', () => {
+      dashDemoGrade = $('dash-demo-grade').value;
+      dashDemoDrillIndex = null;
+      renderDashDemoChart();
+    });
 
     function updateDashAttendance(){
       const vals = Object.values(state.attDraft);
@@ -3518,10 +3683,22 @@
 
     function renderEnrollChart(){
       const counts = {};
+      const detail = {};
       state.students.forEach(s => {
         const g = studentGrade(s);
         counts[g] = (counts[g]||0) + 1;
+        if(!detail[g]) detail[g] = { total:0, male:0, female:0, unknown:0, boarding:0, day:0 };
+        const d = detail[g];
+        d.total++;
+        const gender = studentGender(s);
+        if(gender === 'Male') d.male++;
+        else if(gender === 'Female') d.female++;
+        else d.unknown++;
+        const boardStatus = String(s.BoardingStatus || s.boardingStatus || s.Boarding || '').trim().toLowerCase();
+        if(boardStatus.startsWith('board')) d.boarding++;
+        else if(boardStatus) d.day++;
       });
+      const totalStudents = state.students.length || 1;
       const labels = Object.keys(counts).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
       const values = labels.map(l => counts[l]);
       const ctx = $('enrollChart');
@@ -3549,13 +3726,38 @@
             pointRadius: 4,
             pointBackgroundColor: '#f39c12',
             pointBorderColor: '#fff',
-            pointBorderWidth: 1.5
+            pointBorderWidth: 1.5,
+            pointHoverRadius: 6,
+            pointHitRadius: 12
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(30,30,40,.94)',
+              padding: 10,
+              titleFont: { size: 12, weight: '700' },
+              bodyFont: { size: 11 },
+              displayColors: false,
+              callbacks: {
+                title: (items) => `Grade ${items[0].label}`,
+                label: (item) => {
+                  const g = item.label;
+                  const d = detail[g] || { total:0, male:0, female:0, unknown:0, boarding:0, day:0 };
+                  const pct = ((d.total / totalStudents) * 100).toFixed(1);
+                  const lines = [
+                    `Learners: ${d.total} (${pct}% of school)`,
+                    `Male: ${d.male}  ·  Female: ${d.female}${d.unknown ? `  ·  Unspecified: ${d.unknown}` : ''}`
+                  ];
+                  if(d.boarding || d.day) lines.push(`Boarding: ${d.boarding}  ·  Day: ${d.day}`);
+                  return lines;
+                }
+              }
+            }
+          },
           scales: {
             x: { ticks: { font: { size: 10 }, maxRotation: 45 }, grid: { display: false } },
             y: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: 'rgba(243,156,18,.08)' } }
@@ -3699,6 +3901,7 @@
       };
       fill($('stu-grade-filter'), '<option value="">All Grades</option>');
       fill($('att-grade'), '<option value="">Select Grade</option>');
+      if($('dash-demo-grade')) fill($('dash-demo-grade'), '<option value="">All Grades</option>');
     }
 
     function filteredStudents(){
