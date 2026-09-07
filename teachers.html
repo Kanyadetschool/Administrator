@@ -351,6 +351,7 @@ a{color:inherit;text-decoration:none;}
 .cmdk-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;}
 .cmdk-item.active,.cmdk-item:hover{background:var(--surface2);}
 .cmdk-item-ico{width:28px;height:28px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.cmdk-item-ico.cmdk-student-photo{background:transparent;border-radius:8px;}
 .cmdk-item-title{font-size:13px;font-weight:700;color:var(--text);}
 .cmdk-item-sub{font-size:10.5px;color:var(--text3);}
 .cmdk-empty{padding:30px 16px;text-align:center;color:var(--text3);font-size:12.5px;}
@@ -2321,9 +2322,12 @@ VIEW_RENDERERS['dashboard'] = async function(area){
       topPerformersHolder.innerHTML = topPerformers.length
         ? topPerformers.map(s => `
             <div class="analytics-row">
-              <div>
+              <div class="stu-name-cell">
+                ${makePhotoAvatar(s.name, s.grade, 'stu-av-sm')}
+                <div>
                 <div class="analytics-name">${esc(s.name)}</div>
                 <div class="analytics-meta">${esc(s.grade)}</div>
+                </div>
               </div>
               <div class="badge badge-red">${s.avg.toFixed(1)}</div>
             </div>
@@ -2706,8 +2710,9 @@ VR2['attendance'] = async function(area){
       cell.addEventListener('click', ()=>{
         const key = cell.dataset.key;
         state[key] = cycle[state[key]] || 'present';
-        cell.className = 'att-cell ' + state[key];
-        cell.innerHTML = `${esc2(roster.find(r=>r.key===key).name)}<br><small>${labelIcon[state[key]]}</small>`;
+          const student = roster.find(r=>r.key===key);
+          cell.className = 'att-cell ' + state[key];
+          cell.innerHTML = `${makePhotoAvatar(student.name, g, 'stu-av-sm')}${esc2(student.name)}<br><small>${labelIcon[state[key]]}</small>`;
         updateCounts();
       });
     });
@@ -5863,7 +5868,7 @@ function cmdkBuildResults(q){
   ).slice(0,6);
   if(stuMatches.length){
     groups.push({ label:'My Students', items: stuMatches.map(s=>({
-      icon:'🎓', title: s.name||'Unnamed', sub: s.grade||'',
+      icon: makePhotoAvatar(s.name||'Unnamed', s.grade||'', 'stu-av-sm'), title: s.name||'Unnamed', sub: s.grade||'',
       action:()=>navTo('classes')
     })) });
   }
@@ -5882,7 +5887,7 @@ function cmdkRender(){
     ${g.items.map(it=>{
       const idx = i++;
       return `<div class="cmdk-item${idx===0?' active':''}" data-cmdk-idx="${idx}">
-        <div class="cmdk-item-ico">${it.icon}</div>
+        <div class="cmdk-item-ico${it.icon.includes('stu-av-wrap')?' cmdk-student-photo':''}">${it.icon}</div>
         <div><div class="cmdk-item-title">${esc(it.title)}</div><div class="cmdk-item-sub">${esc(it.sub||'')}</div></div>
       </div>`;
     }).join('')}
