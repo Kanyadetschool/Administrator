@@ -333,6 +333,31 @@
     .audit-snapshot{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11.5px;font-family:'JetBrains Mono',monospace;color:var(--text2);line-height:1.8;max-height:220px;overflow-y:auto;text-align:left}
     .audit-no-diff{font-size:12px;color:var(--text3);font-style:italic}
     .audit-section-lbl{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin:10px 0 4px}
+    /* ── Audit Trail: expandable cards (mirrors Results Portal's audit-card UI) ── */
+    .audit-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:10px;overflow:hidden;transition:var(--transition)}
+    .audit-card:hover{border-color:var(--border-strong)}
+    .audit-card-head{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;background:var(--surface2)}
+    .audit-card-head:hover{background:var(--surface3)}
+    .audit-icon{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(41,128,185,.12)}
+    .audit-main{flex:1;min-width:0}
+    .audit-action{font-size:13px;font-weight:700;color:var(--text)}
+    .audit-meta{font-size:10px;color:var(--text3);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
+    .audit-badge{font-size:9px;font-weight:800;padding:2px 8px;border-radius:8px;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;display:inline-block}
+    .audit-badge.ab-edit{background:rgba(41,128,185,.14);color:var(--blue-lt)}
+    .audit-badge.ab-add{background:rgba(39,174,96,.14);color:var(--green)}
+    .audit-badge.ab-delete{background:rgba(231,76,60,.14);color:var(--red)}
+    .audit-badge.ab-import{background:rgba(142,68,173,.14);color:var(--purple)}
+    .audit-badge.ab-export{background:rgba(22,160,133,.14);color:var(--teal)}
+    .audit-badge.ab-auth{background:rgba(243,156,18,.14);color:var(--gold)}
+    .audit-badge.ab-system{background:rgba(122,174,201,.14);color:var(--text2)}
+    .audit-summary-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(41,128,185,.1);color:var(--blue-lt);border:1px solid rgba(41,128,185,.2);margin-right:6px}
+    .audit-chevron{font-size:13px;color:var(--text3);transition:transform .25s;flex-shrink:0;margin-left:4px}
+    .audit-card.open .audit-chevron{transform:rotate(90deg)}
+    .audit-body{display:none;padding:14px 16px;border-top:1px solid var(--border)}
+    .audit-card.open .audit-body{display:block}
+    .audit-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+    .audit-act-btn{font-size:10.5px;font-weight:700;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:var(--transition)}
+    .audit-act-btn:hover{border-color:var(--blue-lt);color:var(--blue-lt);background:rgba(41,128,185,.08)}
     .pager{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
     .pager-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.03em}
     .pager button:disabled{opacity:.4;cursor:not-allowed}
@@ -373,6 +398,7 @@
     }
     .stu-av-sm{width:28px;height:28px;border-radius:8px;font-size:11px;}
     .stu-av-md{width:40px;height:40px;border-radius:11px;font-size:14px;}
+    .stu-av-lg{width:52px;height:52px;border-radius:14px;font-size:18px;}
     .stu-av-wrap.has-photo{cursor:pointer;}
     .stu-name-cell{display:flex;align-items:center;gap:10px;}
     /* Teacher photo avatars — same 32px circle used for Live Sessions, now
@@ -694,13 +720,13 @@
           </div>
 
           <div class="panel">
-            <div class="panel-title">Gender &amp; ULI Analytics
+            <div class="panel-title">Gender &amp; UPI Analytics
               <span class="chart-view-toggle" id="dashDemoMetricToggle">
                 <button class="btn btn-outline btn-xs active" data-metric="gender" type="button">Gender</button>
-                <button class="btn btn-outline btn-xs" data-metric="uli" type="button">ULI</button>
+                <button class="btn btn-outline btn-xs" data-metric="upi" type="button">UPI</button>
               </span>
               <span class="chart-view-toggle" id="dashDemoTypeToggle">
-                <button class="btn btn-outline btn-xs" data-type="doughnut" type="button">Doughnut</button>
+                <button class="btn btn-outline btn-xs" data-type="line" type="button">Line</button>
                 <button class="btn btn-outline btn-xs active" data-type="bar" type="button">Bar</button>
               </span>
             </div>
@@ -709,7 +735,6 @@
             </div>
             <div class="mini-chart" style="height:220px"><canvas id="dashDemoChart"></canvas></div>
             <div class="muted" style="margin-top:10px;font-size:11px;" id="dash-demo-summary">Click a slice or bar to view and update those students.</div>
-            <div id="dash-demo-drill" style="margin-top:12px;"></div>
           </div>
 
           <div class="panel">
@@ -760,7 +785,7 @@
           </div>
           <div class="panel">
             <div class="toolbar">
-              <input class="search-input" id="stu-search" placeholder="Search name, ULI, admission no, grade…" />
+              <input class="search-input" id="stu-search" placeholder="Search name, UPI, admission no, grade…" />
               <select class="sel" id="stu-grade-filter"><option value="">All Grades</option></select>
               <select class="sel" id="stu-gender-filter">
                 <option value="">All Genders</option>
@@ -1214,7 +1239,7 @@
           </div>
           <div class="panel">
             <div class="toolbar" style="flex-wrap:wrap;gap:8px;">
-              <input class="search-input" id="audit-search" placeholder="Search actions, admin, module…" style="flex:1;min-width:180px;" />
+              <input class="search-input" id="audit-search" placeholder="Search actions, admin, target…" style="flex:1;min-width:180px;" />
               <select class="sel" id="audit-actor-sel">
                 <option value="">All Admins</option>
               </select>
@@ -1229,12 +1254,10 @@
                 <option value="system">⚙️ System</option>
               </select>
             </div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Action</th><th>Admin</th><th>Category</th><th>Time</th></tr></thead>
-                <tbody id="audit-tbody"><tr><td colspan="4" class="muted">Loading audit log…</td></tr></tbody>
-              </table>
-            </div>
+            <p class="muted" style="font-size:12px;line-height:1.7;margin:2px 0 14px;padding:10px 14px;background:rgba(41,128,185,.06);border-radius:var(--radius-md);border:1px solid var(--border)">
+              📋 Every admin action is recorded here with field-level detail — what changed, the old value, the new value, who made the change, and when. Click any entry to expand its full diff.
+            </p>
+            <div id="audit-list"><div class="muted" style="padding:20px 0;">Loading audit history…</div></div>
             <div class="pager" id="audit-pager"></div>
           </div>
         </section>
@@ -1406,14 +1429,19 @@
 
     const RESULTS_PATH = PATHS.RESULTS_PATH;
     const LOCK_PATH = PATHS.LOCK_PATH;
-    const AUDIT_PATH = PATHS.AUDIT_PATH;
+    // Hardcoded (not PATHS.AUDIT_PATH) to guarantee this matches
+    // Results-portal.html's own `const AUDIT_PATH = 'audit_logs'` exactly —
+    // audit_logs is a single shared node both apps read/write, so any drift
+    // between the two (e.g. a stale/renamed PATHS.AUDIT_PATH in config.js)
+    // would silently point this app at an empty or different tree.
+    const AUDIT_PATH = 'audit_logs';
     const ANNOUNCEMENTS_PATH = PATHS.ANNOUNCEMENTS_PATH;
     const ATTENDANCE_PATH = PATHS.ATTENDANCE_PATH;
     const LUNCH_PATH = PATHS.LUNCH_PATH;
     const QE_ACTIVE_PATH = PATHS.QE_ACTIVE_PATH;
     const CALENDAR_PATH = PATHS.CALENDAR_PATH;
 
-    const app = getApps().length ? getApps()[0] : initializeApp(FB_CONFIG);
+    const app = initializeApp(FB_CONFIG);
     const auth = getAuth(app);
     const db = getDatabase(app);
     const fst = getFirestore(app);
@@ -1442,6 +1470,7 @@
       teachers: [],
       results: [],
       audits: [],
+      auditLoadError: null,
       announcements: [],
       feedback: [],
       admissions: [],
@@ -1708,8 +1737,8 @@
       if(/^f/i.test(g)) return 'Female';
       return g || 'Unknown';
     }
-    function studentUli(s){
-      return s.ULI || s.uli || s.AssessmentNumber || s['Assessment No'] || s.id || '—';
+    function studentUpi(s){
+      return s.UPI || s.upi || s.AssessmentNumber || s['Assessment No'] || s.id || '—';
     }
 
     /* ══════════════════════════════════════════
@@ -1841,7 +1870,7 @@
     // other tools to tell subject-score fields apart from record metadata.
     const RESULTS_META_FIELDS = new Set([
       'Assessment No','Class','Closing Date','Gender','Grade','Official Student Name',
-      'Opening Date','Position','Remarks','Term','ULI'
+      'Opening Date','Position','Remarks','Term','UPI'
     ]);
     function gShortRes(raw){
       const s = String(raw||'');
@@ -1867,15 +1896,15 @@
     }
     // Results is a per-exam-sitting table (several rows per student across
     // terms), not a student master list, so the roster needs a stable
-    // per-student key to dedupe on — Assessment No first, then ULI, then
+    // per-student key to dedupe on — Assessment No first, then UPI, then
     // name, mirroring the same fallback used across the school's other
     // tools. Placeholder values like "---" or "pending" are treated as
     // absent since they aren't unique per student.
     function studentIdentityKey(rec){
       const an = String(rec?.['Assessment No'] || '').trim();
       if(an && !/^-+$/.test(an) && !/^pending/i.test(an)) return 'AN:' + an;
-      const uli = String(rec?.ULI || '').trim();
-      if(uli && !/^-+$/.test(uli)) return 'ULI:' + uli;
+      const upi = String(rec?.UPI || '').trim();
+      if(upi && !/^-+$/.test(upi)) return 'UPI:' + upi;
       return 'NAME:' + String(rec?.['Official Student Name'] || '').trim().toUpperCase();
     }
     function avgOf(rec){
@@ -2016,9 +2045,21 @@
     /* ── Admin Modules: shared audit-log helper — same audit_logs shape
        Attendance/Announcements already write to, so entries interleave
        correctly in the Audit Trail. ── */
-    async function logAudit(action, category){
+    // Firebase RTDB rejects `undefined` field values outright (the whole
+    // push fails) — before/after snapshots are often built from records
+    // that don't have every field, so strip undefined before writing.
+    function cleanAuditObj(obj){
+      const out = {};
+      Object.keys(obj||{}).forEach(k => { const v = obj[k]; out[k] = (v === undefined) ? '' : v; });
+      return out;
+    }
+    // details: { before, after, extra, targetId, targetName } — same shape
+    // Results-portal's logActivity() writes, so entries from either app show
+    // a real diff table instead of "No additional detail available" when
+    // opened in the Audit Trail.
+    async function logAudit(action, category, details={}){
       try{
-        await push(ref(db, AUDIT_PATH), {
+        const entry = {
           action,
           admin: state.user?.displayName || state.user?.email || 'Admin',
           category,
@@ -2028,7 +2069,13 @@
           // (numbers before strings). Mixing types under the same indexed
           // field breaks limitToLast() so it silently drops/reorders entries.
           time: new Date().toISOString()
-        });
+        };
+        if(details.before) entry.before = cleanAuditObj(details.before);
+        if(details.after) entry.after = cleanAuditObj(details.after);
+        if(details.extra) entry.extra = details.extra;
+        if(details.targetId) entry.targetId = details.targetId;
+        if(details.targetName) entry.targetName = details.targetName;
+        await push(ref(db, AUDIT_PATH), entry);
         loadAudits();
       }catch(e){ console.error('audit log', e); }
     }
@@ -2041,7 +2088,7 @@
               onSave?(values), onDelete?(), deleteWarning? } */
     let dmodalCtx = null;
     function openDetailModal(cfg){
-      dmodalCtx = { ...cfg, editing:false };
+      dmodalCtx = { ...cfg, editing: !!cfg.startEditing };
       renderDetailModal();
       $('dmodal-backdrop').classList.add('open');
     }
@@ -2158,7 +2205,10 @@
           advancedAdminUpdatedBy: state.user?.displayName || state.user?.email || 'Admin'
         });
         toast(`Advanced Admin ${grant?'granted to':'revoked from'} ${name}.`, 'ok');
-        logAudit(`Advanced Admin ${grant?'granted':'revoked'} for ${name}`, 'Role Management');
+        logAudit(`Advanced Admin ${grant?'granted':'revoked'} for ${name}`, 'Role Management', {
+          targetId: uid, targetName: name,
+          before: { Advancedadmin: !grant }, after: { Advancedadmin: grant }
+        });
       }catch(err){
         toast(`Error: ${err.message}`, 'err');
         inp.checked = !grant;
@@ -2262,7 +2312,10 @@
         if(locked){
           await remove(ref(db, `${LOCK_PATH}/${key}`));
           toast(`${term} unlocked.`, 'ok');
-          logAudit(`Unlocked term: ${term}`, 'Term Lock');
+          logAudit(`Unlocked term: ${term}`, 'Term Lock', {
+            targetId: key, targetName: term,
+            before: { locked: true }, after: { locked: false }
+          });
         } else {
           await set(ref(db, `${LOCK_PATH}/${key}`), {
             locked: true, label: term,
@@ -2270,7 +2323,10 @@
             lockedAt: Date.now()
           });
           toast(`${term} locked.`, 'ok');
-          logAudit(`Locked term: ${term}`, 'Term Lock');
+          logAudit(`Locked term: ${term}`, 'Term Lock', {
+            targetId: key, targetName: term,
+            before: { locked: false }, after: { locked: true }
+          });
         }
         renderTermLocks();
       }catch(err){ toast(`Error: ${err.message}`, 'err'); }
@@ -2299,7 +2355,10 @@
       try{
         await update(ref(db), updates);
         toast(`${entries.length} term(s) ${lockThem?'locked':'unlocked'}.`, 'ok');
-        logAudit(`${lockThem?'Bulk locked':'Bulk unlocked'} ${entries.length} term(s): ${names}`, 'Term Lock');
+        logAudit(`${lockThem?'Bulk locked':'Bulk unlocked'} ${entries.length} term(s): ${names}`, 'Term Lock', {
+          extra: `Terms: ${names}`,
+          before: { locked: !lockThem }, after: { locked: lockThem }
+        });
         termLockSelected = new Set();
         renderTermLocks();
       }catch(err){ toast(`Error: ${err.message}`, 'err'); }
@@ -2346,7 +2405,10 @@
       try{
         await updateDoc(doc(fst, 'users', uid), { canImportData: allow });
         toast(`Import access ${allow?'granted to':'revoked from'} ${name}.`, 'ok');
-        logAudit(`Import access ${allow?'granted':'revoked'} for ${name}`, 'Import Permissions');
+        logAudit(`Import access ${allow?'granted':'revoked'} for ${name}`, 'Import Permissions', {
+          targetId: uid, targetName: name,
+          before: { canImportData: !allow }, after: { canImportData: allow }
+        });
       }catch(err){ toast(`Error: ${err.message}`, 'err'); inp.checked = !allow; }
       finally{ inp.disabled = false; }
     });
@@ -2396,7 +2458,9 @@
 
         $('at-result').innerHTML = `✅ Teacher account created — <strong>${escapeHtml(fullName)}</strong> · ${escapeHtml(email)}`;
         toast(`Teacher ${fullName} added successfully.`, 'ok');
-        logAudit(`Created teacher account: ${fullName} (${email})`, 'Add Teacher');
+        logAudit(`Created teacher account: ${fullName} (${email})`, 'Add Teacher', {
+          targetId: uid, targetName: fullName, after: teacherDoc
+        });
         ['at-fname','at-lname','at-email','at-phone','at-password','at-password2'].forEach(id => $(id).value = '');
         loadTeachers();
         renderTeacherAccountsList();
@@ -2457,7 +2521,7 @@
         try{
           await sendPasswordResetEmail(auth, email);
           toast(`Password reset email sent to ${name}.`, 'ok');
-          logAudit(`Sent password reset to ${name} (${email})`, 'Add Teacher');
+          logAudit(`Sent password reset to ${name} (${email})`, 'Add Teacher', { targetName: name });
         }catch(err){ toast(`Error: ${err.message}`, 'err'); }
         return;
       }
@@ -2475,7 +2539,10 @@
         try{
           await updateDoc(doc(fst, 'users', uid), { disabled: !wasDisabled });
           toast(`${name} ${wasDisabled?'reactivated':'disabled'}.`, 'ok');
-          logAudit(`${wasDisabled?'Reactivated':'Disabled'} teacher account: ${name}`, 'Add Teacher');
+          logAudit(`${wasDisabled?'Reactivated':'Disabled'} teacher account: ${name}`, 'Add Teacher', {
+            targetId: uid, targetName: name,
+            before: { disabled: wasDisabled }, after: { disabled: !wasDisabled }
+          });
           renderTeacherAccountsList();
         }catch(err){ toast(`Error: ${err.message}`, 'err'); }
       }
@@ -2632,20 +2699,32 @@
       // limitToLast(500), then sort with new Date() (not raw subtraction,
       // which breaks on ISO-string time values).
       let rows;
+      state.auditLoadError = null;
       try{
         const q = query(ref(db, AUDIT_PATH), orderByChild('time'), limitToLast(500));
         const snap = await get(q);
         const data = snap.val();
+        // Temporary diagnostic — remove once audit entries are confirmed
+        // flowing. Open DevTools Console (F12) and reload the Audit Trail
+        // tab: this line will print exactly what Firebase handed back for
+        // `audit_logs`, so we can tell "genuinely empty" apart from
+        // "read succeeded but data is shaped differently than expected."
+        console.log('[loadAudits] AUDIT_PATH =', AUDIT_PATH, '| snap.exists() =', snap.exists(), '| raw data =', data);
         rows = data
           ? Object.entries(data).map(([key,v]) => ({ key, ...v }))
               .sort((a,b) => new Date(b.time) - new Date(a.time))
           : [];
         if(rows.length > 200) rows = rows.slice(0, 200);
       }catch(e){
+        // Surface this instead of only console.error — a permission-denied
+        // or offline error here previously looked identical to "log is
+        // empty," with no way for the person using the app to tell them
+        // apart.
         console.error('loadAudits', e);
+        state.auditLoadError = e.message || String(e);
         rows = [];
       }
-      if(cacheChanged('audits', rows)) computeAudits(rows);
+      if(cacheChanged('audits', rows) || state.auditLoadError) computeAudits(rows);
     }
 
     function computeAnnouncements(data){
@@ -2927,11 +3006,8 @@
           createdAt: Date.now(),
           createdBy: state.user?.displayName || state.user?.email
         });
-        await push(ref(db, AUDIT_PATH), {
-          action: `Added calendar event: ${title}`,
-          admin: state.user?.displayName || state.user?.email,
-          category: 'Calendar',
-          time: new Date().toISOString()
+        logAudit(`Added calendar event: ${title}`, 'Calendar', {
+          targetName: title, after: { title, date, type, notes }
         });
         ['cal-title','cal-date','cal-notes'].forEach(id => $(id).value = '');
         $('cal-form').style.display = 'none';
@@ -3167,11 +3243,18 @@
         viewHtml, editFields,
         onSave: async (values) => {
           await update(ref(db, `${LUNCH_PATH}/${periodKey}/members/${m.id}`), values);
-          logAudit(`Edited lunch record for ${values.name||m.name} (${(periodKey||'').replace(/_/g,' ')})`, 'Welfare');
+          logAudit(`Edited lunch record for ${values.name||m.name} (${(periodKey||'').replace(/_/g,' ')})`, 'Welfare', {
+            targetId: m.id, targetName: values.name||m.name,
+            before: { name:m.name, phone:m.phone, amount:m.amount, paidAt:m.paidAt },
+            after: values
+          });
         },
         onDelete: async () => {
           await remove(ref(db, `${LUNCH_PATH}/${periodKey}/members/${m.id}`));
-          logAudit(`Removed lunch member: ${m.name} (${(periodKey||'').replace(/_/g,' ')})`, 'Welfare');
+          logAudit(`Removed lunch member: ${m.name} (${(periodKey||'').replace(/_/g,' ')})`, 'Welfare', {
+            targetId: m.id, targetName: m.name,
+            before: { name:m.name, phone:m.phone, amount:m.amount, paidAt:m.paidAt }
+          });
         },
         deleteWarning: `Remove <strong>${escapeHtml(m.name||'this member')}</strong> from ${escapeHtml((periodKey||'').replace(/_/g,' '))}? This cannot be undone.`
       });
@@ -3417,12 +3500,11 @@
       renderDashDemoChart();
     }
 
-    /* ── Dashboard Gender & ULI Analytics (togglable metric + chart type,
+    /* ── Dashboard Gender & UPI Analytics (togglable metric + chart type,
        click a slice/bar to drill into and edit those students' records) ── */
-    let dashDemoMetric = 'gender'; // 'gender' | 'uli'
-    let dashDemoType = 'bar'; // 'doughnut' | 'bar'
+    let dashDemoMetric = 'gender'; // 'gender' | 'upi'
+    let dashDemoType = 'bar'; // 'line' | 'bar'
     let dashDemoGrade = ''; // '' = all grades
-    let dashDemoDrillIndex = null;
     function dashDemoStudents(){
       return dashDemoGrade ? state.students.filter(s => studentGrade(s) === dashDemoGrade) : state.students;
     }
@@ -3435,8 +3517,8 @@
         ];
       }
       return [
-        { label: 'Has ULI', field: 'ULI', color: 'rgba(39,174,96,.75)', match: s => !isPlaceholder(studentUli(s)) },
-        { label: 'Missing ULI', field: 'ULI', color: 'rgba(231,76,60,.75)', match: s => isPlaceholder(studentUli(s)) }
+        { label: 'Has UPI', field: 'UPI', color: 'rgba(39,174,96,.75)', match: s => !isPlaceholder(studentUpi(s)) },
+        { label: 'Missing UPI', field: 'UPI', color: 'rgba(231,76,60,.75)', match: s => isPlaceholder(studentUpi(s)) }
       ];
     }
     function renderDashDemoChart(){
@@ -3448,34 +3530,46 @@
       const labels = segments.map(seg => seg.label);
       const colors = segments.map(seg => seg.color);
       if(state.dashDemoChart) state.dashDemoChart.destroy();
+      const lineDataset = {
+        label: 'Students',
+        data,
+        borderColor: 'rgba(41,128,185,.85)',
+        backgroundColor: 'rgba(41,128,185,.15)',
+        pointBackgroundColor: colors,
+        pointBorderColor: colors,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true
+      };
+      const barDataset = {
+        label: 'Students',
+        data,
+        backgroundColor: colors,
+        borderWidth: 0,
+        borderRadius: 6,
+        maxBarThickness: 60
+      };
       state.dashDemoChart = new Chart(ctx, {
         type: dashDemoType,
         data: {
           labels,
-          datasets: [{
-            label: 'Students',
-            data,
-            backgroundColor: colors,
-            borderWidth: 0,
-            borderRadius: dashDemoType === 'bar' ? 6 : 0,
-            maxBarThickness: 60
-          }]
+          datasets: [dashDemoType === 'line' ? lineDataset : barDataset]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: dashDemoType === 'doughnut', position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }
+            legend: { display: false, position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }
           },
-          cutout: dashDemoType === 'doughnut' ? '62%' : undefined,
-          scales: dashDemoType === 'bar' ? {
+          scales: {
             x: { grid: { display: false }, ticks: { font: { size: 10 } } },
             y: { beginAtZero: true, ticks: { font: { size: 10 }, precision: 0 }, grid: { color: 'rgba(41,128,185,.08)' } }
-          } : undefined,
+          },
           onClick: (evt, elements) => {
             if(!elements.length) return;
-            dashDemoDrillIndex = elements[0].index;
-            renderDashDemoDrill();
+            openDashDemoDrillModal(elements[0].index);
           }
         }
       });
@@ -3487,61 +3581,168 @@
           summary.textContent = `${data[0]} boys, ${data[1]} girls${data[2] ? `, ${data[2]} unspecified` : ''} — ${total} students${gradeNote}. Click a slice or bar to view and update those students.`;
         } else {
           const pct = total ? Math.round(data[0] / total * 100) : 0;
-          summary.textContent = `${data[0]} of ${total} students${gradeNote} have a ULI on file (${pct}%). Click a slice or bar to view and update those students.`;
+          summary.textContent = `${data[0]} of ${total} students${gradeNote} have a UPI on file (${pct}%). Click a slice or bar to view and update those students.`;
         }
       }
-      renderDashDemoDrill();
     }
-    function renderDashDemoDrill(){
-      const box = $('dash-demo-drill');
-      if(!box) return;
+    function openDashDemoDrillModal(index){
       const segments = dashDemoSegments();
-      const seg = dashDemoDrillIndex != null ? segments[dashDemoDrillIndex] : null;
-      if(!seg){ box.innerHTML = ''; return; }
-      const list = dashDemoStudents().filter(seg.match);
-      box.innerHTML = `
-        <div class="panel-title" style="font-size:12px;margin-bottom:8px;">
-          ${escapeHtml(seg.label)} — ${list.length} student${list.length === 1 ? '' : 's'}
-          <button class="btn btn-outline btn-xs" id="dash-demo-drill-close" type="button" style="float:right">✕ Close</button>
-        </div>
-        <div class="activity-list">
-          ${list.length ? list.slice(0, 50).map(s => `
-            <div class="personnel-row" data-drill-id="${escapeHtml(s.id)}" style="cursor:pointer;">
-              <div class="personnel-name">${escapeHtml(studentName(s))}</div>
-              <div class="personnel-email">${escapeHtml(studentGrade(s))} · ${seg.field}: ${escapeHtml(String(s[seg.field] || s[seg.field.toLowerCase()] || '—'))} · <span style="color:var(--blue);font-weight:700;">Tap to edit</span></div>
-            </div>`).join('') : '<div class="muted">No students in this group.</div>'}
-          ${list.length > 50 ? `<div class="muted" style="margin-top:6px;">Showing first 50 of ${list.length}.</div>` : ''}
-        </div>
-      `;
-      $('dash-demo-drill-close')?.addEventListener('click', () => { dashDemoDrillIndex = null; renderDashDemoDrill(); });
-      box.querySelectorAll('[data-drill-id]').forEach(row => {
-        row.addEventListener('click', () => {
-          const s = state.students.find(x => x.id === row.dataset.drillId);
-          if(!s) return;
-          openDetailModal({
-            title: studentName(s),
-            viewHtml: `
-              <div class="field-group"><label>Grade</label><div>${escapeHtml(studentGrade(s))}</div></div>
-              <div class="field-group"><label>Gender</label><div>${escapeHtml(studentGender(s) || '—')}</div></div>
-              <div class="field-group"><label>ULI</label><div>${escapeHtml(studentUli(s))}</div></div>
-            `,
-            editFields: [
-              { key: 'Gender', label: 'Gender', value: s.Gender || s.gender || '' },
-              { key: 'ULI', label: 'ULI', value: s.ULI || s.uli || '' }
-            ],
-            onSave: async (values) => {
-              await update(ref(db, `${RESULTS_PATH}/${s.id}`), values);
-              logAudit(`Updated ${Object.keys(values).join('/')} for ${studentName(s)} via dashboard analytics`, 'Students');
-            }
+      const seg = segments[index];
+      if(!seg) return;
+      const allMatches = state.students.filter(seg.match);
+      const grades = [...new Set(allMatches.map(studentGrade))].filter(Boolean).sort();
+      let modalGrade = dashDemoGrade || '';
+      let list = modalGrade ? allMatches.filter(s => studentGrade(s) === modalGrade) : allMatches;
+      let expandedId = null;
+
+      function rowHtml(s){
+        const open = expandedId === s.id;
+        const gender = s.Gender || s.gender || '';
+        const upi = studentUpi(s);
+        return `
+          <div class="personnel-row" data-drill-id="${escapeHtml(s.id)}" style="cursor:pointer;">
+            <div class="stu-name-cell" style="flex:1;min-width:0;">
+              ${makePhotoAvatar(studentName(s), studentGrade(s), 'stu-av-sm')}
+              <div style="min-width:0;flex:1;">
+                <div class="personnel-name">${escapeHtml(studentName(s))} <span style="float:right;">${open ? '▲' : '▼'}</span></div>
+                <div class="personnel-email">${escapeHtml(studentGrade(s))} · ${seg.field}: ${escapeHtml(String(s[seg.field] || s[seg.field.toLowerCase()] || '—'))} · <span style="color:var(--blue);font-weight:700;">Tap to edit</span></div>
+              </div>
+            </div>
+          </div>
+          ${open ? `
+            <div style="background:rgba(41,128,185,.06);border-radius:8px;padding:10px;margin:2px 0 10px;">
+              <div class="field-group">
+                <label>Gender</label>
+                <select class="field-input" data-edit-gender="${escapeHtml(s.id)}">
+                  <option value="" ${!gender ? 'selected' : ''}>—</option>
+                  <option value="Male" ${gender === 'Male' ? 'selected' : ''}>Male</option>
+                  <option value="Female" ${gender === 'Female' ? 'selected' : ''}>Female</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label>UPI</label>
+                <input class="field-input" type="text" data-edit-upi="${escapeHtml(s.id)}" value="${escapeHtml(isPlaceholder(upi) ? '' : upi)}">
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-green btn-xs" data-save-id="${escapeHtml(s.id)}" type="button">💾 Save</button>
+                <button class="btn btn-outline btn-xs" data-cancel-id="${escapeHtml(s.id)}" type="button">Cancel</button>
+              </div>
+            </div>
+          ` : ''}
+        `;
+      }
+      function bodyHtml(){
+        return `
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <label style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;">Grade</label>
+            <select class="sel" id="drill-grade-filter" style="flex:1;">
+              <option value="">All Grades (${allMatches.length})</option>
+              ${grades.map(g => `<option value="${escapeHtml(g)}" ${modalGrade === g ? 'selected' : ''}>${escapeHtml(g)} (${allMatches.filter(s => studentGrade(s) === g).length})</option>`).join('')}
+            </select>
+            <button class="btn btn-outline btn-sm" id="drill-print-btn" type="button" style="flex-shrink:0;white-space:nowrap;" title="Download a PDF list of these students">🖨️ Print</button>
+          </div>
+          <div class="activity-list">
+            ${list.length ? list.slice(0, 50).map(rowHtml).join('') : '<div class="muted">No students in this group.</div>'}
+            ${list.length > 50 ? `<div class="muted" style="margin-top:6px;">Showing first 50 of ${list.length}.</div>` : ''}
+          </div>
+        `;
+      }
+      function rerender(){
+        $('dmodal-body').innerHTML = bodyHtml();
+        attachHandlers();
+        if($('dmodal-title')) $('dmodal-title').textContent = `${seg.label} — ${list.length} student${list.length === 1 ? '' : 's'}${modalGrade ? ` in ${modalGrade}` : ''}`;
+      }
+      function attachHandlers(){
+        $('drill-grade-filter')?.addEventListener('change', (e) => {
+          modalGrade = e.target.value;
+          list = modalGrade ? allMatches.filter(s => studentGrade(s) === modalGrade) : allMatches;
+          expandedId = null;
+          rerender();
+        });
+        $('drill-print-btn')?.addEventListener('click', () => {
+          if(!list.length){ toast('No students to print.','warn'); return; }
+          if(!window.jspdf){ toast('PDF library loading — try again in a moment.','warn'); return; }
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF('portrait');
+          const W = doc.internal.pageSize.width;
+
+          const subtitle = `${seg.label.toUpperCase()}${modalGrade ? ` — ${modalGrade.toUpperCase()}` : ' — ALL GRADES'}`;
+          const bannerH = 26;
+          doc.setFillColor(41,128,185); doc.rect(0,0,W,bannerH,'F');
+          doc.setTextColor(255,255,255); doc.setFontSize(14); doc.setFont(undefined,'bold');
+          doc.text('KANYADET PRIMARY & JUNIOR SCHOOL', W/2, 12, {align:'center'});
+          doc.setFontSize(10); doc.setFont(undefined,'normal');
+          doc.text(subtitle, W/2, 20, {align:'center'});
+          doc.setTextColor(0,0,0);
+          doc.setFontSize(8);
+          doc.text(`Generated: ${new Date().toLocaleDateString()}  ·  Total: ${list.length}`, 10, bannerH+8);
+
+          const sorted = [...list].sort((a,b) => studentGrade(a).localeCompare(studentGrade(b),undefined,{numeric:true}) || studentName(a).localeCompare(studentName(b)));
+          const tableData = sorted.map((s,i) => [i+1, studentName(s), studentGrade(s), studentGender(s), isPlaceholder(studentUpi(s)) ? '—' : studentUpi(s)]);
+          doc.autoTable({
+            head: [['#','Student','Grade','Gender','UPI']],
+            body: tableData,
+            startY: bannerH+13,
+            margin: {left:10,right:10},
+            styles: {fontSize:8, cellPadding:2.5},
+            headStyles: {fillColor:[41,128,185], textColor:[255,255,255]},
+            alternateRowStyles: {fillColor:[245,247,250]}
+          });
+
+          const fileSlug = seg.label.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+          const gradeSlug = modalGrade ? '-' + modalGrade.toLowerCase().replace(/[^a-z0-9]+/g,'-') : '';
+          doc.save(`students-${fileSlug}${gradeSlug}-${todayISO()}.pdf`);
+          toast(`Downloaded ${list.length} students (${seg.label}${modalGrade ? `, ${modalGrade}` : ''})`,'ok');
+        });
+        document.querySelectorAll('#dmodal-body [data-drill-id]').forEach(row => {
+          row.addEventListener('click', () => {
+            const id = row.dataset.drillId;
+            expandedId = expandedId === id ? null : id;
+            rerender();
           });
         });
+        document.querySelectorAll('#dmodal-body [data-cancel-id]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            expandedId = null;
+            rerender();
+          });
+        });
+        document.querySelectorAll('#dmodal-body [data-save-id]').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.saveId;
+            const s = list.find(x => x.id === id);
+            if(!s) return;
+            const values = {
+              Gender: document.querySelector(`[data-edit-gender="${id}"]`).value,
+              UPI: document.querySelector(`[data-edit-upi="${id}"]`).value
+            };
+            try{
+              await update(ref(db, `${RESULTS_PATH}/${s.id}`), values);
+              const before = { Gender: s.Gender, UPI: s.UPI };
+              logAudit(`Updated ${Object.keys(values).join('/')} for ${studentName(s)} via dashboard analytics`, 'Students', {
+                targetId: s.id, targetName: studentName(s), before, after: values
+              });
+              Object.assign(s, values);
+              toast('Saved.', 'ok');
+              expandedId = null;
+              rerender();
+            }catch(err){ toast(`Error: ${err.message}`, 'err'); }
+          });
+        });
+      }
+
+      openDetailModal({
+        title: `${seg.label} — ${list.length} student${list.length === 1 ? '' : 's'}${modalGrade ? ` in ${modalGrade}` : ''}`,
+        viewHtml: bodyHtml()
       });
+      attachHandlers();
     }
     $('dashDemoMetricToggle')?.addEventListener('click', (e) => {
       const btn = e.target.closest('button[data-metric]');
       if(!btn) return;
       dashDemoMetric = btn.dataset.metric;
-      dashDemoDrillIndex = null;
       $('dashDemoMetricToggle').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
       renderDashDemoChart();
     });
@@ -3554,7 +3755,6 @@
     });
     $('dash-demo-grade')?.addEventListener('change', () => {
       dashDemoGrade = $('dash-demo-grade').value;
-      dashDemoDrillIndex = null;
       renderDashDemoChart();
     });
 
@@ -3852,19 +4052,19 @@
 
     // Blank or placeholder ("---", "N/A", "Unknown") values don't count as
     // real data — a real Results export showed a meaningful share of
-    // students with placeholder ULIs, so this needs to catch those too,
+    // students with placeholder UPIs, so this needs to catch those too,
     // not just empty strings.
     function isPlaceholder(v){
       const s = String(v ?? '').trim();
       return !s || /^-+$/.test(s) || /^(n\/?a|unknown|pending)$/i.test(s);
     }
-    let stuQualityFilter = ''; // '' | 'uli' | 'gender' | 'grade'
+    let stuQualityFilter = ''; // '' | 'upi' | 'gender' | 'grade'
     function renderDataQuality(){
-      const missingUli = state.students.filter(s => isPlaceholder(studentUli(s))).length;
+      const missingUpi = state.students.filter(s => isPlaceholder(studentUpi(s))).length;
       const missingGender = state.students.filter(s => isPlaceholder(s.Gender||s.gender)).length;
       const missingGrade = state.students.filter(s => isPlaceholder(s.Grade||s.grade)).length;
       const stats = [
-        { key:'uli', label:'Missing ULI', count:missingUli },
+        { key:'upi', label:'Missing UPI', count:missingUpi },
         { key:'gender', label:'Missing Gender', count:missingGender },
         { key:'grade', label:'Missing Grade', count:missingGrade }
       ];
@@ -3909,14 +4109,14 @@
       const grade = $('stu-grade-filter').value;
       const gender = $('stu-gender-filter').value;
       return state.students.filter(s => {
-        if(stuQualityFilter === 'uli' && !isPlaceholder(studentUli(s))) return false;
+        if(stuQualityFilter === 'upi' && !isPlaceholder(studentUpi(s))) return false;
         if(stuQualityFilter === 'gender' && !isPlaceholder(s.Gender||s.gender)) return false;
         if(stuQualityFilter === 'grade' && !isPlaceholder(s.Grade||s.grade)) return false;
         if(_missingPhotoFilterActive && _photoMissingKeys && !_photoMissingKeys.has(studentPhotoKey(s))) return false;
         if(grade && studentGrade(s) !== grade) return false;
         if(gender && studentGender(s) !== gender) return false;
         if(!q) return true;
-        const hay = [studentName(s), studentGrade(s), studentUli(s), s['Assessment No'], s.AssessmentNumber].join(' ').toLowerCase();
+        const hay = [studentName(s), studentGrade(s), studentUpi(s), s['Assessment No'], s.AssessmentNumber].join(' ').toLowerCase();
         return hay.includes(q);
       });
     }
@@ -4001,9 +4201,9 @@
       doc.text(`Generated: ${new Date().toLocaleDateString()}  ·  Total: ${rows.length}`, 10, bannerH+8);
 
       const sorted = [...rows].sort((a,b) => studentGrade(a).localeCompare(studentGrade(b),undefined,{numeric:true}) || studentName(a).localeCompare(studentName(b)));
-      const tableData = sorted.map((s,i) => [i+1, studentName(s), s['Assessment No']||s.AssessmentNumber||'—', studentGrade(s), studentGender(s), studentUli(s)]);
+      const tableData = sorted.map((s,i) => [i+1, studentName(s), s['Assessment No']||s.AssessmentNumber||'—', studentGrade(s), studentGender(s), studentUpi(s)]);
       doc.autoTable({
-        head: [['#','Student','Assessment No','Grade','Gender','ULI']],
+        head: [['#','Student','Assessment No','Grade','Gender','UPI']],
         body: tableData,
         startY: bannerH+13,
         margin: {left:10,right:10},
@@ -4035,7 +4235,7 @@
           <td>${escapeHtml(s['Assessment No'] || s.AssessmentNumber || '—')}</td>
           <td>${escapeHtml(studentGrade(s))}</td>
           <td>${escapeHtml(studentGender(s))}</td>
-          <td class="mono">${escapeHtml(studentUli(s))}</td>
+          <td class="mono">${escapeHtml(studentUpi(s))}</td>
           <td><span class="pill ${pill}">${escapeHtml(status)}</span></td>
         </tr>`;
       }).join('');
@@ -4052,7 +4252,7 @@
       const metaRows = [
         ['Grade', studentGrade(s)],
         ['Gender', studentGender(s)],
-        ['ULI', studentUli(s)],
+        ['UPI', studentUpi(s)],
         ['Assessment No', s['Assessment No'] || '—'],
         ['Term / Sitting', s.Grade || s.grade || '—'],
         ['Position', s.Position || '—'],
@@ -4061,6 +4261,7 @@
       const subjectFields = Object.keys(s).filter(k =>
         !RESULTS_META_FIELDS.has(k) && !['id','firebaseKey'].includes(k) && s[k] !== '' && s[k] != null);
       const viewHtml = `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">${makePhotoAvatar(studentName(s), studentGrade(s), 'stu-av-lg')}<div style="font-weight:900;font-size:14px;color:var(--text);">${escapeHtml(studentName(s))}</div></div>
         ${metaRows.map(([k,v]) => `<div class="dfield-row"><div class="dfk">${escapeHtml(k)}</div><div class="dfv">${escapeHtml(v)}</div></div>`).join('')}
         <div style="margin:14px 0 6px;font-weight:800;font-size:11px;color:var(--text3);letter-spacing:.04em;">SUBJECT SCORES</div>
         ${subjectFields.length ? subjectFields.map(f => `<div class="dfield-row"><div class="dfk">${escapeHtml(f)}</div><div class="dfv">${escapeHtml(s[f])}</div></div>`).join('') : '<div class="muted">No subject scores on this record.</div>'}
@@ -4069,7 +4270,7 @@
       const editFields = [
         { key:'Official Student Name', label:'Full Name', value: s['Official Student Name']||'' },
         { key:'Gender', label:'Gender', value: s.Gender||'' },
-        { key:'ULI', label:'ULI', value: s.ULI||'' },
+        { key:'UPI', label:'UPI', value: s.UPI||'' },
         { key:'Position', label:'Position', value: s.Position||'' },
         { key:'Remarks', label:'Remarks', value: s.Remarks||'' },
         ...subjectFields.map(f => ({ key:f, label:f, value:s[f], type:'number' }))
@@ -4079,11 +4280,16 @@
         viewHtml, editFields,
         onSave: async (values) => {
           await update(ref(db, `${RESULTS_PATH}/${s.id}`), values);
-          logAudit(`Edited results record for ${studentName(s)} (${gShortRes(s.Grade||s.grade)})`, 'Students');
+          const before = {}; Object.keys(values).forEach(k => before[k] = s[k]);
+          logAudit(`Edited results record for ${studentName(s)} (${gShortRes(s.Grade||s.grade)})`, 'Students', {
+            targetId: s.id, targetName: studentName(s), before, after: values
+          });
         },
         onDelete: async () => {
           await remove(ref(db, `${RESULTS_PATH}/${s.id}`));
-          logAudit(`Deleted results record for ${studentName(s)} (${gShortRes(s.Grade||s.grade)})`, 'Students');
+          logAudit(`Deleted results record for ${studentName(s)} (${gShortRes(s.Grade||s.grade)})`, 'Students', {
+            targetId: s.id, targetName: studentName(s), before: s
+          });
         },
         deleteWarning: `Permanently delete <strong>${escapeHtml(studentName(s))}</strong>'s record for <strong>${escapeHtml(gShortRes(s.Grade||s.grade))}</strong>? This only removes this term's sitting — other terms for this student aren't affected.`
       });
@@ -4094,9 +4300,9 @@
     });
     $('stu-export-btn').addEventListener('click', () => {
       const rows = filteredStudents();
-      const header = ['Name','Grade','Gender','ULI','Status'];
+      const header = ['Name','Grade','Gender','UPI','Status'];
       const csv = [header.join(',')].concat(rows.map(s =>
-        [studentName(s), studentGrade(s), studentGender(s), studentUli(s), s.Status||'Active']
+        [studentName(s), studentGrade(s), studentGender(s), studentUpi(s), s.Status||'Active']
           .map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
       )).join('\n');
       const a = document.createElement('a');
@@ -4186,12 +4392,17 @@
         viewHtml, editFields,
         onSave: async (values) => {
           await updateDoc(doc(fst, 'users', t.uid), values);
-          logAudit(`Edited teacher profile: ${values.name || name}`, 'Teachers');
+          const before = {}; Object.keys(values).forEach(k => before[k] = t[k]);
+          logAudit(`Edited teacher profile: ${values.name || name}`, 'Teachers', {
+            targetId: t.uid, targetName: values.name || name, before, after: values
+          });
           loadTeachers();
         },
         onDelete: async () => {
           await deleteDoc(doc(fst, 'users', t.uid));
-          logAudit(`Deleted teacher profile: ${name} (${t.email||''})`, 'Teachers');
+          logAudit(`Deleted teacher profile: ${name} (${t.email||''})`, 'Teachers', {
+            targetId: t.uid, targetName: name, before: t
+          });
           loadTeachers();
         },
         deleteWarning: `Permanently remove <strong>${escapeHtml(name)}</strong>'s profile from the system? This removes their access and assignments here, but their Firebase Auth login itself must still be revoked separately in the Firebase console.`
@@ -4219,7 +4430,7 @@
         return;
       }
       let list = state.students.filter(s => studentGrade(s) === grade);
-      if(q) list = list.filter(s => [studentName(s), studentUli(s)].join(' ').toLowerCase().includes(q));
+      if(q) list = list.filter(s => [studentName(s), studentUpi(s)].join(' ').toLowerCase().includes(q));
       list.sort((a,b) => studentName(a).localeCompare(studentName(b)));
 
       if(!list.length){
@@ -4234,7 +4445,7 @@
         if(!state.attDraft[id]) state.attDraft[id] = 'P';
         return `<tr data-sid="${escapeHtml(id)}">
           <td><strong style="color:var(--text)">${escapeHtml(studentName(s))}</strong></td>
-          <td class="mono">${escapeHtml(studentUli(s))}</td>
+          <td class="mono">${escapeHtml(studentUpi(s))}</td>
           <td>
             <div class="att-actions">
               <button class="att-btn ${st==='P'?'P':''}" data-st="P" data-id="${escapeHtml(id)}">P</button>
@@ -4302,14 +4513,11 @@
       });
       try{
         await update(ref(db, `${ATTENDANCE_PATH}/${date}`), payload);
-        await push(ref(db, AUDIT_PATH), {
-          action: `Saved attendance for ${grade} on ${date}`,
-          admin: state.user?.displayName || state.user?.email,
-          category: 'Attendance',
-          time: new Date().toISOString()
+        logAudit(`Saved attendance for ${grade} on ${date}`, 'Attendance', {
+          targetName: `${grade} — ${date}`,
+          extra: `${Object.keys(payload).length} student(s) recorded`
         });
         toast('Attendance saved','ok');
-        loadAudits();
       }catch(err){
         console.error(err);
         toast('Save failed: ' + err.message, 'err');
@@ -4506,7 +4714,12 @@
       try{
         const rec = state.results.find(r => r.id === id);
         await update(ref(db, `${RESULTS_PATH}/${id}`), { [subject]: Number(val) });
-        logAudit(`Live-entered ${subject} score (${val}) for ${rec ? (rec['Official Student Name']||rec.name||id) : id}`, 'Results');
+        const studentLabel = rec ? (rec['Official Student Name']||rec.name||id) : id;
+        logAudit(`Live-entered ${subject} score (${val}) for ${studentLabel}`, 'Results', {
+          targetId: id, targetName: studentLabel,
+          before: { [subject]: (rec && rec[subject] != null) ? rec[subject] : '—' },
+          after: { [subject]: Number(val) }
+        });
         toast('Score saved.', 'ok');
       }catch(err){ toast(`Error: ${err.message}`, 'err'); }
     }
@@ -4575,22 +4788,23 @@
     });
 
     /* ── Audit ── */
-    // Mirrors Results-portal.html's _AUDIT_CAT config, restricted to the
-    // pill color classes available on this page.
+    // Mirrors Results-portal.html's _AUDIT_CAT config: pill classes feed the
+    // compact dashboard widget's table row; cls feeds the audit-badge pill
+    // used inside the expandable cards on the full Audit Trail page.
     const AUDIT_CAT = {
-      edit:   { label:'Edit',   pill:'blue',   icon:'✏️' },
-      add:    { label:'Add',    pill:'ok',     icon:'➕' },
-      delete: { label:'Delete', pill:'bad',    icon:'🗑️' },
-      import: { label:'Import', pill:'purple', icon:'📥' },
-      export: { label:'Export', pill:'teal',   icon:'📤' },
-      auth:   { label:'Auth',   pill:'warn',   icon:'🔐' },
-      system: { label:'System', pill:'gray',   icon:'⚙️' }
+      edit:   { label:'Edit',   pill:'blue',   cls:'ab-edit',   icon:'✏️' },
+      add:    { label:'Add',    pill:'ok',     cls:'ab-add',    icon:'➕' },
+      delete: { label:'Delete', pill:'bad',    cls:'ab-delete', icon:'🗑️' },
+      import: { label:'Import', pill:'purple', cls:'ab-import', icon:'📥' },
+      export: { label:'Export', pill:'teal',   cls:'ab-export', icon:'📤' },
+      auth:   { label:'Auth',   pill:'warn',   cls:'ab-auth',   icon:'🔐' },
+      system: { label:'System', pill:'gray',   cls:'ab-system', icon:'⚙️' }
     };
     // Same fallback used by Results-portal's logActivity: infer a category
     // from the action text when an entry doesn't carry one explicitly.
     function inferAuditCategory(text){
       const t = text || '';
-      if(/✏️|Edited|Updated/.test(t))  return 'edit';
+      if(/✏️|Edited|Updated|granted|revoked|Locked|Unlocked|Reactivated|Disabled/i.test(t)) return 'edit';
       if(/➕|Added|Created|Published/.test(t)) return 'add';
       if(/🗑️|Deleted|Removed/.test(t)) return 'delete';
       if(/📥|Imported/.test(t)) return 'import';
@@ -4666,48 +4880,87 @@
       $('audit-count').textContent = `${filtered.length} entr${filtered.length===1?'y':'ies'}`;
       const { pageRows, page, totalPages } = paginate(filtered, state.auditPage);
       state.auditPage = page;
-      const body = $('audit-tbody');
+      const list = $('audit-list');
       if(!pageRows.length){
-        body.innerHTML = '<tr><td colspan="4" class="muted">No audit entries match your filter.</td></tr>';
+        list.innerHTML = state.auditLoadError
+          ? `<div class="muted" style="padding:20px 0;color:var(--red)">⚠️ Couldn't load the audit log: ${escapeHtml(state.auditLoadError)}. Check Firebase read permissions for <code>${escapeHtml(AUDIT_PATH)}</code> and try Refresh.</div>`
+          : (state.audits.length
+              ? '<div class="muted" style="padding:20px 0;">No audit entries match your filter.</div>'
+              : '<div class="muted" style="padding:20px 0;">No audit entries yet — actions taken here or in the Results Portal will appear here.</div>');
         $('audit-pager').innerHTML = '';
         renderDashAudit();
         return;
       }
-      body.innerHTML = pageRows.map(a => {
-        const cfg = AUDIT_CAT[auditCatKey(a)] || AUDIT_CAT.system;
-        return `
-        <tr data-row-id="${escapeHtml(a.key||'')}">
-          <td>${escapeHtml(a.action || a.text || a.message || '—')}</td>
-          <td>${escapeHtml(a.admin || a.user || a.by || '—')}</td>
-          <td><span class="pill ${cfg.pill}">${cfg.icon} ${cfg.label}</span></td>
-          <td>${escapeHtml(fmtTime(a.time || a.createdAt))}</td>
-        </tr>`;
+      // Guard per-row: one malformed entry (bad before/after shape, etc.)
+      // shouldn't be able to blank the entire list — skip just that card.
+      list.innerHTML = pageRows.map(a => {
+        try{
+          const catKey = auditCatKey(a);
+          const cfg = AUDIT_CAT[catKey] || AUDIT_CAT.system;
+          const action = a.action || a.text || a.message || '(no description)';
+          const admin = a.admin || a.user || a.by || 'Admin';
+          // Same "N fields changed" summary pill as Results-portal's card head.
+          let changePill = '';
+          if(catKey === 'edit' && a.before && a.after){
+            const nChanged = [...new Set([...Object.keys(a.before), ...Object.keys(a.after)])]
+              .filter(k => String(a.before[k] ?? '') !== String(a.after[k] ?? '')).length;
+            if(nChanged) changePill = `<span class="audit-summary-pill">📝 ${nChanged} field${nChanged!==1?'s':''} changed</span>`;
+          }
+          return `
+          <div class="audit-card" data-row-id="${escapeHtml(a.key||'')}">
+            <div class="audit-card-head">
+              <div class="audit-icon">${cfg.icon}</div>
+              <div class="audit-main">
+                <div class="audit-action">${escapeHtml(action)}</div>
+                <div class="audit-meta">
+                  <span>👤 <strong style="color:var(--blue-lt)">${escapeHtml(admin)}</strong></span>
+                  <span>🕐 ${escapeHtml(fmtTime(a.time || a.createdAt))}</span>
+                  ${a.targetName ? `<span>🎯 ${escapeHtml(a.targetName)}</span>` : ''}
+                </div>
+                <div style="margin-top:5px">${changePill}<span class="audit-badge ${cfg.cls}">${cfg.icon} ${cfg.label}</span></div>
+              </div>
+              <div class="audit-chevron">▶</div>
+            </div>
+            <div class="audit-body">
+              ${buildAuditDiffHTML(a)}
+              <div class="audit-actions">
+                <button class="audit-act-btn" data-audit-copy="${escapeHtml(a.key||'')}">📋 Copy</button>
+              </div>
+            </div>
+          </div>`;
+        }catch(e){
+          console.error('renderAudit row', e, a);
+          return '';
+        }
       }).join('');
       renderPager('audit-pager', page, totalPages, p => { state.auditPage = p; renderAudit(); });
       populateAuditActorFilter();
       renderDashAudit();
     }
-    $('audit-tbody').addEventListener('click', (e) => {
-      const tr = e.target.closest('tr[data-row-id]');
-      if(!tr || !tr.dataset.rowId) return;
-      const a = state.audits.find(x => x.key === tr.dataset.rowId);
-      if(!a) return;
-      const cfg = AUDIT_CAT[auditCatKey(a)] || AUDIT_CAT.system;
-      // Audit entries are a read-only trail by design — no edit/delete here,
-      // just the full detail (including field-level diff, when available)
-      // that doesn't fit in the table row.
-      Swal.fire({
-        title: 'Audit Entry',
-        html: `<div style="text-align:left;font-size:13px;line-height:1.7;">
-          <p><strong>Action:</strong> ${escapeHtml(a.action||a.text||a.message||'—')}</p>
-          <p><strong>Admin:</strong> ${escapeHtml(a.admin||a.user||a.by||'—')}</p>
-          <p><strong>Category:</strong> <span class="pill ${cfg.pill}">${cfg.icon} ${cfg.label}</span></p>
-          <p><strong>Time:</strong> ${escapeHtml(fmtTime(a.time||a.createdAt))}</p>
-          ${buildAuditDiffHTML(a)}
-        </div>`,
-        width: 520,
-        confirmButtonText: 'Close', confirmButtonColor: '#2980b9'
-      });
+    $('audit-list').addEventListener('click', (e) => {
+      const copyBtn = e.target.closest('button[data-audit-copy]');
+      if(copyBtn){
+        e.stopPropagation();
+        const a = state.audits.find(x => x.key === copyBtn.dataset.auditCopy);
+        if(!a) return;
+        const lines = [
+          a.action || a.text || a.message || '(no description)',
+          `Admin: ${a.admin || a.user || a.by || 'Admin'}`,
+          `Time: ${fmtTime(a.time || a.createdAt)}`
+        ];
+        if(a.targetName) lines.push(`Target: ${a.targetName}`);
+        if(a.before) lines.push(`Before: ${JSON.stringify(a.before)}`);
+        if(a.after) lines.push(`After: ${JSON.stringify(a.after)}`);
+        navigator.clipboard.writeText(lines.join('\n')).then(
+          () => toast('Entry copied to clipboard','ok'),
+          () => toast('Could not copy — select manually','err')
+        );
+        return;
+      }
+      // Read-only trail by design — clicking anywhere else on the card just
+      // expands/collapses its diff, mirroring Results-portal's toggleAuditCard.
+      const card = e.target.closest('.audit-card');
+      if(card) card.classList.toggle('open');
     });
     $('audit-search').addEventListener('input', () => { state.auditPage = 1; renderAudit(); });
     $('audit-actor-sel').addEventListener('change', (e) => { state.auditFilterActor = e.target.value; state.auditPage = 1; renderAudit(); });
@@ -4742,11 +4995,8 @@
           createdBy: state.user?.displayName || state.user?.email,
           createdByUid: state.user?.uid
         });
-        await push(ref(db, AUDIT_PATH), {
-          action: `Published announcement: ${title}`,
-          admin: state.user?.displayName || state.user?.email,
-          category: 'Announcements',
-          time: new Date().toISOString()
+        logAudit(`Published announcement: ${title}`, 'Announcements', {
+          targetName: title, after: { title, body, type }
         });
         $('ann-title').value = '';
         $('ann-body').value = '';
@@ -4996,7 +5246,7 @@
               'Class': admRec.gradeApplyingFor || '',
               'Official Student Name': admRec.childName || '',
               'Assessment No': assNo,
-              'ULI': admRec.uli || '',
+              'UPI': admRec.uli || '',
               'DOB': admRec.dob || '',
               'Gender': admRec.gender || '',
               'Mobile No': '',
@@ -5328,7 +5578,7 @@
             'Class': formVals.klass || '',
             'Official Student Name': p['Official Student Name'] || '',
             'Assessment No': formVals.assNo,
-            'ULI': formVals.uli || '',
+            'UPI': formVals.uli || '',
             'DOB': p['DOB'] || '',
             'Gender': p['Gender'] || '',
             'Mobile No': '',
@@ -5381,11 +5631,11 @@
         groups.push({ label:'Sections', items: secMatches.map(s => ({ icon: navIconFor(s.id), title:s.title, sub:s.sub, action:() => navTo(s.id) })) });
       }
       const stuMatches = state.students.filter(s =>
-        studentName(s).toLowerCase().includes(q) || String(studentUli(s)).toLowerCase().includes(q)
+        studentName(s).toLowerCase().includes(q) || String(studentUpi(s)).toLowerCase().includes(q)
       ).slice(0,6);
       if(stuMatches.length){
         groups.push({ label:'Students', items: stuMatches.map(s => ({
-          icon:'🎓', title: studentName(s), sub:`${studentGrade(s)} · ${studentUli(s)}`,
+          icon:'🎓', title: studentName(s), sub:`${studentGrade(s)} · ${studentUpi(s)}`,
           action:() => {
             navTo('students');
             $('stu-search').value = studentName(s);
@@ -5529,7 +5779,7 @@
       });
     });
   </script>
-    <script src="https://kanyadet-school-portal.web.app/js/landingNotifications.js"></script>
+    <script src="http://kanyadet-school-portal.web.app/js/landingNotifications.js" ></script>
 
 </body>
 </html>
