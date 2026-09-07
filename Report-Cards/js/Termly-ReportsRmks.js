@@ -170,11 +170,9 @@ const customFirebaseConfig = {
 
 // --- DOM Elements ---
 const gradeFilter = document.getElementById('grade-filter');
-const fieldFilter = document.getElementById('field-filter');
 const searchInput = document.getElementById('search-input');
 const itemsPerPageSelect = document.getElementById('items-per-page');
 const tableBody = document.querySelector('#missing-data-table tbody');
-const missingFieldHeader = document.getElementById('missing-field-header');
 const reportSummary = document.getElementById('report-summary');
 const paginationInfo = document.getElementById('pagination-info');
 const paginationControls = document.getElementById('pagination-controls');
@@ -1813,10 +1811,6 @@ function initializeAppAndSetListeners() {
             currentPage = 1;
             applyFilters();
         });
-        fieldFilter.addEventListener('change', () => {
-            currentPage = 1;
-            applyFilters();
-        });
         searchInput.addEventListener('input', handleSearch);
         itemsPerPageSelect.addEventListener('change', handleItemsPerPageChange);
         signInBtn.addEventListener('click', signInWithGoogle);
@@ -2071,13 +2065,11 @@ function fetchStudentsData() {
 
 function populateFilters(students) {
     const grades = new Set();
-    const allKeys = new Set();
 
     students.forEach(student => {
         if (student['Grade']) {
             grades.add(student['Grade']);
         }
-        Object.keys(student).forEach(key => allKeys.add(key));
     });
 
     gradeFilter.innerHTML = '<option value="">All Grades</option>';
@@ -2088,46 +2080,14 @@ function populateFilters(students) {
         gradeFilter.appendChild(option);
     });
 
-    const excludedFields = [
-        'id', 'Assessment No', 'Official Student Name', 'Gender', 
-         'Class', 'Grade'
-    ]; 
-    
-    fieldFilter.innerHTML = '<option value="">Select Field...</option>';
-    Array.from(allKeys)
-        .filter(key => !excludedFields.includes(key))
-        .sort()
-        .forEach(key => {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = key;
-            fieldFilter.appendChild(option);
-        });
 }
 
 function applyFilters() {
     const selectedGrade = gradeFilter.value;
-    const selectedField = fieldFilter.value;
     let filtered = studentsData;
 
     if (selectedGrade) {
         filtered = filtered.filter(student => student['Grade'] === selectedGrade);
-    }
-
-    if (selectedField) {
-        missingFieldHeader.textContent = `Missing: ${selectedField}`;
-        filtered = filtered.filter(student => {
-            const value = student[selectedField];
-            if (value === undefined || value === null || value === "") {
-                return true;
-            }
-            if (typeof value === 'string' && (value.toUpperCase() === 'NA' || value.toUpperCase() === 'N/A'|| value.toUpperCase() === '---'|| value.toUpperCase() === '-')) {
-                return true;
-            }
-            return false;
-        });
-    } else {
-        missingFieldHeader.textContent = "Missing Field Value";
     }
 
     if (searchQuery) {
@@ -2152,7 +2112,6 @@ function applyFilters() {
 // --- Advanced Rendering with Pagination ---
 
 function renderCurrentPage() {
-    const selectedField = fieldFilter.value;
     const totalStudents = filteredAndSearchedStudents.length;
     const totalPages = Math.ceil(totalStudents / itemsPerPage);
     
@@ -2163,9 +2122,6 @@ function renderCurrentPage() {
     let summaryText = `Report Summary: <b style="color: #2980b9;">${totalStudents}</b> students found`;
     if (gradeFilter.value) {
         summaryText += ` in <b style="color: #2980b9;">${gradeFilter.value}</b>`;
-    }
-    if (selectedField) {
-        summaryText += ` with missing value for <b style="color: #2980b9;">${selectedField}</b>`;
     }
     if (searchQuery) {
         summaryText += ` matching <b style="color: #2980b9;">"${searchQuery}"</b>`;
@@ -2203,21 +2159,27 @@ function renderCurrentPage() {
         const indexCell = row.insertCell(0);
         indexCell.textContent = (startIndex + index + 1).toString();
         
-        row.insertCell(1).textContent = student['Grade'] || 'N/A';
+        const photoCell = row.insertCell(1);
+        photoCell.className = 'student-photo-cell';
+        const studentName = student['Official Student Name'] || '';
+        const studentGrade = extractGrade(student['Grade'] || '');
+        const photo = document.createElement('img');
+        photo.className = 'student-photo';
+        photo.alt = studentName ? `${studentName} photo` : 'Student photo';
+        photo.title = studentName || 'Student photo';
+        photo.src = `./student_images/${encodeURIComponent(studentGrade)}/${encodeURIComponent(studentName)}.jpg`;
+        photo.onerror = () => {
+            photo.onerror = null;
+            photo.src = './imgs/logo.png';
+        };
+        photoCell.appendChild(photo);
         row.insertCell(2).textContent = student['Official Student Name'] || 'N/A'; 
         row.insertCell(3).textContent = student['Assessment No'] || student.id || 'N/A'; 
         row.insertCell(4).textContent = student['ULI'] || student.id || 'N/A';
         row.insertCell(5).textContent = student['Term'] || 'N/A';
         
-        const missingValueCell = row.insertCell(6);
-        if (selectedField) {
-            createEditableCell(missingValueCell, student, selectedField, row);
-        } else {
-            missingValueCell.textContent = '-'; 
-        }
-        
-        const actionCell = row.insertCell(7);
-        createActionButtons(actionCell, student, selectedField, row);
+        const actionCell = row.insertCell(6);
+        createActionButtons(actionCell, student, null, row);
     });
 
     renderPaginationControls(totalPages);
@@ -2790,7 +2752,6 @@ async function exportMissingDataToPdf() {
     const doc = new jsPDF('landscape');
 
     const selectedGrade = gradeFilter.value;
-    const selectedField = fieldFilter.value;
 
     const termLabel  = selectedGrades.size > 0 ? [...selectedGrades].join(' + ') : 'All Terms';
     const title      = `Assessment Outcome Data Report`;
@@ -3151,7 +3112,6 @@ async function exportMissingDataToPdf() {
         addFooter({ pageNumber: i }, totalPages);
     }
 
-    const fieldPart  = selectedField ? `_${selectedField.replace(/\s+/g, '_')}` : '';
     const gradePart  = gradeLabelsFromSelection.length > 0
         ? `_${gradeLabelsFromSelection.map(g => g.replace(/\s/g,'')).join('_')}`
         : (selectedGrade ? `_${selectedGrade.replace(/\s/g,'')}` : '_AllGrades');
@@ -3159,7 +3119,7 @@ async function exportMissingDataToPdf() {
         ? `_${[...selectedGrades].map(g => g.replace(/[^a-zA-Z0-9]/g,'_')).join('_')}`
         : '';
     const searchPart = searchQuery ? `_search_${searchQuery.replace(/\s+/g, '_')}` : '';
-    const filename = `Assessment_Outcome_Report${fieldPart}${gradePart}${termPart}${searchPart}_${new Date().toISOString().split('T')[0]}.pdf`;
+    const filename = `Assessment_Outcome_Report${gradePart}${termPart}${searchPart}_${new Date().toISOString().split('T')[0]}.pdf`;
     
     doc.save(filename);
     
