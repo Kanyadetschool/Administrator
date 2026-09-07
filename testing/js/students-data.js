@@ -5,12 +5,12 @@
  *
  * CONFIRMED structure: flat, keyed by Assessment No —
  *   artifacts/{appId}/students/{assessmentNo} = { Grade, 'Official
- *   Student Name', UPI, Gender, ... }
+ *   Student Name', ULI, Gender, ... }
  * (Not nested per grade — that ambiguity from the first version of
  * this file is resolved.)
  *
  * Known fields (from the uploaded roster's headers), used as-is:
- *   Grade, 'Assessment No', 'Official Student Name', UPI, Gender,
+ *   Grade, 'Assessment No', 'Official Student Name', ULI, Gender,
  *   'Birth Entry', Class, DOB, DateOfAdmission, Dissability, District,
  *   Email, Father, 'Home phone', IDNO, 'Medical Condition', Mother,
  *   Status, 'Where Born', _pdfHref, _prevGrade, _promotedAt,
@@ -56,7 +56,7 @@ function isBlank(v) {
 }
 
 function looksLikeStudent(obj) {
-  return obj && typeof obj === 'object' && ('Official Student Name' in obj || 'UPI' in obj || 'Assessment No' in obj);
+  return obj && typeof obj === 'object' && ('Official Student Name' in obj || 'ULI' in obj || 'Assessment No' in obj);
 }
 
 /** Confirmed flat: artifacts/{appId}/students/{assessmentNo} = record.

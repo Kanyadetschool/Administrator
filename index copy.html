@@ -728,7 +728,7 @@
           </div>
           <div class="panel">
             <div class="toolbar">
-              <input class="search-input" id="stu-search" placeholder="Search name, UPI, admission no, grade…" />
+              <input class="search-input" id="stu-search" placeholder="Search name, ULI, admission no, grade…" />
               <select class="sel" id="stu-grade-filter"><option value="">All Grades</option></select>
               <select class="sel" id="stu-gender-filter">
                 <option value="">All Genders</option>
@@ -1672,8 +1672,8 @@
       if(/^f/i.test(g)) return 'Female';
       return g || 'Unknown';
     }
-    function studentUpi(s){
-      return s.UPI || s.upi || s.AssessmentNumber || s['Assessment No'] || s.id || '—';
+    function studentUli(s){
+      return s.ULI || s.uli || s.AssessmentNumber || s['Assessment No'] || s.id || '—';
     }
 
     /* ══════════════════════════════════════════
@@ -1805,7 +1805,7 @@
     // other tools to tell subject-score fields apart from record metadata.
     const RESULTS_META_FIELDS = new Set([
       'Assessment No','Class','Closing Date','Gender','Grade','Official Student Name',
-      'Opening Date','Position','Remarks','Term','UPI'
+      'Opening Date','Position','Remarks','Term','ULI'
     ]);
     function gShortRes(raw){
       const s = String(raw||'');
@@ -1831,15 +1831,15 @@
     }
     // Results is a per-exam-sitting table (several rows per student across
     // terms), not a student master list, so the roster needs a stable
-    // per-student key to dedupe on — Assessment No first, then UPI, then
+    // per-student key to dedupe on — Assessment No first, then ULI, then
     // name, mirroring the same fallback used across the school's other
     // tools. Placeholder values like "---" or "pending" are treated as
     // absent since they aren't unique per student.
     function studentIdentityKey(rec){
       const an = String(rec?.['Assessment No'] || '').trim();
       if(an && !/^-+$/.test(an) && !/^pending/i.test(an)) return 'AN:' + an;
-      const upi = String(rec?.UPI || '').trim();
-      if(upi && !/^-+$/.test(upi)) return 'UPI:' + upi;
+      const uli = String(rec?.ULI || '').trim();
+      if(uli && !/^-+$/.test(uli)) return 'ULI:' + uli;
       return 'NAME:' + String(rec?.['Official Student Name'] || '').trim().toUpperCase();
     }
     function avgOf(rec){
@@ -3528,19 +3528,19 @@
 
     // Blank or placeholder ("---", "N/A", "Unknown") values don't count as
     // real data — a real Results export showed a meaningful share of
-    // students with placeholder UPIs, so this needs to catch those too,
+    // students with placeholder ULIs, so this needs to catch those too,
     // not just empty strings.
     function isPlaceholder(v){
       const s = String(v ?? '').trim();
       return !s || /^-+$/.test(s) || /^(n\/?a|unknown|pending)$/i.test(s);
     }
-    let stuQualityFilter = ''; // '' | 'upi' | 'gender' | 'grade'
+    let stuQualityFilter = ''; // '' | 'uli' | 'gender' | 'grade'
     function renderDataQuality(){
-      const missingUpi = state.students.filter(s => isPlaceholder(studentUpi(s))).length;
+      const missingUli = state.students.filter(s => isPlaceholder(studentUli(s))).length;
       const missingGender = state.students.filter(s => isPlaceholder(s.Gender||s.gender)).length;
       const missingGrade = state.students.filter(s => isPlaceholder(s.Grade||s.grade)).length;
       const stats = [
-        { key:'upi', label:'Missing UPI', count:missingUpi },
+        { key:'uli', label:'Missing ULI', count:missingUli },
         { key:'gender', label:'Missing Gender', count:missingGender },
         { key:'grade', label:'Missing Grade', count:missingGrade }
       ];
@@ -3584,14 +3584,14 @@
       const grade = $('stu-grade-filter').value;
       const gender = $('stu-gender-filter').value;
       return state.students.filter(s => {
-        if(stuQualityFilter === 'upi' && !isPlaceholder(studentUpi(s))) return false;
+        if(stuQualityFilter === 'uli' && !isPlaceholder(studentUli(s))) return false;
         if(stuQualityFilter === 'gender' && !isPlaceholder(s.Gender||s.gender)) return false;
         if(stuQualityFilter === 'grade' && !isPlaceholder(s.Grade||s.grade)) return false;
         if(_missingPhotoFilterActive && _photoMissingKeys && !_photoMissingKeys.has(studentPhotoKey(s))) return false;
         if(grade && studentGrade(s) !== grade) return false;
         if(gender && studentGender(s) !== gender) return false;
         if(!q) return true;
-        const hay = [studentName(s), studentGrade(s), studentUpi(s), s['Assessment No'], s.AssessmentNumber].join(' ').toLowerCase();
+        const hay = [studentName(s), studentGrade(s), studentUli(s), s['Assessment No'], s.AssessmentNumber].join(' ').toLowerCase();
         return hay.includes(q);
       });
     }
@@ -3676,9 +3676,9 @@
       doc.text(`Generated: ${new Date().toLocaleDateString()}  ·  Total: ${rows.length}`, 10, bannerH+8);
 
       const sorted = [...rows].sort((a,b) => studentGrade(a).localeCompare(studentGrade(b),undefined,{numeric:true}) || studentName(a).localeCompare(studentName(b)));
-      const tableData = sorted.map((s,i) => [i+1, studentName(s), s['Assessment No']||s.AssessmentNumber||'—', studentGrade(s), studentGender(s), studentUpi(s)]);
+      const tableData = sorted.map((s,i) => [i+1, studentName(s), s['Assessment No']||s.AssessmentNumber||'—', studentGrade(s), studentGender(s), studentUli(s)]);
       doc.autoTable({
-        head: [['#','Student','Assessment No','Grade','Gender','UPI']],
+        head: [['#','Student','Assessment No','Grade','Gender','ULI']],
         body: tableData,
         startY: bannerH+13,
         margin: {left:10,right:10},
@@ -3710,7 +3710,7 @@
           <td>${escapeHtml(s['Assessment No'] || s.AssessmentNumber || '—')}</td>
           <td>${escapeHtml(studentGrade(s))}</td>
           <td>${escapeHtml(studentGender(s))}</td>
-          <td class="mono">${escapeHtml(studentUpi(s))}</td>
+          <td class="mono">${escapeHtml(studentUli(s))}</td>
           <td><span class="pill ${pill}">${escapeHtml(status)}</span></td>
         </tr>`;
       }).join('');
@@ -3727,7 +3727,7 @@
       const metaRows = [
         ['Grade', studentGrade(s)],
         ['Gender', studentGender(s)],
-        ['UPI', studentUpi(s)],
+        ['ULI', studentUli(s)],
         ['Assessment No', s['Assessment No'] || '—'],
         ['Term / Sitting', s.Grade || s.grade || '—'],
         ['Position', s.Position || '—'],
@@ -3744,7 +3744,7 @@
       const editFields = [
         { key:'Official Student Name', label:'Full Name', value: s['Official Student Name']||'' },
         { key:'Gender', label:'Gender', value: s.Gender||'' },
-        { key:'UPI', label:'UPI', value: s.UPI||'' },
+        { key:'ULI', label:'ULI', value: s.ULI||'' },
         { key:'Position', label:'Position', value: s.Position||'' },
         { key:'Remarks', label:'Remarks', value: s.Remarks||'' },
         ...subjectFields.map(f => ({ key:f, label:f, value:s[f], type:'number' }))
@@ -3769,9 +3769,9 @@
     });
     $('stu-export-btn').addEventListener('click', () => {
       const rows = filteredStudents();
-      const header = ['Name','Grade','Gender','UPI','Status'];
+      const header = ['Name','Grade','Gender','ULI','Status'];
       const csv = [header.join(',')].concat(rows.map(s =>
-        [studentName(s), studentGrade(s), studentGender(s), studentUpi(s), s.Status||'Active']
+        [studentName(s), studentGrade(s), studentGender(s), studentUli(s), s.Status||'Active']
           .map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
       )).join('\n');
       const a = document.createElement('a');
@@ -3894,7 +3894,7 @@
         return;
       }
       let list = state.students.filter(s => studentGrade(s) === grade);
-      if(q) list = list.filter(s => [studentName(s), studentUpi(s)].join(' ').toLowerCase().includes(q));
+      if(q) list = list.filter(s => [studentName(s), studentUli(s)].join(' ').toLowerCase().includes(q));
       list.sort((a,b) => studentName(a).localeCompare(studentName(b)));
 
       if(!list.length){
@@ -3909,7 +3909,7 @@
         if(!state.attDraft[id]) state.attDraft[id] = 'P';
         return `<tr data-sid="${escapeHtml(id)}">
           <td><strong style="color:var(--text)">${escapeHtml(studentName(s))}</strong></td>
-          <td class="mono">${escapeHtml(studentUpi(s))}</td>
+          <td class="mono">${escapeHtml(studentUli(s))}</td>
           <td>
             <div class="att-actions">
               <button class="att-btn ${st==='P'?'P':''}" data-st="P" data-id="${escapeHtml(id)}">P</button>
@@ -4671,7 +4671,7 @@
               'Class': admRec.gradeApplyingFor || '',
               'Official Student Name': admRec.childName || '',
               'Assessment No': assNo,
-              'UPI': admRec.uli || '',
+              'ULI': admRec.uli || '',
               'DOB': admRec.dob || '',
               'Gender': admRec.gender || '',
               'Mobile No': '',
@@ -5003,7 +5003,7 @@
             'Class': formVals.klass || '',
             'Official Student Name': p['Official Student Name'] || '',
             'Assessment No': formVals.assNo,
-            'UPI': formVals.uli || '',
+            'ULI': formVals.uli || '',
             'DOB': p['DOB'] || '',
             'Gender': p['Gender'] || '',
             'Mobile No': '',
@@ -5056,11 +5056,11 @@
         groups.push({ label:'Sections', items: secMatches.map(s => ({ icon: navIconFor(s.id), title:s.title, sub:s.sub, action:() => navTo(s.id) })) });
       }
       const stuMatches = state.students.filter(s =>
-        studentName(s).toLowerCase().includes(q) || String(studentUpi(s)).toLowerCase().includes(q)
+        studentName(s).toLowerCase().includes(q) || String(studentUli(s)).toLowerCase().includes(q)
       ).slice(0,6);
       if(stuMatches.length){
         groups.push({ label:'Students', items: stuMatches.map(s => ({
-          icon:'🎓', title: studentName(s), sub:`${studentGrade(s)} · ${studentUpi(s)}`,
+          icon:'🎓', title: studentName(s), sub:`${studentGrade(s)} · ${studentUli(s)}`,
           action:() => {
             navTo('students');
             $('stu-search').value = studentName(s);

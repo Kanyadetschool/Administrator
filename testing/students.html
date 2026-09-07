@@ -41,7 +41,7 @@
       <p id="students-summary" style="font-size:12.5px;color:var(--ink-soft);margin:2px 0 0;">Loading roster…</p>
     </div>
     <div class="students-controls">
-      <input type="search" id="student-search" placeholder="Search by name or UPI…" />
+      <input type="search" id="student-search" placeholder="Search by name or ULI…" />
       <select id="grade-filter"><option value="">All grades</option></select>
       <select id="status-filter">
         <option value="">All statuses</option>
@@ -59,7 +59,7 @@
           <th>Name</th>
           <th>Grade</th>
           <th>Gender</th>
-          <th>UPI / Assessment No</th>
+          <th>ULI / Assessment No</th>
           <th>Admission date</th>
           <th>Status</th>
         </tr>
@@ -127,9 +127,9 @@
 
     const filtered = allStudents.filter((s) => {
       const name = (s['Official Student Name'] || '').toLowerCase();
-      const upi = (s.UPI || '').toLowerCase();
+      const uli = (s.ULI || '').toLowerCase();
       const assessNo = (s['Assessment No'] || '').toLowerCase();
-      if (search && !name.includes(search) && !upi.includes(search) && !assessNo.includes(search)) return false;
+      if (search && !name.includes(search) && !uli.includes(search) && !assessNo.includes(search)) return false;
 
       const grade = isBlank(s.Grade) ? 'Unassigned' : s.Grade;
       if (gradeFilter && grade !== gradeFilter) return false;
@@ -158,7 +158,7 @@
           <td>${escapeHtml(titleCase(s['Official Student Name']))}</td>
           <td>${escapeHtml(isBlank(s.Grade) ? '—' : s.Grade)}</td>
           <td><span class="gender-chip gender-${escapeHtml(gender)}">${escapeHtml(gender)}</span></td>
-          <td>${escapeHtml(s.UPI || s['Assessment No'] || '—')}</td>
+          <td>${escapeHtml(s.ULI || s['Assessment No'] || '—')}</td>
           <td>${escapeHtml(isBlank(s.DateOfAdmission) ? '—' : s.DateOfAdmission)}</td>
           <td>${escapeHtml(status)}</td>
         </tr>

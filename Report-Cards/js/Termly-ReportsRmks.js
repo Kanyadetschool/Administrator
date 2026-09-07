@@ -60,7 +60,7 @@ const REPORT_CARD_CONFIG = {
 
 // Fields that are never learning areas — used by getSubjects()
 const META_KEYS = new Set([
-    'id', 'Term', 'Grade', 'Class', 'Gender', 'UPI',
+    'id', 'Term', 'Grade', 'Class', 'Gender', 'ULI',
     'Official Student Name', 'Assessment No', 'Position',
     'Stream', 'Year', 'School', 'Remarks', 'Class Teacher',
     'Opening Date', 'Closing Date', 'Total', 'Average', 'Points', 'Level'
@@ -720,7 +720,7 @@ function addQrCode(doc, student, x, y, size) {
 // Renders a vertical CODE128 barcode on the left edge of the page
 function addBarcode(doc, student, pageHeight) {
     try {
-        const barcodeValue = student['UPI'] || student['Assessment No'] || 'KANYADET';
+        const barcodeValue = student['ULI'] || student['Assessment No'] || 'KANYADET';
         if (typeof JsBarcode === 'undefined') return;
         const cvs = document.createElement('canvas');
         JsBarcode(cvs, String(barcodeValue), {
@@ -872,7 +872,7 @@ async function generateStudentReportCard(student, includeWatermark = true) {
     doc.setFont(undefined, 'normal'); doc.setFontSize(9);
     const studentInfo = [
         [`Name: ${student['Official Student Name'] || 'N/A'}`, `Assessment No: ${student['Assessment No'] || 'N/A'}`],
-        [`UPI: ${student['UPI'] || 'N/A'}`, `${student['Grade'] || 'N/A'}`],
+        [`ULI: ${student['ULI'] || 'N/A'}`, `${student['Grade'] || 'N/A'}`],
         [`Gender: ${student['Gender'] || 'N/A'}`, `Class: ${student['Class'] || 'N/A'}`]
     ];
     let infoY = yPos + 16;
@@ -985,7 +985,7 @@ async function _drawMultiTermReportPage(doc, mergedStudent, logoRes, studentImag
     const openingDate  = lastRec['Opening Date']  || lastRec['Opening']  || '...............';
     const infoRows = [
         [`Name: ${mergedStudent['Official Student Name'] || 'N/A'}`,   `Assessment No: ${mergedStudent['Assessment No'] || 'N/A'}`],
-        [`UPI:  ${mergedStudent['UPI'] || 'N/A'}`,                     `Gender: ${mergedStudent['Gender'] || 'N/A'}`],
+        [`ULI:  ${mergedStudent['ULI'] || 'N/A'}`,                     `Gender: ${mergedStudent['Gender'] || 'N/A'}`],
         [`Class: ${baseRec['Class'] || mergedStudent['Class'] || 'N/A'}`, ``],
     ];
     let iy = yPos + 14;
@@ -1279,7 +1279,7 @@ function _buildAveragedStudent(mergedStudent) {
         id:                        mergedStudent.id,
         'Assessment No':           mergedStudent['Assessment No'],
         'Official Student Name':   mergedStudent['Official Student Name'],
-        'UPI':                     mergedStudent['UPI'],
+        'ULI':                     mergedStudent['ULI'],
         'Gender':                  mergedStudent['Gender'],
         'Grade':                   mergedStudent['Grade'],
         'Class':                   mergedStudent['Class'],
@@ -1499,7 +1499,7 @@ function _drawCompactReportPage(doc, student, stats, studentImageData, logoRes, 
     doc.setFont(undefined, 'normal'); doc.setFontSize(9);
     const studentInfo = [
         [`Name: ${student['Official Student Name'] || 'N/A'}`, `Assessment No: ${student['Assessment No'] || 'N/A'}`],
-        [`UPI: ${student['UPI'] || 'N/A'}`, `${student['Grade'] || 'N/A'}`],
+        [`ULI: ${student['ULI'] || 'N/A'}`, `${student['Grade'] || 'N/A'}`],
         [`Gender: ${student['Gender'] || 'N/A'}`, `Class: ${student['Class'] || 'N/A'}`]
     ];
     let infoY = yPos + 16;
@@ -1663,7 +1663,7 @@ function gradeToLabel(gradeVal) {
  * Returns an array of merged student objects, one per unique Assessment No,
  * with scores from each grade node stored under a namespaced key:
  *   student['__grade_<gradeVal>'] = { <subject>: score, ... , __gradeVal, __label }
- * The base student info (Name, UPI, Gender etc.) is taken from the first matched record.
+ * The base student info (Name, ULI, Gender etc.) is taken from the first matched record.
  */
 function getMergedStudents() {
     if (selectedGrades.size < 1) return [];
@@ -1680,7 +1680,7 @@ function getMergedStudents() {
                     id: s.id,
                     'Assessment No':           s['Assessment No'],
                     'Official Student Name':   s['Official Student Name'],
-                    'UPI':                     s['UPI'],
+                    'ULI':                     s['ULI'],
                     'Gender':                  s['Gender'],
                     'Class':                   s['Class'],
                     'Grade':                   s['Grade'],
@@ -1718,7 +1718,7 @@ function getMergedStudents() {
             id: base.id,
             'Assessment No':           base['Assessment No'],
             'Official Student Name':   base['Official Student Name'],
-            'UPI':                     base['UPI'],
+            'ULI':                     base['ULI'],
             'Gender':                  base['Gender'],
             'Class':                   base['Class'],
             'Grade':                   base['Grade'],
@@ -1955,7 +1955,7 @@ async function generateSearchReportCards() {
     // Filter merged students by the current search query
     const q = searchQuery.toLowerCase();
     const studentsToProcess = getMergedStudents().filter(ms =>
-        [ms['Official Student Name'], ms['Assessment No'], ms['UPI'], ms['Grade']]
+        [ms['Official Student Name'], ms['Assessment No'], ms['ULI'], ms['Grade']]
             .some(f => String(f||'').toLowerCase().includes(q))
     );
 
@@ -2135,7 +2135,7 @@ function applyFilters() {
             const searchableFields = [
                 student['Official Student Name'],
                 student['Assessment No'],
-                student['UPI'],
+                student['ULI'],
                 student['Grade'],
                 student['Term']
             ].map(field => String(field || '').toLowerCase());
@@ -2206,7 +2206,7 @@ function renderCurrentPage() {
         row.insertCell(1).textContent = student['Grade'] || 'N/A';
         row.insertCell(2).textContent = student['Official Student Name'] || 'N/A'; 
         row.insertCell(3).textContent = student['Assessment No'] || student.id || 'N/A'; 
-        row.insertCell(4).textContent = student['UPI'] || student.id || 'N/A'; 
+        row.insertCell(4).textContent = student['ULI'] || student.id || 'N/A';
         row.insertCell(5).textContent = student['Term'] || 'N/A';
         
         const missingValueCell = row.insertCell(6);
@@ -3584,7 +3584,7 @@ function _doExportToExcel() {
 
     const dynSubjects = [...new Set(sorted.flatMap(s => getSubjects(s)))];
 
-    const headers = ['#','Name','Adm No','UPI','Gender','Grade','Term',
+    const headers = ['#','Name','Adm No','ULI','Gender','Grade','Term',
         ...dynSubjects, 'Total Marks','Avg %','Total Points','Max Points','Level'];
 
     const rows = sorted.map((s, i) => {
@@ -3593,7 +3593,7 @@ function _doExportToExcel() {
             i+1,
             s['Official Student Name'] || '',
             s['Assessment No'] || '',
-            s['UPI'] || '',
+            s['ULI'] || '',
             s['Gender'] || '',
             s['Grade'] || '',
             s['Term'] || '',
