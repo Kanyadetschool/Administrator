@@ -11,7 +11,7 @@
 // precached file, or returning users will keep seeing the old version.
 // ══════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'v3'; // bumped: index.html updated with PWA "Install App" button
+const CACHE_VERSION = 'v4'; // Firebase SDK and app-shell integration update
 const SHELL_CACHE = `kanyadet-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `kanyadet-runtime-${CACHE_VERSION}`;
 
@@ -19,12 +19,13 @@ const RUNTIME_CACHE = `kanyadet-runtime-${CACHE_VERSION}`;
 // Add/remove paths here to match your actual file layout.
 const PRECACHE_URLS = [
   './',
+  './index.html',
   './Results-portal.html',
   './lunch/lunch.html',
   './lunch/food.html',
   './images/logo.png',
   './imgs/logo.png',
-  './image-popup.js',
+  './js/image-popup.js',
   './Report-Cards/css/swalOnly.css',
   // Pinned CDN libs (versioned URLs = safe to cache long-term)
   'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css',
@@ -41,10 +42,10 @@ const PRECACHE_URLS = [
   // exception (see ALWAYS_CACHE_EXACT) and precached here so a reload while
   // offline never depends on the browser's own (evictable) HTTP cache for
   // something this critical.
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js',
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js',
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js',
 ];
 
 // Exact files that must be served from cache-first even though their
@@ -52,10 +53,10 @@ const PRECACHE_URLS = [
 // live backend calls, so caching them is safe and actually necessary for
 // the app to boot at all when offline.
 const ALWAYS_CACHE_EXACT = new Set([
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js',
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js',
-  'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js',
 ]);
 
 // Domains that must ALWAYS go to the network untouched.

@@ -1946,7 +1946,7 @@ const DB_PATH = 'Results/default-app-id/students';
 
 // ── Non-subject metadata keys to always exclude ──
 const META_KEYS = new Set([
-  'id','Term','Grade','Class','Gender','UPI',
+  'id','Term','Grade','Class','Gender','ULI',
   'Official Student Name','Assessment No','Position',
   'Stream','Year','School','Remarks','Class Teacher',
   'Opening Date','Closing Date','Total','Average','Points','Level'
@@ -3233,7 +3233,7 @@ async function drawPage(doc, rec, logoRes){
 
   const infoRows = [
     [`Name: ${rec['Official Student Name']||'N/A'}`,  `Assessment No: ${rec['Assessment No']||'N/A'}`],
-    [`UPI: ${rec['UPI']||'N/A'}`,                      `Grade: ${gShort(rec['Grade']||'N/A')}`],
+    [`ULI: ${rec['ULI']||'N/A'}`,                      `Grade: ${gShort(rec['Grade']||'N/A')}`],
     [`Gender: ${rec['Gender']||'N/A'}`,                `Class: ${rec['Class']||'N/A'}`],
   ];
   let infoY = yPos+16;

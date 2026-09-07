@@ -325,7 +325,7 @@
           <div class="head"><div class="ic mint"><svg viewBox="0 0 20 20" fill="none"><path d="M3 6l7-3 7 3-7 3-7-3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 8.5V13c0 1.5 1.8 2.5 4 2.5s4-1 4-2.5V8.5" stroke="currentColor" stroke-width="1.5"/></svg></div><h3>Academic</h3></div>
           <div class="kv"><span class="k">Grade</span><span class="v" id="aGrade">—</span></div>
           <div class="kv"><span class="k">Class</span><span class="v" id="aClass">—</span></div>
-          <div class="kv"><span class="k">UPI</span><span class="v" id="aUpi">—</span></div>
+          <div class="kv"><span class="k">ULI</span><span class="v" id="aUli">—</span></div>
           <div class="kv"><span class="k">Date of admission</span><span class="v" id="aAdmission">—</span></div>
           <div class="kv"><span class="k">District</span><span class="v" id="aDistrict">—</span></div>
           <div class="kv"><span class="k">Status</span><span class="v" id="aStatus">—</span></div>
@@ -470,7 +470,7 @@ function renderStudent(s){
 
   document.getElementById('aGrade').textContent = clean(s['Grade']);
   document.getElementById('aClass').textContent = clean(s['Class']);
-  document.getElementById('aUpi').textContent = clean(s['UPI']);
+  document.getElementById('aUli').textContent = clean(s['ULI']);
   document.getElementById('aAdmission').textContent = clean(s['DateOfAdmission']);
   document.getElementById('aDistrict').textContent = clean(s['District']);
   document.getElementById('aStatus').textContent = clean(s['Status']);

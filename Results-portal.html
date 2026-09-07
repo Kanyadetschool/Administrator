@@ -2829,7 +2829,7 @@ setInterval(_rotateAuthTip, 5000);
         </div>
         <div class="filter-row">
           <div class="search-input-wrap">
-            <input class="search-input" id="student-search" placeholder="Search by name, adm no, UPI, grade… or score range (e.g. >70)" oninput="_filterStudentsDebounced()">
+            <input class="search-input" id="student-search" placeholder="Search by name, adm no, ULI, grade… or score range (e.g. >70)" oninput="_filterStudentsDebounced()">
           </div>
           <select class="sel" id="filter-grade" onchange="filterStudents()">
             <option value="">All Grades</option>
@@ -3033,7 +3033,7 @@ setInterval(_rotateAuthTip, 5000);
             <div class="card-title">📈 Student Cohort Tracker</div>
           </div>
           <div style="padding:2px 0 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <input type="text" id="cohort-search" placeholder="Search student by name or UPI…" oninput="_cohortSearchInput()" style="flex:1;min-width:220px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:12px">
+            <input type="text" id="cohort-search" placeholder="Search student by name or ULI…" oninput="_cohortSearchInput()" style="flex:1;min-width:220px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:12px">
           </div>
           <div id="cohort-results" style="font-size:12px;color:var(--text2)"></div>
           <div id="cohort-chart-wrap" style="display:none;margin-top:10px">
@@ -3090,7 +3090,7 @@ setInterval(_rotateAuthTip, 5000);
                 <option value="">Select Field to Check…</option>
               </select>
               <div class="search-input-wrap" style="min-width:220px">
-                <input class="search-input" id="search-input" type="search" placeholder="Search name, adm no, UPI, grade…">
+                <input class="search-input" id="search-input" type="search" placeholder="Search name, adm no, ULI, grade…">
               </div>
               <select class="sel" id="items-per-page" onchange="itemsPerPage=+this.value;currentPage=1;renderCurrentPage ? renderCurrentPage() : null">
                 <option value="10">10 / page</option>
@@ -3525,7 +3525,7 @@ setInterval(_rotateAuthTip, 5000);
           <div class="settings-section" id="fix-gender-section" style="display:none">
             <h3 class="settings-section-title">🩹 Fix Missing Gender</h3>
             <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6">
-              Finds records with no Gender value and backfills it from that same student's other terms on file (matched by Assessment No, then UPI, then name — most recent match wins). Only records a confident match is found for are touched; anything left over needs a manual edit.
+              Finds records with no Gender value and backfills it from that same student's other terms on file (matched by Assessment No, then ULI, then name — most recent match wins). Only records a confident match is found for are touched; anything left over needs a manual edit.
             </p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
               <button class="btn btn-blue btn-sm" onclick="scanMissingGender()">🔍 Scan for Missing Gender</button>
@@ -3689,7 +3689,7 @@ setInterval(_rotateAuthTip, 5000);
           <div class="kpi-card" style="--accent-glow:rgba(192,57,43,.15)">
             <div class="kpi-icon">⛔</div>
             <div class="kpi-val" id="dup-kpi-groups" style="color:var(--red-dk)">—</div>
-            <div class="kpi-label">Exact Match Groups (UPI+Name+Grade)</div>
+            <div class="kpi-label">Exact Match Groups (ULI+Name+Grade)</div>
           </div>
           <div class="kpi-card" style="--accent-glow:rgba(230,126,34,.1)">
             <div class="kpi-icon">📋</div>
@@ -3698,12 +3698,12 @@ setInterval(_rotateAuthTip, 5000);
           </div>
         </div>
         <div class="card" style="margin-bottom:14px;padding:12px 16px;font-size:12px;color:var(--text2);line-height:1.7;background:rgba(231,76,60,.05);border:1px solid rgba(231,76,60,.18)">
-          🔍 Detects records where the <strong>UPI number</strong>, <strong>student name</strong>, and <strong>grade</strong> all match at once — the highest-confidence sign of a true duplicate. Review each group carefully — some may be legitimate (same student re-enrolled) while others may be true data entry errors.
+          🔍 Detects records where the <strong>ULI number</strong>, <strong>student name</strong>, and <strong>grade</strong> all match at once — the highest-confidence sign of a true duplicate. Review each group carefully — some may be legitimate (same student re-enrolled) while others may be true data entry errors.
         </div>
         <div class="table-wrap">
           <table class="data-table">
             <thead><tr>
-              <th>Group</th><th>Match Type</th><th>Student Name</th><th>UPI / Adm No</th>
+              <th>Group</th><th>Match Type</th><th>Student Name</th><th>ULI / Adm No</th>
               <th>Grade</th><th>Term</th><th>Avg</th><th>Actions</th>
             </tr></thead>
             <tbody id="dup-tbody"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Load data first.</td></tr></tbody>
@@ -3723,7 +3723,7 @@ setInterval(_rotateAuthTip, 5000);
             <span style="font-size:10px;font-weight:700;background:rgba(41,128,185,.15);color:var(--blue-lt);padding:3px 9px;border-radius:6px;letter-spacing:.06em;text-transform:uppercase">Quick Upload</span>
           </div>
           <p style="font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:16px">
-            Download a pre-filled Excel template with your assigned students — Official Name, UPI, Grade and Term are already filled in.
+            Download a pre-filled Excel template with your assigned students — Official Name, ULI, Grade and Term are already filled in.
             Just enter scores in the subject columns and upload. The system will match and update each student automatically.
           </p>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px">
@@ -3774,7 +3774,7 @@ setInterval(_rotateAuthTip, 5000);
           <div class="card">
             <div class="card-hdr"><div class="card-title">📂 Upload Completed Template</div></div>
             <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px">
-              Upload your filled-in Excel template. Student records are matched by <strong>UPI</strong> or <strong>Official Name + Grade</strong>. Scores are written into the matched record; meta fields are preserved.
+              Upload your filled-in Excel template. Student records are matched by <strong>ULI</strong> or <strong>Official Name + Grade</strong>. Scores are written into the matched record; meta fields are preserved.
             </p>
             <div id="import-dropzone" onclick="document.getElementById('import-file-input').click()"
               style="border:2px dashed var(--border-strong);border-radius:var(--radius-lg);padding:40px 20px;text-align:center;cursor:pointer;transition:var(--transition);background:var(--surface2)"
@@ -4101,8 +4101,8 @@ setInterval(_rotateAuthTip, 5000);
           <input type="text" id="qe-add-asm" placeholder="e.g. 12345">
         </div>
         <div class="form-group">
-          <label>UPI</label>
-          <input type="text" id="qe-add-upi" placeholder="UPI number">
+          <label>ULI</label>
+          <input type="text" id="qe-add-uli" placeholder="ULI number">
         </div>
       </div>
     </div>
@@ -4211,8 +4211,8 @@ setInterval(_rotateAuthTip, 5000);
           <input type="text" id="edit-asm" placeholder="e.g. 12345">
         </div>
         <div class="form-group">
-          <label>UPI</label>
-          <input type="text" id="edit-upi" placeholder="UPI number">
+          <label>ULI</label>
+          <input type="text" id="edit-uli" placeholder="ULI number">
         </div>
         <div class="form-group">
           <label>GRADE LEVEL</label>
@@ -4350,7 +4350,7 @@ setInterval(_rotateAuthTip, 5000);
   <div class="modal-box" style="margin-top:60px;align-self:flex-start">
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
       <span style="font-size:16px">🔍</span>
-      <input id="smart-search-input" type="text" placeholder="Search by name, UPI, adm no, grade, or score range (e.g. avg>70)…"
+      <input id="smart-search-input" type="text" placeholder="Search by name, ULI, adm no, grade, or score range (e.g. avg>70)…"
         style="flex:1;border:none;background:transparent;font-size:14px;color:var(--text);outline:none;font-family:'Plus Jakarta Sans',sans-serif"
         oninput="runSmartSearch(this.value)" onkeydown="searchKeyNav(event)">
       <span style="font-size:11px;color:var(--text3)">ESC to close</span>
@@ -4437,10 +4437,10 @@ setInterval(_rotateAuthTip, 5000);
             Visual charts comparing class averages, subject performance, and trends over terms — useful for spotting which subjects or grades need attention.
           </div></div>
         </div>
-        <div class="help-item" data-kw="duplicates same name upi merge">
+        <div class="help-item" data-kw="duplicates same name uli merge">
           <div class="help-item-hdr" onclick="toggleHelpItem(this)"><span class="hi-icon">👥</span><span class="hi-title">Duplicates</span><span class="hi-chev">▾</span></div>
           <div class="help-item-body"><div class="help-item-body-inner">
-            Finds students who may have been entered twice — flags a record only when the UPI number, student name, and grade all match another record exactly.
+            Finds students who may have been entered twice — flags a record only when the ULI number, student name, and grade all match another record exactly.
           </div></div>
         </div>
         <div class="help-item" data-kw="grading system cbc grade points scale">
@@ -5023,7 +5023,7 @@ let currentAssignedSubjects = {}; // { [grade]: [subject,...] } — which subjec
 let firestoreDb = null;          // Firestore instance
 
 const META_KEYS = new Set([
-  'id','Term','Grade','Class','Gender','UPI','Official Student Name',
+  'id','Term','Grade','Class','Gender','ULI','Official Student Name',
   'Assessment No','Position','Stream','Year','School','Remarks',
   'Class Teacher','Opening Date','Closing Date','Total','Average','Points','Level'
 ]);
@@ -5325,7 +5325,7 @@ function gShort(raw){ return parseGradeField(raw).grade||'N/A'; }
 // Each individual student record written by Quick Entry / Bulk Import gets a
 // unique "-INDxx" suffix appended to its Grade field so that two records can
 // never collide, even when they belong to the exact same student+grade+exam.
-// Every grouping/filtering function must therefore compare the STRIPPED
+// Every grouling/filtering function must therefore compare the STRIPPED
 // (index-free) value — the "exam identity" — never the raw Grade field.
 function stripIndexSuffix(s){
   return String(s||'').replace(/-IND\d+\s*$/i,'').trim();
@@ -10931,10 +10931,10 @@ function filterStudents(){
     if(ql){
       const name=(String(r['Official Student Name']||'')).toLowerCase();
       const asm=(String(r['Assessment No']||'')).toLowerCase();
-      const upi=(String(r['UPI']||'')).toLowerCase();
+      const uli=(String(r['ULI']||'')).toLowerCase();
       const grade=(String(r['Grade']||'')).toLowerCase();
       const gender=(String(r['Gender']||'')).toLowerCase();
-      if(!name.includes(ql)&&!asm.includes(ql)&&!upi.includes(ql)&&!grade.includes(ql)&&!gender.includes(ql)) return false;
+      if(!name.includes(ql)&&!asm.includes(ql)&&!uli.includes(ql)&&!grade.includes(ql)&&!gender.includes(ql)) return false;
     }
     if(_missingPhotoFilterActive && _photoMissingKeys){
       const pkey=String(r['Assessment No']||r['Official Student Name']||'').trim()||r.id;
@@ -11021,7 +11021,7 @@ function renderStudentsTable(){
           ${_avHtml}
           <div>
             <div style="font-size:12px;font-weight:700;color:var(--text)">${_qeEsc(r['Official Student Name']||'—')}</div>
-            <div style="font-size:10px;color:var(--text3)">UPI: ${_qeEsc(r['UPI']||'N/A')} · <span style="color:var(--blue-lt);font-weight:700">${recCount} record${recCount===1?'':'s'}</span></div>
+            <div style="font-size:10px;color:var(--text3)">ULI: ${_qeEsc(r['ULI']||'N/A')} · <span style="color:var(--blue-lt);font-weight:700">${recCount} record${recCount===1?'':'s'}</span></div>
           </div>
         </div>
       </td>
@@ -11096,7 +11096,7 @@ function viewStudent(id){
       <div>
         <div class="student-meta">
           <div class="s-name">${_qeEsc(rec['Official Student Name']||'—')}${rec['Official Student Name']?' <span style="font-size:11px;opacity:.5;font-weight:400;">📋</span>':''}</div>
-          <div class="s-detail">UPI: ${rec['UPI']||'N/A'} · Assessment No <span id="${_modalAdmId}">${rec['Assessment No']||'N/A'}${rec['Assessment No']?' <span style="font-size:10px;opacity:.5;">📋</span>':''}</span> · ${rec['Gender']||'N/A'}</div>
+          <div class="s-detail">ULI: ${rec['ULI']||'N/A'} · Assessment No <span id="${_modalAdmId}">${rec['Assessment No']||'N/A'}${rec['Assessment No']?' <span style="font-size:10px;opacity:.5;">📋</span>':''}</span> · ${rec['Gender']||'N/A'}</div>
         </div>
         <div class="badge-row">
           <span class="bdg blue">📚 ${rec['Grade']||rec['Term']||'N/A'}</span>
@@ -11297,7 +11297,7 @@ function openAddStudentModal(){
   document.getElementById('edit-modal-title').textContent='Add Student Record';
   document.getElementById('edit-name').value='';
   document.getElementById('edit-asm').value='';
-  document.getElementById('edit-upi').value='';
+  document.getElementById('edit-uli').value='';
   document.getElementById('edit-grade-num').value='';
   document.getElementById('edit-year').value=new Date().getFullYear();
   document.getElementById('edit-term-num').value='';
@@ -11341,7 +11341,7 @@ function editStudent(id){
   document.getElementById('edit-modal-title').textContent='Edit Student Record';
   document.getElementById('edit-name').value=rec['Official Student Name']||'';
   document.getElementById('edit-asm').value=rec['Assessment No']||'';
-  document.getElementById('edit-upi').value=rec['UPI']||'';
+  document.getElementById('edit-uli').value=rec['ULI']||'';
   document.getElementById('edit-gender').value=rec['Gender']||'';
   document.getElementById('edit-class').value=rec['Class']!==undefined&&rec['Class']!==null?String(rec['Class']).replace(/\.0$/,''):'';
   document.getElementById('edit-position').value=rec['Position']||'';
@@ -11406,7 +11406,7 @@ async function saveStudentRecord(){
   const record={
     'Official Student Name':name,
     'Assessment No':asm,
-    'UPI':document.getElementById('edit-upi').value.trim(),
+    'ULI':document.getElementById('edit-uli').value.trim(),
     'Grade':document.getElementById('edit-grade').value,
     'Gender':document.getElementById('edit-gender').value,
     'Term':document.getElementById('edit-term').value.trim(),
@@ -11835,14 +11835,14 @@ function _cohortRunSearch(){
   const chartWrap=document.getElementById('cohort-chart-wrap');
   if(!q){ resultsEl.innerHTML=''; chartWrap.style.display='none'; return; }
 
-  // Group all matching records by student identity (UPI preferred, else name)
+  // Group all matching records by student identity (ULI preferred, else name)
   const byStudent={};
   allData.forEach(r=>{
     const name=(r['Official Student Name']||'').trim();
-    const upi=(r['UPI']||'').trim();
-    if(!name.toLowerCase().includes(q) && !upi.toLowerCase().includes(q)) return;
-    const key=upi || name.toLowerCase();
-    if(!byStudent[key]) byStudent[key]={name, upi, recs:[]};
+    const uli=(r['ULI']||'').trim();
+    if(!name.toLowerCase().includes(q) && !uli.toLowerCase().includes(q)) return;
+    const key=uli || name.toLowerCase();
+    if(!byStudent[key]) byStudent[key]={name, uli, recs:[]};
     byStudent[key].recs.push(r);
   });
   const matches=Object.values(byStudent);
@@ -11851,25 +11851,25 @@ function _cohortRunSearch(){
 
   if(matches.length>1 && q.length){
     resultsEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">${
-      matches.slice(0,15).map(m=>`<div style="cursor:pointer;padding:6px 10px;border-radius:6px;background:var(--surface2)" onclick="_cohortShowStudent('${(m.upi||m.name).replace(/'/g,"\\'")}')">
-        <strong>${m.name}</strong> <span style="color:var(--text3)">· UPI: ${m.upi||'N/A'} · ${m.recs.length} record(s)</span>
+      matches.slice(0,15).map(m=>`<div style="cursor:pointer;padding:6px 10px;border-radius:6px;background:var(--surface2)" onclick="_cohortShowStudent('${(m.uli||m.name).replace(/'/g,"\\'")}')">
+        <strong>${m.name}</strong> <span style="color:var(--text3)">· ULI: ${m.uli||'N/A'} · ${m.recs.length} record(s)</span>
       </div>`).join('')
     }</div>`;
     chartWrap.style.display='none';
     return;
   }
 
-  _cohortShowStudent(matches[0].upi || matches[0].name.toLowerCase());
+  _cohortShowStudent(matches[0].uli || matches[0].name.toLowerCase());
 }
 
 function _cohortShowStudent(key){
   const byStudent={};
   allData.forEach(r=>{
     const name=(r['Official Student Name']||'').trim();
-    const upi=(r['UPI']||'').trim();
-    const k=upi || name.toLowerCase();
+    const uli=(r['ULI']||'').trim();
+    const k=uli || name.toLowerCase();
     if(k!==key) return;
-    if(!byStudent[k]) byStudent[k]={name, upi, recs:[]};
+    if(!byStudent[k]) byStudent[k]={name, uli, recs:[]};
     byStudent[k].recs.push(r);
   });
   const student=Object.values(byStudent)[0];
@@ -11882,7 +11882,7 @@ function _cohortShowStudent(key){
     return {label:`${p.grade||'—'} ${p.term||''} ${p.examType||''} (${p.year||'—'})`.replace(/\s+/g,' ').trim(), avg:parseFloat(st.avg), year:p.year||'0000', term:p.term||''};
   }).sort((a,b)=> (a.year+a.term).localeCompare(b.year+b.term));
 
-  document.getElementById('cohort-results').innerHTML = `<div style="padding:6px 0"><strong>${student.name}</strong> · UPI: ${student.upi||'N/A'} · ${rows.length} record(s) found across all grades/terms</div>`;
+  document.getElementById('cohort-results').innerHTML = `<div style="padding:6px 0"><strong>${student.name}</strong> · ULI: ${student.uli||'N/A'} · ${rows.length} record(s) found across all grades/terms</div>`;
   const wrap=document.getElementById('cohort-chart-wrap');
   wrap.style.display='block';
 
@@ -12081,15 +12081,15 @@ window.runCompareResults=runCompareResults;
 function renderDuplicates(){
   const byAll={};
   allData.forEach(r=>{
-    const upi=(r['UPI']||'').trim().toLowerCase();
+    const uli=(r['ULI']||'').trim().toLowerCase();
     const name=(r['Official Student Name']||'').trim().toLowerCase().replace(/\s+/g,' ');
     const grade=getRecordTerm(r).trim().toLowerCase().replace(/\s+/g,' ');
-    if(upi&&name&&grade){ const k=upi+'|'+name+'|'+grade; if(!byAll[k]) byAll[k]=[]; byAll[k].push(r); }
+    if(uli&&name&&grade){ const k=uli+'|'+name+'|'+grade; if(!byAll[k]) byAll[k]=[]; byAll[k].push(r); }
   });
   const allGroups=Object.values(byAll).filter(g=>g.length>1);
   const seen=new Set();
   const groups=[];
-  allGroups.forEach(g=>{ const k=g.map(r=>r.id).sort().join(','); if(!seen.has(k)){seen.add(k);groups.push({type:'UPI+Name+Grade',recs:g});} });
+  allGroups.forEach(g=>{ const k=g.map(r=>r.id).sort().join(','); if(!seen.has(k)){seen.add(k);groups.push({type:'ULI+Name+Grade',recs:g});} });
 
   const affectedRecs=new Set(groups.flatMap(g=>g.recs.map(r=>r.id)));
   document.getElementById('dup-kpi-groups').textContent=groups.length;
@@ -12124,7 +12124,7 @@ function renderDuplicates(){
           <div class="stu-av-wrap stu-av-sm" id="${avId}" style="flex-shrink:0">${ini}</div>
           <div>
             <div style="font-size:12px;font-weight:700">${_qeEsc(r['Official Student Name']||'—')}</div>
-            <div style="font-size:10px;color:var(--text3)">UPI: ${_qeEsc(r['UPI']||'N/A')}</div>
+            <div style="font-size:10px;color:var(--text3)">ULI: ${_qeEsc(r['ULI']||'N/A')}</div>
           </div>
         </div></td>
         <td style="font-size:11px">${_qeEsc(r['Assessment No']||'—')}</td>
@@ -12161,17 +12161,17 @@ function exportDuplicatesCSV(){
   // Re-build data from allData
   const byAll={};
   allData.forEach(r=>{
-    const upi=(r['UPI']||'').trim().toLowerCase();
+    const uli=(r['ULI']||'').trim().toLowerCase();
     const name=(r['Official Student Name']||'').trim().toLowerCase().replace(/\s+/g,' ');
     const grade=getRecordTerm(r).trim().toLowerCase().replace(/\s+/g,' ');
-    if(upi&&name&&grade){const k=upi+'|'+name+'|'+grade;if(!byAll[k])byAll[k]=[];byAll[k].push(r);}
+    if(uli&&name&&grade){const k=uli+'|'+name+'|'+grade;if(!byAll[k])byAll[k]=[];byAll[k].push(r);}
   });
   const seen=new Set(); const groups=[];
-  Object.values(byAll).filter(g=>g.length>1).forEach(g=>{const k=g.map(r=>r.id).sort().join(',');if(!seen.has(k)){seen.add(k);groups.push({type:'UPI+Name+Grade',recs:g});}});
-  let csv='Group,Match Type,Student Name,UPI,Adm No,Grade,Term,Average\n';
+  Object.values(byAll).filter(g=>g.length>1).forEach(g=>{const k=g.map(r=>r.id).sort().join(',');if(!seen.has(k)){seen.add(k);groups.push({type:'ULI+Name+Grade',recs:g});}});
+  let csv='Group,Match Type,Student Name,ULI,Adm No,Grade,Term,Average\n';
   groups.forEach((g,gi)=>g.recs.forEach(r=>{
     const st=calcStats(r);
-    csv+=`${gi+1},${g.type},"${_csvSafe(r['Official Student Name']||'')}",${_csvSafe(r['UPI']||'')},${_csvSafe(r['Assessment No']||'')},"${_csvSafe(r['Grade']||'')}",${getRecordTerm(r)},${st.avg}\n`;
+    csv+=`${gi+1},${g.type},"${_csvSafe(r['Official Student Name']||'')}",${_csvSafe(r['ULI']||'')},${_csvSafe(r['Assessment No']||'')},"${_csvSafe(r['Grade']||'')}",${getRecordTerm(r)},${st.avg}\n`;
   }));
   const blob=new Blob([csv],{type:'text/csv'});
   const url=URL.createObjectURL(blob);
@@ -12830,16 +12830,16 @@ async function computeLiveMissingScoresForExam(grade, compound){
     rosterRows = borrowedFromTerm ? allData.filter(r => getRecordTerm(r) === borrowedFromTerm) : [];
   }
 
-  // Dedup exactly like loadQuickEntry: Assessment No → UPI → name.
-  const seenAsmNo = new Set(), seenUPI = new Set(), seenNoIdName = new Set();
+  // Dedup exactly like loadQuickEntry: Assessment No → ULI → name.
+  const seenAsmNo = new Set(), seenULI = new Set(), seenNoIdName = new Set();
   const students = [];
   rosterRows.forEach(r => {
     const asmNo = _qeRealId(r['Assessment No']);
-    const upi = _qeRealId(r['UPI']);
+    const uli = _qeRealId(r['ULI']);
     const name = String(r['Official Student Name']||'').trim().toLowerCase();
     if(!name) return;
     if(asmNo){ if(seenAsmNo.has(asmNo)) return; seenAsmNo.add(asmNo); }
-    else if(upi){ if(seenUPI.has(upi)) return; seenUPI.add(upi); }
+    else if(uli){ if(seenULI.has(uli)) return; seenULI.add(uli); }
     else { if(seenNoIdName.has(name)) return; seenNoIdName.add(name); }
     students.push(r);
   });
@@ -12866,14 +12866,14 @@ async function computeLiveMissingScoresForExam(grade, compound){
 
   // ── Already-submitted scores for THIS exam, per student ─────────────────────
   const rAsm = r => _qeRealId(r['Assessment No']);
-  const rUpi = r => _qeRealId(r['UPI']);
+  const rUli = r => _qeRealId(r['ULI']);
   const existingScores = {};
   finalStudents.forEach(r=>{
     const key = _qeStudentKey(r);
-    const asmNo = rAsm(r), upi = rUpi(r);
+    const asmNo = rAsm(r), uli = rUli(r);
     const existing = allData.find(x =>
       getRecordTerm(x) === compound &&
-      ((asmNo && rAsm(x) === asmNo) || (!asmNo && upi && rUpi(x) === upi) || (!asmNo && !upi && x['Official Student Name'] === r['Official Student Name']))
+      ((asmNo && rAsm(x) === asmNo) || (!asmNo && uli && rUli(x) === uli) || (!asmNo && !uli && x['Official Student Name'] === r['Official Student Name']))
     );
     if(!existing) return;
     const subjMap = {};
@@ -13147,7 +13147,7 @@ window.renderExtraSubjectsSettings=renderExtraSubjectsSettings;
    Backfills the Gender field on records that were saved without it — e.g.
    Quick Entry submissions made before Gender was wired into that flow.
    For each record missing Gender, looks across ALL of allData for another
-   record belonging to the SAME student (matched by Assessment No, then UPI,
+   record belonging to the SAME student (matched by Assessment No, then ULI,
    then name — whichever identifier that record actually has) that DOES have
    a Gender on file, preferring that student's most recent such record. Only
    ever writes the single 'Gender' field — nothing else on the record is
@@ -13164,18 +13164,18 @@ window.renderMissingGenderTile = renderMissingGenderTile;
 
 function _findGenderForRecord(rec){
   const asm  = _qeRealId(rec['Assessment No']);
-  const upi  = _qeRealId(rec['UPI']);
+  const uli  = _qeRealId(rec['ULI']);
   const name = String(rec['Official Student Name']||'').trim().toLowerCase();
-  if(!asm && !upi && !name) return '';
+  if(!asm && !uli && !name) return '';
   let best = null;
   for(const r of allData){
     if(r === rec) continue;
     const g = String(r['Gender']||'').trim();
     if(!g) continue;
     const rAsm  = _qeRealId(r['Assessment No']);
-    const rUpi  = _qeRealId(r['UPI']);
+    const rUli  = _qeRealId(r['ULI']);
     const rName = String(r['Official Student Name']||'').trim().toLowerCase();
-    const isMatch = asm ? (rAsm === asm) : upi ? (rUpi === upi) : (rName === name);
+    const isMatch = asm ? (rAsm === asm) : uli ? (rUli === uli) : (rName === name);
     if(!isMatch) continue;
     if(!best || _qeCompoundOrderKey(getRecordTerm(r)).localeCompare(_qeCompoundOrderKey(getRecordTerm(best))) > 0) best = r;
   }
@@ -13205,7 +13205,7 @@ function scanMissingGender(){
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--border);flex-wrap:wrap">
       <div style="flex:1;min-width:220px">
         <div style="font-size:12px;font-weight:700;color:var(--text)">${_qeEsc(rec['Official Student Name']||'Unknown')} <span class="bdg blue" style="margin-left:6px">${_qeEsc(gShort(rec['Grade']||'')||'—')}</span></div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px">${_qeEsc(getRecordTerm(rec)||'—')} · Asm: ${_qeEsc(rec['Assessment No']||'N/A')} · UPI: ${_qeEsc(rec['UPI']||'N/A')}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">${_qeEsc(getRecordTerm(rec)||'—')} · Asm: ${_qeEsc(rec['Assessment No']||'N/A')} · ULI: ${_qeEsc(rec['ULI']||'N/A')}</div>
       </div>
       <span class="bdg" style="background:rgba(52,199,89,.15);color:var(--green)">${found==='M'?'♂ Male':found==='F'?'♀ Female':found}</span>
     </div>`).join('');
@@ -13214,7 +13214,7 @@ function scanMissingGender(){
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--orange);flex-wrap:wrap">
       <div style="flex:1;min-width:220px">
         <div style="font-size:12px;font-weight:700;color:var(--text)">${_qeEsc(rec['Official Student Name']||'Unknown')} <span class="bdg blue" style="margin-left:6px">${_qeEsc(gShort(rec['Grade']||'')||'—')}</span></div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px">${_qeEsc(getRecordTerm(rec)||'—')} · Asm: ${_qeEsc(rec['Assessment No']||'N/A')} · UPI: ${_qeEsc(rec['UPI']||'N/A')}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">${_qeEsc(getRecordTerm(rec)||'—')} · Asm: ${_qeEsc(rec['Assessment No']||'N/A')} · ULI: ${_qeEsc(rec['ULI']||'N/A')}</div>
       </div>
       <span style="font-size:10px;color:var(--orange);font-weight:700">no other term has Gender either</span>
     </div>`).join('');
@@ -13458,7 +13458,7 @@ function navTo(view,el){
   const viewEl=document.getElementById('view-'+view);
   if(viewEl)viewEl.classList.add('active');
   if(el)el.classList.add('active');
-  const crumbs={dashboard:'Overview & Analytics',students:'Student Directory',results:'Results & Grades',analytics:'Charts & Insights',duplicates:'Same name or UPI across records',reports:'Report Cards & Export',import:'CSV / Excel Import',announcements:'School Notices',messages:'Chat with teachers & staff',settings:'Portal Configuration',auditlog:'Full Admin Audit Trail',profile:'Edit Your Profile & Password',progressrecords:'Download score history by subject & class'};
+  const crumbs={dashboard:'Overview & Analytics',students:'Student Directory',results:'Results & Grades',analytics:'Charts & Insights',duplicates:'Same name or ULI across records',reports:'Report Cards & Export',import:'CSV / Excel Import',announcements:'School Notices',messages:'Chat with teachers & staff',settings:'Portal Configuration',auditlog:'Full Admin Audit Trail',profile:'Edit Your Profile & Password',progressrecords:'Download score history by subject & class'};
   const titles={dashboard:'Dashboard',students:'Students',results:'Results',analytics:'Analytics',duplicates:'Duplicates',reports:'Report Cards',import:'Import Data',announcements:'Announcements',messages:'Messages',settings:'Settings',auditlog:'Audit Log',profile:'My Profile',progressrecords:'Progress Records'};
   if(document.getElementById('topbar-title'))document.getElementById('topbar-title').textContent=titles[view]||view;
   if(view==='profile') profLoadInfo();
@@ -14391,7 +14391,7 @@ async function dlStudentPDF(id){
   doc.setFont(undefined,'normal');doc.setFontSize(8.5);
   const info=[
     [`Name: ${rec['Official Student Name']||'N/A'}`,`Assessment No: ${rec['Assessment No']||'N/A'}`],
-    [`UPI: ${rec['UPI']||'N/A'}`,`${rec['Grade']||'N/A'}`],
+    [`ULI: ${rec['ULI']||'N/A'}`,`${rec['Grade']||'N/A'}`],
     [`Gender: ${rec['Gender']||'N/A'}`,`Position: ${rec['Position']||'N/A'}`],
   ];
   let iy=58;info.forEach(([l,r])=>{doc.text(l,20,iy);doc.text(r,W/2,iy);iy+=7;});
@@ -14965,7 +14965,7 @@ function copyRecordData(){
   const lines = [
     'Student: ' + (rec['Official Student Name']||'N/A'),
     'Adm No: ' + (rec['Assessment No']||'N/A'),
-    'UPI: ' + (rec['UPI']||'N/A'),
+    'ULI: ' + (rec['ULI']||'N/A'),
     ' ' + (rec['Grade']||'N/A'),
     'Average: ' + st.avg + '%',
     'Level: ' + st.level + ' (' + st.label + ')',
@@ -15027,11 +15027,11 @@ function runSmartSearch(q){
 
   let results=Object.values(byAsm).filter(({best,all})=>{
     const name=String(best['Official Student Name']||'').toLowerCase();
-    const upi=String(best['UPI']||'').toLowerCase();
+    const uli=String(best['ULI']||'').toLowerCase();
     const adm=String(best['Assessment No']||'').toLowerCase();
     const grade=String(best['Grade']||'').toLowerCase();
     const avg=parseFloat(calcStats(best).avg);
-    if(q&&!name.includes(q.toLowerCase())&&!upi.includes(q.toLowerCase())&&!adm.includes(q.toLowerCase())&&!grade.includes(q.toLowerCase()))return false;
+    if(q&&!name.includes(q.toLowerCase())&&!uli.includes(q.toLowerCase())&&!adm.includes(q.toLowerCase())&&!grade.includes(q.toLowerCase()))return false;
     if(scoreFilter){
       const op=scoreFilter.op,v=scoreFilter.val;
       if(op==='>='&&!(avg>=v))return false;
@@ -15732,7 +15732,7 @@ async function handleImportFile(file){
 }
 window.handleImportFile=handleImportFile;
 
-const DB_FIELDS=['Official Student Name','Assessment No','UPI','Grade','Term','Gender','Class','Position','Remarks'];
+const DB_FIELDS=['Official Student Name','Assessment No','ULI','Grade','Term','Gender','Class','Position','Remarks'];
 
 function buildColumnMapping(){
   const map=document.getElementById('import-mapping');
@@ -15760,8 +15760,8 @@ function showImportPreview(rows,dupes){
   card.style.display='block';
   document.getElementById('import-preview-info').textContent=`${rows.length} rows · ${_importHeaders.length} columns`;
   const preview=rows.slice(0,10);
-  const isTemplateFmt = _importHeaders.includes('UPI') && _importHeaders.includes('Official Student Name');
-  const metaCols=new Set(['Official Student Name','UPI','Assessment No','Term','Grade']);
+  const isTemplateFmt = _importHeaders.includes('ULI') && _importHeaders.includes('Official Student Name');
+  const metaCols=new Set(['Official Student Name','ULI','Assessment No','Term','Grade']);
   // Known subject set for this grade/exam, so we can flag a score entered under an unexpected subject column
   const knownSubjects = getDynamicSubjects();
   let invalidCount=0, unknownSubjCount=0;
@@ -15828,9 +15828,9 @@ async function commitImport(){
   btn.disabled=true;btn.textContent='⏳ Importing…';
 
   // ── Detect if this is a teacher template upload ──────────────────────
-  // Template files always have both 'UPI' and 'Official Student Name' columns
+  // Template files always have both 'ULI' and 'Official Student Name' columns
   // The compound Grade value lives in the 'Term' column of the template
-  const isTemplateUpload = _importHeaders.includes('UPI') && _importHeaders.includes('Official Student Name');
+  const isTemplateUpload = _importHeaders.includes('ULI') && _importHeaders.includes('Official Student Name');
 
   // The template's 'Term' column holds the compound Grade string
   const compoundCol = _importHeaders.includes('Term') ? 'Term' : null;
@@ -15840,39 +15840,39 @@ async function commitImport(){
     if(isTemplateUpload){
       // ── Template mode: ALWAYS create new records (new exam results) ───────
       // But skip true duplicates: same student + same compound Grade already exists
-      // Build a set of "UPI|compoundGrade" and "name|compoundGrade" that exist
+      // Build a set of "ULI|compoundGrade" and "name|compoundGrade" that exist
       const existingKeys = new Set();
       allData.forEach(r => {
         // Use the index-stripped exam identity — the raw Grade field now carries
         // a unique -INDxx suffix per record, so it can't be used for dedup.
         const compound = getRecordTerm(r).trim().toLowerCase();
-        const upi  = String(r['UPI']||'').trim().toLowerCase();
+        const uli  = String(r['ULI']||'').trim().toLowerCase();
         const name = String(r['Official Student Name']||'').trim().toLowerCase();
-        if(upi && compound)  existingKeys.add('upi:'  + upi  + '|' + compound);
+        if(uli && compound)  existingKeys.add('uli:'  + uli  + '|' + compound);
         if(name && compound) existingKeys.add('name:' + name + '|' + compound);
       });
       const idxTracker = createIndexTracker(); // seeds from existing -INDxx in allData
 
       for(const row of _importData){
         const name     = String(row['Official Student Name']||'').trim();
-        const upi      = String(row['UPI']||'').trim();
+        const uli      = String(row['ULI']||'').trim();
         const asmNo    = String(row['Assessment No']||'').trim();
         const compound = stripIndexSuffix(compoundCol ? String(row[compoundCol]||'').trim()
           : String(row['Grade']||row['Term']||'').trim());
 
-        if(!name && !upi) continue; // no student identity
+        if(!name && !uli) continue; // no student identity
 
         // ── Duplicate check: skip if this exact student+exam already exists ─
-        const upiKey  = ('upi:'  + upi.toLowerCase()  + '|' + compound.toLowerCase());
+        const uliKey  = ('uli:'  + uli.toLowerCase()  + '|' + compound.toLowerCase());
         const nameKey = ('name:' + name.toLowerCase() + '|' + compound.toLowerCase());
-        const isDupe  = (upi && existingKeys.has(upiKey)) || existingKeys.has(nameKey);
+        const isDupe  = (uli && existingKeys.has(uliKey)) || existingKeys.has(nameKey);
         if(isDupe){ skipped++; continue; }
 
         // ── Collect subject scores from the row — reject out-of-range values ─
         const scores = {};
         Object.keys(row).forEach(k => {
           // Skip meta/identity columns
-          if(['Official Student Name','UPI','Assessment No','Term','Grade'].includes(k)) return;
+          if(['Official Student Name','ULI','Assessment No','Term','Grade'].includes(k)) return;
           if(META_KEYS.has(k)) return;
           const raw=row[k];
           if(raw===undefined||raw===null||raw==='') return;
@@ -15897,7 +15897,7 @@ async function commitImport(){
         // Term  = same compound WITH the unique per-student -INDxx suffix.
         const rec = {
           'Official Student Name': name,
-          'UPI':          upi,
+          'ULI':          uli,
           'Assessment No':asmNo,
           'Grade':        compound,
           'Term':         `${compound}-${idxTracker.next(compound)}`,
@@ -16034,7 +16034,7 @@ function _populateTemplateSelectors(){
 /** Download an Excel (.xlsx) template pre-filled with students for the
  *  selected grade(s) and term.  Subject columns are included (empty).
  *  Student list is built from existing results data (allData), de-duplicated
- *  by UPI/name. */
+ *  by ULI/name. */
 window.downloadResultsTemplate = function(){
   if(!window.XLSX){
     notify('⏳ XLSX library not yet loaded — please wait a moment and try again.','warn');
@@ -16059,20 +16059,20 @@ window.downloadResultsTemplate = function(){
   const targetGrade = selGrade || (myGrades ? myGrades[0] : null);
 
   // ── Build student list — RAW extraction from database, no aggressive dedup ──
-  // Dedup only by true unique identities: Assessment No or UPI. Assessment No
-  // is the real unique identifier at this school (most students have no UPI
+  // Dedup only by true unique identities: Assessment No or ULI. Assessment No
+  // is the real unique identifier at this school (most students have no ULI
   // at all), so it takes priority. Placeholder junk values ("N/A", "-", "0",
   // etc.) are treated as blank via _qeRealId so a shared placeholder can't
   // collapse many different students into one. Name is only used as a
   // last-resort fallback identity for the rare record with NEITHER a
-  // UPI nor an Assessment No — it must never cause a student who DOES have
-  // a UPI/Assessment No to be dropped just because another student shares
+  // ULI nor an Assessment No — it must never cause a student who DOES have
+  // a ULI/Assessment No to be dropped just because another student shares
   // the same name (e.g. siblings, common names in the same grade).
   let students = [];
 
   {
     const seenAsmNo    = new Set();
-    const seenUPI      = new Set();
+    const seenULI      = new Set();
     const seenNoIdName = new Set();
     allData.forEach(r => {
       if(targetGrade){
@@ -16081,17 +16081,17 @@ window.downloadResultsTemplate = function(){
         if(!myGrades.includes(gShort(r['Grade'])) && !myGrades.includes(r['Grade'])) return;
       }
       const asmNo = _qeRealId(r['Assessment No']);
-      const upi   = _qeRealId(r['UPI']);
+      const uli   = _qeRealId(r['ULI']);
       const name  = String(r['Official Student Name']||'').trim().toLowerCase();
       if(!name) return;
       if(asmNo){
         if(seenAsmNo.has(asmNo)) return;
         seenAsmNo.add(asmNo);
-      } else if(upi){
-        if(seenUPI.has(upi)) return;
-        seenUPI.add(upi);
+      } else if(uli){
+        if(seenULI.has(uli)) return;
+        seenULI.add(uli);
       } else {
-        // Neither Assessment No nor UPI — fall back to name as the only identity we have
+        // Neither Assessment No nor ULI — fall back to name as the only identity we have
         if(seenNoIdName.has(name)) return;
         seenNoIdName.add(name);
       }
@@ -16127,7 +16127,7 @@ window.downloadResultsTemplate = function(){
   // row so the file mirrors what each committed record will actually look
   // like. The suffix is only a preview: commitImport() strips it and assigns
   // a fresh one at commit time, so re-downloading/re-ordering rows is safe.
-  const META_COLS  = ['Grade', 'Term', 'Assessment No', 'Official Student Name', 'UPI'];
+  const META_COLS  = ['Grade', 'Term', 'Assessment No', 'Official Student Name', 'ULI'];
   const SCORE_COLS = subjects;
   const header     = [...META_COLS, ...SCORE_COLS];
 
@@ -16139,7 +16139,7 @@ window.downloadResultsTemplate = function(){
     row['Term']                  = `${selCompound}-${_tplIdxTracker.next(selCompound)}`; // e.g. "...-Term 2-IND01"
     row['Assessment No']         = r['Assessment No'] || '';
     row['Official Student Name'] = r['Official Student Name'] || '';
-    row['UPI']                   = r['UPI'] || '';
+    row['ULI']                   = r['ULI'] || '';
     SCORE_COLS.forEach(s => { row[s] = ''; });
     return row;
   });
@@ -16186,7 +16186,7 @@ window.downloadResultsTemplate = function(){
     { Column: 'Term',                  Notes: `DO NOT EDIT — preview of this record's final identity (base: ${selCompound}). The -INDxx suffix shown is just a preview; a fresh one is assigned automatically when you commit.` },
     { Column: 'Assessment No',          Notes: 'DO NOT EDIT — fallback match key' },
     { Column: 'Official Student Name',  Notes: 'DO NOT EDIT — used to identify the student' },
-    { Column: 'UPI',                    Notes: 'DO NOT EDIT — primary matching key' },
+    { Column: 'ULI',                    Notes: 'DO NOT EDIT — primary matching key' },
     ...subjects.map(s => ({ Column: s, Notes: 'Enter score 0–100. Leave blank if not assessed.' })),
     { Column: '', Notes: '' },
     { Column: 'UPLOAD STEPS', Notes: '1) Fill in subject scores  2) Save file  3) Go to Import Data  4) Drop file in upload zone  5) Click Commit to Database' },
@@ -16931,7 +16931,7 @@ window._qeUseNewExam = _qeUseNewExam;
  *  then check for and restore any existing draft before rendering the table. */
 // Returns a trimmed ID string only if it's a "real" identifier — filters out
 // common data-entry placeholders (N/A, -, 0, NIL, etc.) so that many students
-// sharing the same placeholder value in UPI/Assessment No don't get collapsed
+// sharing the same placeholder value in ULI/Assessment No don't get collapsed
 // into a single roster entry during dedup.
 function _qeRealId(v){
   const s = String(v||'').trim();
@@ -16941,7 +16941,7 @@ function _qeRealId(v){
   return s;
 }
 
-// Escapes text pulled from student/subject data (names, subjects, UPI, etc.)
+// Escapes text pulled from student/subject data (names, subjects, ULI, etc.)
 // before it's dropped into innerHTML. These values are teacher/admin-entered
 // free text, not code — without this, a name or subject containing HTML
 // (even accidentally, e.g. a pasted "<3" or ">90") could break the row markup
@@ -17651,7 +17651,7 @@ async function loadQuickEntry(){
 
   // ── Build raw student roster ──────────────────────────────────────────────
   // Assessment No is the true unique identifier at this school (most students
-  // have no UPI at all). Priority: Assessment No → UPI → Name. Placeholder
+  // have no ULI at all). Priority: Assessment No → ULI → Name. Placeholder
   // junk values ("N/A", "-", "0", etc.) are treated as blank so a shared
   // placeholder can't collapse many different students into one record.
   //
@@ -17677,15 +17677,15 @@ async function loadQuickEntry(){
   }
   _qeWasPending = !useExact; // remembered so submitQuickEntry can double-check with the user
 
-  const seenAsmNo = new Set(), seenUPI = new Set(), seenNoIdName = new Set();
+  const seenAsmNo = new Set(), seenULI = new Set(), seenNoIdName = new Set();
   const students = [];
   rosterRows.forEach(r => {
     const asmNo = _qeRealId(r['Assessment No']);
-    const upi = _qeRealId(r['UPI']);
+    const uli = _qeRealId(r['ULI']);
     const name = String(r['Official Student Name']||'').trim().toLowerCase();
     if(!name) return;
     if(asmNo){ if(seenAsmNo.has(asmNo)) return; seenAsmNo.add(asmNo); }
-    else if(upi){ if(seenUPI.has(upi)) return; seenUPI.add(upi); }
+    else if(uli){ if(seenULI.has(uli)) return; seenULI.add(uli); }
     else { if(seenNoIdName.has(name)) return; seenNoIdName.add(name); }
     students.push(r);
   });
@@ -17899,16 +17899,16 @@ window.loadQuickEntry = loadQuickEntry;
 function _qeGetExistingScores(){
   const out = {};
   const rAsm = r => _qeRealId(r['Assessment No']);
-  const rUpi = r => _qeRealId(r['UPI']);
+  const rUli = r => _qeRealId(r['ULI']);
   _qeStudents.forEach(r=>{
     const key = _qeStudentKey(r);
-    const asmNo = rAsm(r), upi = rUpi(r);
+    const asmNo = rAsm(r), uli = rUli(r);
     const existing = allData.find(x =>
       getRecordTerm(x) === _qeCompound &&
       (
         (asmNo && rAsm(x) === asmNo) ||
-        (!asmNo && upi && rUpi(x) === upi) ||
-        (!asmNo && !upi && x['Official Student Name'] === r['Official Student Name'])
+        (!asmNo && uli && rUli(x) === uli) ||
+        (!asmNo && !uli && x['Official Student Name'] === r['Official Student Name'])
       )
     );
     if(!existing) return;
@@ -17923,23 +17923,23 @@ function _qeGetExistingScores(){
 }
 
 function _qeStudentKey(rec){
-  return _qeRealId(rec['Assessment No']) || _qeRealId(rec['UPI']) || rec.id
+  return _qeRealId(rec['Assessment No']) || _qeRealId(rec['ULI']) || rec.id
     || ('name:'+String(rec['Official Student Name']||'').trim().toLowerCase());
 }
 
 /** Does a record already exist in the database for this roster student under
  *  the currently-selected exam? Shared by the row badge (renderQuickEntryTable)
  *  and the actual submit logic (submitQuickEntry) so both agree exactly.
- *  Match priority: Assessment No (universal at this school) → UPI → name
+ *  Match priority: Assessment No (universal at this school) → ULI → name
  *  (last resort only). */
 function _qeFindExisting(r){
   const asm = _qeRealId(r['Assessment No']);
-  const upi = _qeRealId(r['UPI']);
+  const uli = _qeRealId(r['ULI']);
   const name = String(r['Official Student Name']||'').trim().toLowerCase();
   return allData.find(x => {
     if(getRecordTerm(x) !== _qeCompound) return false;
     if(asm) return _qeRealId(x['Assessment No']) === asm;
-    if(upi) return _qeRealId(x['UPI']) === upi;
+    if(uli) return _qeRealId(x['ULI']) === uli;
     return String(x['Official Student Name']||'').trim().toLowerCase() === name;
   });
 }
@@ -18121,7 +18121,7 @@ function renderQuickEntryTable(draftScores, locked){
   // as adding one — a subject teacher with score-entry access shouldn't be
   // able to drop a classmate off the roster.
   const canRemoveStudents = !locked && _isClassTeacherOfGrade(gradeForPerms);
-  thead.innerHTML = `<th style="width:30px">#</th><th>Student Name</th><th>UPI</th>${_qeSubjects.map(s=>{
+  thead.innerHTML = `<th style="width:30px">#</th><th>Student Name</th><th>ULI</th>${_qeSubjects.map(s=>{
     const mine = canEnterSubject(s);
     const lockNote = (!locked && !mine) ? ' 🔒' : '';
     // Column-wide status accent: green underline = you can enter this subject,
@@ -18165,7 +18165,7 @@ function renderQuickEntryTable(draftScores, locked){
           <span>${_qeEsc(r['Official Student Name']||'—')}${badge}</span>
         </div>
       </td>
-      <td style="font-size:11px;color:var(--text3)">${_qeEsc(r['UPI']||'—')}</td>
+      <td style="font-size:11px;color:var(--text3)">${_qeEsc(r['ULI']||'—')}</td>
       ${_qeSubjects.map(s=>{
         const val = draft[s]!==undefined ? draft[s] : '';
         if(locked){
@@ -18326,7 +18326,7 @@ function _qeInitDataTable(locked){
   if(_qeDataTable){ try{ _qeDataTable.destroy(); }catch(e){} _qeDataTable = null; }
   if(typeof DataTable === 'undefined') return; // library failed to load (e.g. offline) — table still works, just without DataTables chrome
 
-  const subjectStart = 3; // columns: # , Student Name , UPI , ...subjects... , (actions)
+  const subjectStart = 3; // columns: # , Student Name , ULI , ...subjects... , (actions)
   const subjectEnd = subjectStart + _qeSubjects.length - 1;
   const hasActionsCol = !locked && _isClassTeacherOfGrade(_qeGrade || gShort(_qeCompound));
   const columnDefs = [
@@ -18405,7 +18405,7 @@ function _qeIsMobileQE(){
 }
 
 /** Column index of a given subject name in #qe-table, matching the layout
- *  built in _qeInitDataTable (0:#, 1:Name, 2:UPI, 3..:subjects, [last:🗑️]). */
+ *  built in _qeInitDataTable (0:#, 1:Name, 2:ULI, 3..:subjects, [last:🗑️]). */
 function _qeSubjectColIndex(subject){
   const i = _qeSubjects.indexOf(subject);
   return i === -1 ? -1 : 3 + i;
@@ -18460,7 +18460,7 @@ function _qeApplyMobileColumnView(){
     const shouldShow = !mobile || s===sel.value;
     try{ _qeDataTable.column(col).visible(shouldShow, false); }catch(e){}
   });
-  // UPI (col 2) rarely matters while actively scoring — free up width for
+  // ULI (col 2) rarely matters while actively scoring — free up width for
   // the one subject box on mobile, restore it on desktop.
   try{ _qeDataTable.column(2).visible(!mobile, false); }catch(e){}
   try{ _qeDataTable.columns.adjust(); }catch(e){}
@@ -18468,12 +18468,12 @@ function _qeApplyMobileColumnView(){
 }
 window._qeApplyMobileColumnView = _qeApplyMobileColumnView;
 
-/** Hides/shows #qe-table's UPI + subject columns by nth-child position —
+/** Hides/shows #qe-table's ULI + subject columns by nth-child position —
  *  used only when DataTables itself isn't available. Position mapping
- *  matches _qeInitDataTable's layout: 1=#, 2=Name, 3=UPI, 4..=subjects. */
+ *  matches _qeInitDataTable's layout: 1=#, 2=Name, 3=ULI, 4..=subjects. */
 function _qeManualColumnVisibility(mobile, selectedSubject){
-  const upiPos = 3;
-  document.querySelectorAll(`#qe-table th:nth-child(${upiPos}), #qe-table td:nth-child(${upiPos})`).forEach(el=>{
+  const uliPos = 3;
+  document.querySelectorAll(`#qe-table th:nth-child(${uliPos}), #qe-table td:nth-child(${uliPos})`).forEach(el=>{
     el.style.display = mobile ? 'none' : '';
   });
   _qeSubjects.forEach((s,i)=>{
@@ -18735,9 +18735,9 @@ function _qeOpenAddStudentModal(){
   }
   document.getElementById('qe-add-name').value = '';
   document.getElementById('qe-add-asm').value = '';
-  document.getElementById('qe-add-upi').value = '';
+  document.getElementById('qe-add-uli').value = '';
   document.getElementById('qe-add-asm').readOnly = false;
-  document.getElementById('qe-add-upi').readOnly = false;
+  document.getElementById('qe-add-uli').readOnly = false;
   _qeAddStudentGenderVal = '';
   document.getElementById('qe-add-name-matches').style.display = 'none';
   document.getElementById('qe-add-name-matches').innerHTML = '';
@@ -18756,7 +18756,7 @@ window._qeCloseAddStudentModal = _qeCloseAddStudentModal;
 
 // ── Quick Entry: live search of the ENTIRE database (all grades/terms) as the
 // teacher types a student's name, so an already-registered student gets
-// auto-filled (Assessment No + UPI) instead of being entered twice. If no
+// auto-filled (Assessment No + ULI) instead of being entered twice. If no
 // match exists anywhere in the database, the teacher proceeds with a plain
 // fresh registration exactly as before. ─────────────────────────────────────
 function _qeSearchExistingStudent(){
@@ -18776,9 +18776,9 @@ function _qeSearchExistingStudent(){
   for(const r of allData){
     const name = (r['Official Student Name']||'').trim();
     if(!name || !name.toLowerCase().includes(q)) continue;
-    const upi = (r['UPI']||'').trim();
+    const uli = (r['ULI']||'').trim();
     const asm = (r['Assessment No']||'').trim();
-    const key = upi || (name.toLowerCase()+'|'+asm);
+    const key = uli || (name.toLowerCase()+'|'+asm);
     if(seen.has(key)) continue;
     seen.add(key);
     // Pull Gender from the student's LATEST term on file (not just whichever
@@ -18786,7 +18786,7 @@ function _qeSearchExistingStudent(){
     // photo lightbox already relies on for "current" grade/gender.
     const latestRec = (typeof getLatestStudentRecord === 'function') ? getLatestStudentRecord(name, r.id) : null;
     const gender = (latestRec && latestRec['Gender']) || r['Gender'] || '';
-    matches.push({ name, upi, asm, grade: r['Grade']||'', gender });
+    matches.push({ name, uli, asm, grade: r['Grade']||'', gender });
     if(matches.length >= 8) break;
   }
 
@@ -18800,18 +18800,18 @@ function _qeSearchExistingStudent(){
     const _av = makePhotoAvatar(m.name, m.grade, 'stu-av-sm', 'flex-shrink:0');
     const onSheet = _qeStudents.some(r =>
       (m.asm && _qeRealId(r['Assessment No'])===_qeRealId(m.asm)) ||
-      (m.upi && _qeRealId(r['UPI'])===_qeRealId(m.upi))
+      (m.uli && _qeRealId(r['ULI'])===_qeRealId(m.uli))
     );
     const badge = onSheet
       ? `<span style="flex-shrink:0;padding:1px 6px;border-radius:10px;background:rgba(255,159,10,.15);color:var(--orange);font-size:10px;font-weight:700">already on sheet</span>`
       : '';
-    const clickAttr = onSheet ? '' : `onmousedown="_qeSelectExistingStudentMatch('${m.name.replace(/'/g,"\\'")}','${m.upi.replace(/'/g,"\\'")}','${m.asm.replace(/'/g,"\\'")}','${m.grade.replace(/'/g,"\\'")}','${(m.gender||'').replace(/'/g,"\\'")}')"`;
+    const clickAttr = onSheet ? '' : `onmousedown="_qeSelectExistingStudentMatch('${m.name.replace(/'/g,"\\'")}','${m.uli.replace(/'/g,"\\'")}','${m.asm.replace(/'/g,"\\'")}','${m.grade.replace(/'/g,"\\'")}','${(m.gender||'').replace(/'/g,"\\'")}')"`;
     const rowStyle = onSheet
       ? 'cursor:not-allowed;padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;display:flex;align-items:center;gap:8px;opacity:.5'
       : 'cursor:pointer;padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;display:flex;align-items:center;gap:8px';
     return `<div style="${rowStyle}" ${clickAttr}>
       ${_av}
-      <span style="flex:1;min-width:0"><strong>${_qeEsc(m.name)}</strong> <span style="color:var(--text3)">· ${_qeEsc(m.grade||'Grade N/A')} · UPI: ${_qeEsc(m.upi||'N/A')} · Adm: ${_qeEsc(m.asm||'N/A')}</span></span>
+      <span style="flex:1;min-width:0"><strong>${_qeEsc(m.name)}</strong> <span style="color:var(--text3)">· ${_qeEsc(m.grade||'Grade N/A')} · ULI: ${_qeEsc(m.uli||'N/A')} · Adm: ${_qeEsc(m.asm||'N/A')}</span></span>
       ${badge}
     </div>`;
   }).join('');
@@ -18826,10 +18826,10 @@ function _qeHideNameMatchesDelayed(){
 }
 window._qeHideNameMatchesDelayed = _qeHideNameMatchesDelayed;
 
-function _qeSelectExistingStudentMatch(name, upi, asm, grade, gender){
+function _qeSelectExistingStudentMatch(name, uli, asm, grade, gender){
   document.getElementById('qe-add-name').value = name;
   document.getElementById('qe-add-asm').value = asm;
-  document.getElementById('qe-add-upi').value = upi;
+  document.getElementById('qe-add-uli').value = uli;
   // Remembered so _qeConfirmAddStudent can write it onto the new roster
   // entry — the Add Student form has no visible Gender field, so this is
   // the only place that value survives to final submission.
@@ -18837,10 +18837,10 @@ function _qeSelectExistingStudentMatch(name, upi, asm, grade, gender){
   // Lock these — they came from the existing record, so they shouldn't be
   // hand-edited into a mismatch. "clear match" below undoes this.
   document.getElementById('qe-add-asm').readOnly = true;
-  document.getElementById('qe-add-upi').readOnly = true;
+  document.getElementById('qe-add-uli').readOnly = true;
   document.getElementById('qe-add-name-matches').style.display = 'none';
   document.getElementById('qe-add-name-matches').innerHTML = '';
-  document.getElementById('qe-add-match-badge-text').textContent = '✓ Matched existing student — Assessment No & UPI auto-filled.';
+  document.getElementById('qe-add-match-badge-text').textContent = '✓ Matched existing student — Assessment No & ULI auto-filled.';
   // Bigger photo next to the badge so it's easy to eyeball this is the right
   // "Jane Mwangi" out of several before submitting.
   const avBox = document.getElementById('qe-add-match-badge-av');
@@ -18854,9 +18854,9 @@ window._qeSelectExistingStudentMatch = _qeSelectExistingStudentMatch;
 
 function _qeClearExistingMatch(){
   document.getElementById('qe-add-asm').readOnly = false;
-  document.getElementById('qe-add-upi').readOnly = false;
+  document.getElementById('qe-add-uli').readOnly = false;
   document.getElementById('qe-add-asm').value = '';
-  document.getElementById('qe-add-upi').value = '';
+  document.getElementById('qe-add-uli').value = '';
   _qeAddStudentGenderVal = '';
   document.getElementById('qe-add-match-badge').style.display = 'none';
   const avBox = document.getElementById('qe-add-match-badge-av');
@@ -18875,22 +18875,22 @@ function _qeConfirmAddStudent(){
   }
   const name = document.getElementById('qe-add-name').value.trim();
   const asm = document.getElementById('qe-add-asm').value.trim();
-  const upi = document.getElementById('qe-add-upi').value.trim();
+  const uli = document.getElementById('qe-add-uli').value.trim();
 
   if(!name){ notify("⚠️ Please enter the student's name.",'warn'); return; }
   if(!asm){ notify('⚠️ Assessment No is required.','warn'); return; }
-  if(!upi){ notify('⚠️ UPI is required.','warn'); return; }
+  if(!uli){ notify('⚠️ ULI is required.','warn'); return; }
 
   const dupe = _qeStudents.some(r=>
-    _qeRealId(r['Assessment No'])===asm || _qeRealId(r['UPI'])===upi
+    _qeRealId(r['Assessment No'])===asm || _qeRealId(r['ULI'])===uli
   );
-  if(dupe){ notify('⚠️ A student with that Assessment No or UPI is already on this sheet.','warn'); return; }
+  if(dupe){ notify('⚠️ A student with that Assessment No or ULI is already on this sheet.','warn'); return; }
 
   const newStudent = {
     id: 'NEW_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
     'Official Student Name': name,
     'Assessment No': asm,
-    'UPI': upi,
+    'ULI': uli,
     'Grade': _qeCompound,
     'Gender': _qeAddStudentGenderVal || ''
   };
@@ -19067,7 +19067,7 @@ async function _qeSaveDraft(){
  *  becomes a real record. This is the safe way to bulk-load a filled-in
  *  offline sheet (or a spreadsheet a subject teacher emailed over) without
  *  bypassing the review-before-submit step every other entry path gets.
- *  Matches rows to the currently loaded roster by Assessment No → UPI →
+ *  Matches rows to the currently loaded roster by Assessment No → ULI →
  *  name, same priority as _qeFindExisting, so it only ever fills in
  *  students who are already on this sheet — it never silently adds new
  *  ones (use "➕ Add Student" for that, then re-import). */
@@ -19140,7 +19140,7 @@ async function _qeHandleDraftImportFile(file){
       if(!key){ unmatchedRows++; return; }
       matchedRows++;
       Object.keys(row).forEach(col=>{
-        if(!knownSubjects.has(col)) return; // Name/UPI/Assessment No/etc — not a score column
+        if(!knownSubjects.has(col)) return; // Name/ULI/Assessment No/etc — not a score column
         const raw = row[col];
         if(raw===undefined || raw===null || String(raw).trim()==='') return; // blank in file — leave whatever's already there
         const v = parseFloat(raw);
@@ -19421,7 +19421,7 @@ async function submitQuickEntry(){
 
     if(existing){
       // Leaf-level paths so only these specific subject fields are touched —
-      // every other field already on the record (Name, UPI, Gender, other
+      // every other field already on the record (Name, ULI, Gender, other
       // subjects, ...) is left completely untouched by this write.
       Object.keys(parsed).forEach(s=>{
         dbUpdates[`${DB_PATH}/${existing.id}/${s}`] = parsed[s];
@@ -19439,7 +19439,7 @@ async function submitQuickEntry(){
       const newKey = push(ref(db, DB_PATH)).key;
       dbUpdates[`${DB_PATH}/${newKey}`] = {
         'Official Student Name': r['Official Student Name']||'',
-        'UPI': r['UPI']||'',
+        'ULI': r['ULI']||'',
         'Assessment No': r['Assessment No']||'',
         'Gender': r['Gender']||'',
         'Grade': _qeCompound,
@@ -19656,7 +19656,7 @@ const REPORT_CARD_CONFIG = {
 
 // Fields that are never learning areas — used by getSubjects_rc()
 const META_KEYS_RC = new Set([
-    'id', 'Term', 'Grade', 'Class', 'Gender', 'UPI',
+    'id', 'Term', 'Grade', 'Class', 'Gender', 'ULI',
     'Official Student Name', 'Assessment No', 'Position',
     'Stream', 'Year', 'School', 'Remarks', 'Class Teacher',
     'Opening Date', 'Closing Date', 'Total', 'Average', 'Points', 'Level'
@@ -20336,7 +20336,7 @@ function addQrCode(doc, student, x, y, size) {
 // Renders a vertical CODE128 barcode on the left edge of the page
 function addBarcode(doc, student, pageHeight) {
     try {
-        const barcodeValue = student['UPI'] || student['Assessment No'] || 'KANYADET';
+        const barcodeValue = student['ULI'] || student['Assessment No'] || 'KANYADET';
         if (typeof JsBarcode === 'undefined') return;
         const cvs = document.createElement('canvas');
         JsBarcode(cvs, String(barcodeValue), {
@@ -20489,7 +20489,7 @@ async function generateStudentReportCard(student, includeWatermark = true) {
     doc.setFont(undefined, 'normal'); doc.setFontSize(9);
     const studentInfo = [
         [`Name: ${student['Official Student Name'] || 'N/A'}`, `Assessment No: ${student['Assessment No'] || 'N/A'}`],
-        [`UPI: ${student['UPI'] || 'N/A'}`, `${student['Grade'] || 'N/A'}`],
+        [`ULI: ${student['ULI'] || 'N/A'}`, `${student['Grade'] || 'N/A'}`],
         [`Gender: ${student['Gender'] || 'N/A'}`, `Class: ${student['Class'] || 'N/A'}`]
     ];
     let infoY = yPos + 16;
@@ -20602,7 +20602,7 @@ async function _drawMultiTermReportPage(doc, mergedStudent, logoRes, studentImag
     const openingDate  = lastRec['Opening Date']  || lastRec['Opening']  || '...............';
     const infoRows = [
         [`Name: ${mergedStudent['Official Student Name'] || 'N/A'}`,   `Assessment No: ${mergedStudent['Assessment No'] || 'N/A'}`],
-        [`UPI:  ${mergedStudent['UPI'] || 'N/A'}`,                     `Gender: ${mergedStudent['Gender'] || 'N/A'}`],
+        [`ULI:  ${mergedStudent['ULI'] || 'N/A'}`,                     `Gender: ${mergedStudent['Gender'] || 'N/A'}`],
         [`Class: ${baseRec['Class'] || mergedStudent['Class'] || 'N/A'}`, ``],
     ];
     let iy = yPos + 14;
@@ -20896,7 +20896,7 @@ function _buildAveragedStudent(mergedStudent) {
         id:                        mergedStudent.id,
         'Assessment No':           mergedStudent['Assessment No'],
         'Official Student Name':   mergedStudent['Official Student Name'],
-        'UPI':                     mergedStudent['UPI'],
+        'ULI':                     mergedStudent['ULI'],
         'Gender':                  mergedStudent['Gender'],
         'Grade':                   mergedStudent['Grade'],
         'Class':                   mergedStudent['Class'],
@@ -21116,7 +21116,7 @@ function _drawCompactReportPage(doc, student, stats, studentImageData, logoRes, 
     doc.setFont(undefined, 'normal'); doc.setFontSize(9);
     const studentInfo = [
         [`Name: ${student['Official Student Name'] || 'N/A'}`, `Assessment No: ${student['Assessment No'] || 'N/A'}`],
-        [`UPI: ${student['UPI'] || 'N/A'}`, ` ${student['Grade'] || 'N/A'}`],
+        [`ULI: ${student['ULI'] || 'N/A'}`, ` ${student['Grade'] || 'N/A'}`],
         [`Gender: ${student['Gender'] || 'N/A'}`, `Class: ${student['Class'] || 'N/A'}`]
     ];
     let infoY = yPos + 16;
@@ -21263,7 +21263,7 @@ function gradeToLabel(gradeVal) {
  * Returns an array of merged student objects, one per unique Assessment No,
  * with scores from each grade node stored under a namespaced key:
  *   student['__grade_<gradeVal>'] = { <subject>: score, ... , __gradeVal, __label }
- * The base student info (Name, UPI, Gender etc.) is taken from the first matched record.
+ * The base student info (Name, ULI, Gender etc.) is taken from the first matched record.
  */
 function getMergedStudents() {
     if (selectedGrades.size < 1) return [];
@@ -21280,7 +21280,7 @@ function getMergedStudents() {
                     id: s.id,
                     'Assessment No':           s['Assessment No'],
                     'Official Student Name':   s['Official Student Name'],
-                    'UPI':                     s['UPI'],
+                    'ULI':                     s['ULI'],
                     'Gender':                  s['Gender'],
                     'Class':                   s['Class'],
                     'Grade':                   s['Grade'],
@@ -21318,7 +21318,7 @@ function getMergedStudents() {
             id: base.id,
             'Assessment No':           base['Assessment No'],
             'Official Student Name':   base['Official Student Name'],
-            'UPI':                     base['UPI'],
+            'ULI':                     base['ULI'],
             'Gender':                  base['Gender'],
             'Class':                   base['Class'],
             'Grade':                   base['Grade'],
@@ -21584,7 +21584,7 @@ async function generateSearchReportCards() {
     // Filter merged students by the current search query
     const q = searchQuery.toLowerCase();
     const studentsToProcess = getMergedStudents().filter(ms =>
-        [ms['Official Student Name'], ms['Assessment No'], ms['UPI'], ms['Grade']]
+        [ms['Official Student Name'], ms['Assessment No'], ms['ULI'], ms['Grade']]
             .some(f => String(f||'').toLowerCase().includes(q))
     );
 
@@ -21757,7 +21757,7 @@ function applyFilters() {
             const searchableFields = [
                 student['Official Student Name'],
                 student['Assessment No'],
-                student['UPI'],
+                student['ULI'],
                 student['Grade'],
                 student['Term']
             ].map(field => String(field || '').toLowerCase());
@@ -23231,7 +23231,7 @@ function _doExportToExcel() {
 
     const dynSubjects = [...new Set(sorted.flatMap(s => getSubjects_rc(s)))];
 
-    const headers = ['#','Name','Adm No','UPI','Gender','Grade','Term',
+    const headers = ['#','Name','Adm No','ULI','Gender','Grade','Term',
         ...dynSubjects, 'Total Marks','Avg %','Total Points','Max Points','Level'];
 
     const rows = sorted.map((s, i) => {
@@ -23240,7 +23240,7 @@ function _doExportToExcel() {
             i+1,
             s['Official Student Name'] || '',
             s['Assessment No'] || '',
-            s['UPI'] || '',
+            s['ULI'] || '',
             s['Gender'] || '',
             s['Grade'] || '',
             s['Term'] || '',

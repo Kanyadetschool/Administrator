@@ -2013,12 +2013,12 @@ VIEW_RENDERERS['dashboard'] = async function(area){
   // of hardcoding a subject name list.
   const RESULTS_META_FIELDS = new Set([
     'Assessment No','Class','Closing Date','Gender','Grade','Official Student Name',
-    'Opening Date','Position','Remarks','Term','UPI'
+    'Opening Date','Position','Remarks','Term','ULI'
   ]);
   const subjectTotals = {}; // subject -> { sum, count }
   const gradeScoreTotals = {}; // short grade -> { sum, count } of per-record average score
   const studentBestScore = new Map(); // identity -> { name, grade, avg } — keeps each student's best sitting
-  let missingIdCount = 0; // students with neither Assessment No nor UPI on their record
+  let missingIdCount = 0; // students with neither Assessment No nor ULI on their record
   const genderCounts = { male:0, female:0, other:0 };
   const getCachedAttendance = getDashCachedAttendance;
   const setChartLoaded = (wrapId) => {
@@ -2028,14 +2028,14 @@ VIEW_RENDERERS['dashboard'] = async function(area){
   // Results is a per-exam-sitting table — a real student export showed an
   // average of ~3.7 rows per student (one per term), so raw row counts
   // overstate headcount-style analytics by that much. studentIdentityKey()
-  // gives a stable per-student key (Assessment No, falling back to UPI,
+  // gives a stable per-student key (Assessment No, falling back to ULI,
   // falling back to name) so gender/enrollment/data-quality counts reflect
   // unique students instead of exam sittings.
   const studentIdentityKey = (rec) => {
     const an = String(rec?.['Assessment No'] || '').trim();
     if(an && !/^-+$/.test(an) && !/^pending/i.test(an)) return 'AN:' + an;
-    const upi = String(rec?.UPI || '').trim();
-    if(upi && !/^-+$/.test(upi)) return 'UPI:' + upi;
+    const uli = String(rec?.ULI || '').trim();
+    if(uli && !/^-+$/.test(uli)) return 'ULI:' + uli;
     return 'NAME:' + String(rec?.['Official Student Name'] || '').trim().toUpperCase();
   };
   const resultsSnapPromise = getDashResultsSnap();
@@ -2081,12 +2081,12 @@ VIEW_RENDERERS['dashboard'] = async function(area){
             key,
             name: rec['Official Student Name'] || '—',
             gender: rec['Gender'] || '',
-            assessmentNo: rec['Assessment No'] || rec['UPI'] || key
+            assessmentNo: rec['Assessment No'] || rec['ULI'] || key
           });
           rosterByGrade.set(gradeKey, list);
         }
         if(grades.some(mg => g.toLowerCase() === String(mg).toLowerCase())){
-          seenIds.add(rec['Assessment No'] || rec['UPI'] || rec['Official Student Name']);
+          seenIds.add(rec['Assessment No'] || rec['ULI'] || rec['Official Student Name']);
         }
         if(!genderCountedIds.has(identity)){
           genderCountedIds.add(identity);
@@ -2094,7 +2094,7 @@ VIEW_RENDERERS['dashboard'] = async function(area){
           if(gender === 'male' || gender === 'm') genderCounts.male++;
           else if(gender === 'female' || gender === 'f') genderCounts.female++;
           else if(gender) genderCounts.other++;
-          if(!rec?.['Assessment No'] && !rec?.UPI) missingIdCount++;
+          if(!rec?.['Assessment No'] && !rec?.ULI) missingIdCount++;
         }
         if(gradeKey){
           const enrollKey = identity + '|' + gradeKey;
@@ -2581,7 +2581,7 @@ async function fetchRoster(grade, snapOverride){
       if(g.toLowerCase() !== String(grade).toLowerCase()) return;
       const header = String((rec && rec['Grade']) || '').trim();
       if(latestHeader !== null && header !== latestHeader) return;
-      out.push({ key, name: rec['Official Student Name']||'—', gender: rec['Gender']||'', assessmentNo: rec['Assessment No']||rec['UPI']||key, UPI: rec['UPI']||'' });
+      out.push({ key, name: rec['Official Student Name']||'—', gender: rec['Gender']||'', assessmentNo: rec['Assessment No']||rec['ULI']||key, ULI: rec['ULI']||'' });
     });
   }
   out.sort((a,b)=> (a.name||'').localeCompare(b.name||''));
@@ -2628,7 +2628,7 @@ VR2['classes'] = async function(area){
         body.innerHTML = `<div class="empty-state"><div class="es-icon">🧑‍🎓</div><div class="es-sub">No students found for ${esc2(g)} yet.</div></div>`;
         return;
       }
-      body.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Gender</th><th>Assessment No.</th><th>UPI</th></tr></thead>
+      body.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Name</th><th>Gender</th><th>Assessment No.</th><th>ULI</th></tr></thead>
         <tbody id="roster-tbody"></tbody></table></div>
         <div id="roster-pg"></div>`;
       const renderRoster = (list) => {
@@ -2638,13 +2638,13 @@ VR2['classes'] = async function(area){
           return;
         }
         mountPaginated(list, 15, (pageItems, start) =>
-          pageItems.map((s,i)=>`<tr><td>${start+i+1}</td><td><div class="stu-name-cell">${makePhotoAvatar(s.name, g, 'stu-av-sm')}<span>${esc2(s.name)}</span></div></td><td>${esc2(s.gender)}</td><td>${esc2(s.assessmentNo)}</td><td>${esc2(s.UPI)}</td></tr>`).join(''),
+          pageItems.map((s,i)=>`<tr><td>${start+i+1}</td><td><div class="stu-name-cell">${makePhotoAvatar(s.name, g, 'stu-av-sm')}<span>${esc2(s.name)}</span></div></td><td>${esc2(s.gender)}</td><td>${esc2(s.assessmentNo)}</td><td>${esc2(s.ULI)}</td></tr>`).join(''),
           'roster-tbody', 'roster-pg');
       };
       renderRoster(roster);
       searchInput.oninput = () => {
         const q = searchInput.value.trim().toLowerCase();
-        renderRoster(!q ? roster : roster.filter(s => (s.name||'').toLowerCase().includes(q) || (s.assessmentNo||'').toLowerCase().includes(q) || (s.UPI||'').toLowerCase().includes(q)));
+        renderRoster(!q ? roster : roster.filter(s => (s.name||'').toLowerCase().includes(q) || (s.assessmentNo||'').toLowerCase().includes(q) || (s.ULI||'').toLowerCase().includes(q)));
       };
     }catch(e){ body.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-sub">${esc2(e.message)}</div></div>`; }
   };
@@ -2923,13 +2923,13 @@ function timeAgo3(ts){ if(!ts) return ''; const s=Math.floor((Date.now()-ts)/100
 ══════════════════════════════════════════ */
 const GB_META_FIELDS = new Set([
   'Assessment No','Class','Closing Date','Gender','Grade','Official Student Name',
-  'Opening Date','Position','Remarks','Term','UPI'
+  'Opening Date','Position','Remarks','Term','ULI'
 ]);
 function gbIdentity(rec){
   const an = String(rec?.['Assessment No'] || '').trim();
   if(an && !/^-+$/.test(an) && !/^pending/i.test(an)) return 'AN:' + an;
-  const upi = String(rec?.UPI || '').trim();
-  if(upi && !/^-+$/.test(upi)) return 'UPI:' + upi;
+  const uli = String(rec?.ULI || '').trim();
+  if(uli && !/^-+$/.test(uli)) return 'ULI:' + uli;
   return 'NAME:' + String(rec?.['Official Student Name'] || '').trim().toUpperCase();
 }
 VR3['gradebook'] = async function(area){
@@ -3094,8 +3094,8 @@ VR3['insights'] = async function(area){
         });
         if(!count) return;
         const an = String(rec['Assessment No']||'').trim();
-        const upi = String(rec['UPI']||'').trim();
-        const id = 'ID:' + (an || upi || key);
+        const uli = String(rec['ULI']||'').trim();
+        const id = 'ID:' + (an || uli || key);
         const b = scoreById[id] || (scoreById[id] = { sum:0, count:0, name: rec['Official Student Name']||'—', grade: g });
         b.sum += sum/count; b.count++;
       });
@@ -4041,7 +4041,7 @@ VR3['timetable'] = async function(area){
 
     const rows = [];
     const dayTotals = {}; days.forEach(([dk])=>dayTotals[dk]=0);
-    const density = days.map(()=>periods.map(()=>0)); // [dayIdx][periodIdx] = teachers occupied
+    const density = days.map(()=>periods.map(()=>0)); // [dayIdx][periodIdx] = teachers occulied
     const subjectTotals = new Map();
 
     if(snap && snap.exists()){
@@ -4259,7 +4259,7 @@ VR3['timetable'] = async function(area){
       return `<tr><td class="tta-heat-name" style="font-size:10px;">${esc3(p.time)}${p.brk?' <span style="opacity:.6;">(break)</span>':''}</td>${cells}</tr>`;
     }).join('');
     box.innerHTML = `<table class="tta-heat-table"><thead>${head}</thead><tbody>${body}</tbody></table>
-      <div style="font-size:10.5px;color:var(--text3);margin-top:8px;">Cell = teachers occupied out of ${d.teacherCount} tracked. Darker red = closer to every teacher being booked at once.</div>`;
+      <div style="font-size:10.5px;color:var(--text3);margin-top:8px;">Cell = teachers occulied out of ${d.teacherCount} tracked. Darker red = closer to every teacher being booked at once.</div>`;
   }
 
   function ttaTableColumns(){
