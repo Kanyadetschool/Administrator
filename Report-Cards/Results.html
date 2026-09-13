@@ -1172,6 +1172,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                         Dup Scanner
                     </button>
+                    <button class="tab-toolbar-btn" id="tab-missing-marks-btn" title="Scan for students with no marks recorded" style="color:#c2410c;border-color:#fdba74;background:#fff7ed;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h1M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        Missing Marks
+                    </button>
                     <span class="tab-count-badge" id="tab-count-badge">0 students</span>
                 </div>
 
@@ -5835,6 +5839,201 @@ const exportToPdf = async () => {
             document.getElementById('tab-dup-scanner-btn').addEventListener('click', openScanner);
             document.getElementById('dup-scan-refresh').addEventListener('click', () => {
                 document.getElementById('dup-scan-results').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--slate);font-size:.85rem;">Re-scanning…</div>`;
+                setTimeout(runScan, 80);
+            });
+        })();
+
+        // ══════════════════════════════════════════════════════════════════════
+        // FEATURE: Missing Marks Scanner — find registered students (a Grade/Term
+        //          record exists) who have NO subject scores entered at all.
+        //          "No marks" is judged per Grade+Term group, using the same
+        //          getSubjectColumns() helper the export-warning banner uses, so
+        //          a student is only flagged against the subjects their own
+        //          grade/term actually has data for elsewhere.
+        // ══════════════════════════════════════════════════════════════════════
+        (function initMissingMarksScanner() {
+
+            // ── Build modal ───────────────────────────────────────────────────
+            const modal = document.createElement('div');
+            modal.id = 'missing-marks-modal';
+            modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:7000;background:rgba(13,31,53,.65);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;';
+            modal.innerHTML = `
+                <div style="background:var(--surface);border-radius:18px;box-shadow:var(--shadow-lg);max-width:780px;width:100%;border:1px solid var(--border);margin:auto;">
+                    <!-- Header -->
+                    <div style="padding:1.1rem 1.5rem;background:var(--navy);border-radius:18px 18px 0 0;display:flex;align-items:center;justify-content:space-between;">
+                        <div>
+                            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:800;color:#fff;">Missing Marks Scanner</div>
+                            <div style="font-size:.73rem;color:rgba(255,255,255,.45);margin-top:.15rem;">Finds students on the roster with zero subject scores entered for their Grade/Term</div>
+                        </div>
+                        <button id="close-missing-marks" style="width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;">✕</button>
+                    </div>
+
+                    <!-- Summary bar -->
+                    <div id="mm-scan-summary" style="padding:.8rem 1.5rem;border-bottom:1px solid var(--border);display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;min-height:48px;">
+                        <span style="font-size:.8rem;color:var(--slate);">Scanning…</span>
+                    </div>
+
+                    <!-- Grade filter tabs (built dynamically from results) -->
+                    <div style="padding:.6rem 1.5rem;border-bottom:1px solid var(--border);display:flex;gap:.4rem;flex-wrap:wrap;" id="mm-scan-tabs"></div>
+
+                    <!-- Results list -->
+                    <div id="mm-scan-results" style="max-height:55vh;overflow-y:auto;padding:.75rem 1.5rem;"></div>
+
+                    <!-- Footer -->
+                    <div style="padding:.9rem 1.5rem;border-top:1px solid var(--border);background:var(--surface2);border-radius:0 0 18px 18px;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;">
+                        <span id="mm-scan-footer-note" style="font-size:.75rem;color:var(--slate);"></span>
+                        <button id="mm-scan-refresh" style="padding:.5rem 1.1rem;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:.4rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Re-scan
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+
+            function closeModal() { modal.style.display = 'none'; }
+            document.getElementById('close-missing-marks').addEventListener('click', closeModal);
+            modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+            // ── Tab switching ─────────────────────────────────────────────────
+            let _activeGrade = 'all';
+            let _flagged = [];   // [{ student, grade, term, subjectCount }]
+
+            function renderTabs() {
+                const tabsEl = document.getElementById('mm-scan-tabs');
+                const grades = Array.from(new Set(_flagged.map(f => f.grade))).sort();
+                if (grades.length === 0) { tabsEl.innerHTML = ''; return; }
+                const tabBtn = (label, filter, active) => `<button class="mm-tab${active?' active':''}" data-filter="${filter}"
+                    style="padding:.28rem .75rem;border-radius:999px;border:1.5px solid ${active?'var(--navy)':'var(--border2)'};background:${active?'var(--navy)':'var(--surface)'};color:${active?'#fff':'var(--text2)'};font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;">${label}</button>`;
+                tabsEl.innerHTML = tabBtn('All', 'all', _activeGrade === 'all') +
+                    grades.map(g => tabBtn(g, g, _activeGrade === g)).join('');
+            }
+
+            document.getElementById('mm-scan-tabs').addEventListener('click', e => {
+                const btn = e.target.closest('.mm-tab');
+                if (!btn) return;
+                _activeGrade = btn.dataset.filter;
+                renderTabs();
+                renderResults();
+            });
+
+            // ── Scan logic ────────────────────────────────────────────────────
+            function runScan() {
+                const data = window.studentsData || studentsData || [];
+                _flagged = [];
+
+                // Group by Grade+Term — subject columns differ per grade/exam,
+                // so "has this student got any marks" is judged against the
+                // subject set that group actually has data for.
+                const groups = {};
+                data.forEach(s => {
+                    const key = `${String(s['Grade']||'').trim()}||${String(s['Term']||'').trim()}`;
+                    if (!groups[key]) groups[key] = [];
+                    groups[key].push(s);
+                });
+
+                Object.values(groups).forEach(group => {
+                    const subjectCols = getSubjectColumns(group);
+                    group.forEach(s => {
+                        const hasAnyMark = subjectCols.some(subj => {
+                            const v = s[subj];
+                            return v !== undefined && v !== null && v !== '' && v !== '-';
+                        });
+                        if (!hasAnyMark) {
+                            _flagged.push({
+                                student: s,
+                                grade: s['Grade'] || '—',
+                                term: s['Term'] || '—',
+                                subjectCount: subjectCols.length,
+                            });
+                        }
+                    });
+                });
+
+                renderSummary();
+                renderTabs();
+                renderResults();
+            }
+
+            function renderSummary() {
+                const total = _flagged.length;
+                const summaryEl = document.getElementById('mm-scan-summary');
+                const scannedCount = (window.studentsData||studentsData||[]).length;
+                if (total === 0) {
+                    summaryEl.innerHTML = `<div style="display:flex;align-items:center;gap:.5rem;color:#059669;font-weight:700;font-size:.85rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Every student has at least one mark recorded.
+                    </div>`;
+                    document.getElementById('mm-scan-footer-note').textContent = `${scannedCount} records scanned.`;
+                } else {
+                    summaryEl.innerHTML = `<div style="padding:.3rem .85rem;border-radius:8px;background:#fff7ed;color:#c2410c;font-size:.8rem;font-weight:700;">⚠ ${total} student${total!==1?'s':''} with no marks entered</div>`;
+                    document.getElementById('mm-scan-footer-note').textContent = `${scannedCount} records scanned · ${total} flagged`;
+                }
+            }
+
+            function renderResults() {
+                const resultsEl = document.getElementById('mm-scan-results');
+                const filtered = _activeGrade === 'all' ? _flagged : _flagged.filter(f => f.grade === _activeGrade);
+
+                if (filtered.length === 0) {
+                    resultsEl.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--slate);font-size:.85rem;">
+                        ${_flagged.length === 0 ? '✓ No students without marks detected.' : 'No flagged students in this grade.'}
+                    </div>`;
+                    return;
+                }
+
+                const rows = filtered.map(f => {
+                    const r = f.student;
+                    const name  = r['Official Student Name'] || '—';
+                    const assNo = r['Assessment No'] || '—';
+                    const dbKey = r.id || '—';
+                    const noSubjectsAtAll = f.subjectCount === 0;
+                    return `<tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:.45rem .75rem;font-size:.8rem;font-weight:600;color:var(--navy);">${name}</td>
+                        <td style="padding:.45rem .75rem;font-size:.78rem;color:var(--text2);">${f.grade}</td>
+                        <td style="padding:.45rem .75rem;font-size:.78rem;color:var(--text2);">${f.term}</td>
+                        <td style="padding:.45rem .75rem;font-size:.72rem;color:var(--slate);font-family:monospace;">${assNo}</td>
+                        <td style="padding:.45rem .75rem;font-size:.7rem;">
+                            ${noSubjectsAtAll
+                                ? `<span style="color:var(--slate-lt);" title="No student in this Grade/Term has any subject marks yet">whole exam empty</span>`
+                                : `<span style="color:#c2410c;">0 of ${f.subjectCount} subjects</span>`}
+                        </td>
+                        <td style="padding:.45rem .5rem;">
+                            <button onclick="addMissingMarks('${dbKey}')" style="padding:.22rem .6rem;border-radius:6px;border:1.5px solid #fdba74;background:#fff7ed;color:#c2410c;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Add Marks</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                resultsEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:.79rem;font-family:'Plus Jakarta Sans',sans-serif;">
+                    <thead><tr style="background:var(--surface2);">
+                        <th style="padding:.4rem .75rem;font-size:.68rem;font-weight:700;color:var(--slate);text-align:left;">Name</th>
+                        <th style="padding:.4rem .75rem;font-size:.68rem;font-weight:700;color:var(--slate);text-align:left;">Grade</th>
+                        <th style="padding:.4rem .75rem;font-size:.68rem;font-weight:700;color:var(--slate);text-align:left;">Term</th>
+                        <th style="padding:.4rem .75rem;font-size:.68rem;font-weight:700;color:var(--slate);text-align:left;">Assessment No</th>
+                        <th style="padding:.4rem .75rem;font-size:.68rem;font-weight:700;color:var(--slate);text-align:left;">Status</th>
+                        <th style="padding:.4rem .75rem;font-size:.68rem;font-weight:700;color:var(--slate);text-align:left;"></th>
+                    </tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+            }
+
+            // ── Jump straight into the edit drawer to add scores ───────────────
+            window.addMissingMarks = function(id) {
+                closeModal();
+                if (typeof window.editStudent === 'function') window.editStudent(id);
+            };
+
+            // ── Open & trigger scan ───────────────────────────────────────────
+            function openScanner() {
+                modal.style.display = 'flex';
+                document.getElementById('mm-scan-results').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--slate);font-size:.85rem;">Scanning database…</div>`;
+                document.getElementById('mm-scan-summary').innerHTML = `<span style="font-size:.8rem;color:var(--slate);">Scanning…</span>`;
+                document.getElementById('mm-scan-tabs').innerHTML = '';
+                setTimeout(runScan, 80);
+            }
+
+            document.getElementById('tab-missing-marks-btn').addEventListener('click', openScanner);
+            document.getElementById('mm-scan-refresh').addEventListener('click', () => {
+                document.getElementById('mm-scan-results').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--slate);font-size:.85rem;">Re-scanning…</div>`;
                 setTimeout(runScan, 80);
             });
         })();

@@ -10117,7 +10117,15 @@ async function logActivity(text, iconClass, actor, details={}){
     text, iconClass,
     actor : actor||currentAdminName,
     email : currentAdminEmail||'',
-    time  : new Date().toISOString(),
+    // Epoch ms, not ISOString: the RTDB `audit_logs` rule validates
+    // time as newData.isNumber(). Every read site uses new Date(a.time),
+    // which parses an epoch number identically to an ISO string, so
+    // this is safe for existing renderActivityLog/renderAuditView/etc.
+    time  : Date.now(),
+    // `action`/`admin` duplicate text/actor under the exact key names
+    // the RTDB rule's newData.hasChildren([...]) requires.
+    action     : text,
+    admin      : actor||currentAdminName,
     category   : details.category   || _inferCategory(text),
     targetId   : details.targetId   || '',
     targetName : details.targetName || '',

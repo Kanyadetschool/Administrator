@@ -1,0 +1,87 @@
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes checkmark {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      @keyframes hologramGlow {
+        0% { text-shadow: 0 0 5px #ff1cac, 0 0 15px #ff1cac, 0 0 25px #182c59; }
+         Ascending
+        50% { text-shadow: 0 0 15px #ff1cac, 0 0 30px #ff1cac, 0 0 40px #182c59; }
+        100% { text-shadow: 0 0 5px #ff1cac, 0 0 15px #ff1cac, 0 0 25px #182c59; }
+      }
+      @keyframes particleTrail {
+        0% { transform: translateY(0) translateX(0); opacity: 1; }
+        50% { transform: translateY(-40px) translateX(20px); opacity: 0.3; }
+        100% { transform: translateY(0) translateX(0); opacity: 1; }
+      }
+      @keyframes hologramRotate {
+        0% { transform: perspective(600px) rotateY(0deg); }
+        50% { transform: perspective(600px) rotateY(12deg); }
+        100% { transform: perspective(600px) rotateY(0deg); }
+      }
+      @keyframes hapticPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+      }
+      @keyframes voicePulse {
+        0% { box-shadow: 0 0 5px rgba(255, 28, 172, 0.5); }
+        50% { box-shadow: 0 0 15px rgba(255, 28, 172, 0.8); }
+        100% { box-shadow: 0 0 5px rgba(255, 28, 172, 0.5); }
+      }
+
+
+      .filter-controls {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.filter-controls .form-control {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+}
+
+.filter-controls select {
+    background-color: white;
+}
+
+#lostBooksTotalCount {
+    font-size: 14px;
+    color: #6c757d;
+    text-align: center;
+    line-height: 38px; /* Align with form controls */
+}
+
+.table th:first-child {
+    width: 50px;
+    text-align: center;
+}
+
+.table td:first-child {
+    text-align: center;
+    background-color: #f8f9fa;
+}
+
+.large-modal {
+    max-width: 1200px;
+    width: 95%;
+}
+
+.btn-group {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-group .btn {
+    white-space: nowrap;
+}

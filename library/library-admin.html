@@ -301,7 +301,7 @@
 
           <h3 style="margin:22px 0 16px;">2. Borrower details</h3>
           <div class="field-row">
-            <div class="field"><label>Full name</label><input id="issueBorrowerName" placeholder="e.g. Brian Otieno"></div>
+            <div class="field"><label>Full name</label><input id="issueBorrowerName" list="studentBorrowerOptions" placeholder="Search student name…" autocomplete="off"><datalist id="studentBorrowerOptions"></datalist></div>
             <div class="field"><label>Role</label><select id="issueBorrowerRole"><option value="student">Student</option><option value="teacher">Teacher</option></select></div>
           </div>
           <div class="field" id="issueGradeField"><label>Grade / Class</label><input id="issueBorrowerGrade" placeholder="e.g. Grade 6 Green"></div>
@@ -421,6 +421,7 @@ import {
   getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
   query, orderBy, onSnapshot, serverTimestamp, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getDatabase, ref as dbRef, get as dbGet } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 /* ---- Firebase config: mirrors js/config.js (FIREBASE_CONFIG) ---- */
 const FIREBASE_CONFIG = {
@@ -440,6 +441,7 @@ const LIB = {
   REQUESTS: 'libraryReservations',
   SUBJECTS: 'librarySubjects',
 };
+const STUDENTS_PATH = 'artifacts/default-app-id/students';
 
 const CATEGORIES = ['Set Books','CBC Learner Books','Fiction','Non-Fiction','Reference','Kiswahili','Children\u2019s','Biography','Science & Technology'];
 const CATEGORY_ICON = {'Set Books':'📗','CBC Learner Books':'📘','Fiction':'📖','Non-Fiction':'📰','Reference':'📕','Kiswahili':'🌍','Children\u2019s':'🧸','Biography':'👤','Science & Technology':'🔬'};
@@ -468,6 +470,7 @@ const LOAN_DAYS = { student: 14, teacher: 30 };
 const app = initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const rtdb = getDatabase(app);
 
 let currentUser = null;
 let booksCache = [];
@@ -476,6 +479,10 @@ let requestsCache = [];
 let activeCategory = 'all';
 let activeSubject = 'all';
 let selectedIssueBook = null;
+let selectedBorrowerUid = null;
+let selectedRequestId = null;
+let studentsCache = [];
+let selectedStudent = null;
 
 /* ---------------- AUTH ---------------- */
 let signingIn = false;
@@ -634,7 +641,36 @@ function boot(){
 
   setupBookModal();
   setupIssueSearch();
+  loadStudents();
 }
+
+async function loadStudents(){
+  try{
+    const snap = await dbGet(dbRef(rtdb, STUDENTS_PATH));
+    const data = snap.exists() ? snap.val() : {};
+    studentsCache = Object.entries(data)
+      .filter(([, student]) => !student?.deletedAt && !student?.deletedBy)
+      .map(([id, student]) => ({ id, ...student }))
+      .sort((a, b) => String(a['Official Student Name']||'').localeCompare(String(b['Official Student Name']||'')));
+    document.getElementById('studentBorrowerOptions').innerHTML = studentsCache.map(student => {
+      const name = student['Official Student Name'] || student['Assessment No'] || student.id;
+      return `<option value="${esc(name)}">${esc(student.Grade||'')} · ${esc(student['Assessment No']||student.id)}</option>`;
+    }).join('');
+  }catch(error){ console.error('students', error); }
+}
+
+document.getElementById('issueBorrowerName').addEventListener('input', event => {
+  const value = event.target.value.trim().toLowerCase();
+  selectedStudent = studentsCache.find(student =>
+    String(student['Official Student Name']||'').trim().toLowerCase() === value ||
+    String(student['Assessment No']||'').trim().toLowerCase() === value ||
+    String(student.id).toLowerCase() === value
+  ) || null;
+  if(selectedStudent){
+    document.getElementById('issueBorrowerRole').value = 'student';
+    document.getElementById('issueBorrowerGrade').value = selectedStudent.Grade || selectedStudent.Class || '';
+  }
+});
 
 /* ---------------- SUBJECTS (admin-managed) ---------------- */
 async function initSubjects(){
@@ -899,6 +935,8 @@ function setupIssueSearch(){
   results.addEventListener('click', e=>{
     const item = e.target.closest('[data-id]'); if(!item) return;
     selectedIssueBook = booksCache.find(b=>b.id===item.dataset.id);
+    selectedRequestId = null;
+    selectedBorrowerUid = null;
     input.value=''; results.classList.remove('show');
     document.getElementById('issueBookSelected').innerHTML = `<div class="selected-pill">${selectedIssueBook.coverIcon} ${esc(selectedIssueBook.title)} <button type="button" data-clear>×</button></div>`;
   });
@@ -922,12 +960,26 @@ async function issueBook(){
     await addDoc(collection(db, LIB.TX), {
       bookId: selectedIssueBook.id, bookTitle: selectedIssueBook.title,
       borrowerName: name, borrowerRole: role, borrowerGrade: grade,
+      ...(selectedStudent ? {
+        borrowerStudentId: selectedStudent.id,
+        borrowerAssessmentNo: selectedStudent['Assessment No'] || '',
+        borrowerEmail: selectedStudent.Email || ''
+      } : {}),
+      ...(selectedBorrowerUid ? { borrowerUid: selectedBorrowerUid } : {}),
       issueDate: serverTimestamp(), dueDate: new Date(due), returnDate: null,
       status: 'active', issuedBy: currentUser.displayName || currentUser.email,
     });
     await updateDoc(doc(db, LIB.BOOKS, selectedIssueBook.id), { availableCopies: selectedIssueBook.availableCopies - 1 });
+    if(selectedRequestId){
+      await updateDoc(doc(db, LIB.REQUESTS, selectedRequestId), {
+        status: 'fulfilled', fulfilledAt: serverTimestamp(), fulfilledBy: currentUser.uid
+      });
+    }
     toast(`"${selectedIssueBook.title}" issued to ${name}`);
     selectedIssueBook = null;
+    selectedBorrowerUid = null;
+    selectedRequestId = null;
+    selectedStudent = null;
     document.getElementById('issueBookSelected').innerHTML = '';
     document.getElementById('issueBorrowerName').value = '';
     document.getElementById('issueBorrowerGrade').value = '';
@@ -935,18 +987,25 @@ async function issueBook(){
 }
 function renderIssuePending(){
   const el = document.getElementById('issuePendingList');
-  const pending = requestsCache.filter(r=>r.status==='pending');
+  const pending = requestsCache.filter(r=>r.status==='pending' || r.status==='approved');
   el.innerHTML = pending.length ? pending.map(r=>`
     <div class="row-item">
       <div class="row-icon">📩</div>
       <div class="rt"><b>${esc(r.bookTitle)}</b><span>${esc(r.requesterName)} · ${r.requesterRole}</span></div>
-      <button class="btn btn-primary btn-sm" data-prefill="${r.id}">Use</button>
+      <button class="btn btn-primary btn-sm" data-prefill="${r.id}">${r.status==='approved'?'Issue':'Approve & use'}</button>
     </div>`).join('') : emptyRow('No pending requests');
   el.querySelectorAll('[data-prefill]').forEach(btn=>btn.addEventListener('click', ()=>{
     const r = requestsCache.find(x=>x.id===btn.dataset.prefill);
     const book = booksCache.find(b=>b.id===r.bookId);
     if (book && book.availableCopies>0){
       selectedIssueBook = book;
+      selectedBorrowerUid = r.requesterUid || null;
+      selectedRequestId = r.id;
+      selectedStudent = studentsCache.find(student =>
+        student.id === r.borrowerStudentId ||
+        student['Assessment No'] === r.borrowerAssessmentNo ||
+        String(student['Official Student Name']||'').trim().toLowerCase() === String(r.requesterName||'').trim().toLowerCase()
+      ) || null;
       document.getElementById('issueBookSelected').innerHTML = `<div class="selected-pill">${book.coverIcon} ${esc(book.title)} <button type="button" data-clear>×</button></div>`;
     } else {
       toast('No copies currently available for this title', true);
@@ -954,7 +1013,7 @@ function renderIssuePending(){
     document.getElementById('issueBorrowerName').value = r.requesterName;
     document.getElementById('issueBorrowerRole').value = r.requesterRole;
     document.getElementById('issueBorrowerRole').dispatchEvent(new Event('change'));
-    updateDoc(doc(db, LIB.REQUESTS, r.id), { status: 'fulfilled' });
+    updateDoc(doc(db, LIB.REQUESTS, r.id), { status: 'approved', approvedAt: serverTimestamp(), approvedBy: currentUser.uid });
   }));
 }
 
@@ -1043,13 +1102,20 @@ function renderRequests(){
       ` : `<span class="chip chip-${r.status}">${r.status}</span>`}
     </div>`).join('');
   el.querySelectorAll('[data-approve]').forEach(btn=>btn.addEventListener('click', ()=>{
-    updateDoc(doc(db, LIB.REQUESTS, btn.dataset.approve), { status:'approved' });
+    updateDoc(doc(db, LIB.REQUESTS, btn.dataset.approve), { status:'approved', approvedAt: serverTimestamp(), approvedBy: currentUser.uid });
     goto('issue');
     const r = requestsCache.find(x=>x.id===btn.dataset.approve);
     if (r){
       const book = booksCache.find(b=>b.id===r.bookId);
       if (book && book.availableCopies>0){
         selectedIssueBook = book;
+        selectedBorrowerUid = r.requesterUid || null;
+        selectedRequestId = r.id;
+        selectedStudent = studentsCache.find(student =>
+          student.id === r.borrowerStudentId ||
+          student['Assessment No'] === r.borrowerAssessmentNo ||
+          String(student['Official Student Name']||'').trim().toLowerCase() === String(r.requesterName||'').trim().toLowerCase()
+        ) || null;
         document.getElementById('issueBookSelected').innerHTML = `<div class="selected-pill">${book.coverIcon} ${esc(book.title)} <button type="button" data-clear>×</button></div>`;
       }
       document.getElementById('issueBorrowerName').value = r.requesterName;

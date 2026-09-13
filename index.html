@@ -1386,6 +1386,8 @@
               <a class="link-card" href="./updater.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Bulk Updater</div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
               <a class="link-card" href="./cleaner.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Cleaner Updater</div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Admin-Active -Students.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Admin Student Progress </div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
+              <a class="link-card" href="https://kanyadet-school-portal.web.app/Library system/index.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Library</div><div class="lc-desc">Get advanced learning resources instantly  </div></a>
+
 
             </div>
           </div>
@@ -2064,12 +2066,14 @@
           action,
           admin: state.user?.displayName || state.user?.email || 'Admin',
           category,
-          // NOTE: must match the Results Portal's format (ISO string), not a
-          // numeric Date.now() timestamp — audit_logs is a shared node, and
-          // Firebase's orderByChild('time') sorts by value TYPE first
-          // (numbers before strings). Mixing types under the same indexed
-          // field breaks limitToLast() so it silently drops/reorders entries.
-          time: new Date().toISOString()
+          // NOTE: must be a NUMBER (Date.now()), not an ISO string — the
+          // audit_logs RTDB rule validates time via newData.isNumber(),
+          // so a string here gets silently rejected (permission_denied).
+          // Also must match Results Portal's own write, since audit_logs
+          // is a shared node and orderByChild('time')/limitToLast() sorts
+          // by value TYPE first — mixed types under one indexed field
+          // silently drop/reorder entries.
+          time: Date.now()
         };
         if(details.before) entry.before = cleanAuditObj(details.before);
         if(details.after) entry.after = cleanAuditObj(details.after);

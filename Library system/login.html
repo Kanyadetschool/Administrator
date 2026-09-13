@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kanyadet School — Sign In</title>
+  <link rel="icon" type="image/x-icon" href="./images/logo.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./PWA/pwa.css">
+  <script src="./PWA/pwa.js"></script>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    :root {
+      --blue:#2980b9; --blue-dk:#1a5276; --blue-lt:#5dade2; --blue-glow:rgba(41,128,185,.35);
+      --orange:#e67e22; --orange-dk:#d35400; --gold:#f39c12;
+      --green:#27ae60; --green-dk:#1d8a4e; --red:#e74c3c; --red-dk:#c0392b;
+      --purple:#8e44ad; --teal:#16a085;
+      --brand-1:#0f4c81; --brand-2:#3f8fc5; --brand-3:#ffb84d;
+      --radius-xl:24px; --radius-lg:18px; --radius-md:12px; --radius-sm:8px;
+      --transition:all .25s cubic-bezier(.4,0,.2,1);
+    }
+    [data-theme="dark"] {
+      --bg:#090f1a; --bg2:#0c1525; --surface:#111d2e; --surface2:#162438;
+      --surface3:#1c2e44; --border:rgba(41,128,185,.18); --border-strong:rgba(41,128,185,.4);
+      --text:#ddeeff; --text2:#7aaec9; --text3:#4a7a9b;
+      --card-shadow:0 8px 32px rgba(0,0,0,.4);
+      --input-bg:#0f1c30;
+    }
+    [data-theme="light"] {
+      --bg:linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%);
+      --bg2:#f7edd0; --surface:#ffffff; --surface2:#fdfaf2;
+      --surface3:#f8eed6; --border:rgba(211,164,55,.2); --border-strong:rgba(211,164,55,.45);
+      --text:#0c1e33; --text2:#5a5342; --text3:#a89b7a;
+      --card-shadow:0 4px 20px rgba(211,164,55,.14);
+      --input-bg:#fff;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(circle at 10% 10%, rgba(41,128,185,.20), transparent 26%),
+        radial-gradient(circle at 88% 92%, rgba(230,126,34,.20), transparent 24%),
+        linear-gradient(120deg, rgba(255,255,255,.08), transparent 60%);
+    }
+    body::after{
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:linear-gradient(rgba(41,128,185,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(41,128,185,.045) 1px, transparent 1px);
+      background-size:26px 26px;
+      mask-image:radial-gradient(circle at center, black 50%, transparent 92%);
+    }
+    a{color:inherit;text-decoration:none}
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:8px}
+
+    /* Auth — same warm cream/gold background as Teachers portal */
+    #auth-gate{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;overflow-y:auto;background:var(--bg)}
+    #auth-gate::before{
+      content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(ellipse 55% 45% at 90% 88%,rgba(243,156,18,.18) 0%,transparent 65%),
+        radial-gradient(ellipse 45% 40% at 10% 8%,rgba(211,164,55,.08) 0%,transparent 60%);
+      opacity:.6;
+    }
+    [data-theme="dark"] #auth-gate::before{
+      opacity:1;
+      background:radial-gradient(ellipse 60% 50% at 8% 10%,rgba(41,128,185,.12) 0%,transparent 65%),
+        radial-gradient(ellipse 50% 45% at 92% 90%,rgba(22,160,133,.08) 0%,transparent 60%);
+    }
+    .auth-card{position:relative;z-index:1;width:100%;max-width:380px;background:var(--surface);border-radius:28px;padding:2.3rem 2.1rem 2.1rem;box-shadow:0 30px 90px rgba(10,30,60,.28),0 0 0 1px rgba(41,128,185,.07);border:1px solid var(--border);text-align:left;animation:fadeUp .5s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes fadeUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .auth-logo{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));display:grid;place-items:center;font-size:24px;margin:0 auto 1.1rem;box-shadow:0 10px 26px var(--blue-glow)}
+    .auth-card h1{text-align:center;font-size:1.55rem;font-weight:900;letter-spacing:-.01em;color:var(--text);margin-bottom:.25rem}
+    .auth-card .auth-sub{text-align:center;font-size:.83rem;color:var(--text2);font-weight:500;margin-bottom:1.4rem}
+    .auth-err{background:rgba(231,76,60,.12);color:#e25b4b;border:1px solid rgba(231,76,60,.3);padding:9px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+    .auth-notice{background:rgba(41,128,185,.1);color:var(--blue-dk);border:1px solid rgba(41,128,185,.25);padding:9px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+    .auth-field{margin-bottom:.6rem}
+    .auth-field label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+    .auth-field input{width:100%;padding:.8rem .95rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);font-family:inherit;font-size:.85rem;color:var(--text);outline:none;transition:border-color .15s;box-sizing:border-box}
+    .auth-field input:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
+    .auth-btn{width:100%;padding:.95rem 1.5rem;border:none;border-radius:14px;font-family:inherit;font-size:.9rem;font-weight:800;cursor:pointer;transition:var(--transition);margin-top:.3rem;margin-bottom:.6rem;display:flex;align-items:center;justify-content:center;gap:.55rem}
+    .auth-btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
+    .auth-btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(20,40,70,.45)}
+    .auth-btn-google{background:linear-gradient(135deg,var(--blue-dk),#0c1e33);color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
+    .auth-btn-google:hover{transform:translateY(-2px)}
+    .auth-divider{display:flex;align-items:center;gap:.6rem;margin:.9rem 0;font-size:.68rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .auth-links{text-align:center;margin-top:.3rem;font-size:.79rem;color:var(--text2);font-weight:500}
+    .auth-links a{color:var(--blue-lt);font-weight:700}
+    .auth-links a:hover{text-decoration:underline}
+    .boot-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    #pwa-install-btn{display:none;align-items:center;gap:8px;margin:0 auto 1rem;padding:.5rem .9rem;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer}
+    #pwa-install-btn.show{display:flex}
+
+    /* ── DESKTOP SIDE PANEL — irregular wave-divided blue panel ── */
+    .auth-cards-wrap{flex:1;min-width:0;display:flex;align-items:flex-start;justify-content:center;padding:20px;position:relative;}
+    @media(min-height:600px){.auth-cards-wrap{align-items:center;}}
+    .auth-side-panel{display:none;}
+    .auth-divider-wave{display:none;}
+    @media(min-width:901px){
+      #auth-gate{justify-content:flex-start;--auth-panel-w:min(42%,600px);--auth-wave-amp:72px;}
+      .auth-side-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--auth-panel-w);flex-shrink:0;min-height:100vh;position:relative;overflow:hidden;padding:4rem 3rem;color:#fff;}
+      .auth-side-panel::before{content:'';position:absolute;top:0;bottom:0;left:0;right:var(--auth-wave-amp);background:linear-gradient(160deg,var(--blue-dk) 0%,#132a45 55%,#0a1c30 100%);}
+      .auth-side-panel .asp-blob{position:absolute;border-radius:50%;pointer-events:none;}
+      .auth-side-panel .asp-blob-1{width:360px;height:360px;top:-130px;right:-130px;background:rgba(255,255,255,.055);}
+      .auth-side-panel .asp-blob-2{width:280px;height:280px;bottom:-110px;left:-90px;background:rgba(93,173,226,.18);}
+      .auth-side-panel .asp-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.22);}
+      .auth-side-panel .asp-dot-1{width:14px;height:14px;top:16%;right:20%;}
+      .auth-side-panel .asp-dot-2{width:10px;height:10px;bottom:22%;left:14%;background:var(--blue-lt);opacity:.9;}
+      .auth-side-panel .asp-illustration{position:relative;z-index:1;width:100%;max-width:320px;margin:0 auto 2.4rem;}
+      .auth-side-panel .asp-illustration svg{width:100%;height:auto;display:block;}
+      .auth-side-panel .asp-brand{position:relative;z-index:1;text-align:center;}
+      .auth-side-panel .asp-brand-name{font-size:1.5rem;font-weight:900;margin-bottom:.6rem;letter-spacing:-.01em;}
+      .auth-side-panel .asp-brand-tag{font-size:.88rem;color:rgba(255,255,255,.72);font-weight:500;line-height:1.55;max-width:320px;margin:0 auto;min-height:2.7em;transition:opacity .35s ease;}
+      .auth-side-panel .asp-brand-tag.fading{opacity:0;}
+      .auth-side-panel .asp-tip-dots{display:flex;justify-content:center;gap:.4rem;margin-top:1.1rem;position:relative;z-index:1;}
+      .auth-side-panel .asp-tip-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28);transition:background .25s,width .25s;}
+      .auth-side-panel .asp-tip-dot.active{background:var(--blue-lt);width:18px;border-radius:3px;}
+      .auth-divider-wave{display:block;position:absolute;top:0;bottom:0;left:calc(var(--auth-panel-w) - var(--auth-wave-amp));width:calc(var(--auth-wave-amp) * 2);z-index:2;pointer-events:none;}
+      .auth-divider-wave svg{width:100%;height:100%;display:block;}
+      .auth-cards-wrap{flex:1;min-height:100vh;padding:40px 4vw;position:relative;z-index:1;}
+      .auth-card{box-shadow:none;border:none;background:transparent;max-width:400px;}
+    }
+
+    .toast-host{position:fixed;top:16px;right:16px;z-index:4000;display:flex;flex-direction:column;gap:8px}
+    .toast{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;color:var(--text);box-shadow:0 10px 30px rgba(0,0,0,.15);animation:fadeUp .25s ease}
+    .toast.ok{border-left-color:var(--green)}
+    .toast.err{border-left-color:var(--red)}
+  </style>
+</head>
+<body>
+  <!-- AUTH GATE — this page's only job is to authenticate an Advanced Admin
+       and hand off to index.html. No dashboard markup lives here. -->
+  <div id="auth-gate">
+
+    <!-- ── DESKTOP SIDE PANEL — hidden on mobile, fills the left side on wide screens ── -->
+    <div class="auth-side-panel" aria-hidden="true">
+      <div class="asp-blob asp-blob-1"></div>
+      <div class="asp-blob asp-blob-2"></div>
+      <div class="asp-dot asp-dot-1"></div>
+      <div class="asp-dot asp-dot-2"></div>
+      <div class="asp-illustration">
+        <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="160" cy="130" r="112" fill="rgba(255,255,255,.06)"/>
+          <rect x="96" y="30" width="128" height="200" rx="24" fill="rgba(255,255,255,.09)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+          <rect x="118" y="54" width="84" height="10" rx="5" fill="rgba(255,255,255,.35)"/>
+          <g transform="translate(160,136)">
+            <rect x="-34" y="-6" width="68" height="52" rx="12" fill="var(--blue-lt)"/>
+            <path d="M-22 -6 v-16 a22 22 0 0 1 44 0 v16" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="0" cy="18" r="7" fill="#0a1c30"/>
+            <rect x="-3.5" y="18" width="7" height="15" rx="3.5" fill="#0a1c30"/>
+          </g>
+          <rect x="118" y="196" width="84" height="10" rx="5" fill="rgba(255,255,255,.25)"/>
+          <circle cx="66" cy="52" r="18" fill="var(--blue-lt)" opacity=".45"/>
+          <circle cx="258" cy="204" r="14" fill="rgba(255,255,255,.2)"/>
+          <path d="M46 200 q16 -34 44 -10" stroke="var(--blue-lt)" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
+          <path d="M244 50 l14 -14 m0 14 l-14 -14" stroke="rgba(255,255,255,.5)" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="asp-brand">
+        <div class="asp-brand-name">Kanyadet PRI &amp; Junior School</div>
+        <div class="asp-brand-tag" id="asp-tip-text">Deep school-wide administration — audit trails, welfare, announcements and portal management, all in one secure place.</div>
+        <div class="asp-tip-dots" id="asp-tip-dots"></div>
+      </div>
+    </div>
+
+    <!-- ── IRREGULAR WAVE DIVIDER ── -->
+    <div class="auth-divider-wave" aria-hidden="true">
+      <svg viewBox="0 0 144 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="authWaveGrad" x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0%"  stop-color="#1a5276"/>
+            <stop offset="55%" stop-color="#132a45"/>
+            <stop offset="100%" stop-color="#0a1c30"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#authWaveGrad)" d="M88,0 L103.7,16 L101.8,32 L96.3,48 L100.9,64 L114.1,80 L120.3,96 L105.6,112 L73.2,128 L41.4,144 L27.7,160 L33.5,176 L44.2,192 L45.2,208 L37.4,224 L35.5,240 L52.7,256 L85.5,272 L115.6,288 L125.5,304 L114.7,320 L98.4,336 L91.9,352 L95.3,368 L94.4,384 L76.6,400 L45.2,416 L18.6,432 L13.5,448 L30,464 L51.8,480 L63,496 L62.6,512 L64.4,528 L81,544 L109.2,560 L131,576 L130.5,592 L108.4,608 L81.8,624 L67.4,640 L66.6,656 L65.7,672 L52.1,688 L28.6,704 L12.3,720 L18.5,736 L45.4,752 L75.5,768 L91.3,784 L91.5,800 L0,800 L0,0 Z"/>
+      </svg>
+    </div>
+
+    <div class="auth-cards-wrap">
+    <div class="auth-card" id="auth-card">
+      <div class="auth-logo">🏫</div>
+      <!-- ── INSTALL APP (PWA, standalone-only) — shown when browser deems the app installable ── -->
+      <button id="pwa-install-btn" type="button" onclick="installPwaApp()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+        Install App
+      </button>
+      <h1>Kanyadet School</h1>
+      <p class="auth-sub">Library Admin Portal — sign in to continue</p>
+      <div class="auth-notice" id="auth-notice"></div>
+      <div class="auth-err" id="auth-err"></div>
+      <div id="auth-loading" style="display:none">
+        <div class="boot-spinner"></div>
+        <p style="text-align:center;font-size:12px;color:var(--text2);margin-top:8px">Verifying access…</p>
+      </div>
+      <div id="auth-form">
+        <div class="auth-field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" autocomplete="username" />
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" autocomplete="current-password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" id="btn-email-login">Sign In</button>
+        <div class="auth-divider">or</div>
+        <button class="auth-btn auth-btn-google" id="btn-google-login">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-links">
+          <a href="https://kanyadet-school-parents.web.app/">Parents Portal </a>| 
+          <a href="https://kanyadet-school-portal.web.app">Teachers Portal </a>|
+          <a href="https://kanyadet-school-admin.web.app">Admin Portal </a>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="toast-host" id="toastHost"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithCredential, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { GoogleOneTap } from './js/google-one-tap.js';
+    import { SessionManager } from './js/session-manager.js';
+
+    import { FIREBASE_CONFIG } from './js/config.js';
+    import { GOOGLE_CLIENT_ID } from './js/config.js';
+
+    const app = initializeApp(FIREBASE_CONFIG);
+    const auth = getAuth(app);
+    const fst = getFirestore(app);
+
+    function $(id){ return document.getElementById(id); }
+    function toast(msg, type='info'){
+      const host = $('toastHost');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.textContent = msg;
+      host.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    /* ── Theme (matches whatever the dashboard was last set to) ── */
+    const savedTheme = localStorage.getItem('aap_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    /* ── Redirect target — go back to wherever the user was headed, else index.html ── */
+    const params = new URLSearchParams(location.search);
+    const redirectTo = params.get('redirect') || 'index.html';
+
+    /* ── Reason banner — index.html sends people back here with a reason ── */
+    (function showReasonNotice(){
+      const reason = params.get('reason');
+      if(!reason) return;
+      const messages = {
+        'session-expired': 'Your session ended. Please sign in again.',
+        'unauthorized': 'Access denied. Advanced Admin or Librarian privileges are required.',
+        'error': 'Could not verify admin access. Please sign in again.'
+      };
+      const el = $('auth-notice');
+      el.textContent = messages[reason] || 'Please sign in to continue.';
+      el.style.display = 'block';
+    })();
+
+    /* ── Auth UI ── */
+    function showAuthErr(msg){
+      const el = $('auth-err');
+      el.textContent = msg;
+      el.style.display = msg ? 'block' : 'none';
+    }
+    function setAuthLoading(on){
+      $('auth-loading').style.display = on ? 'block' : 'none';
+      $('auth-form').style.display = on ? 'none' : 'block';
+    }
+
+    async function verifyAdvancedAdmin(user){
+      const snap = await getDoc(doc(fst, 'users', user.uid));
+      if(!snap.exists()) return false;
+      const data = snap.data() || {};
+      if(data.disabled === true) throw new Error('Account disabled by an administrator.');
+      // Advancedadmin keeps full access everywhere; Librarian is scoped by
+      // index.html's own gate to just the library pages, but both need to
+      // get past this login screen to have a session at all.
+      return data.Advancedadmin === true || data.Librarian === true;
+    }
+
+    async function handleAuthed(user){
+      setAuthLoading(true);
+      showAuthErr('');
+      try{
+        const ok = await verifyAdvancedAdmin(user);
+        if(!ok){
+          await signOut(auth);
+          setAuthLoading(false);
+          showAuthErr('Access denied. Advanced Admin or Librarian privileges required.');
+          return;
+        }
+        // Verified — start the hard 15-minute session clock, then hand off to the protected app.
+        new SessionManager({
+          onExpire: () => { location.href = 'login.html?reason=session-expired'; }
+        }).start();
+        location.href = redirectTo;
+      }catch(err){
+        console.error(err);
+        await signOut(auth).catch(()=>{});
+        setAuthLoading(false);
+        showAuthErr(err.message || 'Could not verify admin access.');
+      }
+    }
+
+    /* ── Google One Tap — the widget only decodes the Google ID token client-side;
+       it doesn't sign anyone into Firebase by itself. We take that ID token and
+       exchange it for a real Firebase session, same as the "Continue with Google"
+       button does. ── */
+    async function handleOneTapProfile(profile){
+      // profile.raw is the *response object* GIS handed back (see
+      // google-one-tap.js: toProfile(idToken, raw) stores raw=response),
+      // not the token itself — the JWT lives at response.credential.
+      const idToken = profile?.raw?.credential || profile?.credential || profile?.idToken || profile?.id_token;
+      if(!idToken){
+        console.error('One Tap: no ID token found on profile', profile);
+        return;
+      }
+      setAuthLoading(true); showAuthErr('');
+      try{
+        const credential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, credential);
+        // onAuthStateChanged fires from here and calls handleAuthed().
+      }catch(err){
+        setAuthLoading(false);
+        showAuthErr(err.message?.replace('Firebase: ','') || 'One Tap sign-in failed.');
+      }
+    }
+
+    const oneTap = new GoogleOneTap({
+      clientId: GOOGLE_CLIENT_ID,
+      autoSilentPrompt: true,
+      onSuccess: handleOneTapProfile,
+      onUnavailable: () => { /* manual form below still works */ },
+      onSuppressed: (reason) => console.log('One Tap silent prompt suppressed:', reason),
+      onError: (err) => console.error(err),
+    });
+    oneTap.init();
+
+    $('btn-email-login').addEventListener('click', async () => {
+      const email = $('login-email').value.trim();
+      const password = $('login-password').value;
+      if(!email || !password){ showAuthErr('Enter email and password.'); return; }
+      setAuthLoading(true); showAuthErr('');
+      try{
+        await signInWithEmailAndPassword(auth, email, password);
+      }catch(err){
+        setAuthLoading(false);
+        showAuthErr(err.message?.replace('Firebase: ','') || 'Sign-in failed.');
+      }
+    });
+    $('login-password').addEventListener('keydown', e => { if(e.key==='Enter') $('btn-email-login').click(); });
+
+    $('btn-google-login').addEventListener('click', async () => {
+      setAuthLoading(true); showAuthErr('');
+      try{
+        await signInWithPopup(auth, new GoogleAuthProvider());
+      }catch(err){
+        setAuthLoading(false);
+        showAuthErr(err.message?.replace('Firebase: ','') || 'Google sign-in failed.');
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if(user) handleAuthed(user);
+      else setAuthLoading(false);
+    });
+
+    /* ── Rotating side-panel tips (desktop only) ── */
+    const _authTips = [
+      "Deep school-wide administration — audit trails, welfare, announcements and portal management, all in one secure place.",
+      "Review the full audit trail across every portal, in real time.",
+      "Manage announcements and keep every linked portal in sync.",
+      "One authorized admin sign-in for full school oversight.",
+      "Track welfare, results and student data from a single control room.",
+    ];
+    let _authTipIdx = 0;
+    function _renderAuthTipDots(){
+      const dotsEl = document.getElementById('asp-tip-dots');
+      if(!dotsEl) return;
+      dotsEl.innerHTML = _authTips.map((_, i)=>`<span class="asp-tip-dot${i===_authTipIdx?' active':''}"></span>`).join('');
+    }
+    function _rotateAuthTip(){
+      const el = document.getElementById('asp-tip-text');
+      if(!el) return;
+      el.classList.add('fading');
+      setTimeout(()=>{
+        _authTipIdx = (_authTipIdx + 1) % _authTips.length;
+        el.textContent = _authTips[_authTipIdx];
+        _renderAuthTipDots();
+        el.classList.remove('fading');
+      }, 350);
+    }
+    _renderAuthTipDots();
+    setInterval(_rotateAuthTip, 4500);
+
+    /* ── PWA install button ── */
+    window.addEventListener('beforeinstallprompt', () => {
+      $('pwa-install-btn')?.classList.add('show');
+    });
+  </script>
+
+</body>
+</html>

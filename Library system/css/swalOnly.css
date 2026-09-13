@@ -1,0 +1,194 @@
+/*# fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+*{
+  font-family: "Galano Grotesque", Poppins, Montserrat, sans-serif;
+}
+.swal2-success-circular-line-left{
+    background-color:gray;
+  }
+  .swal2-success-ring{
+    background-color:gray;
+  }
+  div:where(.swal2-container) .input-field {
+    height: 2.625em;
+    padding: 1.75em; 
+    outline: none !important;
+    border: 3px solid lavender;
+    border-radius: 20px;
+    width: 100%!important;
+    margin: 0;
+    text-align: center;
+    background-color: #f7f7f7;
+    -webkit-box-shadow: inset 6px 6px 8px rgba(97, 97, 97, 0.075),
+    6px 6px 6px rgba(255, 255, 255, 0.781);
+          box-shadow: inset 6px 6px 8px rgba(97, 97, 97, 0.075),
+    6px 6px 6px rgba(255, 255, 255, 0.781);
+  text-decoration: none;
+   
+}
+.swal2-container img{
+  width: 100%!important;
+  border-radius: 20px;
+  height: 200px !important;
+}
+
+  
+  .swal2-popup.swal2-modal.swal2-show{
+
+      background-color: #ffffff9d;
+      border: 2px solid lavender;
+      box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+  }
+  
+     .swal2-popup{
+    border: 2px solid gray;
+    background-size: cover;
+    backdrop-filter: blur(5px);
+    background-color: transparent;
+    border-radius: 20px;
+    font-family: "Galano Grotesque", Poppins, Montserrat, sans-serif;
+  
+  }
+  
+
+  h2#swal2-title.swal2-title{
+    color: #0a083d;
+   
+  
+   
+  }
+  ::placeholder{
+      color: rgb(4, 3, 31);
+  }
+  .swal2-container.swal2-backdrop-show, .swal2-container.swal2-noanimation {
+    background: rgba(117, 138, 138, 0.4)!important;
+    /* background: rgba(117, 138, 138, 0.4); */
+    backdrop-filter: blur(5px);
+  }
+  .swal2-content {
+    z-index: 1;
+    justify-content: center;
+    margin: 0;
+    padding: 0 1.6em;
+    color: #545454;
+    font-size: 1.125em;
+    font-weight: 400;
+    line-height: normal;
+    text-align: center;
+    word-wrap: break-word;
+}
+  
+  div:where(.swal2-container) div:where(.swal2-popup) {
+    display: none;
+    position: relative;
+    box-sizing: border-box;
+    grid-template-columns: minmax(0, 100%);
+    width: 32em;
+    max-width: 100%;
+    padding: 0 0 1.25em;
+    border: none;
+    border-radius: 5px;
+    background: #c1baba;
+    color: #000000;
+    font-family: inherit;
+    font-size: 1rem;
+    
+  }
+  
+  
+  
+  
+  .swal2-icon.swal2-error [class^=swal2-x-mark-line] {
+    display: block;
+    position: absolute;
+    top: 2.3125em;
+    width: 2.9375em;
+    height: 0.3125em;
+    border-radius: 0.125em;
+    background-color: #e6eeea;
+    
+  
+  }
+  
+  
+    .swal2-icon.swal2-error {
+      border-color: gray;
+      backdrop-filter: blur(5px);
+     
+    }
+    button.swal2-confirm.swal2-styled,.swal2-cancel.swal2-styled {
+      border:1px solid gray ;
+      border-radius: 20px;
+      background: initial;
+      backdrop-filter: blur(50px);
+      color: #fff;
+      background-color: red;
+      border: 2px solid lavender;
+      width: auto !important;;
+      font-size: 1em;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+      outline: none;
+     
+    
+      
+    }
+    div:where(.swal2-container) .swal2-html-container {
+      z-index: 1;
+      justify-content: center;
+      margin: 0;
+      padding: 0 !important;
+      overflow: auto;
+      color: inherit;
+      font-size: 1.125em;
+      font-weight: normal;
+      line-height: normal;
+      text-align: center;
+      word-wrap: break-word;
+      word-break: break-word;
+  }
+    
+    div:where(.swal2-container) button:where(.swal2-close) {
+    /* z-index:2; */
+    /* align-items:center; */
+    /* justify-content:center; */
+    /* width:1.2em; */
+    /* height:1.2em; */
+    /* margin-top:0; */
+    /* margin-right:0; */
+    /* margin-bottom:-1.2em; */
+    /* padding:0; */
+    /* overflow:hidden; */
+    /* transition:color .1s,box-shadow .1s; */
+    /* border:none; */
+    /* border-radius:5px; */
+    /* background:rgba(0,0,0,0); */
+    color: #fff;
+    font-family: monospace;
+    /* font-size:2.5em; */
+    /* cursor:pointer; */
+    /* justify-self:end; */
+}
+  
+    @media (max-width: 850px){
+      .swal2-content {
+        z-index: 1;
+        justify-content: center;
+        margin: 0;
+        padding: 0px !important;
+        color: #545454;
+        font-size: 1.125em;
+        font-weight: 400;
+        line-height: normal;
+        text-align: center;
+        word-wrap: break-word;
+    }
+    .swal2-popup.swal2-modal.swal2-show{
+
+      background-color: #ffffff9d;
+      border: 1px solid lavender !important;
+      box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+  }
+    }
+    

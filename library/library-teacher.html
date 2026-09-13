@@ -325,6 +325,7 @@ import {
   getFirestore, collection, doc, getDoc, addDoc, updateDoc, query, orderBy, onSnapshot,
   serverTimestamp, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getDatabase, ref as dbRef, get as dbGet } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 /* Firebase config: mirrors js/config.js (FIREBASE_CONFIG) */
 const FIREBASE_CONFIG = {
@@ -337,6 +338,7 @@ const FIREBASE_CONFIG = {
   appId: '1:409708360032:web:a21d63e8cb5fa1ecabee05',
 };
 const LIB = { BOOKS: 'libraryBooks', TX: 'libraryTransactions', REQUESTS: 'libraryReservations', SUBJECTS: 'librarySubjects' };
+const STUDENTS_PATH = 'artifacts/default-app-id/students';
 const CATEGORIES = ['Set Books','CBC Learner Books','Fiction','Non-Fiction','Reference','Kiswahili','Children\u2019s','Biography','Science & Technology'];
 const CATEGORY_ICON = {'Set Books':'📗','CBC Learner Books':'📘','Fiction':'📖','Non-Fiction':'📰','Reference':'📕','Kiswahili':'🌍','Children\u2019s':'🧸','Biography':'👤','Science & Technology':'🔬'};
 let subjectsCache = []; // [{id, name, icon}] — live from Firestore, managed in the admin portal
@@ -347,6 +349,7 @@ const MAX_BOOKS = 5; // teachers get a higher concurrent-loan limit than student
 const app = initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const rtdb = getDatabase(app);
 
 let currentUser = null;
 let booksCache = [];
@@ -354,6 +357,8 @@ let myTx = [];
 let myRequests = [];
 let activeCategory = 'all';
 let activeSubject = 'all';
+let txBySource = { uid: [], name: [] };
+let studentProfile = null;
 
 let signingIn = false;
 document.getElementById('googleSignInBtn').addEventListener('click', async () => {
@@ -413,8 +418,23 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById('profileEmail').textContent = user.email;
   const hr = new Date().getHours();
   document.getElementById('greetTime').textContent = hr<12 ? 'Good morning,' : hr<17 ? 'Good afternoon,' : 'Good evening,';
+  studentProfile = await resolveStudentProfile(user);
   boot();
 });
+
+async function resolveStudentProfile(user){
+  try{
+    const snap = await dbGet(dbRef(rtdb, STUDENTS_PATH));
+    if(!snap.exists()) return null;
+    const email = String(user.email||'').trim().toLowerCase();
+    const displayName = String(user.displayName||'').trim().toLowerCase();
+    return Object.entries(snap.val())
+      .map(([id, student]) => ({ id, ...student }))
+      .find(student => !student.deletedAt && !student.deletedBy &&
+        (String(student.Email||'').trim().toLowerCase() === email ||
+         String(student['Official Student Name']||'').trim().toLowerCase() === displayName)) || null;
+  }catch(error){ console.error('student profile', error); return null; }
+}
 
 /* NAV */
 document.addEventListener('click', (e) => {
@@ -468,9 +488,26 @@ function boot(){
     booksCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderBrowse();
   });
-  onSnapshot(query(collection(db, LIB.TX), where('borrowerName','==', currentUser.displayName||'')), snap=>{
-    myTx = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  const mergeMyTransactions = () => {
+    const merged = new Map();
+    [...txBySource.uid, ...txBySource.name].forEach(tx => merged.set(tx.id, tx));
+    myTx = [...merged.values()];
     renderHome(); renderMyBooks();
+  };
+  onSnapshot(query(collection(db, LIB.TX), where('borrowerUid','==', currentUser.uid)), snap=>{
+      if(studentProfile?.id){
+        onSnapshot(query(collection(db, LIB.TX), where('borrowerStudentId','==', studentProfile.id)), snap=>{
+          txBySource.uid = [...txBySource.uid, ...snap.docs.map(d=>({id:d.id, ...d.data()}))];
+          const merged = new Map(); [...txBySource.uid, ...txBySource.name].forEach(tx=>merged.set(tx.id,tx));
+          myTx = [...merged.values()]; renderHome(); renderMyBooks();
+        });
+      }
+    txBySource.uid = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    mergeMyTransactions();
+  });
+  onSnapshot(query(collection(db, LIB.TX), where('borrowerName','==', currentUser.displayName||'')), snap=>{
+    txBySource.name = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    mergeMyTransactions();
   });
   onSnapshot(query(collection(db, LIB.REQUESTS), where('requesterUid','==', currentUser.uid)), snap=>{
     myRequests = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(b.requestedAt?.toDate?.()||0) - (a.requestedAt?.toDate?.()||0));
@@ -559,6 +596,11 @@ async function requestBook(bookId){
     await addDoc(collection(db, LIB.REQUESTS), {
       bookId: b.id, bookTitle: b.title,
       requesterUid: currentUser.uid, requesterName: currentUser.displayName || currentUser.email,
+      ...(studentProfile ? {
+        borrowerStudentId: studentProfile.id,
+        borrowerAssessmentNo: studentProfile['Assessment No'] || '',
+        borrowerEmail: studentProfile.Email || currentUser.email || ''
+      } : {}),
       requesterRole: ROLE, requestedAt: serverTimestamp(), status: 'pending',
     });
     toast(`Requested "${b.title}" — the librarian will issue it to you`);

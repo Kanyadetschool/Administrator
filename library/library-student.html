@@ -43,6 +43,15 @@
   .btn-google{display:inline-flex; align-items:center; gap:10px; background:#fff; border:1px solid #e4e9e8; padding:13px 22px; border-radius:14px; font-weight:700; font-size:14.5px; cursor:pointer; box-shadow:var(--shadow-sm); transition:.2s; width:100%; justify-content:center;}
   .btn-google:hover{transform:translateY(-2px);}
   #loginError{color:var(--danger); font-size:13px; margin-top:14px; min-height:16px;}
+  .assessment-login{margin-top:18px; text-align:left;}
+  .assessment-divider{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--faint);font-size:12px;font-weight:800;text-transform:uppercase;}
+  .assessment-divider:before,.assessment-divider:after{content:'';height:1px;flex:1;background:rgba(15,76,74,.12);}
+  .assessment-login label{display:block;color:var(--teal-800);font-size:12px;font-weight:800;margin-bottom:6px;}
+  .assessment-input{width:100%;padding:12px 13px;border:1px solid rgba(15,76,74,.18);border-radius:12px;background:#fff;color:var(--ink);font:inherit;outline:none;}
+  .assessment-input:focus{border-color:var(--teal-500);box-shadow:0 0 0 3px rgba(45,212,191,.16);}
+  .btn-assessment{width:100%;margin-top:9px;padding:11px;border:0;border-radius:12px;background:var(--teal-100);color:var(--teal-800);font:inherit;font-weight:800;cursor:pointer;}
+  .btn-assessment:hover{background:var(--teal-300);}
+  .assessment-login small{display:block;color:var(--muted);font-size:11px;margin-top:7px;line-height:1.4;}
 
   /* App shell — phone-card aesthetic like the reference */
   #app{display:none; width:min(430px,100%); flex-direction:column;}
@@ -159,7 +168,7 @@
   .sidebar .brand-text b{display:block; font-family:'Fraunces',serif; font-size:16px; line-height:1.15;}
   .sidebar .brand-text span{font-size:11px; color:var(--muted); font-weight:600;}
   .sidebar nav.navlist{display:flex; flex-direction:column; gap:4px; flex:1;}
-  .sidebar .sb-item{display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:14px; color:var(--teal-800); font-weight:700; font-size:14px; cursor:pointer; transition:.15s;}
+  .sidebar .sb-item{flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:14px; color:var(--teal-800); font-weight:700; font-size:14px; cursor:pointer; transition:.15s;}
   .sidebar .sb-item svg{width:18px;height:18px; opacity:.85; flex-shrink:0;}
   .sidebar .sb-item:hover{background:rgba(45,212,191,.14);}
   .sidebar .sb-item.active{background:linear-gradient(135deg,var(--teal-600),var(--teal-500)); color:#fff; box-shadow:0 10px 22px -10px rgba(15,143,134,.6);}
@@ -198,6 +207,19 @@
       <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.16.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
       Sign in with Google
     </button>
+    <div class="assessment-login" id="assessmentLogin" style="display:none;">
+      <div class="assessment-divider"><span>or</span></div>
+      <label for="studentEmailInput">Student email</label>
+      <input id="studentEmailInput" class="assessment-input" type="email" placeholder="student@example.com" autocomplete="email">
+      <label for="assessmentGradeInput">Select grade</label>
+      <select id="assessmentGradeInput" class="assessment-input">
+        <option value="">Loading grades…</option>
+      </select>
+      <label for="assessmentNoInput" style="margin-top:10px;">Student assessment number</label>
+      <input id="assessmentNoInput" class="assessment-input" placeholder="e.g. 100003" autocomplete="off">
+      <button class="btn-assessment" id="assessmentSignInBtn" type="button">Continue as student</button>
+      <small>Sign in with Google first. Your Google email, grade, and assessment number must match the school record.</small>
+    </div>
     <div id="loginError"></div>
   </div>
 </div>
@@ -323,6 +345,7 @@ import {
   getFirestore, collection, doc, addDoc, updateDoc, query, orderBy, onSnapshot,
   serverTimestamp, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getDatabase, ref as dbRef, get as dbGet } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 /* Firebase config: mirrors js/config.js (FIREBASE_CONFIG) */
 const FIREBASE_CONFIG = {
@@ -335,6 +358,7 @@ const FIREBASE_CONFIG = {
   appId: '1:409708360032:web:a21d63e8cb5fa1ecabee05',
 };
 const LIB = { BOOKS: 'libraryBooks', TX: 'libraryTransactions', REQUESTS: 'libraryReservations', SUBJECTS: 'librarySubjects' };
+const STUDENTS_PATH = 'artifacts/default-app-id/students';
 const CATEGORIES = ['Set Books','CBC Learner Books','Fiction','Non-Fiction','Reference','Kiswahili','Children\u2019s','Biography','Science & Technology'];
 const CATEGORY_ICON = {'Set Books':'📗','CBC Learner Books':'📘','Fiction':'📖','Non-Fiction':'📰','Reference':'📕','Kiswahili':'🌍','Children\u2019s':'🧸','Biography':'👤','Science & Technology':'🔬'};
 let subjectsCache = []; // [{id, name, icon}] — live from Firestore, managed in the admin portal
@@ -345,6 +369,7 @@ const MAX_BOOKS = 2;
 const app = initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const rtdb = getDatabase(app);
 
 let currentUser = null;
 let booksCache = [];
@@ -352,6 +377,31 @@ let myTx = [];
 let myRequests = [];
 let activeCategory = 'all';
 let activeSubject = 'all';
+let txBySource = { uid: [], name: [] };
+let studentProfile = null;
+let activeStudents = [];
+
+function normalizeGrade(value){
+  return String(value||'').trim().toLowerCase().replace(/\s+/g,' ');
+}
+
+async function loadAssessmentGrades(){
+  try{
+    const snap = await dbGet(dbRef(rtdb, STUDENTS_PATH));
+    const data = snap.exists() ? snap.val() : {};
+    activeStudents = Object.entries(data)
+      .filter(([, student]) => !student.deletedAt && !student.deletedBy)
+      .map(([id, student]) => ({ id, ...student }));
+    const grades = [...new Set(activeStudents.map(student => student.Grade).filter(Boolean))]
+      .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+    document.getElementById('assessmentGradeInput').innerHTML =
+      '<option value="">Select your grade</option>' +
+      grades.map(grade => `<option value="${esc(grade)}">${esc(grade)}</option>`).join('');
+  }catch(error){
+    document.getElementById('assessmentGradeInput').innerHTML = '<option value="">Grades unavailable</option>';
+    console.error('assessment grades', error);
+  }
+}
 
 let signingIn = false;
 document.getElementById('googleSignInBtn').addEventListener('click', async () => {
@@ -368,16 +418,66 @@ document.getElementById('googleSignInBtn').addEventListener('click', async () =>
 });
 document.getElementById('signOutBtn').addEventListener('click', () => signOut(auth));
 document.getElementById('sbSignOutBtn').addEventListener('click', () => signOut(auth));
+document.getElementById('assessmentSignInBtn').addEventListener('click', async () => {
+  const email = document.getElementById('studentEmailInput').value.trim().toLowerCase();
+  const input = document.getElementById('assessmentNoInput');
+  const grade = document.getElementById('assessmentGradeInput').value.trim();
+  const value = input.value.trim().toLowerCase();
+  const error = document.getElementById('loginError');
+  error.textContent = '';
+  if(!auth.currentUser){ error.textContent = 'Sign in with Google first.'; return; }
+  if(String(auth.currentUser.email||'').trim().toLowerCase() !== email){
+    error.textContent = 'Use the same email address as your Google account.';
+    return;
+  }
+  if(!email){ error.textContent = 'Enter your student email first.'; return; }
+  if(!grade){ error.textContent = 'Select your grade first.'; return; }
+  if(!value){ error.textContent = 'Enter your assessment number.'; return; }
+  try{
+    if(!activeStudents.length) await loadAssessmentGrades();
+    const match = activeStudents.find(student =>
+      String(student.Email||'').trim().toLowerCase() === email &&
+      normalizeGrade(student.Grade) === normalizeGrade(grade) &&
+      (String(student['Assessment No']||'').trim().toLowerCase() === value ||
+       String(student.id||'').trim().toLowerCase() === value)
+    );
+    if(!match){ error.textContent = 'That assessment number does not belong to the selected grade.'; return; }
+    localStorage.setItem('library_student_record_id', match.id);
+    studentProfile = match;
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    enterLibraryProfile(auth.currentUser, match);
+    boot();
+  }catch(err){
+    if(err.code === 'auth/admin-restricted-operation'){
+      error.textContent = 'Assessment sign-in is not enabled yet. An administrator must enable Anonymous sign-in in Firebase Authentication.';
+    }else{
+      error.textContent = 'Could not sign in with that assessment number. Please try again.';
+    }
+    console.error('assessment sign-in', err);
+  }
+});
 
-onAuthStateChanged(auth, (user) => {
+loadAssessmentGrades();
+
+onAuthStateChanged(auth, async (user) => {
   if (!user){
     document.getElementById('loginGate').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
+    document.getElementById('assessmentLogin').style.display = 'none';
     return;
   }
   currentUser = user;
-  document.getElementById('loginGate').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
+  document.getElementById('loginGate').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('studentEmailInput').value = user.email || '';
+  document.getElementById('studentEmailInput').readOnly = true;
+  document.getElementById('assessmentLogin').style.display = 'block';
+  document.getElementById('loginError').textContent = 'Google sign-in complete. Select your grade and enter your assessment number.';
+  await loadAssessmentGrades();
+});
+
+function enterLibraryProfile(user, profile){
   const first = (user.displayName||'Reader').split(' ')[0];
   document.getElementById('greetName').textContent = first;
   document.getElementById('userAvatar').textContent = first.charAt(0).toUpperCase();
@@ -389,8 +489,32 @@ onAuthStateChanged(auth, (user) => {
   document.getElementById('profileEmail').textContent = user.email;
   const hr = new Date().getHours();
   document.getElementById('greetTime').textContent = hr<12 ? 'Good morning,' : hr<17 ? 'Good afternoon,' : 'Good evening,';
-  boot();
-});
+  const libraryName = profile?.['Official Student Name'] || user.displayName || 'Reader';
+  document.getElementById('greetName').textContent = libraryName.split(' ')[0];
+  document.getElementById('sbName').textContent = libraryName;
+  document.getElementById('profileName').textContent = libraryName;
+  document.getElementById('userAvatar').textContent = libraryName.charAt(0).toUpperCase();
+  document.getElementById('sbAvatar').textContent = libraryName.charAt(0).toUpperCase();
+  document.getElementById('profileAvatar').textContent = libraryName.charAt(0).toUpperCase();
+}
+
+async function resolveStudentProfile(user){
+  try{
+    const snap = await dbGet(dbRef(rtdb, STUDENTS_PATH));
+    if(!snap.exists()) return null;
+    const email = String(user.email||'').trim().toLowerCase();
+    const displayName = String(user.displayName||'').trim().toLowerCase();
+    const savedId = user.isAnonymous ? localStorage.getItem('library_student_record_id') : '';
+    return Object.entries(snap.val())
+      .map(([id, student]) => ({ id, ...student }))
+      .find(student =>
+        !student.deletedAt && !student.deletedBy &&
+        (student.id === savedId ||
+         String(student.Email||'').trim().toLowerCase() === email ||
+         String(student['Official Student Name']||'').trim().toLowerCase() === displayName)
+      ) || null;
+  }catch(error){ console.error('student profile', error); return null; }
+}
 
 /* NAV */
 document.addEventListener('click', (e) => {
@@ -444,9 +568,27 @@ function boot(){
     booksCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderBrowse();
   });
-  onSnapshot(query(collection(db, LIB.TX), where('borrowerName','==', currentUser.displayName||'')), snap=>{
-    myTx = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  const mergeMyTransactions = () => {
+    const merged = new Map();
+    [...txBySource.uid, ...txBySource.name].forEach(tx => merged.set(tx.id, tx));
+    myTx = [...merged.values()];
     renderHome(); renderMyBooks();
+  };
+  onSnapshot(query(collection(db, LIB.TX), where('borrowerUid','==', currentUser.uid)), snap=>{
+    txBySource.uid = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    mergeMyTransactions();
+  });
+  if(studentProfile?.id){
+    onSnapshot(query(collection(db, LIB.TX), where('borrowerStudentId','==', studentProfile.id)), snap=>{
+      txBySource.uid = [...txBySource.uid, ...snap.docs.map(d=>({id:d.id, ...d.data()}))];
+      const merged = new Map(); [...txBySource.uid, ...txBySource.name].forEach(tx=>merged.set(tx.id,tx));
+      myTx = [...merged.values()]; renderHome(); renderMyBooks();
+    });
+  }
+  const borrowerName = studentProfile?.['Official Student Name'] || currentUser.displayName || '';
+  onSnapshot(query(collection(db, LIB.TX), where('borrowerName','==', borrowerName)), snap=>{
+    txBySource.name = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    mergeMyTransactions();
   });
   onSnapshot(query(collection(db, LIB.REQUESTS), where('requesterUid','==', currentUser.uid)), snap=>{
     myRequests = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(b.requestedAt?.toDate?.()||0) - (a.requestedAt?.toDate?.()||0));
@@ -532,9 +674,15 @@ async function requestBook(bookId){
   const b = booksCache.find(x=>x.id===bookId);
   if (!b) return;
   try{
+    const borrowerName = studentProfile?.['Official Student Name'] || currentUser.displayName || currentUser.email || 'Student';
     await addDoc(collection(db, LIB.REQUESTS), {
       bookId: b.id, bookTitle: b.title,
-      requesterUid: currentUser.uid, requesterName: currentUser.displayName || currentUser.email,
+      requesterUid: currentUser.uid, requesterName: borrowerName,
+      ...(studentProfile ? {
+        borrowerStudentId: studentProfile.id,
+        borrowerAssessmentNo: studentProfile['Assessment No'] || '',
+        borrowerEmail: studentProfile.Email || currentUser.email || ''
+      } : {}),
       requesterRole: ROLE, requestedAt: serverTimestamp(), status: 'pending',
     });
     toast(`Requested "${b.title}" — the librarian will issue it to you`);
