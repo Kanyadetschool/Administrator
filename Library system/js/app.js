@@ -367,11 +367,11 @@ class DashboardManager {
 
                     switch (card.querySelector('h3').textContent.trim()) {
                         case 'Pending Returns':
-                            document.getElementById('statusFilter').value = 'overdue';
+                            document.getElementById('issuanceStatusFilter').value = 'overdue';
                             issuanceManager.applyFilters();
                             break;
                         case 'Books Issued':
-                            document.getElementById('statusFilter').value = 'active';
+                            document.getElementById('issuanceStatusFilter').value = 'active';
                             issuanceManager.applyFilters();
                             break;
                     }
@@ -1300,6 +1300,11 @@ class IssuanceManager {
         }
         this.setupListeners();
         this.loadIssuances();
+
+        // Re-apply filters whenever the student or book caches change, so
+        // filtering never has to wait on a fresh network round-trip per card.
+        StudentsCache.onChange(() => this.applyFilters());
+        db.ref('books').on('value', () => this.applyFilters());
     }
 
     setupListeners() {
@@ -1330,7 +1335,23 @@ class IssuanceManager {
         }
     }
 
-    async applyFilters() {
+    applyFilters() {
+        // NOTE: this used to look up the student/book for every issuance with
+        // an `await db.ref(...).once('value')` inside this loop. Because
+        // applyFilters() can be re-triggered (dropdown change, a return/loss
+        // action, or the realtime `issuance` listener firing again) before an
+        // earlier, still-in-flight run had finished awaiting all its network
+        // calls, two overlapping runs could interleave: the newer (correctly
+        // filtered) run would render first, and the older run — still
+        // working through its awaits with a stale/empty filter value — would
+        // land its unfiltered cards on top afterwards. That's what caused
+        // "Overdue" (or any filter) to appear to do nothing.
+        //
+        // Fixed by reading student/book data from the in-memory caches that
+        // already exist elsewhere in the app (StudentsCache, bookManager's
+        // allBooks map) instead of hitting the database per card. That makes
+        // this whole function synchronous, so there is no window in which a
+        // second call can start before the first one finishes.
         const status = this.statusFilter.value;
         const grade = this.classFilter ? this.classFilter.value : '';
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -1341,49 +1362,42 @@ class IssuanceManager {
         for (const [issuanceId, issuance] of this.allIssuances) {
             let showIssuance = true;
 
-            try {
-                const studentSnapshot = await db.ref(`students/${issuance.studentId}`).once('value');
-                const bookSnapshot = await db.ref(`books/${issuance.bookId}`).once('value');
-                const student = studentSnapshot.val();
-                const book = bookSnapshot.val();
+            const student = StudentsCache.get(issuance.studentId);
+            const book = window.bookManager ? window.bookManager.allBooks.get(issuance.bookId) : undefined;
 
-                if (status) {
-                    const returnDate = new Date(issuance.returnDate);
-                    const isOverdue = returnDate < currentDate && issuance.status === 'active';
+            if (status) {
+                const returnDate = new Date(issuance.returnDate);
+                const isOverdue = returnDate < currentDate && issuance.status === 'active';
 
-                    switch (status) {
-                        case 'active':
-                            showIssuance = issuance.status === 'active' && !isOverdue;
-                            break;
-                        case 'returned':
-                            showIssuance = issuance.status === 'returned';
-                            break;
-                        case 'overdue':
-                            showIssuance = isOverdue;
-                            break;
-                        case 'lost':
-                            showIssuance = issuance.status === 'lost';
-                            break;
-                    }
+                switch (status) {
+                    case 'active':
+                        showIssuance = issuance.status === 'active' && !isOverdue;
+                        break;
+                    case 'returned':
+                        showIssuance = issuance.status === 'returned';
+                        break;
+                    case 'overdue':
+                        showIssuance = isOverdue;
+                        break;
+                    case 'lost':
+                        showIssuance = issuance.status === 'lost';
+                        break;
                 }
+            }
 
-                if (grade && showIssuance) {
-                    showIssuance = student?.grade === grade;
+            if (grade && showIssuance) {
+                showIssuance = student?.grade === grade;
+            }
+
+            if (searchTerm && showIssuance) {
+                const searchableText = `${student?.name || ''} ${student?.assessmentNo || ''} ${book?.title || ''}`.toLowerCase();
+                if (!searchableText.includes(searchTerm)) {
+                    showIssuance = false;
                 }
+            }
 
-                if (searchTerm && showIssuance) {
-                    const searchableText = `${student?.name || ''} ${student?.assessmentNo || ''} ${book?.title || ''}`.toLowerCase();
-                    if (!searchableText.includes(searchTerm)) {
-                        showIssuance = false;
-                    }
-                }
-
-                if (showIssuance) {
-                    await this.renderIssuanceCard(issuance, issuanceId);
-                }
-
-            } catch (error) {
-                console.error('Error filtering issuance:', error);
+            if (showIssuance) {
+                this.renderIssuanceCard(issuance, issuanceId, student, book);
             }
         }
     }
@@ -1562,13 +1576,8 @@ class IssuanceManager {
         });
     }
 
-    async renderIssuanceCard(issuance, issuanceId) {
+    renderIssuanceCard(issuance, issuanceId, student, book) {
         try {
-            const studentSnapshot = await db.ref(`students/${issuance.studentId}`).once('value');
-            const bookSnapshot = await db.ref(`books/${issuance.bookId}`).once('value');
-            const student = studentSnapshot.val();
-            const book = bookSnapshot.val();
-
             if (!student || !book) return;
 
             const currentDate = new Date();
