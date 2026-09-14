@@ -266,7 +266,11 @@ class MessageManager {
         if (confirm('Are you sure you want to permanently delete this message?')) {
             try {
                 await firebase.database().ref(`messages/${messageId}`).remove();
-                document.querySelector(`[data-message-id="${messageId}"]`).remove();
+                // The 'value' listener's loadMessages() re-render (or the
+                // child_removed listener) may already have removed this
+                // element by the time we get here — don't assume it's there.
+                const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                if (messageElement) messageElement.remove();
                 alert('Message deleted successfully');
             } catch (error) {
                 console.error('Error deleting message:', error);
@@ -566,12 +570,17 @@ class MessageManager {
                 studentsWithActiveIssuance.set(issuance.studentId, issuance);
             });
 
-            const studentsSnapshot = await this.db.ref('students')
-                .orderByChild('grade')
+            const studentsSnapshot = await this.db.ref(typeof STUDENTS_PATH !== 'undefined' ? STUDENTS_PATH : 'students')
                 .once('value');
 
             studentsSnapshot.forEach(child => {
-                const student = { id: child.key, ...child.val() };
+                const raw = { id: child.key, ...child.val() };
+                // Raw records use "Official Student Name"/"Grade" rather
+                // than name/grade — normalize before grouping, same as
+                // app.js's normalizeStudent(). orderByChild('grade') above
+                // was dropped since it can't match a field that doesn't
+                // exist on the raw record.
+                const student = (typeof normalizeStudent === 'function') ? normalizeStudent(raw) : raw;
                 if (studentsWithActiveIssuance.has(student.id)) {
                     if (!gradeGroups.has(student.grade)) {
                         gradeGroups.set(student.grade, []);
@@ -839,20 +848,20 @@ class MessageManager {
                 studentResults.innerHTML = '';
 
                 if (gradeSelect.value) {
-                    const studentsSnapshot = await this.db.ref('students')
-                        .orderByChild('grade')
-                        .equalTo(gradeSelect.value)
+                    const studentsSnapshot = await this.db.ref(typeof STUDENTS_PATH !== 'undefined' ? STUDENTS_PATH : 'students')
                         .once('value');
 
                     const students = [];
                     studentsSnapshot.forEach(child => {
-                        students.push({
-                            id: child.key,
-                            ...child.val()
-                        });
+                        const raw = { id: child.key, ...child.val() };
+                        // Same normalization as showBroadcastDialog() above —
+                        // raw records don't have name/grade, so equalTo('grade')
+                        // couldn't match; filter on the normalized field instead.
+                        const student = (typeof normalizeStudent === 'function') ? normalizeStudent(raw) : raw;
+                        if (student.grade === gradeSelect.value) students.push(student);
                     });
 
-                    students.sort((a, b) => a.name.localeCompare(b.name));
+                    students.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
                     gradeStudents = students;
                     studentSearch.disabled = false;

@@ -24,7 +24,7 @@ class StudentPortal {
         this.dashboardContent.classList.add('d-none');
 
         this.currentView = 'dashboard';
-        this.views = ['dashboard', 'activeBooks', 'messages', 'history', 'browse'];
+        this.views = ['dashboard', 'activeBooks', 'messages', 'history'];
         
         this.setupEventListeners();
         this.setupSearchListener();
@@ -48,15 +48,17 @@ class StudentPortal {
         const container = document.querySelector('#activeBooksView .row');
         if (!container) return;
 
-        const bookCards = container.querySelectorAll('.book-result');
+        const bookCards = container.querySelectorAll('.col-md-6');
         const normalizedSearch = searchTerm.toLowerCase().trim();
 
         bookCards.forEach(card => {
             const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
-            const rest = card.textContent.toLowerCase();
-
-            const isMatch = title.includes(normalizedSearch) ||
-                           rest.includes(normalizedSearch);
+            const author = card.querySelector('.card-body p')?.textContent.toLowerCase() || '';
+            const isbn = card.querySelector('.card-body')?.textContent.toLowerCase() || '';
+            
+            const isMatch = title.includes(normalizedSearch) || 
+                           author.includes(normalizedSearch) || 
+                           isbn.includes(normalizedSearch);
 
             card.style.display = isMatch ? 'block' : 'none';
         });
@@ -66,7 +68,7 @@ class StudentPortal {
             existingNoResults.remove();
         }
 
-        const visibleCards = container.querySelectorAll('.book-result[style*="block"], .book-result:not([style*="none"])');
+        const visibleCards = container.querySelectorAll('.col-md-6[style*="block"], .col-md-6:not([style*="none"])');
         if (visibleCards.length === 0 && normalizedSearch) {
             const noResultsDiv = document.createElement('div');
             noResultsDiv.className = 'col-12 text-center text-muted no-results-message';
@@ -165,17 +167,12 @@ class StudentPortal {
         this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
         this.logoutBtn.addEventListener('click', () => this.handleLogout());
 
-        document.querySelectorAll('.nav-link:not(.logout-link)').forEach(link => {
+        document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 const view = e.currentTarget.dataset.view;
                 this.switchView(view);
             });
         });
-
-        const printBtn = document.getElementById('printRecordBtn');
-        if (printBtn) {
-            printBtn.addEventListener('click', () => this.printRecord());
-        }
     }
 
     setupMessageListener() {
@@ -345,11 +342,6 @@ class StudentPortal {
                 }
             }
         });
-
-        const firstNameEl = document.getElementById('studentFirstName');
-        if (firstNameEl && this.studentData.name) {
-            firstNameEl.textContent = this.studentData.name.split(' ')[0];
-        }
     }
 
 async handleLogin(e) {
@@ -418,25 +410,16 @@ async handleLogin(e) {
 
             const currentDate = new Date();
             const bookPromises = [];
-            const urgentIssuances = [];
-            const bookIds = new Set();
 
             issuanceSnapshot.forEach(childSnapshot => {
                 const issuance = childSnapshot.val();
                 stats.total++;
-                if (issuance.bookId) bookIds.add(issuance.bookId);
 
                 if (issuance.status === 'active') {
                     stats.active++;
                     const returnDate = new Date(issuance.returnDate);
                     if (returnDate < currentDate) {
                         stats.overdue++;
-                    }
-                    if (!isNaN(returnDate.getTime())) {
-                        const daysUntilDue = Math.ceil((returnDate - currentDate) / (1000 * 60 * 60 * 24));
-                        if (daysUntilDue <= 3) {
-                            urgentIssuances.push({ bookId: issuance.bookId, daysUntilDue });
-                        }
                     }
                 } else if (issuance.status === 'lost') {
                     stats.lost++;
@@ -461,166 +444,11 @@ async handleLogin(e) {
             });
 
             this.updateStatistics(stats);
-            this.renderDueSoonBanner(urgentIssuances);
-            this.renderAchievements(stats, bookIds);
 
             const bookCards = await Promise.all(bookPromises);
             document.getElementById('booksContainer').innerHTML = bookCards.join('');
         } catch (error) {
             console.error('Error loading student data:', error);
-        }
-    }
-
-    async renderDueSoonBanner(urgentIssuances) {
-        const banner = document.getElementById('dueSoonBanner');
-        if (!banner) return;
-
-        if (!urgentIssuances.length) {
-            banner.innerHTML = '';
-            return;
-        }
-
-        const titled = await Promise.all(urgentIssuances.map(async (u) => {
-            try {
-                const snap = await this.db.ref(`books/${u.bookId}`).once('value');
-                const book = snap.val();
-                return { title: book?.title || 'Unknown book', daysUntilDue: u.daysUntilDue };
-            } catch {
-                return { title: 'Unknown book', daysUntilDue: u.daysUntilDue };
-            }
-        }));
-
-        const overdue = titled.filter(t => t.daysUntilDue < 0);
-        const dueSoon = titled.filter(t => t.daysUntilDue >= 0);
-
-        const lines = [];
-        if (overdue.length) {
-            lines.push(`
-                <div class="due-banner-line due-banner-overdue">
-                    <i class="bi bi-exclamation-octagon"></i>
-                    <span><strong>${overdue.length} overdue:</strong> ${overdue.map(o => `${this.escapeHtml(o.title)} (${Math.abs(o.daysUntilDue)}d overdue)`).join(', ')}</span>
-                </div>
-            `);
-        }
-        if (dueSoon.length) {
-            lines.push(`
-                <div class="due-banner-line due-banner-soon">
-                    <i class="bi bi-clock-history"></i>
-                    <span><strong>${dueSoon.length} due soon:</strong> ${dueSoon.map(d => `${this.escapeHtml(d.title)} (${d.daysUntilDue === 0 ? 'due today' : `due in ${d.daysUntilDue}d`})`).join(', ')}</span>
-                </div>
-            `);
-        }
-
-        banner.innerHTML = `<div class="due-banner">${lines.join('')}</div>`;
-    }
-
-    async renderAchievements(stats, bookIds) {
-        const el = document.getElementById('achievementsRow');
-        if (!el) return;
-
-        const categories = new Set();
-        await Promise.all(Array.from(bookIds).map(async (bookId) => {
-            try {
-                const snap = await this.db.ref(`books/${bookId}`).once('value');
-                const book = snap.val();
-                if (book?.category) categories.add(book.category);
-            } catch {
-                /* ignore individual lookup failures */
-            }
-        }));
-
-        const returnRate = stats.validReturns ? (stats.onTimeReturns / stats.validReturns) * 100 : 0;
-
-        const badges = [
-            { icon: 'bi-book', label: 'First Read', earned: stats.total >= 1 },
-            { icon: 'bi-collection', label: 'Bookworm', earned: stats.total >= 5 },
-            { icon: 'bi-award', label: 'Avid Reader', earned: stats.total >= 15 },
-            { icon: 'bi-clock-history', label: 'On-Time Reader', earned: stats.validReturns >= 3 && returnRate >= 80 },
-            { icon: 'bi-shield-check', label: 'Nothing Overdue', earned: stats.active > 0 && stats.overdue === 0 },
-            { icon: 'bi-palette', label: 'Well-Rounded', earned: categories.size >= 3 }
-        ];
-
-        el.innerHTML = `
-            <div class="achievements-card mb-4">
-                <div class="achievements-title">Achievements</div>
-                <div class="achievements-row">
-                    ${badges.map(b => `
-                        <div class="achievement-badge ${b.earned ? 'earned' : 'locked'}" title="${b.earned ? 'Earned' : 'Not yet earned'}">
-                            <i class="bi ${b.icon}"></i>
-                            <span>${b.label}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    async printRecord() {
-        try {
-            const issuanceSnapshot = await this.db.ref('issuance')
-                .orderByChild('studentId')
-                .equalTo(this.studentData.id)
-                .once('value');
-
-            const records = [];
-            const lookups = [];
-
-            issuanceSnapshot.forEach(child => {
-                const issuance = child.val();
-                lookups.push((async () => {
-                    let title = 'Unknown book';
-                    try {
-                        const bookSnap = await this.db.ref(`books/${issuance.bookId}`).once('value');
-                        title = bookSnap.val()?.title || title;
-                    } catch {
-                        /* keep fallback title */
-                    }
-                    records.push({
-                        title,
-                        issueDate: issuance.issueDate,
-                        returnDate: issuance.returnDate,
-                        actualReturnDate: issuance.actualReturnDate,
-                        status: issuance.status
-                    });
-                })());
-            });
-
-            await Promise.all(lookups);
-            records.sort((a, b) => b.issueDate - a.issueDate);
-
-            const printArea = document.getElementById('printRecordArea');
-            if (!printArea) return;
-
-            if (records.length === 0) {
-                this.showToast('warning', 'No borrowing record to print yet');
-                return;
-            }
-
-            printArea.innerHTML = `
-                <h2>Kanyadet Student Library Portal — Borrowing Record</h2>
-                <p><strong>${this.escapeHtml(this.studentData.name)}</strong> · ${this.escapeHtml(this.studentData.grade)} · Assessment No. ${this.escapeHtml(this.studentData.assessmentNo)}</p>
-                <p>Generated: ${new Date().toLocaleString()}</p>
-                <table>
-                    <thead>
-                        <tr><th>Book Title</th><th>Issued</th><th>Due / Returned</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                        ${records.map(r => `
-                            <tr>
-                                <td>${this.escapeHtml(r.title)}</td>
-                                <td>${new Date(r.issueDate).toLocaleDateString()}</td>
-                                <td>${new Date(r.status === 'returned' && r.actualReturnDate ? r.actualReturnDate : r.returnDate).toLocaleDateString()}</td>
-                                <td>${r.status.toUpperCase()}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-
-            window.print();
-        } catch (error) {
-            console.error('Error preparing printable record:', error);
-            this.showToast('error', 'Could not prepare printable record');
         }
     }
 
@@ -806,80 +634,93 @@ async handleLogin(e) {
             const daysDisplay = daysUntilDue > 0 ? `${daysUntilDue} days remaining` : `${Math.abs(daysUntilDue)} days overdue`;
 
             const coverUrl = BookCoverManager.getBookCover(issuance.bookId);
-            const issueDateShort = new Date(issuance.issueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-            const returnDateShort = new Date(issuance.returnDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-            const safeTitle = book.title.replace(/'/g, "\\'");
 
             return `
-                <div class="book-result mb-3" title="ISBN: ${book.isbn || 'N/A'}" onclick="studentPortal.showBookDetailModal('${issuanceId}')">
-                    <div class="book-result-row">
-                        <div class="book-result-cover">
-                            <img src="${coverUrl}" class="book-cover" alt="${book.title}"
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card book-card h-100 border-0 shadow-sm">
+                        <div class="book-cover-container">
+                            <img src="${coverUrl}" class="card-img-top book-cover" alt="${book.title}"
                                  onerror="this.onerror=null; this.src='covers/default-book.png';">
-                        </div>
-                        <div class="book-result-info">
-                            <h5 class="card-title">${book.title}</h5>
-                            <div class="book-result-sub">${book.author} · ${book.category} · ${book.subject || 'General'}</div>
-                        </div>
-                        <div class="book-result-dates">
-                            <div>
-                                <small>Issued</small>
-                                <p>${issueDateShort}</p>
-                            </div>
-                            <i class="bi bi-arrow-right book-result-arrow"></i>
-                            <div>
-                                <small>Due</small>
-                                <p>${returnDateShort}</p>
-                            </div>
-                        </div>
-                        <div class="book-result-status">
                             <span class="badge ${statusBadges[status] || 'bg-secondary'} status-badge">${status.toUpperCase()}</span>
-                            ${status === 'active' ? `<small>${daysDisplay}</small>` : ''}
                         </div>
-                        <div class="book-result-action" onclick="event.stopPropagation();">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">${book.title}</h5>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Author</small>
+                                    <p class="mb-0">${book.author}</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">ISBN</small>
+                                    <p class="mb-0">${book.isbn || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Category</small>
+                                    <p class="mb-0">${book.category}</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Subject</small>
+                                    <p class="mb-0">${book.subject || 'General'}</p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Issue Date</small>
+                                    <p class="mb-0">${new Date(issuance.issueDate).toLocaleDateString('en-US', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric'
+                                    })}</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Return Date</small>
+                                    <p class="mb-0">${new Date(issuance.returnDate).toLocaleDateString('en-US', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric'
+                                    })}</p>
+                                </div>
+                            </div>
                             ${status === 'active' ? `
-                                <button class="btn btn-sm btn-outline-primary"
-                                        onclick="studentPortal.requestRenewal('${issuanceId}', '${safeTitle}', '${issuance.returnDate}')">
-                                    <i class="bi bi-arrow-repeat me-1"></i>Renew
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary"
-                                        onclick="studentPortal.reportIssue('${issuanceId}', '${safeTitle}')">
-                                    <i class="bi bi-flag me-1"></i>Report
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                    ${status === 'active' || issuance.recoveryStatus ? `
-                        <div class="book-result-extra">
-                            ${status === 'active' ? `
-                                <div class="progress mb-1">
-                                    <div class="progress-bar ${daysUntilDue < 5 ? 'bg-warning' : 'bg-success'}"
-                                         role="progressbar"
+                                <div class="progress mb-3" style="height: 5px;">
+                                    <div class="progress-bar ${daysUntilDue < 5 ? 'bg-warning' : 'bg-success'}" 
+                                         role="progressbar" 
                                          style="width: ${Math.max(0, Math.min(100, (daysUntilDue / 30) * 100))}%">
                                     </div>
                                 </div>
+                                <small class="text-muted">${daysDisplay}</small>
                             ` : ''}
                             ${issuance.recoveryStatus ? `
-                                <div class="alert alert-info mt-2 mb-0 py-2">
+                                <div class="alert alert-info mt-3 mb-0 py-2">
                                     <small>
                                         <i class="bi bi-info-circle me-1"></i>
-                                        Recovery: ${issuance.recoveryMethod}
+                                        Recovery: ${issuance.recoveryMethod} 
                                         (${new Date(issuance.recoveryDate).toLocaleDateString()})
                                     </small>
                                 </div>
                             ` : ''}
+                            ${status === 'active' ? `
+                                <div class="mt-3">
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                            onclick="studentPortal.reportIssue('${issuanceId}', '${book.title.replace(/'/g, "\\'")}')">
+                                        <i class="bi bi-flag me-1"></i>Report Issue
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
-                    ` : ''}
+                    </div>
                 </div>
             `;
         } catch (error) {
             console.error('Error loading book details:', error);
             return `
-                <div class="book-result mb-3 border-danger">
-                    <div class="book-result-row text-center text-danger" style="width:100%;justify-content:center;">
-                        <i class="bi bi-exclamation-triangle fs-1 mb-2"></i>
-                        <div style="width:100%;">
-                            <h6 class="mb-0">Error Loading Book Details</h6>
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card book-card h-100 border-0 shadow-sm border-danger">
+                        <div class="card-body text-center text-danger">
+                            <i class="bi bi-exclamation-triangle fs-1 mb-3"></i>
+                            <h6>Error Loading Book Details</h6>
                             <small>Please try refreshing the page</small>
                         </div>
                     </div>
@@ -974,118 +815,6 @@ async handleLogin(e) {
         });
     }
 
-    async requestRenewal(issuanceId, bookTitle, currentDueDate) {
-        const dueDateLabel = new Date(currentDueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-
-        const { value: note, isConfirmed } = await Swal.fire({
-            title: 'Request Renewal',
-            html: `<div style="text-align:left;font-size:13px;color:var(--text2);margin-bottom:6px;">
-                       <strong>${this.escapeHtml(bookTitle)}</strong><br>Current due date: ${dueDateLabel}
-                   </div>`,
-            input: 'textarea',
-            inputPlaceholder: 'Optional note to the librarian (e.g. still reading, need 1 more week)…',
-            showCancelButton: true,
-            confirmButtonText: 'Send Request',
-            confirmButtonColor: '#d7a33e'
-        });
-
-        if (!isConfirmed) return;
-
-        try {
-            await this.db.ref('messages').push({
-                issuanceId,
-                studentId: this.studentData.id,
-                bookTitle,
-                type: 'renewal',
-                subject: `Renewal Request: ${bookTitle}`,
-                description: note || `Requesting a renewal. Current due date: ${dueDateLabel}.`,
-                status: 'pending',
-                timestamp: Date.now(),
-                studentName: this.studentData.name,
-                studentGrade: this.studentData.grade,
-                readByStudent: true,
-                readByLibrarian: false
-            });
-
-            this.showToast('success', 'Renewal request sent to the librarian');
-        } catch (error) {
-            console.error('Error requesting renewal:', error);
-            this.showToast('error', 'Could not send renewal request');
-        }
-    }
-
-    async showBookDetailModal(issuanceId) {
-        try {
-            const issuanceSnap = await this.db.ref(`issuance/${issuanceId}`).once('value');
-            const issuance = issuanceSnap.val();
-            if (!issuance) return;
-
-            const bookSnap = await this.db.ref(`books/${issuance.bookId}`).once('value');
-            const book = bookSnap.val();
-            if (!book) return;
-
-            const status = issuance.status;
-            const statusBadges = { active: 'bg-success', returned: 'bg-secondary', lost: 'bg-danger' };
-            const coverUrl = BookCoverManager.getBookCover(issuance.bookId);
-            const safeTitle = book.title.replace(/'/g, "\\'");
-
-            const modal = document.createElement('div');
-            modal.innerHTML = `
-                <div class="modal fade" id="bookDetailModal" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Book Details</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="d-flex gap-3 mb-3">
-                                    <div class="book-detail-cover">
-                                        <img src="${coverUrl}" alt="${this.escapeHtml(book.title)}"
-                                             onerror="this.onerror=null; this.src='covers/default-book.png';">
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-1">${this.escapeHtml(book.title)}</h5>
-                                        <div class="text-muted mb-2">${this.escapeHtml(book.author)}</div>
-                                        <span class="badge ${statusBadges[status] || 'bg-secondary'} status-badge">${status.toUpperCase()}</span>
-                                    </div>
-                                </div>
-                                <div class="id-row"><span>ISBN</span><span>${this.escapeHtml(book.isbn || 'N/A')}</span></div>
-                                <div class="id-row"><span>Category</span><span>${this.escapeHtml(book.category)}</span></div>
-                                <div class="id-row"><span>Subject</span><span>${this.escapeHtml(book.subject || 'General')}</span></div>
-                                <div class="id-row"><span>Issue Date</span><span>${new Date(issuance.issueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div>
-                                <div class="id-row"><span>${status === 'returned' ? 'Returned' : 'Due'} Date</span><span>${new Date(status === 'returned' && issuance.actualReturnDate ? issuance.actualReturnDate : issuance.returnDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div>
-                                ${issuance.recoveryStatus ? `<div class="id-row"><span>Recovery</span><span>${this.escapeHtml(issuance.recoveryMethod)}</span></div>` : ''}
-                            </div>
-                            <div class="modal-footer">
-                                ${status === 'active' ? `
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-dismiss="modal"
-                                            onclick="studentPortal.requestRenewal('${issuanceId}', '${safeTitle}', '${issuance.returnDate}')">
-                                        <i class="bi bi-arrow-repeat me-1"></i>Renew
-                                    </button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-dismiss="modal"
-                                            onclick="studentPortal.reportIssue('${issuanceId}', '${safeTitle}')">
-                                        <i class="bi bi-flag me-1"></i>Report Issue
-                                    </button>
-                                ` : ''}
-                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(modal);
-            const modalElement = new bootstrap.Modal(document.getElementById('bookDetailModal'));
-            modalElement.show();
-            document.getElementById('bookDetailModal').addEventListener('hidden.bs.modal', () => {
-                document.getElementById('bookDetailModal').remove();
-            });
-        } catch (error) {
-            console.error('Error showing book detail modal:', error);
-        }
-    }
-
     escapeHtml(str) {
         if (str === null || str === undefined) return '';
         return String(str)
@@ -1141,19 +870,7 @@ async handleLogin(e) {
 
         try {
             const messagesRef = this.db.ref('messages').orderByChild('studentId').equalTo(this.studentData.id);
-            const [snapshot, threadsSnapshot] = await Promise.all([
-                messagesRef.once('value'),
-                // message.js (the librarian's Messages page) reads/writes
-                // replies at this SEPARATE top-level node — replies used to
-                // live nested at messages/{id}/replies here instead, which
-                // meant a student's reply and the librarian's reply were
-                // invisible to each other. Reading both (merged below) keeps
-                // any already-existing nested replies visible; new replies
-                // go to message_threads going forward so both sides share
-                // one thread.
-                this.db.ref('message_threads').once('value')
-            ]);
-            const allThreads = threadsSnapshot.val() || {};
+            const snapshot = await messagesRef.once('value');
 
             let unreadMessages = 0;
 
@@ -1178,10 +895,7 @@ async handleLogin(e) {
             messages.sort((a, b) => b.timestamp - a.timestamp);
 
             const cards = messages.map(message => {
-                const threadMessages = [
-                    ...Object.values(message.replies || {}),
-                    ...Object.values(allThreads[message.id] || {})
-                ].sort((a, b) => a.timestamp - b.timestamp);
+                const threadMessages = Object.values(message.replies || {}).sort((a, b) => a.timestamp - b.timestamp);
                 const lastMessage = threadMessages[threadMessages.length - 1];
 
                 if (!message.readByStudent) unreadMessages++;
@@ -1219,9 +933,9 @@ async handleLogin(e) {
                         ${threadMessages.length ? `
                             <div class="chat-thread">
                                 ${threadMessages.map(msg => `
-                                    <div class="chat-message ${(msg.sender === 'librarian' || msg.sender === 'admin') ? 'librarian' : 'student'}">
-                                        <div class="chat-content">${this.escapeHtml(msg.content || msg.message)}</div>
-                                        <small>${(msg.sender === 'librarian' || msg.sender === 'admin') ? 'Librarian' : 'You'} • ${new Date(msg.timestamp).toLocaleString()}</small>
+                                    <div class="chat-message ${msg.sender === 'librarian' ? 'librarian' : 'student'}">
+                                        <div class="chat-content">${this.escapeHtml(msg.message || msg.content)}</div>
+                                        <small>${msg.sender === 'librarian' ? 'Librarian' : 'You'} • ${new Date(msg.timestamp).toLocaleString()}</small>
                                     </div>
                                 `).join('')}
                             </div>
@@ -1324,7 +1038,7 @@ async handleLogin(e) {
     switchView(viewName) {
         if (!this.views.includes(viewName)) return;
 
-        document.querySelectorAll('.nav-link:not(.logout-link)').forEach(link => {
+        document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.toggle('active', link.dataset.view === viewName);
         });
 
@@ -1353,9 +1067,6 @@ async handleLogin(e) {
                 break;
             case 'history':
                 this.loadHistory();
-                break;
-            case 'browse':
-                this.loadBrowseView();
                 break;
             case 'dashboard':
             default:
@@ -1429,24 +1140,12 @@ async handleLogin(e) {
             }
 
             const history = [];
-            const allIssuances = [];
             issuanceSnapshot.forEach(child => {
                 const issuance = child.val();
-                allIssuances.push(issuance);
                 if (issuance.status === 'returned') {
                     history.push(this.loadBookDetails(issuance, child.key));
                 }
             });
-
-            this.renderBorrowingActivityChart(allIssuances);
-
-            const searchInput = document.querySelector('#historyView input[type="text"]');
-            if (searchInput) {
-                searchInput.removeEventListener('input', this.filterHistory);
-                searchInput.addEventListener('input', (e) => {
-                    this.filterHistory(e.target.value);
-                });
-            }
 
             if (history.length === 0) {
                 historyContainer.innerHTML = '<div class="col-12 text-center text-muted">No returned books found</div>';
@@ -1462,299 +1161,6 @@ async handleLogin(e) {
             if (historyContainer) {
                 historyContainer.innerHTML = '<div class="col-12 text-center text-danger">Error loading history</div>';
             }
-        }
-    }
-
-    filterHistory(searchTerm) {
-        const container = document.querySelector('#historyView .row');
-        if (!container) return;
-
-        const bookCards = container.querySelectorAll('.book-result');
-        const normalizedSearch = searchTerm.toLowerCase().trim();
-
-        bookCards.forEach(card => {
-            const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
-            const rest = card.textContent.toLowerCase();
-            const isMatch = title.includes(normalizedSearch) || rest.includes(normalizedSearch);
-            card.style.display = isMatch ? 'block' : 'none';
-        });
-
-        const existingNoResults = container.querySelector('.no-results-message');
-        if (existingNoResults) existingNoResults.remove();
-
-        const visibleCards = container.querySelectorAll('.book-result[style*="block"], .book-result:not([style*="none"])');
-        if (visibleCards.length === 0 && normalizedSearch) {
-            const noResultsDiv = document.createElement('div');
-            noResultsDiv.className = 'col-12 text-center text-muted no-results-message';
-            noResultsDiv.innerHTML = `<p>No history found matching "${searchTerm}"</p>`;
-            container.appendChild(noResultsDiv);
-        }
-    }
-
-    renderBorrowingActivityChart(issuances) {
-        const chartEl = document.getElementById('historyChartContainer');
-        if (!chartEl) return;
-
-        // Build the last 6 months (oldest → newest), counting books issued in each.
-        const months = [];
-        const now = new Date();
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleDateString('en-US', { month: 'short' }), count: 0 });
-        }
-        const byKey = Object.fromEntries(months.map(m => [m.key, m]));
-
-        issuances.forEach(issuance => {
-            const issueDate = new Date(issuance.issueDate);
-            if (isNaN(issueDate.getTime())) return;
-            const key = `${issueDate.getFullYear()}-${issueDate.getMonth()}`;
-            if (byKey[key]) byKey[key].count++;
-        });
-
-        const max = Math.max(1, ...months.map(m => m.count));
-        const barWidth = 34;
-        const gap = 22;
-        const chartHeight = 90;
-        const width = months.length * (barWidth + gap);
-
-        const bars = months.map((m, i) => {
-            const x = i * (barWidth + gap);
-            const h = Math.round((m.count / max) * chartHeight);
-            const y = chartHeight - h;
-            return `
-                <g>
-                    <rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(h, 2)}" rx="6" fill="${m.count ? 'var(--gold)' : 'var(--border)'}"></rect>
-                    <text x="${x + barWidth / 2}" y="${y - 8}" text-anchor="middle" class="chart-count">${m.count || ''}</text>
-                    <text x="${x + barWidth / 2}" y="${chartHeight + 18}" text-anchor="middle" class="chart-label">${m.label}</text>
-                </g>
-            `;
-        }).join('');
-
-        chartEl.innerHTML = `
-            <div class="activity-chart-card mb-4">
-                <div class="activity-chart-title">Borrowing activity <span class="text-muted">· last 6 months</span></div>
-                <svg viewBox="0 0 ${width} ${chartHeight + 30}" class="activity-chart-svg">${bars}</svg>
-            </div>
-        `;
-    }
-
-    async loadBrowseView() {
-        try {
-            const [booksSnap, wishlistSnap, reservationsSnap] = await Promise.all([
-                this.db.ref('books').once('value'),
-                this.db.ref(`wishlists/${this.studentData.id}`).once('value'),
-                this.db.ref(`reservationsByStudent/${this.studentData.id}`).once('value')
-            ]);
-
-            const books = [];
-            booksSnap.forEach(child => {
-                books.push({ id: child.key, ...child.val() });
-            });
-            books.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-
-            this._browseBooks = books;
-            this._browseWishlist = wishlistSnap.val() || {};
-            this._browseReservations = reservationsSnap.val() || {};
-
-            const categoryFilter = document.getElementById('browseCategoryFilter');
-            if (categoryFilter && categoryFilter.dataset.populated !== 'true') {
-                const categories = Array.from(new Set(books.map(b => b.category).filter(Boolean))).sort();
-                categoryFilter.innerHTML = '<option value="">All Categories</option>' +
-                    categories.map(c => `<option value="${this.escapeHtml(c)}">${this.escapeHtml(c)}</option>`).join('');
-                categoryFilter.dataset.populated = 'true';
-                categoryFilter.addEventListener('change', () => this.applyBrowseFilters());
-            }
-
-            const searchInput = document.getElementById('browseSearchInput');
-            if (searchInput && searchInput.dataset.wired !== 'true') {
-                searchInput.dataset.wired = 'true';
-                searchInput.addEventListener('input', () => this.applyBrowseFilters());
-            }
-
-            this.renderWishlistPanel();
-            this.applyBrowseFilters();
-        } catch (error) {
-            console.error('Error loading library catalog:', error);
-            const container = document.getElementById('browseResults');
-            if (container) container.innerHTML = '<div class="col-12 text-center text-danger">Error loading library catalog</div>';
-        }
-    }
-
-    applyBrowseFilters() {
-        const category = document.getElementById('browseCategoryFilter')?.value || '';
-        const search = (document.getElementById('browseSearchInput')?.value || '').toLowerCase().trim();
-
-        const books = (this._browseBooks || []).filter(book => {
-            const matchesCategory = !category || book.category === category;
-            const matchesSearch = !search ||
-                (book.title || '').toLowerCase().includes(search) ||
-                (book.author || '').toLowerCase().includes(search);
-            return matchesCategory && matchesSearch;
-        });
-
-        this.renderBrowseResults(books);
-    }
-
-    renderBrowseResults(books) {
-        const container = document.getElementById('browseResults');
-        if (!container) return;
-
-        if (books.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center text-muted">No books found</div>';
-            return;
-        }
-
-        const wishlist = this._browseWishlist || {};
-        const reservations = this._browseReservations || {};
-
-        container.innerHTML = books.map(book => {
-            const inWishlist = !!wishlist[book.id];
-            const isReserved = !!reservations[book.id];
-            const isOutOfStock = Number(book.available) <= 0;
-            const coverUrl = BookCoverManager.getBookCover(book.id);
-            const safeTitle = (book.title || '').replace(/'/g, "\\'");
-            const safeAuthor = (book.author || '').replace(/'/g, "\\'");
-            return `
-                <div class="book-result mb-3" title="ISBN: ${this.escapeHtml(book.isbn || 'N/A')}">
-                    <div class="book-result-row">
-                        <div class="book-result-cover">
-                            <img src="${coverUrl}" class="book-cover" alt="${this.escapeHtml(book.title || '')}"
-                                 onerror="this.onerror=null; this.src='covers/default-book.png';">
-                        </div>
-                        <div class="book-result-info">
-                            <h5 class="card-title">${this.escapeHtml(book.title || 'Untitled')}</h5>
-                            <div class="book-result-sub">${this.escapeHtml(book.author || 'Unknown')} · ${this.escapeHtml(book.category || 'Uncategorized')} · ${this.escapeHtml(book.subject || 'General')}</div>
-                            ${isOutOfStock ? `<div class="book-result-sub text-danger">All copies currently out</div>` : ''}
-                        </div>
-                        <div class="book-result-action d-flex flex-column gap-1">
-                            <button class="btn btn-sm ${inWishlist ? 'btn-primary' : 'btn-outline-primary'}"
-                                    onclick="studentPortal.toggleWishlist('${book.id}', '${safeTitle}', '${safeAuthor}')">
-                                <i class="bi ${inWishlist ? 'bi-heart-fill' : 'bi-heart'} me-1"></i>${inWishlist ? 'Wishlisted' : 'Wishlist'}
-                            </button>
-                            ${isOutOfStock ? `
-                                <button class="btn btn-sm ${isReserved ? 'btn-secondary' : 'btn-outline-warning'}"
-                                        onclick="studentPortal.${isReserved ? 'cancelMyReservation' : 'reserveBook'}('${book.id}', '${safeTitle}')">
-                                    <i class="bi ${isReserved ? 'bi-bookmark-check-fill' : 'bi-bookmark-plus'} me-1"></i>${isReserved ? 'Queued — cancel' : 'Reserve'}
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    renderWishlistPanel() {
-        const panel = document.getElementById('wishlistPanel');
-        if (!panel) return;
-
-        const wishlist = this._browseWishlist || {};
-        const items = Object.entries(wishlist);
-
-        if (items.length === 0) {
-            panel.innerHTML = '';
-            return;
-        }
-
-        panel.innerHTML = `
-            <div class="wishlist-card">
-                <div class="wishlist-title"><i class="bi bi-heart-fill me-1"></i>My Wishlist</div>
-                <div class="wishlist-chips">
-                    ${items.map(([bookId, item]) => `
-                        <span class="wishlist-chip">
-                            ${this.escapeHtml(item.title)}
-                            <button type="button" onclick="studentPortal.toggleWishlist('${bookId}', '${(item.title || '').replace(/'/g, "\\'")}', '${(item.author || '').replace(/'/g, "\\'")}')" title="Remove from wishlist">
-                                <i class="bi bi-x"></i>
-                            </button>
-                        </span>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    async toggleWishlist(bookId, title, author) {
-        try {
-            const ref = this.db.ref(`wishlists/${this.studentData.id}/${bookId}`);
-            this._browseWishlist = this._browseWishlist || {};
-            const isWishlisted = !!this._browseWishlist[bookId];
-
-            if (isWishlisted) {
-                await ref.remove();
-                delete this._browseWishlist[bookId];
-                this.showToast('success', `Removed "${title}" from wishlist`);
-            } else {
-                const item = { title, author, addedAt: Date.now() };
-                await ref.set(item);
-                this._browseWishlist[bookId] = item;
-                this.showToast('success', `Added "${title}" to wishlist`);
-            }
-
-            this.renderWishlistPanel();
-            this.applyBrowseFilters();
-        } catch (error) {
-            console.error('Error updating wishlist:', error);
-            this.showToast('error', 'Could not update wishlist');
-        }
-    }
-
-    // Writes to the SAME `reservations/{bookId}` queue the librarian's
-    // Reservations tab manages (push order = queue order), plus a
-    // `reservationsByStudent/{studentId}/{bookId}` index so this page
-    // doesn't need to scan every book's queue to know what's already
-    // reserved. When a copy comes back in, the librarian dashboard's
-    // reservations.js notifies whoever is first in that book's queue via
-    // a `messages` entry and removes them from both places — so a
-    // reservation disappearing from here usually means it was fulfilled;
-    // check Messages for the pickup notice.
-    async reserveBook(bookId, title) {
-        try {
-            this._browseReservations = this._browseReservations || {};
-            if (this._browseReservations[bookId]) return; // already queued
-
-            const existing = await this.db.ref(`reservations/${bookId}`).once('value');
-            let alreadyQueued = false;
-            existing.forEach(child => {
-                if (child.val().studentId === this.studentData.id) alreadyQueued = true;
-            });
-            if (alreadyQueued) {
-                this.showToast('info', `You're already queued for "${title}"`);
-                return;
-            }
-
-            const newRef = this.db.ref(`reservations/${bookId}`).push();
-            await newRef.set({
-                studentId: this.studentData.id,
-                studentName: this.studentData.name,
-                grade: this.studentData.grade,
-                requestedAt: Date.now(),
-                status: 'waiting'
-            });
-            await this.db.ref(`reservationsByStudent/${this.studentData.id}/${bookId}`).set(newRef.key);
-
-            this._browseReservations[bookId] = newRef.key;
-            this.showToast('success', `You're in the queue for "${title}" — we'll message you when it's back`);
-            this.applyBrowseFilters();
-        } catch (error) {
-            console.error('Error reserving book:', error);
-            this.showToast('error', 'Could not reserve that book');
-        }
-    }
-
-    async cancelMyReservation(bookId, title) {
-        try {
-            const reservationId = (this._browseReservations || {})[bookId];
-            if (!reservationId) return;
-
-            await this.db.ref(`reservations/${bookId}/${reservationId}`).remove();
-            await this.db.ref(`reservationsByStudent/${this.studentData.id}/${bookId}`).remove();
-
-            delete this._browseReservations[bookId];
-            this.showToast('success', `Removed your reservation for "${title}"`);
-            this.applyBrowseFilters();
-        } catch (error) {
-            console.error('Error cancelling reservation:', error);
-            this.showToast('error', 'Could not cancel that reservation');
         }
     }
 

@@ -1,154 +1,3 @@
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const sanitizedAppId = appId.replace(/\./g, '_');
-
-// Real DB records store fields like "Official Student Name", "Grade",
-// "Assessment No", "UPI", "Home phone" (see actual students/{id} sample).
-// This maps them onto the lowerCamelCase fields the UI code reads,
-// without dropping the original raw fields.
-function normalizeStudent(raw) {
-    if (!raw) return raw;
-    return {
-        ...raw,
-        name: raw.name || raw.fullName || raw['Official Student Name'] || 'Unknown',
-        fullName: raw.fullName || raw['Official Student Name'] || raw.name || 'Unknown',
-        assessmentNo: (raw.assessmentNo || raw['Assessment No'] || '').toString().trim(),
-        grade: raw.grade || raw['Grade'] || '',
-        upi: raw.upi || raw.upiNo || raw['UPI'] || '',
-        phoneNumber: raw.phoneNumber || raw['Home phone'] || ''
-    };
-}
-
-const STUDENTS_PATH = `artifacts/${sanitizedAppId}/students`;
-// A small denormalized counter, kept in sync via transactions whenever a
-// student is added/removed. Reading this one value is a single tiny fetch —
-// far cheaper than downloading every student record just to get its count.
-const STUDENT_COUNT_PATH = `artifacts/${sanitizedAppId}/counters/studentCount`;
-
-// Shared students cache: paints instantly from an IndexedDB-backed local
-// mirror on load (IndexedDB, unlike localStorage, has no ~5MB ceiling, so it
-// doesn't hit QuotaExceededError as the roster grows), then stays in sync via
-// child_added/child_changed/child_removed listeners so a page reload never
-// re-downloads the whole roster — only what actually changed on the server
-// gets fetched, like Gmail's incremental sync.
-// Any part of the app (this file or functions.js) can read StudentsCache.getAll()
-// instead of doing its own studentsRef.once('value') / .on('value') read.
-const StudentsCache = (() => {
-    const DB_NAME = 'kanyadet_library_cache';
-    const DB_VERSION = 1;
-    const STORE_NAME = 'kv';
-    const CACHE_KEY = 'students_cache_v1';
-    const listeners = new Set();
-    const store = new Map(); // studentId -> normalized student
-    let initialized = false;
-    let persistTimer = null;
-
-    function openDb() {
-        return new Promise((resolve, reject) => {
-            if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
-            const req = indexedDB.open(DB_NAME, DB_VERSION);
-            req.onupgradeneeded = () => {
-                if (!req.result.objectStoreNames.contains(STORE_NAME)) {
-                    req.result.createObjectStore(STORE_NAME);
-                }
-            };
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => reject(req.error);
-        });
-    }
-
-    async function loadFromLocalCache() {
-        try {
-            const db = await openDb();
-            const cached = await new Promise((resolve, reject) => {
-                const tx = db.transaction(STORE_NAME, 'readonly');
-                const req = tx.objectStore(STORE_NAME).get(CACHE_KEY);
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-            });
-            if (cached && cached.students) {
-                Object.entries(cached.students).forEach(([id, student]) => {
-                    store.set(id, student);
-                });
-            }
-        } catch (e) {
-            console.warn('StudentsCache: failed to read local cache', e);
-        }
-    }
-
-    // Debounced: a full initial sync fires one child_added per student
-    // (348 of them on this roster) — without debouncing that's 348 separate
-    // IndexedDB writes instead of one.
-    function schedulePersist() {
-        if (persistTimer) return;
-        persistTimer = setTimeout(async () => {
-            persistTimer = null;
-            try {
-                const students = {};
-                store.forEach((value, key) => { students[key] = value; });
-                const db = await openDb();
-                await new Promise((resolve, reject) => {
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    tx.objectStore(STORE_NAME).put({ students, updatedAt: Date.now() }, CACHE_KEY);
-                    tx.oncomplete = resolve;
-                    tx.onerror = () => reject(tx.error);
-                });
-            } catch (e) {
-                console.warn('StudentsCache: failed to persist local cache', e);
-            }
-        }, 500);
-    }
-
-    function notify(type, id) {
-        listeners.forEach(cb => {
-            try { cb(type, id, store); } catch (e) { console.error('StudentsCache listener error', e); }
-        });
-    }
-
-    function init(ref) {
-        if (initialized) return;
-        initialized = true;
-
-        // 1. Paint immediately from whatever we had cached locally.
-        loadFromLocalCache().then(() => notify('ready-from-cache', null));
-
-        // 2. Sync deltas only — Firebase's child_* events only fire for the
-        // record(s) that actually changed, not the entire node every time.
-        ref.on('child_added', snap => {
-            store.set(snap.key, normalizeStudent(snap.val()));
-            schedulePersist();
-            notify('added', snap.key);
-        });
-        ref.on('child_changed', snap => {
-            store.set(snap.key, normalizeStudent(snap.val()));
-            schedulePersist();
-            notify('changed', snap.key);
-        });
-        ref.on('child_removed', snap => {
-            store.delete(snap.key);
-            schedulePersist();
-            notify('removed', snap.key);
-        });
-    }
-
-    // The whole point of this: don't fetch any student records at all until
-    // something actually asks for them. `db`/STUDENTS_PATH are read here
-    // (not at module-definition time) since this only ever runs after
-    // firebase.initializeApp() further down the file.
-    function ensureStarted() {
-        if (!initialized) init(db.ref(STUDENTS_PATH));
-    }
-
-    return {
-        init,
-        getAll: () => { ensureStarted(); return store; },
-        get: (id) => { ensureStarted(); return store.get(id); },
-        // Fires once immediately with whatever's cached ('ready-from-cache'),
-        // then again for every subsequent 'added' | 'changed' | 'removed'.
-        onChange: (cb) => { ensureStarted(); listeners.add(cb); return () => listeners.delete(cb); }
-    };
-})();
-
-
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.querySelector('#searchInput');
 
@@ -188,7 +37,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (navLinks.length > 0) {
             navLinks.forEach(link => {
                 link.addEventListener('click', () => {
-                    if (window.innerWidth < 992) {
+                    // if (window.innerWidth < 992) {
+                    if (window.innerWidth < 392) {
                         toggleSidebar();
                     }
                 });
@@ -200,7 +50,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Handle window resize
         window.addEventListener('resize', () => {
-            if (window.innerWidth >= 992) {
+            // if (window.innerWidth >= 992) {
+            if (window.innerWidth >= 392) {
                 sidebar.classList.remove('show');
                 backdrop.classList.remove('show');
             }
@@ -211,12 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
-// Deliberately NOT starting StudentsCache here. It now starts itself lazily
-// (see ensureStarted() above) the first time something actually asks for
-// student data — the Students page, the issuance "new issuance" dropdown,
-// a report, or the lost-book modal — instead of downloading the whole
-// roster on every page load even when nobody visits those features.
 
 // DOM Elements
 const pages = document.querySelectorAll('.page');
@@ -307,12 +152,6 @@ function showPage(pageId) {
             page.classList.add('active');
         }
     });
-    // Only pull the full student roster once the Students page is actually
-    // opened, instead of on every page load regardless of which page the
-    // user lands on.
-    if (pageId === 'students' && window.studentManager) {
-        window.studentManager.ensureLoaded();
-    }
 }
 
 function setActiveLink(activeLink) {
@@ -333,10 +172,7 @@ class DashboardManager {
             this.updateBookStats();
         });
 
-        // The student count now lives in its own tiny counter node, so the
-        // dashboard only ever fetches/listens to that one value instead of
-        // the whole roster.
-        db.ref(STUDENT_COUNT_PATH).on('value', () => {
+        db.ref('students').on('value', () => {
             this.updateStudentStats();
         });
 
@@ -399,16 +235,8 @@ class DashboardManager {
 
     async updateStudentStats() {
         try {
-            const snapshot = await db.ref(STUDENT_COUNT_PATH).once('value');
-            let totalStudents = snapshot.val();
-            if (totalStudents === null) {
-                // First run after this change — the counter doesn't exist
-                // yet. Seed it once from the current roster; every add/
-                // delete after this keeps it accurate without ever
-                // re-reading the full students node again.
-                totalStudents = StudentsCache.getAll().size;
-                await db.ref(STUDENT_COUNT_PATH).set(totalStudents);
-            }
+            const snapshot = await db.ref('students').once('value');
+            const totalStudents = snapshot.numChildren();
             document.getElementById('totalStudents').textContent = totalStudents;
         } catch (error) {
             console.error('Error updating student stats:', error);
@@ -586,12 +414,6 @@ class BookManager {
                                     <input type="number" class="form-control" name="quantity" required min="1" 
                                         value="${bookData?.quantity || 1}">
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Replacement Cost (KES)</label>
-                                    <input type="number" class="form-control" name="replacementCost" min="0" step="1"
-                                        placeholder="Cost to replace one copy"
-                                        value="${bookData?.replacementCost || ''}">
-                                </div>
                                 ${bookId ? `<input type="hidden" name="bookId" value="${bookId}">` : ''}
                             </form>
                         </div>
@@ -639,7 +461,6 @@ class BookManager {
                 grade: formData.get('grade'),
                 subject: formData.get('subject'),
                 quantity: quantity,
-                replacementCost: parseFloat(formData.get('replacementCost')) || 0,
                 updatedAt: Date.now()
             };
 
@@ -701,7 +522,6 @@ class BookManager {
             <p>Category: ${book.category}</p>
             <p>Available: ${book.available}/${book.quantity}</p>
             <p>Lost: ${book.lost || 0}</p>
-            <p>Replacement Cost: KES ${Number(book.replacementCost || 0).toLocaleString()}</p>
             <div class="card-actions">
                 <button onclick="bookManager.showBookModal('${bookId}')">Edit</button>
                 <button onclick="bookManager.deleteBook('${bookId}')">Delete</button>
@@ -893,59 +713,14 @@ class BookManager {
 // Students Management
 class StudentManager {
     constructor() {
-        this.studentsRef = db.ref(STUDENTS_PATH);
+        this.studentsRef = db.ref('students');
         this.studentsList = document.getElementById('studentsList');
         this.studentForm = document.getElementById('studentForm');
-        this.pageSize = 30;
-        this.renderedCount = 0;
-        this.currentFilteredList = [];
-        this.cacheStarted = false;
-        this.setupLoadMoreButton();
+        this.allStudents = new Map();
         this.setupListeners();
-        this.setupFilterListeners();
-        // NOTE: no data is fetched here. The full roster (via StudentsCache)
-        // is only pulled once ensureLoaded() runs — see below — which fires
-        // when the Students page is actually opened (see showPage()), not
-        // on every page load regardless of which page the user lands on.
-        const studentsPageEl = document.getElementById('students');
-        if (studentsPageEl && studentsPageEl.classList.contains('active')) {
-            this.ensureLoaded();
-        }
-    }
-
-    // Starts the (expensive, full-roster) cache sync the first time it's
-    // actually needed. Safe to call repeatedly — no-ops after the first call.
-    ensureLoaded() {
-        if (this.cacheStarted) return;
-        this.cacheStarted = true;
+        this.loadStudents();
         this.setupStatusListener();
-        this.applyFilters();
-        StudentsCache.onChange(() => this.applyFilters());
-    }
-
-    // Kept for compatibility with any code that expects a Map of
-    // studentId -> student; now backed by the shared cache instead of a
-    // private copy of the data.
-    get allStudents() {
-        return StudentsCache.getAll();
-    }
-
-    setupLoadMoreButton() {
-        // Created here rather than relying on markup in index.html, so this
-        // works regardless of what's already in the page.
-        this.loadMoreBtn = document.getElementById('studentsLoadMoreBtn');
-        if (!this.loadMoreBtn && this.studentsList) {
-            this.loadMoreBtn = document.createElement('button');
-            this.loadMoreBtn.id = 'studentsLoadMoreBtn';
-            this.loadMoreBtn.type = 'button';
-            this.loadMoreBtn.className = 'btn btn-outline-secondary w-100 mt-3';
-            this.loadMoreBtn.textContent = 'Load more students';
-            this.studentsList.insertAdjacentElement('afterend', this.loadMoreBtn);
-        }
-        if (this.loadMoreBtn) {
-            this.loadMoreBtn.style.display = 'none';
-            this.loadMoreBtn.addEventListener('click', () => this.renderNextPage());
-        }
+        this.setupFilterListeners();
     }
 
     setupStatusListener() {
@@ -956,6 +731,7 @@ class StudentManager {
     }
 
     async updateAllStudentStatuses() {
+        const studentsSnapshot = await this.studentsRef.once('value');
         const issuanceSnapshot = await db.ref('issuance').once('value');
         
         const activeIssuances = new Map();
@@ -969,10 +745,10 @@ class StudentManager {
             }
         });
 
-        // Update each student's status (student IDs come from the cache —
-        // no need to re-read the whole students node just for the key list)
+        // Update each student's status
         const updates = {};
-        StudentsCache.getAll().forEach((student, studentId) => {
+        studentsSnapshot.forEach(childSnapshot => {
+            const studentId = childSnapshot.key;
             const activeCount = activeIssuances.get(studentId) || 0;
             updates[`${studentId}/hasActiveBooks`] = activeCount > 0;
         });
@@ -986,11 +762,8 @@ class StudentManager {
         if (confirm('Are you sure you want to delete ALL students? This action cannot be undone.')) {
             try {
                 await this.studentsRef.remove();
-                await db.ref(STUDENT_COUNT_PATH).set(0);
                 this.studentsList.innerHTML = ''; // Clear the displayed list
-                // No need to clear a local cache by hand — the child_removed
-                // events from this remove() will drain StudentsCache and its
-                // onChange listener will re-render automatically.
+                this.allStudents.clear(); // Clear the local cache
                 alert('All students have been deleted successfully.');
             } catch (error) {
                 console.error('Error deleting all students:', error);
@@ -1026,46 +799,19 @@ class StudentManager {
         }
     }
 
-    // One batched read of the whole issuance node, used to build per-student
-    // active/overdue flags in memory — replaces what used to be two separate
-    // Firebase queries PER STUDENT (up to 696 round trips for 348 students).
-    async loadIssuanceStatusMaps() {
-        const activeMap = new Map();
-        const overdueMap = new Map();
-        const snapshot = await db.ref('issuance').once('value');
-        const currentDate = Date.now();
-
-        snapshot.forEach(child => {
-            const issuance = child.val();
-            if (issuance.status !== 'active') return;
-            activeMap.set(issuance.studentId, true);
-            if (new Date(issuance.returnDate).getTime() < currentDate) {
-                overdueMap.set(issuance.studentId, true);
-            }
-        });
-
-        return { activeMap, overdueMap };
-    }
-
     async applyFilters() {
         const grade = document.getElementById('gradeFilter').value;
         const status = document.getElementById('studentStatusFilter').value;
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-        // Clear the current list and reset pagination — this is a fresh filter pass.
+        // Clear the current list
         this.studentsList.innerHTML = '';
-        this.renderedCount = 0;
-        this.currentFilteredList = [];
 
         try {
-            const students = StudentsCache.getAll();
+            const snapshot = await this.studentsRef.once('value');
+            const students = snapshot.val();
 
-            // Only pay for the issuance read when a status filter is actually applied.
-            const { activeMap, overdueMap } = status
-                ? await this.loadIssuanceStatusMaps()
-                : { activeMap: null, overdueMap: null };
-
-            for (const [studentId, student] of students.entries()) {
+            for (const [studentId, student] of Object.entries(students)) {
                 let showStudent = true;
 
                 // Apply grade filter
@@ -1073,10 +819,10 @@ class StudentManager {
                     showStudent = false;
                 }
 
-                // Apply status filter (from the batched maps — no per-student query)
-                if (showStudent && status) {
-                    const hasActiveBooks = activeMap.has(studentId);
-                    const hasOverdueBooks = overdueMap.has(studentId);
+                // Apply status filter
+                if (status) {
+                    const hasActiveBooks = await this.checkStudentHasActiveBooks(studentId);
+                    const hasOverdueBooks = await this.checkStudentHasOverdueBooks(studentId);
 
                     switch (status) {
                         case 'hasBooks':
@@ -1092,39 +838,21 @@ class StudentManager {
                 }
 
                 // Apply search filter
-                if (showStudent && searchTerm) {
+                if (searchTerm) {
                     const searchableText = `${student.name} ${student.assessmentNo} ${student.grade}`.toLowerCase();
                     if (!searchableText.includes(searchTerm)) {
                         showStudent = false;
                     }
                 }
 
+                // Render student if they match all filters
                 if (showStudent) {
-                    this.currentFilteredList.push([studentId, student]);
+                    this.renderStudentCard(student, studentId);
                 }
             }
-
-            // Render only the first page — the rest render on "Load more"
-            // click, so a search across 348 students doesn't mean painting
-            // 348 DOM cards (with an image lookup each) in one go.
-            this.renderNextPage();
         } catch (error) {
             console.error('Error applying filters:', error);
             await this.showError('Filter Error', 'Failed to apply filters');
-        }
-    }
-
-    renderNextPage() {
-        const nextBatch = this.currentFilteredList.slice(this.renderedCount, this.renderedCount + this.pageSize);
-        nextBatch.forEach(([studentId, student]) => this.renderStudentCard(student, studentId));
-        this.renderedCount += nextBatch.length;
-
-        if (this.loadMoreBtn) {
-            const remaining = this.currentFilteredList.length - this.renderedCount;
-            this.loadMoreBtn.style.display = remaining > 0 ? '' : 'none';
-            this.loadMoreBtn.textContent = remaining > 0
-                ? `Load more students (${remaining} remaining)`
-                : 'Load more students';
         }
     }
 
@@ -1164,16 +892,11 @@ class StudentManager {
     async showStudentModal(studentId = null) {
         const modal = document.getElementById('studentModal');
         if (studentId) {
-            // Prefer the cache (instant, no network round-trip); fall back
-            // to a live read only if this student somehow isn't cached yet.
-            let studentData = StudentsCache.get(studentId);
-            if (!studentData) {
-                const snapshot = await this.studentsRef.child(studentId).once('value');
-                studentData = normalizeStudent(snapshot.val());
-            }
+            const snapshot = await this.studentsRef.child(studentId).once('value');
+            const studentData = snapshot.val();
             if (studentData) {
                 document.getElementById('studentName').value = studentData.fullName || studentData.name || '';
-                document.getElementById('Assessment No').value = studentData.assessmentNo || '';
+                document.getElementById('assessmentNo').value = studentData.assessmentNo || '';
                 document.getElementById('upi').value = studentData.upi || '';
                 document.getElementById('phoneNumber').value = studentData.phoneNumber || '';
                 document.getElementById('grade').value = studentData.grade || '';
@@ -1191,7 +914,7 @@ class StudentManager {
         const studentData = {
             fullName: document.getElementById('studentName').value,
             name: document.getElementById('studentName').value,
-            assessmentNo: document.getElementById('Assessment No').value,
+            assessmentNo: document.getElementById('assessmentNo').value,
             upi: document.getElementById('upi').value,
             phoneNumber: document.getElementById('phoneNumber').value,
             grade: document.getElementById('grade').value,
@@ -1203,7 +926,6 @@ class StudentManager {
             await this.studentsRef.child(editId).update(studentData);
         } else {
             await this.studentsRef.push(studentData);
-            await db.ref(STUDENT_COUNT_PATH).transaction(current => (current || 0) + 1);
         }
 
         studentModal.classList.remove('active');
@@ -1223,6 +945,23 @@ class StudentManager {
 
         await this.studentsRef.child(studentId).update({
             activeIssuances: activeIssuances
+        });
+    }
+
+    loadStudents() {
+        this.studentsRef.on('value', async (snapshot) => {
+            this.allStudents.clear();
+            const promises = [];
+            
+            snapshot.forEach((childSnapshot) => {
+                const student = childSnapshot.val();
+                const studentId = childSnapshot.key;
+                this.allStudents.set(studentId, student);
+                promises.push(this.updateStudentIssuanceStatus(studentId));
+            });
+            
+            await Promise.all(promises);
+            this.applyFilters();
         });
     }
 
@@ -1279,7 +1018,6 @@ class StudentManager {
     async deleteStudent(studentId) {
         if (confirm('Are you sure you want to delete this student?')) {
             await this.studentsRef.child(studentId).remove();
-            await db.ref(STUDENT_COUNT_PATH).transaction(current => Math.max(0, (current || 0) - 1));
         }
     }
 }
@@ -1422,19 +1160,16 @@ class IssuanceManager {
         }
 
         try {
-            // Filter the already-synced cache instead of issuing a fresh
-            // Firebase query every time this dropdown is opened.
-            const matches = [];
-            StudentsCache.getAll().forEach((student, studentId) => {
-                if (student.grade === grade) {
-                    matches.push([studentId, student]);
-                }
-            });
+            const snapshot = await db.ref('students')
+                .orderByChild('grade')
+                .equalTo(grade)
+                .once('value');
 
-            if (matches.length > 0) {
-                matches.forEach(([studentId, student]) => {
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    const student = childSnapshot.val();
                     const option = document.createElement('option');
-                    option.value = studentId;
+                    option.value = childSnapshot.key;
                     option.textContent = `${student.name} (${student.assessmentNo || 'No Assessment No'})`;
                     this.studentSelect.appendChild(option);
                 });
@@ -2697,7 +2432,6 @@ class ReportManager {
         this.reportTable = document.getElementById('reportTable');
         this.setupListeners();
         this.initializeDates();
-        this.generateReport(); // Show the default report (Lost Books) immediately, no click needed
     }
 
 
@@ -3566,9 +3300,10 @@ getStartDateFromDatabase() {
 
     async generateStudentActivityReport(start, end) {
         const issuanceSnapshot = await db.ref('issuance').once('value');
-        const students = StudentsCache.getAll();
+        const studentsSnapshot = await db.ref('students').once('value');
         
         const issuances = issuanceSnapshot.val();
+        const students = studentsSnapshot.val();
         
         let studentActivity = {};
         
@@ -3577,7 +3312,7 @@ getStartDateFromDatabase() {
             if (issueDate >= start && issueDate <= end) {
                 if (!studentActivity[issuance.studentId]) {
                     studentActivity[issuance.studentId] = {
-                        student: students.get(issuance.studentId),
+                        student: students[issuance.studentId],
                         totalBooks: 0,
                         active: 0,
                         returned: 0,
@@ -4216,14 +3951,19 @@ class LostBooksManager {
             // Clear form
             form.reset();
 
-            // Populate students (from the synced cache — no fresh network read)
+            // Populate students
+            const studentsSnapshot = await db.ref('students').once('value');
             studentSelect.innerHTML = '<option value="">Select Student</option>';
-            StudentsCache.getAll().forEach((student, studentId) => {
-                const studentName = student.fullName || student.name || 'Unknown';
-                const grade = student.grade || 'N/A';
-                const assessmentNo = student.assessmentNo || '';
-                studentSelect.innerHTML += `<option value="${studentId}" data-grade="${grade}" data-assessment="${assessmentNo}">${grade} - ${studentName} (${assessmentNo})</option>`;
-            });
+            if (studentsSnapshot.exists()) {
+                studentsSnapshot.forEach(childSnapshot => {
+                    const student = childSnapshot.val();
+                    const studentId = childSnapshot.key;
+                    const studentName = student.fullName || student.name || 'Unknown';
+                    const grade = student.grade || 'N/A';
+                    const assessmentNo = student.assessmentNo || '';
+                    studentSelect.innerHTML += `<option value="${studentId}" data-grade="${grade}" data-assessment="${assessmentNo}">${grade} - ${studentName} (${assessmentNo})</option>`;
+                });
+            }
 
             // Populate books
             const booksSnapshot = await db.ref('books').once('value');
@@ -4251,8 +3991,6 @@ class LostBooksManager {
                 const bookId = bookSelect.value;
                 const lostDate = document.getElementById('lostBookDate').value;
                 const notes = document.getElementById('lostBookNotes').value;
-                const conditionField = document.getElementById('lostBookCondition');
-                const condition = conditionField ? conditionField.value : '';
 
                 if (!studentId || !bookId || !lostDate) {
                     await Swal.fire('Validation Error', 'Please fill in all required fields', 'warning');
@@ -4269,7 +4007,6 @@ class LostBooksManager {
                         status: 'lost',
                         lostDate: lostDate,
                         notes: notes,
-                        condition: condition,
                         recoveryStatus: false,
                         timestamp: new Date().getTime(),
                         issueDate: document.getElementById('lostBookIssueDate').value || new Date().toISOString().split('T')[0]

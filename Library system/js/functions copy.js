@@ -1,27 +1,6 @@
 class DashboardFunctions {
     constructor() {
         this.db = firebase.database();
-        // Same students collection app.js's StudentManager reads/writes —
-        // real records there use fields like "Official Student Name", "Grade",
-        // "Assessment No", "UPI" rather than lowerCamelCase. Reuse app.js's
-        // normalizeStudent() if it's already loaded; define a fallback otherwise.
-        if (typeof normalizeStudent !== 'function') {
-            window.normalizeStudent = function(raw) {
-                if (!raw) return raw;
-                return {
-                    ...raw,
-                    name: raw.name || raw.fullName || raw['Official Student Name'] || 'Unknown',
-                    fullName: raw.fullName || raw['Official Student Name'] || raw.name || 'Unknown',
-                    assessmentNo: (raw.assessmentNo || raw['Assessment No'] || '').toString().trim(),
-                    grade: raw.grade || raw['Grade'] || '',
-                    upi: raw.upi || raw.upiNo || raw['UPI'] || '',
-                    phoneNumber: raw.phoneNumber || raw['Home phone'] || ''
-                };
-            };
-        }
-        this.studentsPath = (typeof sanitizedAppId !== 'undefined')
-            ? `artifacts/${sanitizedAppId}/students`
-            : 'students';
         this.chartListeners = []; // Move this line up before any method calls
         this.initGlobalModal();
         this.setupEventListeners();
@@ -43,8 +22,6 @@ class DashboardFunctions {
             },
             'systemBackupBtn': () => this.handleSystemBackup(),
             'viewAllActivities': () => this.showAllActivities(),
-            'clearAllActivitiesBtn': () => this.clearAllActivities(),
-            'clearAllNotificationsBtn': () => this.clearAllNotifications(),
             'bulkIssuanceBtn': () => this.handleBulkIssuance(),
             'downloadTemplate': (e) => {
                 e.preventDefault();
@@ -332,13 +309,18 @@ class DashboardFunctions {
                 studentSelect.disabled = true;
                 
                 if (gradeSelect.value) {
-                    // Filter the shared, already-synced cache instead of
-                    // issuing a fresh Firebase query every time this opens.
+                    // Fetch students for selected grade
+                    const studentsSnapshot = await this.db.ref('students')
+                        .orderByChild('grade')
+                        .equalTo(gradeSelect.value)
+                        .once('value');
+                    
                     const students = [];
-                    StudentsCache.getAll().forEach((student, id) => {
-                        if (student.grade === gradeSelect.value) {
-                            students.push({ id, ...student });
-                        }
+                    studentsSnapshot.forEach(child => {
+                        students.push({
+                            id: child.key,
+                            ...child.val()
+                        });
                     });
 
                     // Sort students by name
@@ -379,8 +361,12 @@ class DashboardFunctions {
                 }
 
                 try {
-                    const bookSnapshot = await this.db.ref(`books/${bookId}`).once('value');
-                    const student = StudentsCache.get(studentId);
+                    const [studentSnapshot, bookSnapshot] = await Promise.all([
+                        this.db.ref(`students/${studentId}`).once('value'),
+                        this.db.ref(`books/${bookId}`).once('value')
+                    ]);
+
+                    const student = studentSnapshot.val();
                     const book = bookSnapshot.val();
 
                     if (!student || !book) {
@@ -394,7 +380,7 @@ class DashboardFunctions {
                         grade: student.grade,
                         upi: student.upi,
                         bookId,
-                        isbn: book.isbn || '',
+                        isbn,
                         bookTitle: book.title,
                         issueDate: new Date().toISOString().split('T')[0],
                         returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -469,9 +455,12 @@ class DashboardFunctions {
                 issuanceSnapshot.forEach(childSnapshot => {
                     const issuance = childSnapshot.val();
                     if (issuance.grade === gradeSelect.value) {
-                        const student = StudentsCache.get(issuance.studentId);
                         promises.push(
-                            this.db.ref(`books/${issuance.bookId}`).once('value').then(bookSnapshot => {
+                            Promise.all([
+                                this.db.ref(`students/${issuance.studentId}`).once('value'),
+                                this.db.ref(`books/${issuance.bookId}`).once('value')
+                            ]).then(([studentSnapshot, bookSnapshot]) => {
+                                const student = studentSnapshot.val();
                                 const book = bookSnapshot.val();
                                 if (student && book) {
                                     const option = document.createElement('option');
@@ -723,7 +712,8 @@ class DashboardFunctions {
             }
             
             if (activity.studentId) {
-                const student = StudentsCache.get(activity.studentId);
+                const studentSnapshot = await this.db.ref(`students/${activity.studentId}`).once('value');
+                const student = studentSnapshot.val();
                 if (student) {
                     details += `
                         <div class="detail-group">
@@ -1024,11 +1014,11 @@ class DashboardFunctions {
     async collectSystemData() {
         try {
             const data = {};
-            const refs = { books: 'books', students: this.studentsPath, issuance: 'issuance', activities: 'activities', notifications: 'notifications' };
+            const refs = ['books', 'students', 'issuance', 'activities', 'notifications'];
             
-            for (const [label, path] of Object.entries(refs)) {
-                const snapshot = await this.db.ref(path).once('value');
-                data[label] = snapshot.val();
+            for (const ref of refs) {
+                const snapshot = await this.db.ref(ref).once('value');
+                data[ref] = snapshot.val();
             }
             
             return data;
@@ -1463,34 +1453,29 @@ async processCSV(data) {
                 }
 
                 // Check if student exists, if not, create new student
-                const studentSnapshot = await this.db.ref(`${this.studentsPath}/${issuance.studentId}`).once('value');
+                const studentSnapshot = await this.db.ref(`students/${issuance.studentId}`).once('value');
                 let student = studentSnapshot.val();
                 
                 if (!student) {
-                    // Written with the real schema's field names (as used by
-                    // app.js's StudentManager: "Official Student Name", "Grade", etc.)
                     student = {
-                        'Official Student Name': issuance.studentName,
-                        'Grade': issuance.grade,
-                        'UPI': issuance.upi,
-                        'Assessment No': issuance.studentId,
-                        'Gender': issuance.gender,
+                        name: issuance.studentName,
+                        grade: issuance.grade,
+                        upi: issuance.upi,
+                        gender: issuance.gender, // Add gender field
                         createdAt: Date.now(),
                         status: 'active'
                     };
 
-                    if (!student['Official Student Name'] || !student['Grade'] || !student['UPI'] || !student['Gender']) {
+                    if (!student.name || !student.grade || !student.upi || !student.gender) {
                         errorMessages.push(`Missing required student information for ID ${issuance.studentId}`);
                         continue;
                     }
 
                     batch.push(
-                        this.db.ref(`${this.studentsPath}/${issuance.studentId}`).set(student)
+                        this.db.ref(`students/${issuance.studentId}`).set(student)
                     );
                     newStudentsCount++;
-                    student = normalizeStudent(student);
                 } else {
-                    student = normalizeStudent(student);
                     // Verify student isn't already issued this book
                     const existingIssuance = await this.db.ref('issuance')
                         .orderByChild('studentId')
@@ -1725,10 +1710,12 @@ async processCSV(data) {
         const studentSelect = document.getElementById('quickStudent');
         const bookSelect = document.getElementById('quickBook');
         
-        // Populate students (from the synced cache — no fresh network read)
-        StudentsCache.getAll().forEach((student, studentId) => {
+        // Populate students
+        const studentsSnapshot = await this.db.ref('students').once('value');
+        studentsSnapshot.forEach(childSnapshot => {
+            const student = childSnapshot.val();
             const option = document.createElement('option');
-            option.value = studentId;
+            option.value = childSnapshot.key;
             option.textContent = `${student.name} - ${student.grade} (${student.assessmentNo || 'No ID'})`;
             studentSelect.appendChild(option);
         });
@@ -1757,9 +1744,12 @@ async processCSV(data) {
         const promises = [];
         issuanceSnapshot.forEach(childSnapshot => {
             const issuance = childSnapshot.val();
-            const student = StudentsCache.get(issuance.studentId);
             promises.push(
-                this.db.ref(`books/${issuance.bookId}`).once('value').then(bookSnapshot => {
+                Promise.all([
+                    this.db.ref(`students/${issuance.studentId}`).once('value'),
+                    this.db.ref(`books/${issuance.bookId}`).once('value')
+                ]).then(([studentSnapshot, bookSnapshot]) => {
+                    const student = studentSnapshot.val();
                     const book = bookSnapshot.val();
                     if (student && book) {
                         const option = document.createElement('option');
@@ -2241,57 +2231,6 @@ async processCSV(data) {
                 'Delete Failed',
                 'Failed to delete activity: ' + error.message
             );
-        }
-    }
-
-    // One-click clear for the whole 'activities' node (Recent Activities panel).
-    async clearAllActivities() {
-        try {
-            const result = await Swal.fire({
-                title: 'Clear All Activities',
-                text: 'This will permanently delete every recorded activity. This action cannot be undone.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, clear all',
-                cancelButtonText: 'Cancel'
-            });
-
-            if (result.isConfirmed) {
-                await this.db.ref('activities').remove();
-                await this.loadRecentActivities();
-                await this.showSuccess('Cleared', 'All activities have been deleted');
-            }
-        } catch (error) {
-            console.error('Error clearing activities:', error);
-            await this.showError('Clear Failed', 'Failed to clear activities: ' + error.message);
-        }
-    }
-
-    // One-click clear for the whole 'messages' node (Important Notifications
-    // panel). Same underlying node message.js's Messages page manages, so
-    // this clears the librarian inbox too, not just this dashboard widget.
-    async clearAllNotifications() {
-        try {
-            const result = await Swal.fire({
-                title: 'Clear All Notifications',
-                text: 'This will permanently delete every notification/message, including any in the Messages page. This action cannot be undone.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, clear all',
-                cancelButtonText: 'Cancel'
-            });
-
-            if (result.isConfirmed) {
-                await this.db.ref('messages').remove();
-                await this.showSuccess('Cleared', 'All notifications have been deleted');
-            }
-        } catch (error) {
-            console.error('Error clearing notifications:', error);
-            await this.showError('Clear Failed', 'Failed to clear notifications: ' + error.message);
         }
     }
 
