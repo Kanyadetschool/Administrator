@@ -1,16 +1,17 @@
 /* ============================================================
-   Book card — redesigned in the flat "app-card" style:
-   soft white card, small rounded cover tile, bold title,
-   muted meta lines, pill status badge, ghost action button.
-   Class names are unchanged (grid-item, book-cover-container,
-   book-cover, book-info, book-status, status-*) so no JS changes
-   are needed — only new look, same markup.
+   Book card — premium "brand card" style: navy + warm cream
+   palette, gold accent line, small cover tile, grade + status
+   badges, icon meta row, stat strip, refined pill actions.
+
+   Scope: rules under `.book-card` only affect the main book
+   catalogue grid. `.grid-item` base rules still apply to
+   issuance-card / lost-book-card so those are untouched.
    ============================================================ */
 
 .grid-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 1.1rem;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.25rem;
 }
 
 .grid-item {
@@ -32,21 +33,92 @@
     box-shadow: 0 14px 28px rgba(22, 35, 61, 0.08);
 }
 
-/* Cover: small rounded "icon tile" in the top-left, like the
-   feature-icon squares in the reference — tinted by status
-   instead of a heavy overlay bar across the artwork. */
+/* ------------------------------------------------------------
+   Premium book card
+   ------------------------------------------------------------ */
+
+.book-card {
+    position: relative;
+    padding: 1.3rem 1.3rem 1.25rem;
+    border-radius: 20px;
+    border-color: #EAE6DA;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(22, 35, 61, 0.05);
+}
+
+/* Gold-on-navy accent line across the top, echoing a brand card edge */
+.book-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #16233D 0%, #1F5F8B 55%, #D8A93A 100%);
+}
+
+/* Soft glow flourish in the corner, echoing the wave in a brand card */
+.book-card::after {
+    content: "";
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(31, 95, 139, 0.07), rgba(31, 95, 139, 0) 70%);
+    pointer-events: none;
+}
+
+.book-card:hover {
+    transform: translateY(-4px);
+    border-color: #DCD5C0;
+    box-shadow: 0 18px 34px rgba(22, 35, 61, 0.12);
+}
+
+.book-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+    position: relative;
+    z-index: 1;
+}
+
+.book-card-badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+}
+
+.grade-badge {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: #16233D;
+    color: #F4EFE1;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Cover: rounded "icon tile" — tinted, not overlaid */
 .book-cover-container {
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
     flex: none;
     position: relative;
     overflow: hidden;
-    border-radius: 13px;
+    border-radius: 14px;
     background: linear-gradient(145deg, #EEF2F1, #FAF6EC);
-    box-shadow: inset 0 0 0 1px rgba(31, 95, 139, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(31, 95, 139, 0.1);
 }
 
-.book-cover {
+.book-cover,
+.book-cover-container img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -54,18 +126,16 @@
     transition: transform 0.3s ease;
 }
 
-.grid-item:hover .book-cover {
+.book-card:hover .book-cover,
+.book-card:hover .book-cover-container img {
     transform: scale(1.06);
 }
 
-/* Status now lives as a small dot on the cover tile's corner —
-   no more full-width overlay hiding the artwork. */
+/* Legacy corner-dot status indicator (kept for compatibility) */
 .book-status {
     position: absolute;
     top: -3px;
     right: -3px;
-    left: auto;
-    bottom: auto;
     width: 14px;
     height: 14px;
     padding: 0;
@@ -73,77 +143,148 @@
     border: 2px solid #ffffff;
     font-size: 0;
     color: transparent;
-    background: rgba(20, 43, 64, 0.5);
-    backdrop-filter: none;
 }
 
 .status-available { background-color: #2EA85A; }
 .status-borrowed  { background-color: #E3A011; }
-.status-lost       { background-color: #DC4545; }
+.status-lost      { background-color: #DC4545; }
 
-/* Text block: bold title, then quiet meta lines underneath —
-   mirrors the heading + description pattern in the reference. */
-.book-info {
+/* Status pill badge */
+.book-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.6rem 0.28rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.book-status-pill .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+}
+
+.book-status-pill.status-available { background: rgba(46, 168, 90, 0.12); color: #1E8245; }
+.book-status-pill.status-borrowed  { background: rgba(227, 160, 17, 0.14); color: #92670A; }
+.book-status-pill.status-lost      { background: rgba(220, 69, 69, 0.12); color: #B92E2E; }
+
+/* Text block */
+.book-card .book-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    position: relative;
+    z-index: 1;
+}
+
+.book-card .book-title {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    line-height: 1.32;
+    color: #ffff;
+    display: -webkit-box;
+    -webkit-line-clamp: 2px;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.book-meta {
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
 }
 
-.book-info h3,
-.book-info h4,
-.book-info .book-title {
-    margin: 0;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    line-height: 1.3;
-    color: #16233D;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.book-info p,
-.book-info span:not(.badge),
-.book-info small {
-    margin: 0;
-    font-size: 0.82rem;
-    line-height: 1.5;
-    color: #7A7566;
-}
-
-/* Footer row: status as a soft pill (readable, not a strip
-   painted over the cover) + a quiet "Learn more"-style action. */
-.book-card-footer,
-.book-info .actions {
+.book-meta span {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.6rem;
-    margin-top: 0.35rem;
+    gap: 0.45rem;
+    font-size: 0.8rem;
+    color: #7A7566;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.book-status-pill {
-    display: inline-flex;
+.book-meta i {
+    flex: none;
+    font-size: 0.85rem;
+    color: #1F5F8B;
+    width: 1rem;
+    text-align: center;
+}
+
+/* Stat strip: Available / Total / Lost */
+.book-stats {
+    display: flex;
+    align-items: stretch;
+    background: #FAF8F3;
+    border: 1px solid #EFEBDF;
+    border-radius: 12px;
+    padding: 0.55rem 0.4rem;
+    margin-top: 0.1rem;
+}
+
+.book-stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.7rem;
-    border-radius: 999px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    gap: 0.1rem;
+    text-align: center;
+    border-left: 1px solid #EFEBDF;
 }
 
-.book-status-pill.status-available { background: rgba(46, 168, 90, 0.12); color: #1E8245; }
-.book-status-pill.status-borrowed  { background: rgba(227, 160, 17, 0.14); color: #92670A; }
-.book-status-pill.status-lost       { background: rgba(220, 69, 69, 0.12);  color: #B92E2E; }
+.book-stat:first-child {
+    border-left: none;
+}
 
-.grid-item .btn,
-.grid-item button,
-.grid-item a.book-action {
-    align-self: flex-start;
-    padding: 0.4rem 0.9rem;
+.book-stat strong {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #16233D;
+    line-height: 1.1;
+}
+
+.book-stat span {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #9A9484;
+}
+
+.book-stat-lost strong {
+    color: #B92E2E;
+}
+
+.book-cost {
+    font-size: 0.74rem;
+    color: #9A9484;
+    font-weight: 600;
+}
+
+/* Footer actions */
+.book-card .card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-ghost,
+.book-card .card-actions button {
+    padding: 0.42rem 0.85rem;
     border-radius: 999px;
     border: 1px solid #E2DFD5;
     background: #FBFAF7;
@@ -151,18 +292,49 @@
     font-size: 0.78rem;
     font-weight: 600;
     text-decoration: none;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.grid-item .btn:hover,
-.grid-item button:hover,
-.grid-item a.book-action:hover {
+.btn-ghost:hover,
+.book-card .card-actions button:hover {
     background: #F1EEE4;
     border-color: #D6D2C4;
+}
+
+.btn-ghost-danger {
+    color: #B92E2E;
+}
+
+.btn-ghost-danger:hover {
+    background: rgba(220, 69, 69, 0.08);
+    border-color: rgba(220, 69, 69, 0.3);
+}
+
+.book-card .card-actions .btn-warning {
+    margin-left: auto;
+    background: #E3A011;
+    border-color: #E3A011;
+    color: #16233D;
+    font-weight: 700;
+}
+
+.book-card .card-actions .btn-warning:hover {
+    background: #CB8E0B;
+    border-color: #CB8E0B;
 }
 
 @media (max-width: 480px) {
     .grid-list {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .book-card .card-actions {
+        flex-wrap: wrap;
+    }
+
+    .book-card .card-actions .btn-warning {
+        margin-left: 0;
+        flex: 1 1 100%;
     }
 }

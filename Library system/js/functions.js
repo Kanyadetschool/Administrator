@@ -19,6 +19,44 @@ class DashboardFunctions {
                 };
             };
         }
+        // Same shared helper app.js defines for keeping books/{id}.available in
+        // sync (derived from quantity - lost - active issuances) rather than
+        // hand-adjusted in a dozen places — reuse it if already loaded, define
+        // a fallback otherwise, matching the normalizeStudent pattern above.
+        if (typeof recalculateBookAvailability !== 'function') {
+            window.recalculateBookAvailability = async function(bookId) {
+                const dbRef = firebase.database();
+                const [bookSnap, issuanceSnap] = await Promise.all([
+                    dbRef.ref(`books/${bookId}`).once('value'),
+                    dbRef.ref('issuance').orderByChild('bookId').equalTo(bookId).once('value')
+                ]);
+                const book = bookSnap.val();
+                if (!book) return null;
+                let activeCount = 0;
+                issuanceSnap.forEach(child => {
+                    const status = child.val().status;
+                    if (status === 'active' || status === 'overdue') activeCount++;
+                });
+                const quantity = Number(book.quantity) || 0;
+                const lost = Number(book.lost) || 0;
+                const available = Math.max(0, quantity - lost - activeCount);
+                await dbRef.ref(`books/${bookId}`).update({ available, updatedAt: Date.now() });
+                return available;
+            };
+        }
+        // Cache-first book lookup for display (see app.js's BooksCache) —
+        // reuse it if already loaded, else fall back to a plain direct read.
+        if (typeof getBookCached !== 'function') {
+            window.getBookCached = async function(bookId) {
+                if (!bookId) return null;
+                if (typeof BooksCache !== 'undefined') {
+                    const cached = BooksCache.get(bookId);
+                    if (cached) return cached;
+                }
+                const snapshot = await firebase.database().ref(`books/${bookId}`).once('value');
+                return snapshot.val();
+            };
+        }
         this.studentsPath = (typeof sanitizedAppId !== 'undefined')
             ? `artifacts/${sanitizedAppId}/students`
             : 'students';
@@ -49,7 +87,13 @@ class DashboardFunctions {
             'downloadTemplate': (e) => {
                 e.preventDefault();
                 this.downloadIssuanceTemplate();
-            }
+            },
+            // Optional — only wires up if index.html has a button with this
+            // id. Runs a one-time repair pass over every book, recomputing
+            // available from ground truth to fix any already-drifted records
+            // (e.g. "46 available / 46 total / 1 lost"). Can also be run
+            // from the console: dashboardFunctions.repairAllBookCounts()
+            'repairBookCountsBtn': () => this.repairAllBookCounts()
         };
 
         // Attach event listeners using optional chaining
@@ -387,8 +431,13 @@ class DashboardFunctions {
                         throw new Error('Student or book not found');
                     }
 
-                    // Create issuance record
-                    await this.db.ref('issuance').push({
+                    // Create issuance record — grab the key up front so the
+                    // activity log entry below can point at this exact
+                    // issuance (needed so "Report Lost" from the activity
+                    // feed marks the right student's copy, not just any
+                    // active issuance of this book title).
+                    const newIssuanceRef = this.db.ref('issuance').push();
+                    await newIssuanceRef.set({
                         studentId,
                         studentName: student.name,
                         grade: student.grade,
@@ -403,13 +452,12 @@ class DashboardFunctions {
                     });
 
                     // Update book availability
-                    await this.db.ref(`books/${bookId}`).update({
-                        available: book.available - 1,
-                        updatedAt: Date.now()
-                    });
+                    await recalculateBookAvailability(bookId);
 
                     // Create activity record
-                    await this.createActivity('issue', `Issued "${book.title}" to ${student.name}`);
+                    await this.createActivity('issue', `Issued "${book.title}" to ${student.name}`, {
+                        bookId, studentId, issuanceId: newIssuanceRef.key
+                    });
 
                     modal.hide();
                     await this.showSuccess('Success', 'Book issued successfully');
@@ -471,8 +519,7 @@ class DashboardFunctions {
                     if (issuance.grade === gradeSelect.value) {
                         const student = StudentsCache.get(issuance.studentId);
                         promises.push(
-                            this.db.ref(`books/${issuance.bookId}`).once('value').then(bookSnapshot => {
-                                const book = bookSnapshot.val();
+                            getBookCached(issuance.bookId).then(book => {
                                 if (student && book) {
                                     const option = document.createElement('option');
                                     option.value = childSnapshot.key;
@@ -514,14 +561,7 @@ class DashboardFunctions {
                 });
 
                 // Update book availability
-                const bookRef = this.db.ref(`books/${bookId}`);
-                const bookSnapshot = await bookRef.once('value');
-                const book = bookSnapshot.val();
-                
-                await bookRef.update({
-                    available: book.available + 1,
-                    updatedAt: Date.now()
-                });
+                await recalculateBookAvailability(bookId);
 
                 // Create activity record
                 await this.createActivity('return', 
@@ -643,7 +683,7 @@ class DashboardFunctions {
                         <i class="bi bi-arrow-return-left"></i> Return
                     </button>
                     <button class="btn btn-sm btn-outline-warning" 
-                            onclick="dashboardFunctions.reportBookLost('${activity.bookId}')">
+                            onclick="dashboardFunctions.reportBookLost('${activity.bookId}', '${activity.issuanceId || ''}')">
                         <i class="bi bi-exclamation-triangle"></i> Report Lost
                     </button>
                 `;
@@ -710,8 +750,7 @@ class DashboardFunctions {
             let details = '';
             
             if (activity.bookId) {
-                const bookSnapshot = await this.db.ref(`books/${activity.bookId}`).once('value');
-                const book = bookSnapshot.val();
+                const book = await getBookCached(activity.bookId);
                 if (book) {
                     details += `
                         <div class="detail-group">
@@ -982,6 +1021,36 @@ class DashboardFunctions {
         }
     }
 
+    // One-time/repeatable repair pass: recomputes every book's `available`
+    // from ground truth (quantity - lost - active issuances). Use this to fix
+    // records that drifted before the shared recalculateBookAvailability()
+    // helper was wired into every issue/return/lost/recovery/import path —
+    // e.g. a book showing 46 available / 46 total / 1 lost.
+    async repairAllBookCounts() {
+        try {
+            const booksSnapshot = await this.db.ref('books').once('value');
+            const bookIds = [];
+            booksSnapshot.forEach(child => bookIds.push(child.key));
+
+            const before = {};
+            booksSnapshot.forEach(child => { before[child.key] = child.val().available; });
+
+            let changed = 0;
+            for (const bookId of bookIds) {
+                const newAvailable = await recalculateBookAvailability(bookId);
+                if (newAvailable !== before[bookId]) changed++;
+            }
+
+            await this.showSuccess(
+                'Book Counts Repaired',
+                `Checked ${bookIds.length} books, corrected ${changed} with drifted available counts.`
+            );
+        } catch (error) {
+            console.error('Error repairing book counts:', error);
+            await this.showError('Repair Failed', `Failed to repair book counts: ${error.message}`);
+        }
+    }
+
     async showAllActivities() {
         // Implementation for showing all activities
         const activities = await this.getRecentActivities();
@@ -1052,17 +1121,17 @@ class DashboardFunctions {
             <div class="card-actions">
                 <button onclick="bookManager.showBookModal('${bookId}')">Edit</button>
                 <button onclick="bookManager.deleteBook('${bookId}')">Delete</button>
-                <button onclick="bookManager.reportLost('${bookId}')" class="btn-warning">Report Lost</button>
             </div>
         `;
         this.booksList.appendChild(card);
     }
 
-    async createActivity(type, description) {
+    async createActivity(type, description, extra = {}) {
         try {
             await this.db.ref('activities').push({
                 type,
                 description,
+                ...extra,
                 timestamp: Date.now()
             });
             // Refresh activities display
@@ -1218,8 +1287,10 @@ async processCSV(data) {
                         // Update existing book
                         const { bookId, data: existingBook } = existingBooksByIsbn.get(book.isbn);
                         book.bookId = bookId;
-                        book.available = Math.max(0, existingBook.available + (book.quantity - existingBook.quantity));
                         book.lost = existingBook.lost || 0;
+                        // Safe placeholder until the post-batch recalc below
+                        // corrects it against active issuances + lost.
+                        book.available = book.quantity;
                         booksToUpdate.push({ bookId, data: book });
                     } else {
                         // Create new book
@@ -1299,6 +1370,11 @@ async processCSV(data) {
         batch.push(...issuanceUpdates);
 
         await Promise.all(batch);
+
+        // Recompute available for every updated book from ground truth
+        // (quantity - lost - active issuances) now that issuance bookId
+        // references may also have shifted above.
+        await Promise.all(booksToUpdate.map(({ bookId }) => recalculateBookAvailability(bookId)));
 
         // Create activity record and show success message
         const totalBooks = booksToUpdate.length + booksToCreate.length;
@@ -1418,7 +1494,11 @@ async processCSV(data) {
    async processIssuances(issuances) {
     try {
         const batch = [];
-        const bookUpdates = {};
+        const touchedBookIds = new Set();
+        // Tracks copies claimed so far within this batch, so two rows
+        // issuing the same book don't both pass the availability check
+        // against the same stale pre-batch `available` read.
+        const pendingIssuedByBook = {};
         const studentIds = new Set();
         let successCount = 0;
         let errorMessages = [];
@@ -1457,7 +1537,7 @@ async processCSV(data) {
                     continue;
                 }
 
-                if (!book.available || book.available <= 0) {
+                if (!book.available || book.available <= (pendingIssuedByBook[issuance.bookId] || 0)) {
                     errorMessages.push(`Book "${book.title}" is not available`);
                     continue;
                 }
@@ -1511,15 +1591,11 @@ async processCSV(data) {
                     }
                 }
 
-                // Update book availability
-                if (!bookUpdates[issuance.bookId]) {
-                    bookUpdates[issuance.bookId] = {
-                        available: book.available - 1,
-                        updatedAt: Date.now()
-                    };
-                } else {
-                    bookUpdates[issuance.bookId].available--;
-                }
+                // Track which books this batch touches so we can recompute
+                // their available count from ground truth once everything's
+                // written, instead of hand-decrementing a running total here.
+                touchedBookIds.add(issuance.bookId);
+                pendingIssuedByBook[issuance.bookId] = (pendingIssuedByBook[issuance.bookId] || 0) + 1;
                 
                 // Create issuance record with ISBN
                 const verifiedIssuance = {
@@ -1552,15 +1628,13 @@ async processCSV(data) {
 
         // Process all updates if any successful issuances
         if (successCount > 0) {
-            // Update books
-            for (const [bookId, updates] of Object.entries(bookUpdates)) {
-                batch.push(
-                    this.db.ref(`books/${bookId}`).update(updates)
-                );
-            }
-
             await Promise.all(batch);
-            
+
+            // Recompute available for every touched book from ground truth
+            // (quantity - lost - active issuances) now that the issuances
+            // above are written.
+            await Promise.all([...touchedBookIds].map(bookId => recalculateBookAvailability(bookId)));
+
             // Create activity record
             await this.createActivity('bulk-issue', 
                 `Bulk issued ${successCount} books${newStudentsCount > 0 ? ` and added ${newStudentsCount} new students` : ''}`
@@ -1759,8 +1833,7 @@ async processCSV(data) {
             const issuance = childSnapshot.val();
             const student = StudentsCache.get(issuance.studentId);
             promises.push(
-                this.db.ref(`books/${issuance.bookId}`).once('value').then(bookSnapshot => {
-                    const book = bookSnapshot.val();
+                getBookCached(issuance.bookId).then(book => {
                     if (student && book) {
                         const option = document.createElement('option');
                         option.value = childSnapshot.key;
@@ -1874,7 +1947,7 @@ async processCSV(data) {
         }
     }
 
-    async reportBookLost(bookId) {
+    async reportBookLost(bookId, issuanceId = null) {
         try {
             // Get book details first
             const bookSnapshot = await this.db.ref(`books/${bookId}`).once('value');
@@ -1884,22 +1957,50 @@ async processCSV(data) {
                 throw new Error('Book not found');
             }
 
-            // Get active issuance for this book
-            const issuanceSnapshot = await this.db.ref('issuance')
-                .orderByChild('bookId')
-                .equalTo(bookId)
-                .once('value');
-
             let activeIssuance = null;
-            let issuanceId = null;
 
-            issuanceSnapshot.forEach(child => {
-                const issuance = child.val();
-                if (issuance.status === 'active') {
-                    activeIssuance = issuance;
-                    issuanceId = child.key;
+            if (issuanceId) {
+                // Came from a specific activity/issuance entry — use exactly
+                // that record instead of guessing which copy is meant.
+                const issuanceSnap = await this.db.ref(`issuance/${issuanceId}`).once('value');
+                activeIssuance = issuanceSnap.val();
+                if (!activeIssuance || activeIssuance.status !== 'active') {
+                    activeIssuance = null;
+                    issuanceId = null;
                 }
-            });
+            }
+
+            if (!issuanceId) {
+                // No specific issuance given (older activity entry, or called
+                // without one) — only auto-pick one if there's exactly one
+                // active issuance of this book, so we never risk attributing
+                // a loss to the wrong student when several copies are out.
+                const issuanceSnapshot = await this.db.ref('issuance')
+                    .orderByChild('bookId')
+                    .equalTo(bookId)
+                    .once('value');
+
+                const activeMatches = [];
+                issuanceSnapshot.forEach(child => {
+                    const issuance = child.val();
+                    if (issuance.status === 'active') {
+                        activeMatches.push({ id: child.key, data: issuance });
+                    }
+                });
+
+                if (activeMatches.length > 1) {
+                    await this.showWarning(
+                        'Multiple Copies Issued',
+                        `"${book.title}" has ${activeMatches.length} copies currently issued to different students. Report the loss from the specific student's entry in the Issuance list so it's attributed correctly.`
+                    );
+                    return;
+                }
+
+                if (activeMatches.length === 1) {
+                    issuanceId = activeMatches[0].id;
+                    activeIssuance = activeMatches[0].data;
+                }
+            }
 
             const result = await Swal.fire({
                 title: 'Report Book Lost',
@@ -1935,7 +2036,6 @@ async processCSV(data) {
                 updates[`books/${bookId}`] = {
                     ...book,
                     lost: (book.lost || 0) + 1,
-                    available: Math.max(0, (book.available || 0) - 1),
                     updatedAt: timestamp
                 };
 
@@ -1977,6 +2077,9 @@ async processCSV(data) {
 
                 // Perform all updates in a single transaction
                 await this.db.ref().update(updates);
+                // Recompute available from ground truth now that lost is up
+                // and (if applicable) the issuance moved out of 'active'.
+                await recalculateBookAvailability(bookId);
 
                 await this.showSuccess(
                     'Book Reported Lost',

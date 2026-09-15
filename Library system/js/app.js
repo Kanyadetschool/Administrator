@@ -148,6 +148,130 @@ const StudentsCache = (() => {
     };
 })();
 
+// Fast, single-student lookup: check the already-synced cache first (an
+// in-memory Map read — no network round trip) instead of the ~13 places in
+// this file that were doing their own `db.ref('students/{id}').once('value')`
+// per lookup. That pattern was also using the wrong un-scoped 'students/'
+// path instead of STUDENTS_PATH, so those reads may not even have been
+// hitting the record they thought they were. Falls back to a correctly-
+// scoped direct fetch only when the cache genuinely hasn't seen this student
+// yet (e.g. the very first lookup of a session, before the initial sync).
+async function getStudentCached(studentId) {
+    if (!studentId) return null;
+    const cached = StudentsCache.get(studentId);
+    if (cached) return cached;
+    const snapshot = await db.ref(`${STUDENTS_PATH}/${studentId}`).once('value');
+    return normalizeStudent(snapshot.val());
+}
+window.getStudentCached = getStudentCached;
+
+// Same idea, for books: a small always-synced mirror of the 'books' node so
+// read-only lookups (rendering a title in a card, a report row, a dropdown
+// label) don't each cost a network round trip. Unlike StudentsCache this is
+// NOT used for anything that gates a write (checking `available` before
+// issuing, decrementing `lost`, etc.) — those still read `books/{id}`
+// directly, since a cached value could be a moment stale and let two people
+// over-issue the same last copy. This is purely for display.
+const BooksCache = (() => {
+    const DB_NAME = 'kanyadet_library_cache';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'kv';
+    const CACHE_KEY = 'books_cache_v1';
+    const listeners = new Set();
+    const store = new Map(); // bookId -> book
+    let initialized = false;
+    let persistTimer = null;
+
+    function openDb() {
+        return new Promise((resolve, reject) => {
+            if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
+            const req = indexedDB.open(DB_NAME, DB_VERSION);
+            req.onupgradeneeded = () => {
+                if (!req.result.objectStoreNames.contains(STORE_NAME)) {
+                    req.result.createObjectStore(STORE_NAME);
+                }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    async function loadFromLocalCache() {
+        try {
+            const idb = await openDb();
+            const cached = await new Promise((resolve, reject) => {
+                const tx = idb.transaction(STORE_NAME, 'readonly');
+                const req = tx.objectStore(STORE_NAME).get(CACHE_KEY);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+            if (cached && cached.books) {
+                Object.entries(cached.books).forEach(([id, book]) => store.set(id, book));
+            }
+        } catch (e) {
+            console.warn('BooksCache: failed to read local cache', e);
+        }
+    }
+
+    function schedulePersist() {
+        if (persistTimer) return;
+        persistTimer = setTimeout(async () => {
+            persistTimer = null;
+            try {
+                const books = {};
+                store.forEach((value, key) => { books[key] = value; });
+                const idb = await openDb();
+                await new Promise((resolve, reject) => {
+                    const tx = idb.transaction(STORE_NAME, 'readwrite');
+                    tx.objectStore(STORE_NAME).put({ books, updatedAt: Date.now() }, CACHE_KEY);
+                    tx.oncomplete = resolve;
+                    tx.onerror = () => reject(tx.error);
+                });
+            } catch (e) {
+                console.warn('BooksCache: failed to persist local cache', e);
+            }
+        }, 500);
+    }
+
+    function notify(type, id) {
+        listeners.forEach(cb => {
+            try { cb(type, id, store); } catch (e) { console.error('BooksCache listener error', e); }
+        });
+    }
+
+    function init(ref) {
+        if (initialized) return;
+        initialized = true;
+        loadFromLocalCache().then(() => notify('ready-from-cache', null));
+        ref.on('child_added', snap => { store.set(snap.key, snap.val()); schedulePersist(); notify('added', snap.key); });
+        ref.on('child_changed', snap => { store.set(snap.key, snap.val()); schedulePersist(); notify('changed', snap.key); });
+        ref.on('child_removed', snap => { store.delete(snap.key); schedulePersist(); notify('removed', snap.key); });
+    }
+
+    function ensureStarted() {
+        if (!initialized) init(db.ref('books'));
+    }
+
+    return {
+        init,
+        getAll: () => { ensureStarted(); return store; },
+        get: (id) => { ensureStarted(); return store.get(id); },
+        onChange: (cb) => { ensureStarted(); listeners.add(cb); return () => listeners.delete(cb); }
+    };
+})();
+window.BooksCache = BooksCache;
+
+// Cache-first book lookup for display purposes — see BooksCache note above
+// about why this is never used ahead of a write.
+async function getBookCached(bookId) {
+    if (!bookId) return null;
+    const cached = BooksCache.get(bookId);
+    if (cached) return cached;
+    const snapshot = await db.ref(`books/${bookId}`).once('value');
+    return snapshot.val();
+}
+window.getBookCached = getBookCached;
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.querySelector('#searchInput');
@@ -211,6 +335,55 @@ document.addEventListener('DOMContentLoaded', function() {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+// Single source of truth for books/{id}.available. Every issue/return/lost/
+// recovery/quantity-edit code path used to hand-adjust `available` with its
+// own +1/-1, and those adjustments disagreed with each other about whether a
+// copy that's actively issued was already excluded from `available` — that
+// drift is what let records like "46 available / 46 total / 1 lost" happen
+// (a recovered book adding back a copy that a different lost-report path had
+// never actually subtracted). Recompute from ground truth instead:
+//   available = quantity - lost - (books currently out on active/overdue issuance)
+// Call this after ANY change to a book's quantity/lost value or to an
+// issuance's status, instead of writing to `available` directly.
+async function recalculateBookAvailability(bookId) {
+    const [bookSnap, issuanceSnap] = await Promise.all([
+        db.ref(`books/${bookId}`).once('value'),
+        db.ref('issuance').orderByChild('bookId').equalTo(bookId).once('value')
+    ]);
+    const book = bookSnap.val();
+    if (!book) return null;
+
+    let activeCount = 0;
+    issuanceSnap.forEach(child => {
+        const status = child.val().status;
+        if (status === 'active' || status === 'overdue') activeCount++;
+    });
+
+    const quantity = Number(book.quantity) || 0;
+    const lost = Number(book.lost) || 0;
+    const available = Math.max(0, quantity - lost - activeCount);
+
+    await db.ref(`books/${bookId}`).update({ available, updatedAt: Date.now() });
+    return available;
+}
+window.recalculateBookAvailability = recalculateBookAvailability;
+
+// One-time/repeatable repair pass: recomputes `available` for every book in
+// the collection. Run this once (e.g. from the console:
+// dashboardFunctions.repairAllBookCounts(), or wire it to a button) to fix
+// any book whose available/lost/quantity have already drifted out of sync.
+async function recalculateAllBookAvailability() {
+    const booksSnap = await db.ref('books').once('value');
+    const bookIds = [];
+    booksSnap.forEach(child => bookIds.push(child.key));
+    const results = {};
+    for (const bookId of bookIds) {
+        results[bookId] = await recalculateBookAvailability(bookId);
+    }
+    return results;
+}
+window.recalculateAllBookAvailability = recalculateAllBookAvailability;
 
 // Deliberately NOT starting StudentsCache here. It now starts itself lazily
 // (see ensureStarted() above) the first time something actually asks for
@@ -646,12 +819,15 @@ class BookManager {
             if (bookId) {
                 const currentSnapshot = await this.booksRef.child(bookId).once('value');
                 const currentData = currentSnapshot.val();
-                
-                bookData.available = currentData.available || currentData.quantity;
+
                 bookData.addedAt = currentData.addedAt || Date.now();
                 bookData.lost = currentData.lost || 0;
-                
+
                 await this.booksRef.child(bookId).update(bookData);
+                // Recompute available from ground truth (quantity - lost - active
+                // issuances) now that quantity may have changed, instead of
+                // carrying forward a possibly-already-drifted available number.
+                await recalculateBookAvailability(bookId);
             } else {
                 bookData.available = bookData.quantity;
                 bookData.addedAt = Date.now();
@@ -688,25 +864,60 @@ class BookManager {
 
     renderBookCard(book, bookId) {
         const card = document.createElement('div');
-        card.className = 'grid-item';
+        card.className = 'grid-item book-card';
+
+        const quantity = Number(book.quantity) || 0;
+        // Clamp defensively: available should never exceed quantity. This only
+        // guards display for records saved before the edit-quantity fix; the
+        // underlying record should be corrected by re-saving the book.
+        const available = Math.min(Number(book.available) || 0, quantity || Number(book.available) || 0);
+        const lost = Number(book.lost) || 0;
+        const ratio = quantity > 0 ? available / quantity : 0;
+
+        let statusClass = 'status-available';
+        let statusLabel = 'Available';
+        if (available <= 0) {
+            statusClass = 'status-lost';
+            statusLabel = 'Out of Stock';
+        } else if (ratio <= 0.25) {
+            statusClass = 'status-borrowed';
+            statusLabel = 'Low Stock';
+        }
+
         card.innerHTML = `
-             <div class="book-info">
-            <div class="book-cover-container"></div>
-            <h3 style="background-color: blue;">${book.grade}</h3>
-           </div>
-            <div>
-            <h3>${book.title}</h3>
-            <p>Author: ${book.author}</p>
-            <p>ISBN: ${book.isbn || 'Not available'}</p>
-            <p>Category: ${book.category}</p>
-            <p>Available: ${book.available}/${book.quantity}</p>
-            <p>Lost: ${book.lost || 0}</p>
-            <p>Replacement Cost: KES ${Number(book.replacementCost || 0).toLocaleString()}</p>
-            <div class="card-actions">
-                <button onclick="bookManager.showBookModal('${bookId}')">Edit</button>
-                <button onclick="bookManager.deleteBook('${bookId}')">Delete</button>
-                <button onclick="bookManager.reportLost('${bookId}')" class="btn-warning">Report Lost</button>
+            <div class="book-card-header">
+                <div class="book-cover-container"></div>
+                <div class="book-card-badges">
+                    <span class="grade-badge">${book.grade || 'N/A'}</span>
+                    <span class="book-status-pill ${statusClass}"><i class="status-dot"></i>${statusLabel}</span>
+                </div>
             </div>
+            <div class="book-info">
+                <h3 class="book-title">${book.title}</h3>
+                <div class="book-meta">
+                    <span><i class="bi bi-person"></i>${book.author || 'Unknown author'}</span>
+                    <span><i class="bi bi-upc-scan"></i>${book.isbn || 'No ISBN'}</span>
+                    <span><i class="bi bi-tag"></i>${book.category}</span>
+                </div>
+                <div class="book-stats">
+                    <div class="book-stat">
+                        <strong>${available}</strong>
+                        <span>Available</span>
+                    </div>
+                    <div class="book-stat">
+                        <strong>${quantity}</strong>
+                        <span>Total</span>
+                    </div>
+                    <div class="book-stat book-stat-lost">
+                        <strong>${lost}</strong>
+                        <span>Lost</span>
+                    </div>
+                </div>
+                <div class="book-cost">Replacement &middot; KES ${Number(book.replacementCost || 0).toLocaleString()}</div>
+            </div>
+            <div class="card-actions">
+                <button onclick="bookManager.showBookModal('${bookId}')" class="btn-ghost">Edit</button>
+                <button onclick="bookManager.deleteBook('${bookId}')" class="btn-ghost btn-ghost-danger">Delete</button>
             </div>
         `;
         
@@ -714,23 +925,6 @@ class BookManager {
         BookCoverManager.renderBookCover(bookId, coverContainer);
 
         this.booksList.appendChild(card);
-    }
-
-    async reportLost(bookId) {
-        if (confirm('Are you sure you want to report this book as lost?')) {
-            const bookRef = db.ref(`books/${bookId}`);
-            const snapshot = await bookRef.once('value');
-            const book = snapshot.val();
-            
-            if (book.available > 0) {
-                await bookRef.update({
-                    available: book.available - 1,
-                    lost: (book.lost || 0) + 1
-                });
-            } else {
-                alert('No available copies to mark as lost');
-            }
-        }
     }
 
     async checkBookIssuance(bookId) {
@@ -1493,12 +1687,11 @@ class IssuanceManager {
                 throw new Error('Please fill in all required fields');
             }
 
-            const [studentSnapshot, bookSnapshot] = await Promise.all([
-                db.ref(`students/${studentId}`).once('value'),
+            const [student, bookSnapshot] = await Promise.all([
+                getStudentCached(studentId),
                 db.ref(`books/${bookId}`).once('value')
             ]);
 
-            const student = studentSnapshot.val();
             const book = bookSnapshot.val();
 
             if (!student || !book) {
@@ -1522,20 +1715,24 @@ class IssuanceManager {
                 timestamp: Date.now()
             };
 
+            // Grab the issuance's key up front (push() assigns it synchronously)
+            // so the activity log entry can point at this exact issuance,
+            // not just this book title — needed so "Report Lost" from the
+            // activity feed marks the right student's copy when the same
+            // book has several copies out at once.
+            const newIssuanceRef = this.issuanceRef.push();
             await Promise.all([
-                this.issuanceRef.push(issuanceData),
-                db.ref().update({
-                    [`books/${bookId}/available`]: book.available - 1,
-                    [`books/${bookId}/updatedAt`]: Date.now()
-                }),
+                newIssuanceRef.set(issuanceData),
                 db.ref('activities').push({
                     type: 'issue',
                     bookId,
                     studentId,
+                    issuanceId: newIssuanceRef.key,
                     description: `Issued "${book.title}" to ${student.name}`,
                     timestamp: Date.now()
                 })
             ]);
+            await recalculateBookAvailability(bookId);
 
             const bsModal = bootstrap.Modal.getInstance(modalElement);
             bsModal.hide();
@@ -1654,17 +1851,8 @@ class IssuanceManager {
 
                 await this.issuanceRef.child(issuanceId).remove();
 
-                if (issuance.status === 'active') {
-                    const bookRef = db.ref(`books/${bookId}`);
-                    const bookSnapshot = await bookRef.once('value');
-                    const book = bookSnapshot.val();
-
-                    if (book) {
-                        await bookRef.update({
-                            available: book.available + 1,
-                            updatedAt: Date.now()
-                        });
-                    }
+                if (issuance.status === 'active' || issuance.status === 'overdue') {
+                    await recalculateBookAvailability(bookId);
                 }
 
                 await Swal.fire({
@@ -1715,6 +1903,11 @@ class IssuanceManager {
                     lost: (book.lost || 0) + 1,
                     updatedAt: Date.now()
                 });
+                // Issuance just moved from active -> lost, and lost went up by
+                // one, so this nets out to the same available count — but
+                // recompute from ground truth rather than assume that math
+                // holds if available had already drifted.
+                await recalculateBookAvailability(bookId);
 
                 await Swal.fire({
                     icon: 'success',
@@ -1765,16 +1958,7 @@ class IssuanceManager {
                     updatedAt: Date.now()
                 });
 
-                const bookRef = db.ref(`books/${bookId}`);
-                const bookSnapshot = await bookRef.once('value');
-                const book = bookSnapshot.val();
-
-                if (book) {
-                    await bookRef.update({
-                        available: book.available + 1,
-                        updatedAt: Date.now()
-                    });
-                }
+                await recalculateBookAvailability(bookId);
 
                 if (issuance.studentId) {
                     await studentManager.updateStudentIssuanceStatus(issuance.studentId);
@@ -1803,10 +1987,10 @@ class IssuanceManager {
 
     async renderLostBookCard(issuance, issuanceId) {
         try {
-            const studentSnapshot = await db.ref(`students/${issuance.studentId}`).once('value');
-            const bookSnapshot = await db.ref(`books/${issuance.bookId}`).once('value');
-            const student = studentSnapshot.val();
-            const book = bookSnapshot.val();
+            const [student, book] = await Promise.all([
+                getStudentCached(issuance.studentId),
+                getBookCached(issuance.bookId)
+            ]);
 
             if (!student || !book) return;
 
@@ -1839,8 +2023,8 @@ class IssuanceManager {
             const issuance = this.allIssuances.get(issuanceId);
             if (!issuance) return;
 
-            const student = (await db.ref(`students/${issuance.studentId}`).once('value')).val();
-            const book = (await db.ref(`books/${issuance.bookId}`).once('value')).val();
+            const student = await getStudentCached(issuance.studentId);
+            const book = await getBookCached(issuance.bookId);
 
             if (!student || !book) return;
 
@@ -1901,10 +2085,14 @@ class IssuanceManager {
                 const bookSnapshot = await bookRef.once('value');
                 const book = bookSnapshot.val();
                 await bookRef.update({
-                    available: book.available + 1,
-                    lost: book.lost - 1,
+                    lost: Math.max(0, (book.lost || 0) - 1),
                     updatedAt: Date.now()
                 });
+                // Recompute available instead of assuming +1 is correct — it
+                // isn't when this copy's lost-report never actually subtracted
+                // it from available in the first place (e.g. a book reported
+                // lost while still on active issuance).
+                await recalculateBookAvailability(issuance.bookId);
             }
 
             await Swal.fire({
@@ -1965,16 +2153,12 @@ class IssuanceManager {
 
                     console.log(`Found ${Object.keys(updates).length} issuances to delete, ${activeCount} active.`);
 
-                    if (activeCount > 0) {
-                        const bookSnapshot = await db.ref(`books/${bookId}`).once('value');
-                        const book = bookSnapshot.val();
-                        if (book) {
-                            updates[`books/${bookId}/available`] = book.available + activeCount;
-                            updates[`books/${bookId}/updatedAt`] = Date.now();
-                        }
-                    }
-
                     await db.ref().update(updates);
+                    if (activeCount > 0) {
+                        // All issuances for this book are gone, so recompute
+                        // from ground truth rather than guess the delta.
+                        await recalculateBookAvailability(bookId);
+                    }
                     console.log(`Successfully deleted issuances for book ID: ${bookId}`);
                     return true;
                 }
@@ -2030,22 +2214,17 @@ class IssuanceManager {
                     if (activeIssuances.exists()) {
                         activeIssuances.forEach(snapshot => {
                             const issuance = snapshot.val();
-                            const count = bookUpdates.get(issuance.bookId) || 0;
-                            bookUpdates.set(issuance.bookId, count + 1);
+                            bookUpdates.set(issuance.bookId, true);
                         });
-
-                        for (const [bookId, count] of bookUpdates) {
-                            const bookSnapshot = await db.ref(`books/${bookId}`).once('value');
-                            const book = bookSnapshot.val();
-                            if (book) {
-                                updates[`books/${bookId}/available`] = book.available + count;
-                                updates[`books/${bookId}/updatedAt`] = Date.now();
-                            }
-                        }
                     }
 
                     updates['issuance'] = null;
                     await db.ref().update(updates);
+                    // All issuances are gone now, so recompute each affected
+                    // book's available from ground truth (quantity - lost).
+                    for (const bookId of bookUpdates.keys()) {
+                        await recalculateBookAvailability(bookId);
+                    }
                     console.log('Successfully deleted all issuances');
                     return true;
                 }
@@ -2805,14 +2984,7 @@ getStartDateFromDatabase() {
             });
 
             // Update book availability
-            const bookRef = db.ref(`books/${bookId}`);
-            const bookSnapshot = await bookRef.once('value');
-            const book = bookSnapshot.val();
-            
-            await bookRef.update({
-                available: book.available + 1,
-                updatedAt: Date.now()
-            });
+            await recalculateBookAvailability(bookId);
 
             alert('Book returned successfully');
             // Refresh the current report
@@ -3178,7 +3350,7 @@ getStartDateFromDatabase() {
         const studentIds = [...new Set(filteredIssuances.map(issuance => issuance.studentId))];
         const grades = new Set();
         for (const studentId of studentIds) {
-            const student = (await db.ref(`students/${studentId}`).once('value')).val();
+            const student = await getStudentCached(studentId);
             if (student?.grade) grades.add(student.grade);
         }
         const gradeOptions = [...grades].sort((a, b) => a.localeCompare(b, { numeric: true }));
@@ -3189,8 +3361,8 @@ getStartDateFromDatabase() {
             const issueDate = new Date(iss.issueDate);
             return issueDate >= start && issueDate <= end;
         })) {
-            const student = (await db.ref(`students/${issuance.studentId}`).once('value')).val();
-            const book = (await db.ref(`books/${issuance.bookId}`).once('value')).val();
+            const student = await getStudentCached(issuance.studentId);
+            const book = await getBookCached(issuance.bookId);
             tableRows.push(`
                 <tr>
                     <td class="number-cell">${rowNumber++}</td>
@@ -3335,7 +3507,7 @@ getStartDateFromDatabase() {
         const studentIds = [...new Set(overdueIssuances.map(issuance => issuance.studentId))];
         const grades = new Set();
         for (const studentId of studentIds) {
-            const student = (await db.ref(`students/${studentId}`).once('value')).val();
+            const student = await getStudentCached(studentId);
             if (student?.grade) grades.add(student.grade);
         }
         const gradeOptions = [...grades].sort((a, b) => a.localeCompare(b, { numeric: true }));
@@ -3346,8 +3518,8 @@ getStartDateFromDatabase() {
             const returnDate = new Date(iss.returnDate);
             return iss.status === 'active' && returnDate < currentDate;
         })) {
-            const student = (await db.ref(`students/${issuance.studentId}`).once('value')).val();
-            const book = (await db.ref(`books/${issuance.bookId}`).once('value')).val();
+            const student = await getStudentCached(issuance.studentId);
+            const book = await getBookCached(issuance.bookId);
             const daysOverdue = Math.floor((currentDate - new Date(issuance.returnDate)) / (1000 * 60 * 60 * 24));
             tableRows.push(`
                 <tr>
@@ -3472,7 +3644,7 @@ getStartDateFromDatabase() {
         const studentIds = [...new Set(lostIssuances.map(issuance => issuance.studentId))];
         const grades = new Set();
         for (const studentId of studentIds) {
-            const student = (await db.ref(`students/${studentId}`).once('value')).val();
+            const student = await getStudentCached(studentId);
             if (student?.grade) grades.add(student.grade);
         }
         const gradeOptions = [...grades].sort((a, b) => a.localeCompare(b, { numeric: true }));
@@ -3482,8 +3654,8 @@ getStartDateFromDatabase() {
         for (const [key, issuance] of Object.entries(issuances).filter(([_, iss]) => 
             iss.status === 'lost'
         )) {
-            const student = (await db.ref(`students/${issuance.studentId}`).once('value')).val();
-            const book = (await db.ref(`books/${issuance.bookId}`).once('value')).val();
+            const student = await getStudentCached(issuance.studentId);
+            const book = await getBookCached(issuance.bookId);
             tableRows.push(`
                 <tr>
                     <td class="number-cell">${rowNumber++}</td>
@@ -3729,7 +3901,14 @@ getStartDateFromDatabase() {
         window.deleteStudent = async (studentId) => {
             if (confirm('Are you sure you want to delete this student and all their issuance records?')) {
                 try {
-                    await db.ref(`students/${studentId}`).remove();
+                    // Was deleting from the un-scoped 'students/{id}' path,
+                    // which isn't where the real record lives (STUDENTS_PATH
+                    // is 'artifacts/{appId}/students') — so this silently
+                    // never actually removed the student. Also keep the
+                    // denormalized student counter in sync, same as
+                    // StudentManager.deleteStudent does.
+                    await db.ref(`${STUDENTS_PATH}/${studentId}`).remove();
+                    await db.ref(STUDENT_COUNT_PATH).transaction(current => Math.max(0, (current || 0) - 1));
                     const issuanceIds = studentActivity[studentId].issuanceIds;
                     for (const issuanceId of issuanceIds) {
                         await db.ref(`issuance/${issuanceId}`).remove();
@@ -3926,15 +4105,15 @@ class LostBooksManager {
                 const issuance = childSnapshot.val();
                 promises.push(
                     Promise.all([
-                        db.ref(`students/${issuance.studentId}`).once('value'),
-                        db.ref(`books/${issuance.bookId}`).once('value')
-                    ]).then(([studentSnapshot, bookSnapshot]) => {
-                        if (studentSnapshot.exists() && bookSnapshot.exists()) {
+                        getStudentCached(issuance.studentId),
+                        getBookCached(issuance.bookId)
+                    ]).then(([student, book]) => {
+                        if (student && book) {
                             this.allLostBooks.push({
                                 id: childSnapshot.key,
                                 issuance,
-                                student: studentSnapshot.val(),
-                                book: bookSnapshot.val()
+                                student,
+                                book
                             });
                         }
                     }).catch(error => {
@@ -4357,14 +4536,11 @@ class LostBooksManager {
             const issuance = issuanceSnapshot.val();
 
             // Fetch related student and book data
-            const [studentSnapshot, bookSnapshot] = await Promise.all([
-                db.ref(`students/${issuance.studentId}`).once('value'),
-                db.ref(`books/${issuance.bookId}`).once('value')
+            const [student, book] = await Promise.all([
+                getStudentCached(issuance.studentId),
+                getBookCached(issuance.bookId)
             ]);
 
-            const student = studentSnapshot.exists() ? studentSnapshot.val() : null;
-            const book = bookSnapshot.exists() ? bookSnapshot.val() : null;
-            
             // Prepare the content for the modal
             const lostDate = new Date(issuance.lostDate || issuance.timestamp);
             const recoveryStatus = issuance.recoveryStatus;
@@ -4483,13 +4659,10 @@ class LostBooksManager {
             const issuance = issuanceSnapshot.val();
 
             // Fetch related student and book data
-            const [studentSnapshot, bookSnapshot] = await Promise.all([
-                db.ref(`students/${issuance.studentId}`).once('value'),
-                db.ref(`books/${issuance.bookId}`).once('value')
+            const [student, book] = await Promise.all([
+                getStudentCached(issuance.studentId),
+                getBookCached(issuance.bookId)
             ]);
-
-            const student = studentSnapshot.exists() ? studentSnapshot.val() : null;
-            const book = bookSnapshot.exists() ? bookSnapshot.val() : null;
 
             if (!student || !book) {
                 await Swal.fire({
@@ -4635,10 +4808,10 @@ class LostBooksManager {
                 
                 if (book) {
                     await bookRef.update({
-                        available: (book.available || 0) + 1,
                         lost: Math.max(0, (book.lost || 0) - 1),
                         updatedAt: Date.now()
                     });
+                    await recalculateBookAvailability(issuance.bookId);
                 }
             }
 
