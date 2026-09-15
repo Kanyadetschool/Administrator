@@ -2120,8 +2120,7 @@ class IssuanceManager {
                 </div>
                 <div class="issuance-info">
                     <h3>${student.name} | ${student.assessmentNo}</h3>
-                    <h3>Book No: ${issuance.isbn || 'N/A'}</h3>
-                    <p>Grade: ${student.grade || 'Not assigned'}</p>
+                    <h3>${student.grade || 'Not assigned'}: ${issuance.isbn || 'N/A'}</h3>
                     <p>Issue Date: ${issuance.issueDate}</p>
                     <p>Return Date: ${issuance.returnDate}</p>
                     <p class="status ${displayStatus}">Status: ${displayStatus}</p>

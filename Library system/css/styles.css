@@ -609,7 +609,7 @@ option {
     position: relative;
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width:auto;
     overflow: scroll;
     color: var(--bs-modal-color);
     pointer-events: auto;
