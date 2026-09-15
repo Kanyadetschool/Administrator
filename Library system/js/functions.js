@@ -299,10 +299,11 @@ class DashboardFunctions {
     // Tallies lifetime issuance counts per student and per book from the
     // same 'issuance' snapshot the Monthly Statistics chart already listens
     // to, so no extra Firebase read is needed.
-    updateLeaderboards(snapshot) {
+    async updateLeaderboards(snapshot) {
         try {
             const studentCounts = {};
             const bookCounts = {};
+            const bookTitles = {}; // Store book titles from issuance records
 
             if (snapshot.exists()) {
                 snapshot.forEach(child => {
@@ -312,22 +313,99 @@ class DashboardFunctions {
                     }
                     if (record.bookId) {
                         bookCounts[record.bookId] = (bookCounts[record.bookId] || 0) + 1;
+                        // Store book title from issuance record if available
+                        if (record.bookTitle && !bookTitles[record.bookId]) {
+                            bookTitles[record.bookId] = record.bookTitle;
+                        }
                     }
                 });
             }
 
+            // Render top borrowers leaderboard
             this.renderLeaderboard('topBorrowersList', studentCounts, (id) => {
                 const student = (typeof StudentsCache !== 'undefined') ? StudentsCache.get(id) : null;
                 return student ? `${student.name}${student.grade ? ' · ' + student.grade : ''}` : 'Unknown student';
             });
 
-            this.renderLeaderboard('mostBorrowedList', bookCounts, (id) => {
-                const book = (typeof BooksCache !== 'undefined') ? BooksCache.get(id) : null;
-                return book ? book.title : 'Unknown title';
-            });
+            // Render most borrowed books leaderboard with async book lookup
+            await this.renderBookLeaderboard('mostBorrowedList', bookCounts, bookTitles);
         } catch (error) {
             console.error('Error updating leaderboards:', error);
         }
+    }
+
+    renderLeaderboard(elementId, counts, labelFor) {
+        const container = document.getElementById(elementId);
+        if (!container) return;
+
+        const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+        if (top.length === 0) {
+            container.innerHTML = `<p class="leaderboard-empty">No activity recorded yet.</p>`;
+            return;
+        }
+
+        container.innerHTML = top.map(([id, count], i) => `
+            <div class="leaderboard-item">
+                <span class="leaderboard-rank">${i + 1}</span>
+                <span class="leaderboard-name">${labelFor(id)}</span>
+                <span class="leaderboard-count">${count} loan${count === 1 ? '' : 's'}</span>
+            </div>
+        `).join('');
+    }
+
+    async renderBookLeaderboard(elementId, counts, bookTitles = {}) {
+        const container = document.getElementById(elementId);
+        if (!container) return;
+
+        const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+        if (top.length === 0) {
+            container.innerHTML = `<p class="leaderboard-empty">No activity recorded yet.</p>`;
+            return;
+        }
+
+        // Fetch book titles for each book ID
+        const bookTitlesData = await Promise.all(
+            top.map(async ([id, count]) => {
+                let title = 'Unknown title';
+                
+                // Use title from issuance record first (most efficient)
+                if (bookTitles[id]) {
+                    title = bookTitles[id];
+                }
+                // Try cache second
+                else if (typeof BooksCache !== 'undefined') {
+                    const cached = BooksCache.get(id);
+                    if (cached && cached.title) {
+                        title = cached.title;
+                    }
+                }
+                
+                // If not in cache, fetch from Firebase
+                if (title === 'Unknown title') {
+                    try {
+                        const snapshot = await this.db.ref(`books/${id}`).once('value');
+                        const book = snapshot.val();
+                        if (book && book.title) {
+                            title = book.title;
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching book ${id}:`, error);
+                    }
+                }
+                
+                return { id, count, title };
+            })
+        );
+
+        container.innerHTML = bookTitlesData.map(({ id, count, title }, i) => `
+            <div class="leaderboard-item">
+                <span class="leaderboard-rank">${i + 1}</span>
+                <span class="leaderboard-name">${title}</span>
+                <span class="leaderboard-count">${count} loan${count === 1 ? '' : 's'}</span>
+            </div>
+        `).join('');
     }
 
     renderLeaderboard(elementId, counts, labelFor) {
@@ -512,9 +590,9 @@ class DashboardFunctions {
             this.cleanupChartListeners();
             
             // Listen for issuance changes
-            const issuanceListener = this.db.ref('issuance').on('value', snapshot => {
+            const issuanceListener = this.db.ref('issuance').on('value', async snapshot => {
                 this.updateMonthlyStats(snapshot);
-                this.updateLeaderboards(snapshot);
+                await this.updateLeaderboards(snapshot);
             });
 
             // Listen for books changes
