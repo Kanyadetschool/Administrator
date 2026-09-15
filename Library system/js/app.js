@@ -1681,7 +1681,7 @@ class StudentManager {
      // Add student image with grade as status
         const imageContainer = card.querySelector('.student-image-container');
         const status = student.grade ? `${student.grade.toLowerCase().replace(/\s+/g, ' -')}` : 'no-grade';
-        StudentImageManager.renderStudentImage(studentId, imageContainer, status);
+        StudentImageManager.renderStudentImage(student.fullName || student.name, student.grade, imageContainer, status);
 
          // Add student image with gender as status
         // const imageContainer = card.querySelector('.student-image-container');
@@ -1744,6 +1744,110 @@ class IssuanceManager {
         if (deleteIssuanceOptionsBtn) {
             deleteIssuanceOptionsBtn.addEventListener('click', () => this.showDeleteIssuanceOptionsModal());
         }
+
+        const bulkReturnClassBtn = document.getElementById('bulkReturnClassBtn');
+        if (bulkReturnClassBtn) {
+            bulkReturnClassBtn.addEventListener('click', () => this.handleBulkReturnByClass());
+        }
+    }
+
+    // Returns every active/overdue loan for whichever grade is currently
+    // selected in the class filter — for end-of-term collection days, so the
+    // librarian doesn't have to return each student's book one at a time.
+    async handleBulkReturnByClass() {
+        const grade = this.classFilter ? this.classFilter.value : '';
+
+        if (!grade) {
+            await Swal.fire({
+                icon: 'info',
+                title: 'Choose a class first',
+                text: 'Select a grade from the filter above, then use Bulk Return Class to return every active loan in that class at once.',
+                confirmButtonText: 'Got it'
+            });
+            return;
+        }
+
+        const candidates = [];
+        for (const [issuanceId, issuance] of this.allIssuances) {
+            if (issuance.status !== 'active' && issuance.status !== 'overdue') continue;
+            const student = StudentsCache.get(issuance.studentId);
+            if (student && student.grade === grade) {
+                candidates.push({ issuanceId, bookId: issuance.bookId, studentId: issuance.studentId });
+            }
+        }
+
+        if (candidates.length === 0) {
+            await Swal.fire({
+                icon: 'info',
+                title: 'Nothing to return',
+                text: `No active loans found for ${grade}.`,
+                timer: 1800,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: `Return all books for ${grade}?`,
+            text: `This will mark ${candidates.length} active loan(s) as returned.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, return all ${candidates.length}`,
+            cancelButtonText: 'Cancel'
+        });
+        if (!result.isConfirmed) return;
+
+        Swal.fire({
+            title: 'Returning books...',
+            html: `Processing 0 of ${candidates.length}`,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        let done = 0;
+        let failed = 0;
+        const touchedBookIds = new Set();
+        const touchedStudentIds = new Set();
+
+        for (const { issuanceId, bookId, studentId } of candidates) {
+            try {
+                await db.ref(`issuance/${issuanceId}`).update({
+                    status: 'returned',
+                    returnedDate: new Date().toISOString(),
+                    actualReturnDate: new Date().toISOString(),
+                    updatedAt: Date.now()
+                });
+                touchedBookIds.add(bookId);
+                touchedStudentIds.add(studentId);
+            } catch (error) {
+                console.error('Bulk return failed for issuance', issuanceId, error);
+                failed++;
+            }
+            done++;
+            Swal.update({ html: `Processing ${done} of ${candidates.length}` });
+        }
+
+        // Recalculate availability/status once per affected book/student
+        // rather than once per loan, same as the single-return flow does.
+        await Promise.all([
+            ...Array.from(touchedBookIds).map(id => recalculateBookAvailability(id)),
+            ...Array.from(touchedStudentIds).map(id => studentManager.updateStudentIssuanceStatus(id))
+        ]);
+
+        await Swal.fire({
+            icon: failed > 0 ? 'warning' : 'success',
+            title: failed > 0 ? 'Returned with some errors' : 'Class returned',
+            text: failed > 0
+                ? `${candidates.length - failed} of ${candidates.length} loan(s) returned for ${grade}. ${failed} failed — check the console.`
+                : `${candidates.length} book(s) marked as returned for ${grade}.`,
+            timer: failed > 0 ? undefined : 2000,
+            showConfirmButton: failed > 0
+        });
+
+        this.loadIssuances();
     }
 
     handleSearch() {
@@ -2015,10 +2119,8 @@ class IssuanceManager {
                 <div class="book-cover-container"></div>
                 </div>
                 <div class="issuance-info">
-                    <h3>${student.name}</h3>
-                    <h4>${book.title}</h4>
-                    <h4>${student.assessmentNo}</h4>
-                    <h5>Book No: ${issuance.isbn || 'N/A'}</h5>
+                    <h3>${student.name} | ${student.assessmentNo}</h3>
+                    <h3>Book No: ${issuance.isbn || 'N/A'}</h3>
                     <p>Grade: ${student.grade || 'Not assigned'}</p>
                     <p>Issue Date: ${issuance.issueDate}</p>
                     <p>Return Date: ${issuance.returnDate}</p>
@@ -2041,7 +2143,7 @@ class IssuanceManager {
  // Add student Gender below image
         const imageContainer = card.querySelector('.student-image-container');
         const status = student.Gender ? `${student.Gender.toLowerCase().replace(/\s+/g, ' -')}` : 'no-gender';
-        StudentImageManager.renderStudentImage(issuance.studentId, imageContainer, status);
+        StudentImageManager.renderStudentImage(student.name || student.fullName, student.grade, imageContainer, status);
 
             const coverContainer = card.querySelector('.book-cover-container');
             BookCoverManager.renderBookCover(issuance.bookId, coverContainer);

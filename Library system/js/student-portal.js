@@ -255,12 +255,13 @@ class StudentPortal {
             infoUpiNo: !!elements.infoUpiNo,
             studentAvatar: !!elements.studentAvatar
         });
+        const studentName = this.studentData.name || this.studentData.fullName || this.studentData['Official Student Name'] || '';
+        const studentGrade = this.studentData.grade || this.studentData['Grade'] || '';
         console.log('Student data:', this.studentData);
-        console.log('Student image URL:', StudentImageManager.getStudentImage(this.studentData.id));
 
         if (elements.studentAvatar) {
             elements.studentAvatar.innerHTML = '';
-            const imageContainer = StudentImageManager.renderStudentImage(this.studentData.id, elements.studentAvatar);
+            StudentImageManager.renderStudentImage(studentName, studentGrade, elements.studentAvatar);
 
             const hoverCard = document.createElement('div');
             hoverCard.className = 'student-hover-card';
@@ -277,17 +278,22 @@ class StudentPortal {
 
             hoverCard.innerHTML = `
                 <div class="hover-card-content">
-                    <img src="${StudentImageManager.getStudentImage(this.studentData.id)}" 
-                         alt="${this.studentData.name || 'Student'}" 
+                    <img src="images/default-student.png"
+                         alt="${studentName || 'Student'}"
                          class="hover-card-image"
-                         onerror="this.src='images/default-student.png'; console.log('Image failed to load, using default:', this.src)">
+                         onerror="this.src='images/default-student.png'">
                     <div class="hover-card-info">
-                        <h5>${this.studentData.name || 'Unknown'}</h5>
+                        <h5>${studentName || 'Unknown'}</h5>
                         ${studentInfo}
                     </div>
                 </div>
             `;
             elements.studentAvatar.appendChild(hoverCard);
+
+            StudentImageManager.loadStudentPhoto(studentName, studentGrade).then(src => {
+                const hoverImg = hoverCard.querySelector('.hover-card-image');
+                if (hoverImg && src) hoverImg.src = src;
+            });
 
             console.log('Hover card appended to DOM:', !!elements.studentAvatar.querySelector('.student-hover-card'));
             console.log('Hover card styles on creation:', {

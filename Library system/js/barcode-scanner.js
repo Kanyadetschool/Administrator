@@ -20,9 +20,12 @@ class BarcodeScanner {
         if (BarcodeScanner._libraryLoaded) return BarcodeScanner._libraryLoaded;
         BarcodeScanner._libraryLoaded = new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js';
             script.onload = resolve;
-            script.onerror = () => reject(new Error('Could not load the barcode scanner library'));
+            script.onerror = () => {
+                BarcodeScanner._libraryLoaded = null; // allow retry on next open()
+                reject(new Error('Could not load the barcode scanner library'));
+            };
             document.head.appendChild(script);
         });
         return BarcodeScanner._libraryLoaded;

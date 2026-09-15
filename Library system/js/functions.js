@@ -93,7 +93,8 @@ class DashboardFunctions {
             // available from ground truth to fix any already-drifted records
             // (e.g. "46 available / 46 total / 1 lost"). Can also be run
             // from the console: dashboardFunctions.repairAllBookCounts()
-            'repairBookCountsBtn': () => this.repairAllBookCounts()
+            'repairBookCountsBtn': () => this.repairAllBookCounts(),
+            'exportAnalyticsBtn': () => this.handleAnalyticsExport()
         };
 
         // Attach event listeners using optional chaining
@@ -112,7 +113,18 @@ class DashboardFunctions {
     }
 
     initMonthlyStatsChart() {
-        const ctx1 = document.getElementById('monthlyStatsChart').getContext('2d');
+        const canvas = document.getElementById('monthlyStatsChart');
+        const ctx1 = canvas.getContext('2d');
+
+        // Soft fills under each line, in the analytics panel's navy/gold palette
+        const issuesFill = ctx1.createLinearGradient(0, 0, 0, canvas.height || 260);
+        issuesFill.addColorStop(0, 'rgba(22, 35, 61, 0.16)');
+        issuesFill.addColorStop(1, 'rgba(22, 35, 61, 0)');
+
+        const returnsFill = ctx1.createLinearGradient(0, 0, 0, canvas.height || 260);
+        returnsFill.addColorStop(0, 'rgba(184, 134, 46, 0.20)');
+        returnsFill.addColorStop(1, 'rgba(184, 134, 46, 0)');
+
         this.monthlyStatsChart = new Chart(ctx1, {
             type: 'line',
             data: {
@@ -120,35 +132,378 @@ class DashboardFunctions {
                 datasets: [{
                     label: 'Issues',
                     data: [],
-                    borderColor: '#0d6efd'
+                    borderColor: '#16233D',
+                    backgroundColor: issuesFill,
+                    pointBackgroundColor: '#16233D',
+                    pointBorderColor: '#FBFAF7',
+                    pointBorderWidth: 1.5,
+                    borderWidth: 2.5,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
                 }, {
                     label: 'Returns',
                     data: [],
-                    borderColor: '#198754'
+                    borderColor: '#B8862E',
+                    backgroundColor: returnsFill,
+                    pointBackgroundColor: '#B8862E',
+                    pointBorderColor: '#FBFAF7',
+                    pointBorderWidth: 1.5,
+                    borderWidth: 2.5,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#7A7566', font: { size: 11 }, precision: 0 },
+                        grid: { color: '#ECE7DA', drawBorder: false }
+                    },
+                    x: {
+                        ticks: { color: '#7A7566', font: { size: 11 } },
+                        grid: { display: false, drawBorder: false }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            color: '#16233D',
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            boxWidth: 8,
+                            font: { size: 12, weight: '600' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#16233D',
+                        titleColor: '#FBFAF7',
+                        bodyColor: '#FBFAF7',
+                        borderColor: '#B8862E',
+                        borderWidth: 1,
+                        padding: 10,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        boxPadding: 4
+                    }
+                }
             }
         });
     }
 
     initCategoryChart() {
         const ctx2 = document.getElementById('categoryPieChart').getContext('2d');
+        const palette = [
+            '#B8862E', '#16233D', '#5B7553', '#A6553C',
+            '#6E7F8D', '#D9A94E', '#3E5C50', '#8C6E63'
+        ];
+
+        // Draws the running total in the doughnut's hollow center
+        const centerTotalPlugin = {
+            id: 'centerTotal',
+            afterDraw: (chart) => {
+                const data = chart.data.datasets[0]?.data || [];
+                const total = data.reduce((sum, n) => sum + (Number(n) || 0), 0);
+                const { ctx, chartArea } = chart;
+                if (!chartArea) return;
+                const cx = (chartArea.left + chartArea.right) / 2;
+                const cy = (chartArea.top + chartArea.bottom) / 2;
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#16233D';
+                ctx.font = "800 22px 'Plus Jakarta Sans', sans-serif";
+                ctx.fillText(total.toLocaleString(), cx, cy - 8);
+                ctx.fillStyle = '#7A7566';
+                ctx.font = "600 11px 'Plus Jakarta Sans', sans-serif";
+                ctx.fillText('books', cx, cy + 12);
+                ctx.restore();
+            }
+        };
+
         this.categoryChart = new Chart(ctx2, {
-            type: 'pie',
+            type: 'doughnut',
             data: {
                 labels: [],
                 datasets: [{
                     data: [],
-                    backgroundColor: [
-                        '#0d6efd', '#6610f2', '#6f42c1', '#d63384', 
-                        '#dc3545', '#fd7e14', '#ffc107', '#198754'
-                    ]
+                    backgroundColor: palette,
+                    borderColor: '#FBFAF7',
+                    borderWidth: 2,
+                    hoverOffset: 6
                 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#16233D',
+                        titleColor: '#FBFAF7',
+                        bodyColor: '#FBFAF7',
+                        borderColor: '#B8862E',
+                        borderWidth: 1,
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: (context) => {
+                                const values = context.chart.data.datasets[0].data;
+                                const total = values.reduce((sum, n) => sum + (Number(n) || 0), 0);
+                                const value = context.raw;
+                                const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                                return `${context.label}: ${value} books (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [centerTotalPlugin]
+        });
+    }
+
+    // Renders the color-coded legend under the Book Categories doughnut
+    // (kept in sync with the chart's own palette so swatches always match).
+    renderCategoryLegend(categories) {
+        const legendEl = document.getElementById('categoryChartLegend');
+        if (!legendEl || !this.categoryChart) return;
+
+        const palette = this.categoryChart.data.datasets[0].backgroundColor;
+        const total = Object.values(categories).reduce((sum, n) => sum + n, 0);
+        const entries = Object.entries(categories).sort((a, b) => b[1] - a[1]);
+
+        legendEl.innerHTML = entries.map(([name, count], i) => {
+            const pct = total ? ((count / total) * 100).toFixed(0) : 0;
+            const color = palette[i % palette.length];
+            return `
+                <div class="analytics-legend-item">
+                    <span class="analytics-legend-swatch" style="background:${color}"></span>
+                    <span class="analytics-legend-label">${name}</span>
+                    <span class="analytics-legend-value">${count} · ${pct}%</span>
+                </div>`;
+        }).join('');
+    }
+
+    // --- Library leaderboard (Top Borrowers / Most Borrowed Books) ---
+    // Tallies lifetime issuance counts per student and per book from the
+    // same 'issuance' snapshot the Monthly Statistics chart already listens
+    // to, so no extra Firebase read is needed.
+    updateLeaderboards(snapshot) {
+        try {
+            const studentCounts = {};
+            const bookCounts = {};
+
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    const record = child.val();
+                    if (record.studentId) {
+                        studentCounts[record.studentId] = (studentCounts[record.studentId] || 0) + 1;
+                    }
+                    if (record.bookId) {
+                        bookCounts[record.bookId] = (bookCounts[record.bookId] || 0) + 1;
+                    }
+                });
+            }
+
+            this.renderLeaderboard('topBorrowersList', studentCounts, (id) => {
+                const student = (typeof StudentsCache !== 'undefined') ? StudentsCache.get(id) : null;
+                return student ? `${student.name}${student.grade ? ' · ' + student.grade : ''}` : 'Unknown student';
+            });
+
+            this.renderLeaderboard('mostBorrowedList', bookCounts, (id) => {
+                const book = (typeof BooksCache !== 'undefined') ? BooksCache.get(id) : null;
+                return book ? book.title : 'Unknown title';
+            });
+        } catch (error) {
+            console.error('Error updating leaderboards:', error);
+        }
+    }
+
+    renderLeaderboard(elementId, counts, labelFor) {
+        const container = document.getElementById(elementId);
+        if (!container) return;
+
+        const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+        if (top.length === 0) {
+            container.innerHTML = `<p class="leaderboard-empty">No activity recorded yet.</p>`;
+            return;
+        }
+
+        container.innerHTML = top.map(([id, count], i) => `
+            <div class="leaderboard-item">
+                <span class="leaderboard-rank">${i + 1}</span>
+                <span class="leaderboard-name">${labelFor(id)}</span>
+                <span class="leaderboard-count">${count} loan${count === 1 ? '' : 's'}</span>
+            </div>
+        `).join('');
+    }
+
+    // --- Low-stock alert ---
+    // Flags titles with 0-1 copies currently available (out of a nonzero
+    // quantity) so restocking decisions don't wait for a student to be
+    // turned away at the issue desk.
+    updateLowStock(snapshot) {
+        try {
+            const lowStockBooks = [];
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    const book = child.val();
+                    const quantity = Number(book.quantity) || 0;
+                    const available = Number(book.available ?? quantity);
+                    if (quantity > 0 && available <= 1) {
+                        lowStockBooks.push({ title: book.title || 'Untitled', available });
+                    }
+                });
+            }
+
+            const banner = document.getElementById('lowStockBanner');
+            const summary = document.getElementById('lowStockSummary');
+            const list = document.getElementById('lowStockList');
+            if (!banner || !summary || !list) return;
+
+            if (lowStockBooks.length === 0) {
+                banner.style.display = 'none';
+                return;
+            }
+
+            banner.style.display = '';
+            summary.textContent = ` — ${lowStockBooks.length} title${lowStockBooks.length === 1 ? '' : 's'} at 0-1 copies left`;
+            list.innerHTML = lowStockBooks
+                .sort((a, b) => a.available - b.available)
+                .slice(0, 12)
+                .map(b => `<span class="low-stock-chip">${b.title} <strong>${b.available === 0 ? 'Out' : '1 left'}</strong></span>`)
+                .join('');
+        } catch (error) {
+            console.error('Error updating low stock alert:', error);
+        }
+    }
+
+    // --- Export the analytics panel (Monthly Statistics + Book Categories) ---
+    // Reuses the global exportToPdfEnhanced/exportToExcelEnhanced helpers
+    // from app.js (same ones the Reports and Lost Books pages call), reading
+    // straight from the live chart data so no extra Firebase read is needed.
+    async handleAnalyticsExport() {
+        if (!this.monthlyStatsChart || !this.categoryChart) return;
+
+        const exportOptions = [
+            { label: 'Export to PDF (Premium Format)', value: 'pdf', icon: '📄' },
+            { label: 'Export to Excel (Premium Format)', value: 'excel', icon: '📊' },
+            { label: 'Export as CSV', value: 'csv', icon: '📋' }
+        ];
+
+        let optionsHtml = '<div style="display: grid; gap: 10px;">';
+        exportOptions.forEach(option => {
+            optionsHtml += `
+                <button class="analytics-export-btn" data-export-type="${option.value}"
+                        style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; transition: all 0.3s;"
+                        onmouseover="this.style.backgroundColor='#e9ecef'; this.style.transform='translateX(5px)';"
+                        onmouseout="this.style.backgroundColor=''; this.style.transform='translateX(0)'">
+                    ${option.icon} ${option.label}
+                </button>`;
+        });
+        optionsHtml += '</div>';
+
+        await Swal.fire({
+            title: 'Export Library Activity',
+            html: optionsHtml,
+            icon: 'info',
+            showConfirmButton: false,
+            showCancelButton: true,
+            cancelButtonText: 'Close',
+            didOpen: () => {
+                document.querySelectorAll('.analytics-export-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const exportType = e.target.closest('.analytics-export-btn').getAttribute('data-export-type');
+                        this.executeAnalyticsExport(exportType);
+                    });
+                });
             }
         });
+    }
+
+    buildAnalyticsReportData() {
+        const monthly = this.monthlyStatsChart.data;
+        const labels = monthly.labels || [];
+        const issues = monthly.datasets[0]?.data || [];
+        const returns = monthly.datasets[1]?.data || [];
+
+        const categoryLabels = this.categoryChart.data.labels || [];
+        const categoryValues = this.categoryChart.data.datasets[0]?.data || [];
+        const totalBooks = categoryValues.reduce((sum, n) => sum + (Number(n) || 0), 0);
+
+        const statsInfo = {};
+        categoryLabels.forEach((label, i) => {
+            const value = categoryValues[i] || 0;
+            const pct = totalBooks ? ((value / totalBooks) * 100).toFixed(1) : '0.0';
+            statsInfo[label] = `${value} books (${pct}%)`;
+        });
+
+        return {
+            headers: ['Month', 'Books Issued', 'Books Returned'],
+            body: labels.map((label, i) => [label, issues[i] ?? 0, returns[i] ?? 0]),
+            statsInfo
+        };
+    }
+
+    async executeAnalyticsExport(exportType) {
+        try {
+            const reportData = this.buildAnalyticsReportData();
+            Swal.close();
+
+            switch (exportType) {
+                case 'pdf':
+                    await exportToPdfEnhanced(reportData, 'Library Activity Report');
+                    break;
+                case 'excel':
+                    await exportToExcelEnhanced(reportData, 'Library Activity Report');
+                    break;
+                case 'csv':
+                    this.exportAnalyticsToCSV(reportData);
+                    break;
+            }
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'Exported',
+                text: `Library activity exported to ${exportType.toUpperCase()}`,
+                timer: 1800,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error('Analytics export error:', error);
+            await this.showError('Export Failed', error.message);
+        }
+    }
+
+    exportAnalyticsToCSV(reportData) {
+        const lines = ['Book Categories'];
+        Object.entries(reportData.statsInfo).forEach(([label, value]) => {
+            lines.push(`${label},${value}`);
+        });
+        lines.push('', 'Monthly Statistics', reportData.headers.join(','));
+        reportData.body.forEach(row => lines.push(row.join(',')));
+
+        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `library_activity_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
     }
 
     setupChartListeners() {
@@ -159,11 +514,13 @@ class DashboardFunctions {
             // Listen for issuance changes
             const issuanceListener = this.db.ref('issuance').on('value', snapshot => {
                 this.updateMonthlyStats(snapshot);
+                this.updateLeaderboards(snapshot);
             });
 
             // Listen for books changes
             const booksListener = this.db.ref('books').on('value', snapshot => {
                 this.updateCategoryStats(snapshot);
+                this.updateLowStock(snapshot);
             });
 
             // Store listeners for cleanup
@@ -240,31 +597,11 @@ class DashboardFunctions {
         // Log data for debugging
         console.log('Monthly Stats:', { labels: monthLabels, messages: messagesData, returns: returnsData });
 
-        // Update chart
+        // Update chart (styling lives in initMonthlyStatsChart — only data changes here)
         if (this.monthlyStatsChart) {
             this.monthlyStatsChart.data.labels = monthLabels;
             this.monthlyStatsChart.data.datasets[0].data = messagesData;
             this.monthlyStatsChart.data.datasets[1].data = returnsData;
-            
-            // Enhanced chart options
-            this.monthlyStatsChart.options = {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Count' }
-                    },
-                    x: {
-                        title: { display: true, text: 'Month' }
-                    }
-                },
-                plugins: {
-                    legend: { position: 'top' },
-                    title: { display: true, text: 'Monthly Issues and Returns' }
-                }
-            };
-
             this.monthlyStatsChart.update();
         } else {
             console.error('Monthly stats chart not initialized');
@@ -288,32 +625,20 @@ class DashboardFunctions {
                 }
             });
 
-            // Update chart data if chart exists
+            // Update chart data if chart exists (tooltip formatting lives in
+            // initCategoryChart, computed live from chart data — no need to
+            // reassign options here, which previously wiped the cutout/legend styling)
             if (this.categoryChart) {
                 // Update labels and data
                 this.categoryChart.data.labels = Object.keys(categories);
                 this.categoryChart.data.datasets[0].data = Object.values(categories);
-                
-                // Calculate total books for percentage
+
+                // Calculate total books for percentage (still used by the legacy stats list below)
                 const totalBooks = Object.values(categories).reduce((sum, num) => sum + num, 0);
-                
-                // Update tooltip to show quantity and percentage
-                this.categoryChart.options = {
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => {
-                                    const value = context.raw;
-                                    const percentage = ((value / totalBooks) * 100).toFixed(1);
-                                    return `${context.label}: ${value} books (${percentage}%)`;
-                                }
-                            }
-                        }
-                    }
-                };
-                
+
                 // Update the chart
                 this.categoryChart.update();
+                this.renderCategoryLegend(categories);
 
                 // Update category stats display if element exists
                 const categoryStatsElement = document.getElementById('categoryStats');
