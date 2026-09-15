@@ -211,8 +211,27 @@ class StudentBulkImporter {
                         timestamp: Date.now()
                     };
 
-                    const newStudentRef = db.ref('students').push();
-                    await newStudentRef.set(studentData);
+                    // Was writing to the un-scoped 'students' node — not
+                    // where records live (STUDENTS_PATH is
+                    // 'artifacts/{appId}/students'), and it also skipped
+                    // StudentsCache entirely, so every imported student was
+                    // invisible everywhere else in the app until someone
+                    // manually found them at the wrong path. Also stamp
+                    // updatedAt so this student is included the next time
+                    // anything does a delta sync.
+                    const path = typeof STUDENTS_PATH !== 'undefined' ? STUDENTS_PATH : 'students';
+                    const newStudentRef = db.ref(path).push();
+                    await newStudentRef.set({
+                        ...studentData,
+                        ...(typeof StudentsCache !== 'undefined' ? StudentsCache.stamp() : {})
+                    });
+                    if (typeof StudentsCache !== 'undefined') {
+                        // Local-only fold-in per record; one shared rev bump
+                        // after the loop (below) instead of one per student —
+                        // 400 imported students would otherwise trigger 400
+                        // separate delta syncs on every other open device.
+                        StudentsCache.applyLocal(newStudentRef.key, studentData);
+                    }
                     successCount++;
 
                 } catch (error) {
@@ -221,9 +240,26 @@ class StudentBulkImporter {
                 }
             }
 
-            // Refresh student list
-            if (window.studentManager) {
-                await window.studentManager.loadStudents();
+            // Tell every other device there's something new to fetch — one
+            // bump for the whole batch, not per student.
+            if (successCount > 0 && typeof StudentsCache !== 'undefined') {
+                await StudentsCache.touch();
+            }
+
+            // Also keep the denormalized roster counter in sync — every
+            // other student-add path in app.js increments this alongside
+            // the write; bulk import was the one place that didn't.
+            if (successCount > 0 && typeof STUDENT_COUNT_PATH !== 'undefined') {
+                await db.ref(STUDENT_COUNT_PATH).transaction(current => (current || 0) + successCount);
+            }
+
+            // Refresh student list. StudentManager no longer exposes
+            // loadStudents() — it paints from StudentsCache and only needs
+            // telling to make sure the page has started listening at all;
+            // the StudentsCache.touch() above is what actually pulls the new
+            // records in, on this device and every other one.
+            if (window.studentManager && typeof window.studentManager.ensureLoaded === 'function') {
+                window.studentManager.ensureLoaded();
             }
 
             // Close modal

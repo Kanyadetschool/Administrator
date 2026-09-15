@@ -72,8 +72,12 @@ class ReservationManager {
     }
 
     async reserveBookForStudent(bookId, studentId) {
-        const student = (window.StudentsCache && StudentsCache.get(studentId)) ||
-            (await this.db.ref(`students/${studentId}`).once('value')).val();
+        // Was reading the un-scoped `students/{id}` path, which isn't where
+        // records live (STUDENTS_PATH is `artifacts/{appId}/students`), so the
+        // fallback always came back null → "Student not found". getStudentCached()
+        // checks the synced cache first and only then hits the correct path,
+        // and normalizes the raw "Official Student Name"/"Grade" keys for us.
+        const student = await getStudentCached(studentId);
         if (!student) throw new Error('Student not found');
 
         // Don't let the same student double-queue for the same book.
@@ -156,7 +160,15 @@ class ReservationManager {
     }
 
     async showAddReservationDialog() {
-        const grades = Array.from({ length: 9 }, (_, i) => `Grade ${i + 1}`);
+        // Grades come from the roster itself rather than a hardcoded 1–9 list,
+        // so a record stored as "PP1", "Grade 10" or anything else still turns
+        // up here instead of silently matching nothing. Falls back to 1–9 only
+        // if the cache genuinely has no students yet.
+        const gradesInUse = new Set();
+        StudentsCache.getAll().forEach(s => { if (s.grade) gradesInUse.add(s.grade); });
+        const grades = gradesInUse.size
+            ? [...gradesInUse].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+            : Array.from({ length: 9 }, (_, i) => `Grade ${i + 1}`);
         const booksSnap = await this.db.ref('books').once('value');
         let bookOptions = '<option value="">Select book</option>';
         booksSnap.forEach(child => {
@@ -185,15 +197,21 @@ class ReservationManager {
                     if (this._resStudentUnsub) { this._resStudentUnsub(); this._resStudentUnsub = null; }
 
                     studentSelect.innerHTML = '<option value="">Select student</option>';
-                    if (!grade || !window.StudentsCache) return;
+                    if (!grade) return;
 
                     const renderForGrade = () => {
-                        studentSelect.innerHTML = '<option value="">Select student</option>';
+                        const matches = [];
                         StudentsCache.getAll().forEach((student, id) => {
-                            if (student.grade === grade) {
-                                studentSelect.innerHTML += `<option value="${id}">${student.name}</option>`;
-                            }
+                            if (student.grade === grade) matches.push([id, student]);
                         });
+                        matches.sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
+                        studentSelect.innerHTML = '<option value="">Select student</option>' +
+                            matches.map(([id, s]) => `<option value="${id}">${s.name}</option>`).join('');
+                        // Say so out loud instead of leaving an empty-looking box
+                        // that's indistinguishable from "still loading".
+                        if (matches.length === 0) {
+                            studentSelect.innerHTML = `<option value="">No students found in ${grade}</option>`;
+                        }
                         studentSelect.disabled = false;
                     };
 

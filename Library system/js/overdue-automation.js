@@ -83,9 +83,13 @@ class OverdueAutomation {
 
             const studentIds = [...new Set(broken.map(b => b.studentId))];
             const studentLookup = {};
+            // Same un-scoped-path bug as reservations.js had: `students/{id}`
+            // is not where records live, so every lookup returned null and the
+            // "repair" quietly resolved nothing. getStudentCached() uses the
+            // correct STUDENTS_PATH and normalizes the raw field names.
             await Promise.all(studentIds.map(async (studentId) => {
-                const s = (await this.db.ref(`students/${studentId}`).once('value')).val();
-                if (s) studentLookup[studentId] = (typeof normalizeStudent === 'function') ? normalizeStudent(s) : s;
+                const s = await getStudentCached(studentId);
+                if (s) studentLookup[studentId] = s;
             }));
 
             const updates = {};
@@ -172,14 +176,14 @@ class OverdueAutomation {
                     .filter(Boolean)
             )];
             const studentLookup = {};
+            // Real records use raw keys like "Official Student Name" / "Grade"
+            // rather than name/grade, and they live under STUDENTS_PATH, not the
+            // un-scoped `students/` node this used to read. getStudentCached()
+            // handles both — without it every reminder fell through to
+            // "Unknown Student" / "N/A".
             await Promise.all(studentIdsNeedingLookup.map(async (studentId) => {
-                const s = (await this.db.ref(`students/${studentId}`).once('value')).val();
-                // Real records use raw keys like "Official Student Name" /
-                // "Grade" rather than name/grade — normalizeStudent() (from
-                // app.js, loaded before this file) maps those over. Without
-                // this, fallback.name/grade are always undefined and every
-                // reminder falls through to "Unknown Student" / "N/A".
-                if (s) studentLookup[studentId] = (typeof normalizeStudent === 'function') ? normalizeStudent(s) : s;
+                const s = await getStudentCached(studentId);
+                if (s) studentLookup[studentId] = s;
             }));
 
             for (const { issuance, issuanceId, overdueDays } of overdueIssuances) {

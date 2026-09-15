@@ -23,24 +23,79 @@ const STUDENTS_PATH = `artifacts/${sanitizedAppId}/students`;
 // student is added/removed. Reading this one value is a single tiny fetch —
 // far cheaper than downloading every student record just to get its count.
 const STUDENT_COUNT_PATH = `artifacts/${sanitizedAppId}/counters/studentCount`;
+// Tiny sync-control node: { rev, epoch }. `rev` is a server timestamp bumped on
+// every student write; `epoch` only moves on a destructive reset (delete-all),
+// which forces every device to throw its local mirror away and refetch.
+// Reading these two numbers costs a few bytes — the whole point is that a page
+// load asks "did anything change?" instead of downloading 400 student records
+// to find out that nothing did.
+const STUDENTS_META_PATH = `artifacts/${sanitizedAppId}/meta/students`;
+// Deletes can't be discovered by an "updatedAt newer than X" query (the record
+// is gone), so each delete leaves a dated marker here for other devices to pick
+// up on their next delta sync. Pruned automatically after TOMBSTONE_TTL.
+const STUDENT_TOMBSTONES_PATH = `artifacts/${sanitizedAppId}/studentTombstones`;
 
-// Shared students cache: paints instantly from an IndexedDB-backed local
-// mirror on load (IndexedDB, unlike localStorage, has no ~5MB ceiling, so it
-// doesn't hit QuotaExceededError as the roster grows), then stays in sync via
-// child_added/child_changed/child_removed listeners so a page reload never
-// re-downloads the whole roster — only what actually changed on the server
-// gets fetched, like Gmail's incremental sync.
+// Shared students cache: an IndexedDB-backed local mirror of the roster that
+// syncs by REVISION rather than by re-reading the node.
+//
+// Why the change: the previous version kept the same IndexedDB mirror but still
+// attached child_added/child_changed/child_removed listeners to the whole
+// students node. The Firebase web SDK has no disk persistence, so those
+// listeners start cold on every page load and re-download all ~400 records
+// before firing a single event — the local cache was saving render time but
+// none of the free tier's 360 MB/day bandwidth.
+//
+// The flow now is:
+//   1. Paint instantly from IndexedDB (zero network).
+//   2. Read the tiny meta node (two numbers) to learn the server's current
+//      revision, and keep one cheap listener on it for the rest of the session.
+//   3. If that revision is one we've already folded in, STOP. No student
+//      record is fetched at all — the common case, since the roster changes a
+//      few times a week, not a few times a minute.
+//   4. If it moved, fetch only the records whose `updatedAt` is newer than our
+//      watermark, plus any new tombstones. Editing one student costs one
+//      student-sized download instead of four hundred.
+//
+// Every writer must go through StudentsCache.markChanged/markDeleted (or at
+// minimum call StudentsCache.stamp() + touch()) so `updatedAt` and `rev` stay
+// truthful — a write that skips them is invisible to other devices until their
+// cache next expires.
+//
+// Required database rules for the two queries below:
+//   "students":         { ".indexOn": ["updatedAt"] }
+//   "studentTombstones":{ ".indexOn": ["deletedAt"] }
+//
 // Any part of the app (this file or functions.js) can read StudentsCache.getAll()
 // instead of doing its own studentsRef.once('value') / .on('value') read.
 const StudentsCache = (() => {
     const DB_NAME = 'kanyadet_library_cache';
     const DB_VERSION = 1;
     const STORE_NAME = 'kv';
-    const CACHE_KEY = 'students_cache_v1';
+    // v2 = stores sync metadata alongside the records. The version bump makes
+    // every device do exactly one full fetch after this deploy, which also
+    // backfills records that predate `updatedAt`.
+    const CACHE_KEY = 'students_cache_v2';
+    // Delta queries reach slightly further back than our watermark. `updatedAt`
+    // and `rev` are both server timestamps so they can't really drift, but a
+    // few seconds of overlap costs a couple of duplicate records and removes a
+    // whole class of "the edit never showed up" bug.
+    const SKEW_MS = 5 * 60 * 1000;
+    // Older than this and we stop trusting incremental sync (tombstones we
+    // needed may already have been pruned) and do one clean full fetch.
+    const MAX_CACHE_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+    const TOMBSTONE_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+
     const listeners = new Set();
     const store = new Map(); // studentId -> normalized student
     let initialized = false;
     let persistTimer = null;
+    let syncedRev = 0;   // highest meta.rev already folded into `store`
+    let epoch = 0;       // last destructive-reset marker we honoured
+    let cachedAt = 0;    // when the mirror was last reconciled with the server
+    let studentsRef = null;
+    let metaRef = null;
+    let tombstonesRef = null;
+    let syncChain = Promise.resolve();
 
     function openDb() {
         return new Promise((resolve, reject) => {
@@ -69,15 +124,17 @@ const StudentsCache = (() => {
                 Object.entries(cached.students).forEach(([id, student]) => {
                     store.set(id, student);
                 });
+                syncedRev = cached.syncedRev || 0;
+                epoch = cached.epoch || 0;
+                cachedAt = cached.updatedAt || 0;
             }
         } catch (e) {
             console.warn('StudentsCache: failed to read local cache', e);
         }
     }
 
-    // Debounced: a full initial sync fires one child_added per student
-    // (348 of them on this roster) — without debouncing that's 348 separate
-    // IndexedDB writes instead of one.
+    // Debounced: a full fetch would otherwise mean one IndexedDB write per
+    // record instead of one for the batch.
     function schedulePersist() {
         if (persistTimer) return;
         persistTimer = setTimeout(async () => {
@@ -88,7 +145,12 @@ const StudentsCache = (() => {
                 const db = await openDb();
                 await new Promise((resolve, reject) => {
                     const tx = db.transaction(STORE_NAME, 'readwrite');
-                    tx.objectStore(STORE_NAME).put({ students, updatedAt: Date.now() }, CACHE_KEY);
+                    tx.objectStore(STORE_NAME).put({
+                        students,
+                        syncedRev,
+                        epoch,
+                        updatedAt: cachedAt || Date.now()
+                    }, CACHE_KEY);
                     tx.oncomplete = resolve;
                     tx.onerror = () => reject(tx.error);
                 });
@@ -104,38 +166,94 @@ const StudentsCache = (() => {
         });
     }
 
+    async function fullSync(meta) {
+        const snap = await studentsRef.once('value');
+        store.clear();
+        snap.forEach(child => { store.set(child.key, normalizeStudent(child.val())); });
+        syncedRev = meta.rev || Date.now();
+        epoch = meta.epoch || 0;
+        cachedAt = Date.now();
+        schedulePersist();
+        notify('synced', null);
+        pruneTombstones();
+    }
+
+    async function deltaSync(meta) {
+        const from = Math.max(0, syncedRev - SKEW_MS);
+        const [changed, removed] = await Promise.all([
+            studentsRef.orderByChild('updatedAt').startAt(from).once('value'),
+            tombstonesRef.orderByChild('deletedAt').startAt(from).once('value')
+        ]);
+        changed.forEach(child => { store.set(child.key, normalizeStudent(child.val())); });
+        removed.forEach(child => { store.delete(child.key); });
+        syncedRev = meta.rev || syncedRev;
+        cachedAt = Date.now();
+        schedulePersist();
+        notify('synced', null);
+    }
+
+    function reconcile(metaVal) {
+        const meta = metaVal || {};
+        const needsFull = store.size === 0
+            || (meta.epoch || 0) !== epoch
+            || (Date.now() - cachedAt) > MAX_CACHE_AGE_MS;
+
+        // The hot path: local mirror is already at or past the server's
+        // revision, so we return without touching a single student record.
+        if (!needsFull && (meta.rev || 0) <= syncedRev) {
+            notify('up-to-date', null);
+            return;
+        }
+
+        // Serialised so a burst of rev bumps can't run overlapping fetches.
+        syncChain = syncChain
+            .then(() => (needsFull ? fullSync(meta) : deltaSync(meta)))
+            .catch(e => console.error('StudentsCache: sync failed', e));
+    }
+
+    // Housekeeping so the tombstone list can't grow forever. Cheap and rare:
+    // only runs after a full sync, and only touches markers past their TTL.
+    async function pruneTombstones() {
+        try {
+            const cutoff = Date.now() - TOMBSTONE_TTL_MS;
+            const old = await tombstonesRef.orderByChild('deletedAt').endAt(cutoff).once('value');
+            const updates = {};
+            old.forEach(child => { updates[child.key] = null; });
+            if (Object.keys(updates).length) await tombstonesRef.update(updates);
+        } catch (e) {
+            console.warn('StudentsCache: tombstone prune skipped', e);
+        }
+    }
+
     function init(ref) {
         if (initialized) return;
         initialized = true;
+        studentsRef = ref || db.ref(STUDENTS_PATH);
+        metaRef = db.ref(STUDENTS_META_PATH);
+        tombstonesRef = db.ref(STUDENT_TOMBSTONES_PATH);
 
-        // 1. Paint immediately from whatever we had cached locally.
-        loadFromLocalCache().then(() => notify('ready-from-cache', null));
-
-        // 2. Sync deltas only — Firebase's child_* events only fire for the
-        // record(s) that actually changed, not the entire node every time.
-        ref.on('child_added', snap => {
-            store.set(snap.key, normalizeStudent(snap.val()));
-            schedulePersist();
-            notify('added', snap.key);
-        });
-        ref.on('child_changed', snap => {
-            store.set(snap.key, normalizeStudent(snap.val()));
-            schedulePersist();
-            notify('changed', snap.key);
-        });
-        ref.on('child_removed', snap => {
-            store.delete(snap.key);
-            schedulePersist();
-            notify('removed', snap.key);
+        loadFromLocalCache().then(() => {
+            notify('ready-from-cache', null);
+            // The only standing listener. It carries two numbers, fires once
+            // now with the current revision and again on every later write —
+            // including our own, which is how a local edit reaches the UI.
+            metaRef.on('value', snap => reconcile(snap.val()));
         });
     }
 
-    // The whole point of this: don't fetch any student records at all until
-    // something actually asks for them. `db`/STUDENTS_PATH are read here
-    // (not at module-definition time) since this only ever runs after
-    // firebase.initializeApp() further down the file.
+    // Don't fetch anything until something actually asks for student data.
+    // `db`/STUDENTS_PATH are read here (not at module-definition time) since
+    // this only ever runs after firebase.initializeApp() further down the file.
     function ensureStarted() {
         if (!initialized) init(db.ref(STUDENTS_PATH));
+    }
+
+    // Marks the roster dirty for every device (including this one). Awaiting it
+    // is optional — the UI already has the local copy applied below.
+    function touch() {
+        return db.ref(`${STUDENTS_META_PATH}/rev`)
+            .set(firebase.database.ServerValue.TIMESTAMP)
+            .catch(e => console.warn('StudentsCache: rev bump failed', e));
     }
 
     return {
@@ -143,8 +261,72 @@ const StudentsCache = (() => {
         getAll: () => { ensureStarted(); return store; },
         get: (id) => { ensureStarted(); return store.get(id); },
         // Fires once immediately with whatever's cached ('ready-from-cache'),
-        // then again for every subsequent 'added' | 'changed' | 'removed'.
-        onChange: (cb) => { ensureStarted(); listeners.add(cb); return () => listeners.delete(cb); }
+        // then 'up-to-date' when the server confirms nothing changed, or
+        // 'synced' after a delta/full fetch has been folded in.
+        onChange: (cb) => { ensureStarted(); listeners.add(cb); return () => listeners.delete(cb); },
+
+        // ---- write-side helpers: every student write should use these ----
+
+        // Spread into any student create/update payload. The server stamps the
+        // time, so the watermark comparison never depends on a device clock.
+        stamp: () => ({ updatedAt: firebase.database.ServerValue.TIMESTAMP }),
+        touch,
+
+        // Fold a just-written record into the local mirror for instant UI,
+        // WITHOUT bumping the shared revision. Use this when writing several
+        // students in one pass, then call touch() once at the end — calling
+        // markChanged in a loop would bump `rev` per record and kick off a
+        // separate delta sync for each one.
+        applyLocal(id, data) {
+            ensureStarted();
+            if (!id || !data) return;
+            const clean = { ...data };
+            // firebase.database.ServerValue.TIMESTAMP is a {".sv":"timestamp"}
+            // placeholder until the server resolves it. Letting that object into
+            // the mirror would put a non-numeric `updatedAt` in IndexedDB; the
+            // real value arrives with the next sync anyway.
+            if (clean.updatedAt && typeof clean.updatedAt === 'object') delete clean.updatedAt;
+            store.set(id, normalizeStudent({ ...(store.get(id) || {}), ...clean }));
+            cachedAt = Date.now();
+            schedulePersist();
+            notify('changed', id);
+        },
+
+        // Single-record convenience: apply locally, then tell the other devices
+        // there's something to fetch.
+        markChanged(id, data) {
+            this.applyLocal(id, data);
+            return touch();
+        },
+
+        // Same, for a delete: drop it locally and leave a dated marker so other
+        // devices learn about it on their next delta sync.
+        markDeleted(id) {
+            ensureStarted();
+            store.delete(id);
+            cachedAt = Date.now();
+            schedulePersist();
+            notify('removed', id);
+            return db.ref(`${STUDENT_TOMBSTONES_PATH}/${id}`)
+                .set({ deletedAt: firebase.database.ServerValue.TIMESTAMP })
+                .then(touch)
+                .catch(e => console.warn('StudentsCache: tombstone write failed', e));
+        },
+
+        // Destructive reset (delete-all). Bumping `epoch` is what makes every
+        // other device discard its mirror instead of trying to reconcile 400
+        // tombstones.
+        markResetAll() {
+            ensureStarted();
+            store.clear();
+            cachedAt = Date.now();
+            schedulePersist();
+            notify('removed', null);
+            return db.ref(STUDENTS_META_PATH).set({
+                rev: firebase.database.ServerValue.TIMESTAMP,
+                epoch: firebase.database.ServerValue.TIMESTAMP
+            }).catch(e => console.warn('StudentsCache: reset marker failed', e));
+        }
     };
 })();
 
@@ -164,6 +346,13 @@ async function getStudentCached(studentId) {
     return normalizeStudent(snapshot.val());
 }
 window.getStudentCached = getStudentCached;
+// StudentsCache is declared with `const`, which in a classic script lands in
+// script scope, NOT on `window`. Files loaded after this one can still say
+// `StudentsCache` bare, but any `window.StudentsCache` / `if (window.StudentsCache)`
+// check reads undefined — which is why reservations.js's grade dropdown bailed
+// out before ever listing a student. Exporting it explicitly makes both forms work.
+window.StudentsCache = StudentsCache;
+window.STUDENTS_PATH = STUDENTS_PATH;
 
 // Same idea, for books: a small always-synced mirror of the 'books' node so
 // read-only lookups (rendering a title in a card, a report row, a dropdown
@@ -1164,15 +1353,30 @@ class StudentManager {
         });
 
         // Update each student's status (student IDs come from the cache —
-        // no need to re-read the whole students node just for the key list)
+        // no need to re-read the whole students node just for the key list).
+        // Only students whose flag actually FLIPS are written. This used to
+        // rewrite all ~400 records on every call, which under revision-gated
+        // sync would stamp a fresh `updatedAt` on the entire roster and make
+        // every device re-download it — the exact cost this cache exists to
+        // avoid. Typically this now writes zero or one or two records.
         const updates = {};
+        const touched = [];
         StudentsCache.getAll().forEach((student, studentId) => {
-            const activeCount = activeIssuances.get(studentId) || 0;
-            updates[`${studentId}/hasActiveBooks`] = activeCount > 0;
+            const next = (activeIssuances.get(studentId) || 0) > 0;
+            if (Boolean(student.hasActiveBooks) === next) return;
+            updates[`${studentId}/hasActiveBooks`] = next;
+            updates[`${studentId}/updatedAt`] = firebase.database.ServerValue.TIMESTAMP;
+            touched.push([studentId, next]);
         });
 
-        if (Object.keys(updates).length > 0) {
+        if (touched.length > 0) {
             await this.studentsRef.update(updates);
+            // One multi-path write above, so one revision bump below. Bumping
+            // per student would make every device run a delta sync per record.
+            touched.forEach(([studentId, next]) => {
+                StudentsCache.applyLocal(studentId, { hasActiveBooks: next });
+            });
+            await StudentsCache.touch();
         }
     }
     
@@ -1181,10 +1385,12 @@ class StudentManager {
             try {
                 await this.studentsRef.remove();
                 await db.ref(STUDENT_COUNT_PATH).set(0);
+                await db.ref(STUDENT_TOMBSTONES_PATH).remove();
                 this.studentsList.innerHTML = ''; // Clear the displayed list
-                // No need to clear a local cache by hand — the child_removed
-                // events from this remove() will drain StudentsCache and its
-                // onChange listener will re-render automatically.
+                // Bumps the sync `epoch`, which is the signal every other
+                // device checks on load to discard its local mirror outright
+                // rather than trying to reconcile 400 individual deletions.
+                await StudentsCache.markResetAll();
                 alert('All students have been deleted successfully.');
             } catch (error) {
                 console.error('Error deleting all students:', error);
@@ -1389,15 +1595,22 @@ class StudentManager {
             upi: document.getElementById('upi').value,
             phoneNumber: document.getElementById('phoneNumber').value,
             grade: document.getElementById('grade').value,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            // Server-stamped: this is what the delta query filters on, so it
+            // must not come from the device clock.
+            ...StudentsCache.stamp()
         };
 
         const editId = this.studentForm.getAttribute('data-edit-id');
         if (editId) {
             await this.studentsRef.child(editId).update(studentData);
+            // Applies the edit to the local mirror immediately and bumps the
+            // shared revision so other devices fetch just this one record.
+            await StudentsCache.markChanged(editId, studentData);
         } else {
-            await this.studentsRef.push(studentData);
+            const newRef = await this.studentsRef.push(studentData);
             await db.ref(STUDENT_COUNT_PATH).transaction(current => (current || 0) + 1);
+            await StudentsCache.markChanged(newRef.key, studentData);
         }
 
         studentModal.classList.remove('active');
@@ -1415,9 +1628,17 @@ class StudentManager {
             }
         });
 
+        // Skip the write when the number hasn't moved — an unchanged value
+        // would still bump `updatedAt` and pull this record down onto every
+        // other device for nothing.
+        const cached = StudentsCache.get(studentId);
+        if (cached && (cached.activeIssuances || 0) === activeIssuances) return;
+
         await this.studentsRef.child(studentId).update({
-            activeIssuances: activeIssuances
+            activeIssuances: activeIssuances,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
         });
+        await StudentsCache.markChanged(studentId, { activeIssuances });
     }
 
     renderStudentCard(student, studentId) {
@@ -1474,6 +1695,9 @@ class StudentManager {
         if (confirm('Are you sure you want to delete this student?')) {
             await this.studentsRef.child(studentId).remove();
             await db.ref(STUDENT_COUNT_PATH).transaction(current => Math.max(0, (current || 0) - 1));
+            // Leaves the dated tombstone the delta sync needs — without it the
+            // student stays visible on every other device until its cache ages out.
+            await StudentsCache.markDeleted(studentId);
         }
     }
 }
@@ -3909,6 +4133,7 @@ getStartDateFromDatabase() {
                     // StudentManager.deleteStudent does.
                     await db.ref(`${STUDENTS_PATH}/${studentId}`).remove();
                     await db.ref(STUDENT_COUNT_PATH).transaction(current => Math.max(0, (current || 0) - 1));
+                    await StudentsCache.markDeleted(studentId);
                     const issuanceIds = studentActivity[studentId].issuanceIds;
                     for (const issuanceId of issuanceIds) {
                         await db.ref(`issuance/${issuanceId}`).remove();

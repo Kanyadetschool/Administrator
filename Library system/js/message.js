@@ -570,16 +570,25 @@ class MessageManager {
                 studentsWithActiveIssuance.set(issuance.studentId, issuance);
             });
 
-            const studentsSnapshot = await this.db.ref(typeof STUDENTS_PATH !== 'undefined' ? STUDENTS_PATH : 'students')
-                .once('value');
+            // Was a fresh `.once('value')` read of the whole roster on every
+            // open of this dialog — the exact cost StudentsCache exists to
+            // avoid. Reads the already-synced mirror instead (falls back to a
+            // direct read only if this file somehow loaded before app.js, e.g.
+            // a future reorder of the <script> tags in index.html).
+            const studentEntries = (typeof StudentsCache !== 'undefined')
+                ? Array.from(StudentsCache.getAll(), ([id, s]) => ({ id, ...s }))
+                : (await this.db.ref(typeof STUDENTS_PATH !== 'undefined' ? STUDENTS_PATH : 'students').once('value'))
+                    .val()
+                || {};
+            const studentList = Array.isArray(studentEntries)
+                ? studentEntries
+                : Object.entries(studentEntries).map(([id, raw]) => ({ id, ...raw }));
 
-            studentsSnapshot.forEach(child => {
-                const raw = { id: child.key, ...child.val() };
-                // Raw records use "Official Student Name"/"Grade" rather
-                // than name/grade — normalize before grouping, same as
-                // app.js's normalizeStudent(). orderByChild('grade') above
-                // was dropped since it can't match a field that doesn't
-                // exist on the raw record.
+            studentList.forEach(raw => {
+                // Raw records use "Official Student Name"/"Grade" rather than
+                // name/grade — normalize before grouping. StudentsCache
+                // entries are already normalized; normalizeStudent() is a
+                // harmless no-op on those.
                 const student = (typeof normalizeStudent === 'function') ? normalizeStudent(raw) : raw;
                 if (studentsWithActiveIssuance.has(student.id)) {
                     if (!gradeGroups.has(student.grade)) {
@@ -848,18 +857,24 @@ class MessageManager {
                 studentResults.innerHTML = '';
 
                 if (gradeSelect.value) {
-                    const studentsSnapshot = await this.db.ref(typeof STUDENTS_PATH !== 'undefined' ? STUDENTS_PATH : 'students')
-                        .once('value');
-
+                    // Same StudentsCache-first read as showBroadcastDialog()
+                    // above — was re-downloading the whole roster on every
+                    // grade change.
                     const students = [];
-                    studentsSnapshot.forEach(child => {
-                        const raw = { id: child.key, ...child.val() };
-                        // Same normalization as showBroadcastDialog() above —
-                        // raw records don't have name/grade, so equalTo('grade')
-                        // couldn't match; filter on the normalized field instead.
-                        const student = (typeof normalizeStudent === 'function') ? normalizeStudent(raw) : raw;
-                        if (student.grade === gradeSelect.value) students.push(student);
-                    });
+                    if (typeof StudentsCache !== 'undefined') {
+                        StudentsCache.getAll().forEach((raw, id) => {
+                            const student = (typeof normalizeStudent === 'function') ? normalizeStudent({ id, ...raw }) : { id, ...raw };
+                            if (student.grade === gradeSelect.value) students.push(student);
+                        });
+                    } else {
+                        const studentsSnapshot = await this.db.ref(typeof STUDENTS_PATH !== 'undefined' ? STUDENTS_PATH : 'students')
+                            .once('value');
+                        studentsSnapshot.forEach(child => {
+                            const raw = { id: child.key, ...child.val() };
+                            const student = (typeof normalizeStudent === 'function') ? normalizeStudent(raw) : raw;
+                            if (student.grade === gradeSelect.value) students.push(student);
+                        });
+                    }
 
                     students.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
