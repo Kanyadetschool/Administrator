@@ -566,6 +566,8 @@
         <!-- Books content will be dynamically added -->
     </div>
 </div>
+<!-- Modal container for book operations -->
+<div id="bookModal" class="modal fade"></div>
 
             <div id="students" class="page">
                 <!-- Replace empty div with this structured content -->
@@ -2046,10 +2048,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Book Operations Modal (Placed at root level to prevent z-index stacking issues) -->
-    <div id="bookModal" class="modal fade" tabindex="-1" aria-hidden="true"></div>
-
     <div class="sidebar-backdrop"></div>
     <script src="./js/firebaseConfig.js"></script>
 
@@ -2164,9 +2162,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="./js/isbn-service.js"></script>
     <script src="./js/spine-labels.js"></script>
-
-    <!-- Phase 2: Class-Kit Bulk Issuance & Stream Clearance -->
-    <script src="./js/class-kit-issuance.js"></script>
 
 </body>
 </html>
