@@ -1,466 +1,3 @@
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const sanitizedAppId = appId.replace(/\./g, '_');
-
-// Real DB records store fields like "Official Student Name", "Grade",
-// "Assessment No", "ULI", "Home phone" (see actual students/{id} sample).
-// This maps them onto the lowerCamelCase fields the UI code reads,
-// without dropping the original raw fields.
-function normalizeStudent(raw) {
-    if (!raw) return raw;
-    return {
-        ...raw,
-        name: raw.name || raw.fullName || raw['Official Student Name'] || 'Unknown',
-        fullName: raw.fullName || raw['Official Student Name'] || raw.name || 'Unknown',
-        assessmentNo: (raw.assessmentNo || raw['Assessment No'] || '').toString().trim(),
-        grade: raw.grade || raw['Grade'] || '',
-        ULI: raw.ULI || raw.ULINo || raw['ULI'] || '',
-        phoneNumber: raw.phoneNumber || raw['Home phone'] || ''
-    };
-}
-
-const STUDENTS_PATH = `artifacts/${sanitizedAppId}/students`;
-// A small denormalized counter, kept in sync via transactions whenever a
-// student is added/removed. Reading this one value is a single tiny fetch —
-// far cheaper than downloading every student record just to get its count.
-const STUDENT_COUNT_PATH = `artifacts/${sanitizedAppId}/counters/studentCount`;
-// Tiny sync-control node: { rev, epoch }. `rev` is a server timestamp bumped on
-// every student write; `epoch` only moves on a destructive reset (delete-all),
-// which forces every device to throw its local mirror away and refetch.
-// Reading these two numbers costs a few bytes — the whole point is that a page
-// load asks "did anything change?" instead of downloading 400 student records
-// to find out that nothing did.
-const STUDENTS_META_PATH = `artifacts/${sanitizedAppId}/meta/students`;
-// Deletes can't be discovered by an "updatedAt newer than X" query (the record
-// is gone), so each delete leaves a dated marker here for other devices to pick
-// up on their next delta sync. Pruned automatically after TOMBSTONE_TTL.
-const STUDENT_TOMBSTONES_PATH = `artifacts/${sanitizedAppId}/studentTombstones`;
-
-// Shared students cache: an IndexedDB-backed local mirror of the roster that
-// syncs by REVISION rather than by re-reading the node.
-//
-// Why the change: the previous version kept the same IndexedDB mirror but still
-// attached child_added/child_changed/child_removed listeners to the whole
-// students node. The Firebase web SDK has no disk persistence, so those
-// listeners start cold on every page load and re-download all ~400 records
-// before firing a single event — the local cache was saving render time but
-// none of the free tier's 360 MB/day bandwidth.
-//
-// The flow now is:
-//   1. Paint instantly from IndexedDB (zero network).
-//   2. Read the tiny meta node (two numbers) to learn the server's current
-//      revision, and keep one cheap listener on it for the rest of the session.
-//   3. If that revision is one we've already folded in, STOP. No student
-//      record is fetched at all — the common case, since the roster changes a
-//      few times a week, not a few times a minute.
-//   4. If it moved, fetch only the records whose `updatedAt` is newer than our
-//      watermark, plus any new tombstones. Editing one student costs one
-//      student-sized download instead of four hundred.
-//
-// Every writer must go through StudentsCache.markChanged/markDeleted (or at
-// minimum call StudentsCache.stamp() + touch()) so `updatedAt` and `rev` stay
-// truthful — a write that skips them is invisible to other devices until their
-// cache next expires.
-//
-// Required database rules for the two queries below:
-//   "students":         { ".indexOn": ["updatedAt"] }
-//   "studentTombstones":{ ".indexOn": ["deletedAt"] }
-//
-// Any part of the app (this file or functions.js) can read StudentsCache.getAll()
-// instead of doing its own studentsRef.once('value') / .on('value') read.
-const StudentsCache = (() => {
-    const DB_NAME = 'kanyadet_library_cache';
-    const DB_VERSION = 1;
-    const STORE_NAME = 'kv';
-    // v2 = stores sync metadata alongside the records. The version bump makes
-    // every device do exactly one full fetch after this deploy, which also
-    // backfills records that predate `updatedAt`.
-    const CACHE_KEY = 'students_cache_v2';
-    // Delta queries reach slightly further back than our watermark. `updatedAt`
-    // and `rev` are both server timestamps so they can't really drift, but a
-    // few seconds of overlap costs a couple of duplicate records and removes a
-    // whole class of "the edit never showed up" bug.
-    const SKEW_MS = 5 * 60 * 1000;
-    // Older than this and we stop trusting incremental sync (tombstones we
-    // needed may already have been pruned) and do one clean full fetch.
-    const MAX_CACHE_AGE_MS = 30 * 24 * 60 * 60 * 1000;
-    const TOMBSTONE_TTL_MS = 90 * 24 * 60 * 60 * 1000;
-
-    const listeners = new Set();
-    const store = new Map(); // studentId -> normalized student
-    let initialized = false;
-    let persistTimer = null;
-    let syncedRev = 0;   // highest meta.rev already folded into `store`
-    let epoch = 0;       // last destructive-reset marker we honoured
-    let cachedAt = 0;    // when the mirror was last reconciled with the server
-    let studentsRef = null;
-    let metaRef = null;
-    let tombstonesRef = null;
-    let syncChain = Promise.resolve();
-
-    function openDb() {
-        return new Promise((resolve, reject) => {
-            if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
-            const req = indexedDB.open(DB_NAME, DB_VERSION);
-            req.onupgradeneeded = () => {
-                if (!req.result.objectStoreNames.contains(STORE_NAME)) {
-                    req.result.createObjectStore(STORE_NAME);
-                }
-            };
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => reject(req.error);
-        });
-    }
-
-    async function loadFromLocalCache() {
-        try {
-            const db = await openDb();
-            const cached = await new Promise((resolve, reject) => {
-                const tx = db.transaction(STORE_NAME, 'readonly');
-                const req = tx.objectStore(STORE_NAME).get(CACHE_KEY);
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-            });
-            if (cached && cached.students) {
-                Object.entries(cached.students).forEach(([id, student]) => {
-                    store.set(id, student);
-                });
-                syncedRev = cached.syncedRev || 0;
-                epoch = cached.epoch || 0;
-                cachedAt = cached.updatedAt || 0;
-            }
-        } catch (e) {
-            console.warn('StudentsCache: failed to read local cache', e);
-        }
-    }
-
-    // Debounced: a full fetch would otherwise mean one IndexedDB write per
-    // record instead of one for the batch.
-    function schedulePersist() {
-        if (persistTimer) return;
-        persistTimer = setTimeout(async () => {
-            persistTimer = null;
-            try {
-                const students = {};
-                store.forEach((value, key) => { students[key] = value; });
-                const db = await openDb();
-                await new Promise((resolve, reject) => {
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    tx.objectStore(STORE_NAME).put({
-                        students,
-                        syncedRev,
-                        epoch,
-                        updatedAt: cachedAt || Date.now()
-                    }, CACHE_KEY);
-                    tx.oncomplete = resolve;
-                    tx.onerror = () => reject(tx.error);
-                });
-            } catch (e) {
-                console.warn('StudentsCache: failed to persist local cache', e);
-            }
-        }, 500);
-    }
-
-    function notify(type, id) {
-        listeners.forEach(cb => {
-            try { cb(type, id, store); } catch (e) { console.error('StudentsCache listener error', e); }
-        });
-    }
-
-    async function fullSync(meta) {
-        const snap = await studentsRef.once('value');
-        store.clear();
-        snap.forEach(child => { store.set(child.key, normalizeStudent(child.val())); });
-        syncedRev = meta.rev || Date.now();
-        epoch = meta.epoch || 0;
-        cachedAt = Date.now();
-        schedulePersist();
-        notify('synced', null);
-        pruneTombstones();
-    }
-
-    async function deltaSync(meta) {
-        const from = Math.max(0, syncedRev - SKEW_MS);
-        const [changed, removed] = await Promise.all([
-            studentsRef.orderByChild('updatedAt').startAt(from).once('value'),
-            tombstonesRef.orderByChild('deletedAt').startAt(from).once('value')
-        ]);
-        changed.forEach(child => { store.set(child.key, normalizeStudent(child.val())); });
-        removed.forEach(child => { store.delete(child.key); });
-        syncedRev = meta.rev || syncedRev;
-        cachedAt = Date.now();
-        schedulePersist();
-        notify('synced', null);
-    }
-
-    function reconcile(metaVal) {
-        const meta = metaVal || {};
-        const needsFull = store.size === 0
-            || (meta.epoch || 0) !== epoch
-            || (Date.now() - cachedAt) > MAX_CACHE_AGE_MS;
-
-        // The hot path: local mirror is already at or past the server's
-        // revision, so we return without touching a single student record.
-        if (!needsFull && (meta.rev || 0) <= syncedRev) {
-            notify('up-to-date', null);
-            return;
-        }
-
-        // Serialised so a burst of rev bumps can't run overlapping fetches.
-        syncChain = syncChain
-            .then(() => (needsFull ? fullSync(meta) : deltaSync(meta)))
-            .catch(e => console.error('StudentsCache: sync failed', e));
-    }
-
-    // Housekeeping so the tombstone list can't grow forever. Cheap and rare:
-    // only runs after a full sync, and only touches markers past their TTL.
-    async function pruneTombstones() {
-        try {
-            const cutoff = Date.now() - TOMBSTONE_TTL_MS;
-            const old = await tombstonesRef.orderByChild('deletedAt').endAt(cutoff).once('value');
-            const updates = {};
-            old.forEach(child => { updates[child.key] = null; });
-            if (Object.keys(updates).length) await tombstonesRef.update(updates);
-        } catch (e) {
-            console.warn('StudentsCache: tombstone prune skipped', e);
-        }
-    }
-
-    function init(ref) {
-        if (initialized) return;
-        initialized = true;
-        studentsRef = ref || db.ref(STUDENTS_PATH);
-        metaRef = db.ref(STUDENTS_META_PATH);
-        tombstonesRef = db.ref(STUDENT_TOMBSTONES_PATH);
-
-        loadFromLocalCache().then(() => {
-            notify('ready-from-cache', null);
-            // The only standing listener. It carries two numbers, fires once
-            // now with the current revision and again on every later write —
-            // including our own, which is how a local edit reaches the UI.
-            metaRef.on('value', snap => reconcile(snap.val()));
-        });
-    }
-
-    // Don't fetch anything until something actually asks for student data.
-    // `db`/STUDENTS_PATH are read here (not at module-definition time) since
-    // this only ever runs after firebase.initializeApp() further down the file.
-    function ensureStarted() {
-        if (!initialized) init(db.ref(STUDENTS_PATH));
-    }
-
-    // Marks the roster dirty for every device (including this one). Awaiting it
-    // is optional — the UI already has the local copy applied below.
-    function touch() {
-        return db.ref(`${STUDENTS_META_PATH}/rev`)
-            .set(firebase.database.ServerValue.TIMESTAMP)
-            .catch(e => console.warn('StudentsCache: rev bump failed', e));
-    }
-
-    return {
-        init,
-        getAll: () => { ensureStarted(); return store; },
-        get: (id) => { ensureStarted(); return store.get(id); },
-        // Fires once immediately with whatever's cached ('ready-from-cache'),
-        // then 'up-to-date' when the server confirms nothing changed, or
-        // 'synced' after a delta/full fetch has been folded in.
-        onChange: (cb) => { ensureStarted(); listeners.add(cb); return () => listeners.delete(cb); },
-
-        // ---- write-side helpers: every student write should use these ----
-
-        // Spread into any student create/update payload. The server stamps the
-        // time, so the watermark comparison never depends on a device clock.
-        stamp: () => ({ updatedAt: firebase.database.ServerValue.TIMESTAMP }),
-        touch,
-
-        // Fold a just-written record into the local mirror for instant UI,
-        // WITHOUT bumping the shared revision. Use this when writing several
-        // students in one pass, then call touch() once at the end — calling
-        // markChanged in a loop would bump `rev` per record and kick off a
-        // separate delta sync for each one.
-        applyLocal(id, data) {
-            ensureStarted();
-            if (!id || !data) return;
-            const clean = { ...data };
-            // firebase.database.ServerValue.TIMESTAMP is a {".sv":"timestamp"}
-            // placeholder until the server resolves it. Letting that object into
-            // the mirror would put a non-numeric `updatedAt` in IndexedDB; the
-            // real value arrives with the next sync anyway.
-            if (clean.updatedAt && typeof clean.updatedAt === 'object') delete clean.updatedAt;
-            store.set(id, normalizeStudent({ ...(store.get(id) || {}), ...clean }));
-            cachedAt = Date.now();
-            schedulePersist();
-            notify('changed', id);
-        },
-
-        // Single-record convenience: apply locally, then tell the other devices
-        // there's something to fetch.
-        markChanged(id, data) {
-            this.applyLocal(id, data);
-            return touch();
-        },
-
-        // Same, for a delete: drop it locally and leave a dated marker so other
-        // devices learn about it on their next delta sync.
-        markDeleted(id) {
-            ensureStarted();
-            store.delete(id);
-            cachedAt = Date.now();
-            schedulePersist();
-            notify('removed', id);
-            return db.ref(`${STUDENT_TOMBSTONES_PATH}/${id}`)
-                .set({ deletedAt: firebase.database.ServerValue.TIMESTAMP })
-                .then(touch)
-                .catch(e => console.warn('StudentsCache: tombstone write failed', e));
-        },
-
-        // Destructive reset (delete-all). Bumping `epoch` is what makes every
-        // other device discard its mirror instead of trying to reconcile 400
-        // tombstones.
-        markResetAll() {
-            ensureStarted();
-            store.clear();
-            cachedAt = Date.now();
-            schedulePersist();
-            notify('removed', null);
-            return db.ref(STUDENTS_META_PATH).set({
-                rev: firebase.database.ServerValue.TIMESTAMP,
-                epoch: firebase.database.ServerValue.TIMESTAMP
-            }).catch(e => console.warn('StudentsCache: reset marker failed', e));
-        }
-    };
-})();
-
-// Fast, single-student lookup: check the already-synced cache first (an
-// in-memory Map read — no network round trip) instead of the ~13 places in
-// this file that were doing their own `db.ref('students/{id}').once('value')`
-// per lookup. That pattern was also using the wrong un-scoped 'students/'
-// path instead of STUDENTS_PATH, so those reads may not even have been
-// hitting the record they thought they were. Falls back to a correctly-
-// scoped direct fetch only when the cache genuinely hasn't seen this student
-// yet (e.g. the very first lookup of a session, before the initial sync).
-async function getStudentCached(studentId) {
-    if (!studentId) return null;
-    const cached = StudentsCache.get(studentId);
-    if (cached) return cached;
-    const snapshot = await db.ref(`${STUDENTS_PATH}/${studentId}`).once('value');
-    return normalizeStudent(snapshot.val());
-}
-window.getStudentCached = getStudentCached;
-// StudentsCache is declared with `const`, which in a classic script lands in
-// script scope, NOT on `window`. Files loaded after this one can still say
-// `StudentsCache` bare, but any `window.StudentsCache` / `if (window.StudentsCache)`
-// check reads undefined — which is why reservations.js's grade dropdown bailed
-// out before ever listing a student. Exporting it explicitly makes both forms work.
-window.StudentsCache = StudentsCache;
-window.STUDENTS_PATH = STUDENTS_PATH;
-
-// Same idea, for books: a small always-synced mirror of the 'books' node so
-// read-only lookups (rendering a title in a card, a report row, a dropdown
-// label) don't each cost a network round trip. Unlike StudentsCache this is
-// NOT used for anything that gates a write (checking `available` before
-// issuing, decrementing `lost`, etc.) — those still read `books/{id}`
-// directly, since a cached value could be a moment stale and let two people
-// over-issue the same last copy. This is purely for display.
-const BooksCache = (() => {
-    const DB_NAME = 'kanyadet_library_cache';
-    const DB_VERSION = 1;
-    const STORE_NAME = 'kv';
-    const CACHE_KEY = 'books_cache_v1';
-    const listeners = new Set();
-    const store = new Map(); // bookId -> book
-    let initialized = false;
-    let persistTimer = null;
-
-    function openDb() {
-        return new Promise((resolve, reject) => {
-            if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
-            const req = indexedDB.open(DB_NAME, DB_VERSION);
-            req.onupgradeneeded = () => {
-                if (!req.result.objectStoreNames.contains(STORE_NAME)) {
-                    req.result.createObjectStore(STORE_NAME);
-                }
-            };
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => reject(req.error);
-        });
-    }
-
-    async function loadFromLocalCache() {
-        try {
-            const idb = await openDb();
-            const cached = await new Promise((resolve, reject) => {
-                const tx = idb.transaction(STORE_NAME, 'readonly');
-                const req = tx.objectStore(STORE_NAME).get(CACHE_KEY);
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-            });
-            if (cached && cached.books) {
-                Object.entries(cached.books).forEach(([id, book]) => store.set(id, book));
-            }
-        } catch (e) {
-            console.warn('BooksCache: failed to read local cache', e);
-        }
-    }
-
-    function schedulePersist() {
-        if (persistTimer) return;
-        persistTimer = setTimeout(async () => {
-            persistTimer = null;
-            try {
-                const books = {};
-                store.forEach((value, key) => { books[key] = value; });
-                const idb = await openDb();
-                await new Promise((resolve, reject) => {
-                    const tx = idb.transaction(STORE_NAME, 'readwrite');
-                    tx.objectStore(STORE_NAME).put({ books, updatedAt: Date.now() }, CACHE_KEY);
-                    tx.oncomplete = resolve;
-                    tx.onerror = () => reject(tx.error);
-                });
-            } catch (e) {
-                console.warn('BooksCache: failed to persist local cache', e);
-            }
-        }, 500);
-    }
-
-    function notify(type, id) {
-        listeners.forEach(cb => {
-            try { cb(type, id, store); } catch (e) { console.error('BooksCache listener error', e); }
-        });
-    }
-
-    function init(ref) {
-        if (initialized) return;
-        initialized = true;
-        loadFromLocalCache().then(() => notify('ready-from-cache', null));
-        ref.on('child_added', snap => { store.set(snap.key, snap.val()); schedulePersist(); notify('added', snap.key); });
-        ref.on('child_changed', snap => { store.set(snap.key, snap.val()); schedulePersist(); notify('changed', snap.key); });
-        ref.on('child_removed', snap => { store.delete(snap.key); schedulePersist(); notify('removed', snap.key); });
-    }
-
-    function ensureStarted() {
-        if (!initialized) init(db.ref('books'));
-    }
-
-    return {
-        init,
-        getAll: () => { ensureStarted(); return store; },
-        get: (id) => { ensureStarted(); return store.get(id); },
-        onChange: (cb) => { ensureStarted(); listeners.add(cb); return () => listeners.delete(cb); }
-    };
-})();
-window.BooksCache = BooksCache;
-
-// Cache-first book lookup for display purposes — see BooksCache note above
-// about why this is never used ahead of a write.
-async function getBookCached(bookId) {
-    if (!bookId) return null;
-    const cached = BooksCache.get(bookId);
-    if (cached) return cached;
-    const snapshot = await db.ref(`books/${bookId}`).once('value');
-    return snapshot.val();
-}
-window.getBookCached = getBookCached;
-
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.querySelector('#searchInput');
@@ -501,7 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (navLinks.length > 0) {
             navLinks.forEach(link => {
                 link.addEventListener('click', () => {
-                    if (window.innerWidth < 992) {
+                    // if (window.innerWidth < 992) {
+                    if (window.innerWidth < 392) {
                         toggleSidebar();
                     }
                 });
@@ -513,7 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Handle window resize
         window.addEventListener('resize', () => {
-            if (window.innerWidth >= 992) {
+            // if (window.innerWidth >= 992) {
+            if (window.innerWidth >= 392) {
                 sidebar.classList.remove('show');
                 backdrop.classList.remove('show');
             }
@@ -525,76 +64,12 @@ document.addEventListener('DOMContentLoaded', function() {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Single source of truth for books/{id}.available. Every issue/return/lost/
-// recovery/quantity-edit code path used to hand-adjust `available` with its
-// own +1/-1, and those adjustments disagreed with each other about whether a
-// copy that's actively issued was already excluded from `available` — that
-// drift is what let records like "46 available / 46 total / 1 lost" happen
-// (a recovered book adding back a copy that a different lost-report path had
-// never actually subtracted). Recompute from ground truth instead:
-//   available = quantity - lost - (books currently out on active/overdue issuance)
-// Call this after ANY change to a book's quantity/lost value or to an
-// issuance's status, instead of writing to `available` directly.
-async function recalculateBookAvailability(bookId) {
-    const [bookSnap, issuanceSnap] = await Promise.all([
-        db.ref(`books/${bookId}`).once('value'),
-        db.ref('issuance').orderByChild('bookId').equalTo(bookId).once('value')
-    ]);
-    const book = bookSnap.val();
-    if (!book) return null;
-
-    let activeCount = 0;
-    issuanceSnap.forEach(child => {
-        const status = child.val().status;
-        if (status === 'active' || status === 'overdue') activeCount++;
-    });
-
-    const quantity = Number(book.quantity) || 0;
-    const lost = Number(book.lost) || 0;
-    const available = Math.max(0, quantity - lost - activeCount);
-
-    await db.ref(`books/${bookId}`).update({ available, updatedAt: Date.now() });
-    return available;
-}
-window.recalculateBookAvailability = recalculateBookAvailability;
-
-// One-time/repeatable repair pass: recomputes `available` for every book in
-// the collection. Run this once (e.g. from the console:
-// dashboardFunctions.repairAllBookCounts(), or wire it to a button) to fix
-// any book whose available/lost/quantity have already drifted out of sync.
-async function recalculateAllBookAvailability() {
-    const booksSnap = await db.ref('books').once('value');
-    const bookIds = [];
-    booksSnap.forEach(child => bookIds.push(child.key));
-    const results = {};
-    for (const bookId of bookIds) {
-        results[bookId] = await recalculateBookAvailability(bookId);
-    }
-    return results;
-}
-window.recalculateAllBookAvailability = recalculateAllBookAvailability;
-
-// Deliberately NOT starting StudentsCache here. It now starts itself lazily
-// (see ensureStarted() above) the first time something actually asks for
-// student data — the Students page, the issuance "new issuance" dropdown,
-// a report, or the lost-book modal — instead of downloading the whole
-// roster on every page load even when nobody visits those features.
-
 // DOM Elements
 const pages = document.querySelectorAll('.page');
 const navLinks = document.querySelectorAll('.nav-links li');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        firebase.auth().signOut().then(() => {
-            window.location.href = 'https://kanyadet-school-admin.web.app/login.html';
-        }).catch((error) => {
-            console.error('Logout error:', error);
-        });
-    });
-}
 
 // Modal Elements
 const bookModal = document.getElementById('bookModal');
@@ -613,8 +88,8 @@ const statusFilter = document.getElementById('statusFilter');
 // Predefined Categories
 const bookCategories = [
     'Grade 4 Textbooks',
-    'Grade 5 Textbooks',
-    'Grade 6 Textbooks',
+    'Reference Book',
+    'Study Guide',
     'Workbook',
     'Lab Manual',
     'Research Material',
@@ -669,12 +144,6 @@ function showPage(pageId) {
             page.classList.add('active');
         }
     });
-    // Only pull the full student roster once the Students page is actually
-    // opened, instead of on every page load regardless of which page the
-    // user lands on.
-    if (pageId === 'students' && window.studentManager) {
-        window.studentManager.ensureLoaded();
-    }
 }
 
 function setActiveLink(activeLink) {
@@ -695,10 +164,7 @@ class DashboardManager {
             this.updateBookStats();
         });
 
-        // The student count now lives in its own tiny counter node, so the
-        // dashboard only ever fetches/listens to that one value instead of
-        // the whole roster.
-        db.ref(STUDENT_COUNT_PATH).on('value', () => {
+        db.ref('students').on('value', () => {
             this.updateStudentStats();
         });
 
@@ -729,11 +195,11 @@ class DashboardManager {
 
                     switch (card.querySelector('h3').textContent.trim()) {
                         case 'Pending Returns':
-                            document.getElementById('issuanceStatusFilter').value = 'overdue';
+                            document.getElementById('statusFilter').value = 'overdue';
                             issuanceManager.applyFilters();
                             break;
                         case 'Books Issued':
-                            document.getElementById('issuanceStatusFilter').value = 'active';
+                            document.getElementById('statusFilter').value = 'active';
                             issuanceManager.applyFilters();
                             break;
                     }
@@ -761,16 +227,8 @@ class DashboardManager {
 
     async updateStudentStats() {
         try {
-            const snapshot = await db.ref(STUDENT_COUNT_PATH).once('value');
-            let totalStudents = snapshot.val();
-            if (totalStudents === null) {
-                // First run after this change — the counter doesn't exist
-                // yet. Seed it once from the current roster; every add/
-                // delete after this keeps it accurate without ever
-                // re-reading the full students node again.
-                totalStudents = StudentsCache.getAll().size;
-                await db.ref(STUDENT_COUNT_PATH).set(totalStudents);
-            }
+            const snapshot = await db.ref('students').once('value');
+            const totalStudents = snapshot.numChildren();
             document.getElementById('totalStudents').textContent = totalStudents;
         } catch (error) {
             console.error('Error updating student stats:', error);
@@ -892,7 +350,7 @@ class BookManager {
             }
 
             const modalHtml = `
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title">${bookId ? 'Edit' : 'Add New'} Book</h5>
@@ -900,115 +358,53 @@ class BookManager {
                         </div>
                         <div class="modal-body">
                             <form id="bookForm">
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <div class="mb-3">
-                                            <label class="form-label">Grade Level</label>
-                                            <select class="form-select" name="grade" required>
-                                                <option value="">Select Grade</option>
-                                                ${this.grades.map(grade => `
-                                                    <option value="${grade}" ${bookData?.grade === grade ? 'selected' : ''}>
-                                                        ${grade}
-                                                    </option>
-                                                `).join('')}
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">ISBN</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" name="isbn" required 
-                                                    placeholder="Enter ISBN (e.g. 9780198390212)" 
-                                                    value="${bookData?.isbn || ''}">
-                                                <button type="button" class="btn btn-outline-primary" id="fetchIsbnBtn" title="Auto-fill details from ISBN">
-                                                    <i class="bi bi-cloud-download me-1"></i>Auto-Fill
-                                                </button>
-                                            </div>
-                                            <small class="text-muted">Enter ISBN and click Auto-Fill to fetch title, author, cover & more</small>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Title</label>
-                                            <input type="text" class="form-control" name="title" required 
-                                                value="${bookData?.title || ''}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Author</label>
-                                            <input type="text" class="form-control" name="author" required 
-                                                value="${bookData?.author || ''}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Category</label>
-                                            <select class="form-select" name="category" required>
-                                                <option value="">Select Category</option>
-                                                ${bookCategories.map(cat => `
-                                                    <option value="${cat}" ${bookData?.category === cat ? 'selected' : ''}>
-                                                        ${cat}
-                                                    </option>
-                                                `).join('')}
-                                            </select>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Subject</label>
-                                                <input type="text" class="form-control" name="subject" 
-                                                    value="${bookData?.subject || ''}">
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Publisher</label>
-                                                <input type="text" class="form-control" name="publisher" 
-                                                    placeholder="e.g. Oxford University Press"
-                                                    value="${bookData?.publisher || ''}">
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-4 mb-3">
-                                                <label class="form-label">Quantity</label>
-                                                <input type="number" class="form-control" name="quantity" required min="1" 
-                                                    value="${bookData?.quantity || 1}">
-                                            </div>
-                                            <div class="col-md-4 mb-3">
-                                                <label class="form-label">Replacement Cost (KES)</label>
-                                                <input type="number" class="form-control" name="replacementCost" min="0" step="1"
-                                                    placeholder="Cost per copy"
-                                                    value="${bookData?.replacementCost || ''}">
-                                            </div>
-                                            <div class="col-md-4 mb-3">
-                                                <label class="form-label">Page Count</label>
-                                                <input type="number" class="form-control" name="pageCount" min="0"
-                                                    placeholder="Pages"
-                                                    value="${bookData?.pageCount || ''}">
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Cover Image URL <small class="text-muted">(optional)</small></label>
-                                            <input type="url" class="form-control" name="coverUrl" 
-                                                placeholder="https://... (auto-filled from ISBN lookup)"
-                                                value="${bookData?.coverUrl || ''}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Description <small class="text-muted">(optional)</small></label>
-                                            <textarea class="form-control" name="description" rows="2" 
-                                                placeholder="Brief description of the book">${bookData?.description || ''}</textarea>
-                                        </div>
-                                    </div>
-                                    <!-- Cover Preview Panel -->
-                                    <div class="col-md-4">
-                                        <div id="isbnPreviewPanel" class="text-center p-3 border rounded bg-light" style="position:sticky; top:0;">
-                                            <div id="isbnCoverPreview" class="mb-2">
-                                                <img id="isbnCoverImg" 
-                                                    src="${bookData?.coverUrl || (bookId && bookCovers[bookId]) || defaultCover}" 
-                                                    alt="Book Cover Preview" 
-                                                    style="max-width:100%; max-height:220px; border-radius:8px; box-shadow: 0 4px 12px rgba(0,0,0,.15);"
-                                                    onerror="this.src='${defaultCover}'">
-                                            </div>
-                                            <div id="isbnFetchStatus" class="small text-muted mb-2"></div>
-                                            <div id="isbnExtraInfo" class="small text-start" style="display:none;">
-                                                <hr>
-                                                <p class="mb-1"><strong>Publisher:</strong> <span id="isbnPublisher">—</span></p>
-                                                <p class="mb-1"><strong>Pages:</strong> <span id="isbnPageCount">—</span></p>
-                                                <p class="mb-0"><strong>Source:</strong> <span id="isbnSource">—</span></p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Grade Level</label>
+                                    <select class="form-select" name="grade" required>
+                                        <option value="">Select Grade</option>
+                                        ${this.grades.map(grade => `
+                                            <option value="${grade}" ${bookData?.grade === grade ? 'selected' : ''}>
+                                                ${grade}
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" class="form-control" name="title" required 
+                                        value="${bookData?.title || ''}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Author</label>
+                                    <input type="text" class="form-control" name="author" required 
+                                        value="${bookData?.author || ''}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">ISBN</label>
+                                    <input type="text" class="form-control" name="isbn" required 
+                                        placeholder="The International Standard Book Number (ISBN)" 
+                                        value="${bookData?.isbn || ''}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" name="category" required>
+                                        <option value="">Select Category</option>
+                                        ${bookCategories.map(cat => `
+                                            <option value="${cat}" ${bookData?.category === cat ? 'selected' : ''}>
+                                                ${cat}
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Subject</label>
+                                    <input type="text" class="form-control" name="subject" 
+                                        value="${bookData?.subject || ''}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" name="quantity" required min="1" 
+                                        value="${bookData?.quantity || 1}">
                                 </div>
                                 ${bookId ? `<input type="hidden" name="bookId" value="${bookId}">` : ''}
                             </form>
@@ -1024,104 +420,6 @@ class BookManager {
             document.getElementById('bookModal').innerHTML = modalHtml;
             const modal = new bootstrap.Modal(document.getElementById('bookModal'));
             modal.show();
-
-            // Wire up ISBN Auto-Fill Button
-            const fetchBtn = document.getElementById('fetchIsbnBtn');
-            const isbnInput = document.querySelector('#bookForm input[name="isbn"]');
-            const coverInput = document.querySelector('#bookForm input[name="coverUrl"]');
-            const coverImg = document.getElementById('isbnCoverImg');
-
-            // Update preview if coverUrl changed manually
-            coverInput?.addEventListener('input', (e) => {
-                const url = e.target.value.trim();
-                coverImg.src = url || (bookId && bookCovers[bookId]) || defaultCover;
-            });
-
-            fetchBtn?.addEventListener('click', async () => {
-                const rawIsbn = isbnInput?.value?.trim();
-                if (!rawIsbn) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Enter ISBN',
-                        text: 'Please type or scan an ISBN before clicking Auto-Fill.'
-                    });
-                    isbnInput?.focus();
-                    return;
-                }
-
-                const originalBtnHtml = fetchBtn.innerHTML;
-                fetchBtn.disabled = true;
-                fetchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Fetching...';
-                const statusEl = document.getElementById('isbnFetchStatus');
-                if (statusEl) statusEl.textContent = 'Searching Google Books & Open Library...';
-
-                try {
-                    const data = await IsbnService.lookup(rawIsbn);
-                    if (!data) {
-                        if (statusEl) statusEl.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> No record found for this ISBN.</span>';
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Book Not Found',
-                            text: 'No online catalog record found for this ISBN. You can still enter details manually.'
-                        });
-                        return;
-                    }
-
-                    // Populate fields if found
-                    const form = document.getElementById('bookForm');
-                    if (data.title && form.elements['title']) {
-                        form.elements['title'].value = data.title;
-                    }
-                    if (data.authors && form.elements['author']) {
-                        form.elements['author'].value = data.authors;
-                    }
-                    if (data.publisher && form.elements['publisher']) {
-                        form.elements['publisher'].value = data.publisher;
-                    }
-                    if (data.pageCount && form.elements['pageCount']) {
-                        form.elements['pageCount'].value = data.pageCount;
-                    }
-                    if (data.description && form.elements['description']) {
-                        form.elements['description'].value = data.description;
-                    }
-                    if (data.subject && form.elements['subject'] && !form.elements['subject'].value) {
-                        form.elements['subject'].value = data.subject;
-                    }
-                    // Auto-select category if matched
-                    if (data.subject && form.elements['category']) {
-                        const catSelect = form.elements['category'];
-                        for (let opt of catSelect.options) {
-                            if (opt.value.toLowerCase() === data.subject.toLowerCase()) {
-                                opt.selected = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (data.coverUrl) {
-                        if (form.elements['coverUrl']) form.elements['coverUrl'].value = data.coverUrl;
-                        if (coverImg) coverImg.src = data.coverUrl;
-                    }
-
-                    // Show preview extra info
-                    const extraInfo = document.getElementById('isbnExtraInfo');
-                    if (extraInfo) {
-                        document.getElementById('isbnPublisher').textContent = data.publisher || 'N/A';
-                        document.getElementById('isbnPageCount').textContent = data.pageCount || 'N/A';
-                        document.getElementById('isbnSource').textContent = data.source === 'google' ? 'Google Books' : 'Open Library';
-                        extraInfo.style.display = 'block';
-                    }
-
-                    if (statusEl) statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Details fetched successfully!</span>';
-
-                } catch (err) {
-                    console.error('ISBN lookup failed:', err);
-                    if (statusEl) statusEl.innerHTML = '<span class="text-danger">Error retrieving metadata</span>';
-                } finally {
-                    fetchBtn.disabled = false;
-                    fetchBtn.innerHTML = originalBtnHtml;
-                }
-            });
 
             document.getElementById('saveBook').onclick = async () => {
                 const form = document.getElementById('bookForm');
@@ -1154,27 +452,19 @@ class BookManager {
                 category: formData.get('category'),
                 grade: formData.get('grade'),
                 subject: formData.get('subject'),
-                publisher: formData.get('publisher') || '',
-                description: formData.get('description') || '',
-                pageCount: parseInt(formData.get('pageCount')) || 0,
-                coverUrl: formData.get('coverUrl') || '',
                 quantity: quantity,
-                replacementCost: parseFloat(formData.get('replacementCost')) || 0,
                 updatedAt: Date.now()
             };
 
             if (bookId) {
                 const currentSnapshot = await this.booksRef.child(bookId).once('value');
                 const currentData = currentSnapshot.val();
-
+                
+                bookData.available = currentData.available || currentData.quantity;
                 bookData.addedAt = currentData.addedAt || Date.now();
                 bookData.lost = currentData.lost || 0;
-
+                
                 await this.booksRef.child(bookId).update(bookData);
-                // Recompute available from ground truth (quantity - lost - active
-                // issuances) now that quantity may have changed, instead of
-                // carrying forward a possibly-already-drifted available number.
-                await recalculateBookAvailability(bookId);
             } else {
                 bookData.available = bookData.quantity;
                 bookData.addedAt = Date.now();
@@ -1211,67 +501,48 @@ class BookManager {
 
     renderBookCard(book, bookId) {
         const card = document.createElement('div');
-        card.className = 'grid-item book-card';
-
-        const quantity = Number(book.quantity) || 0;
-        // Clamp defensively: available should never exceed quantity. This only
-        // guards display for records saved before the edit-quantity fix; the
-        // underlying record should be corrected by re-saving the book.
-        const available = Math.min(Number(book.available) || 0, quantity || Number(book.available) || 0);
-        const lost = Number(book.lost) || 0;
-        const ratio = quantity > 0 ? available / quantity : 0;
-
-        let statusClass = 'status-available';
-        let statusLabel = 'Available';
-        if (available <= 0) {
-            statusClass = 'status-lost';
-            statusLabel = 'Out of Stock';
-        } else if (ratio <= 0.25) {
-            statusClass = 'status-borrowed';
-            statusLabel = 'Low Stock';
-        }
-
+        card.className = 'grid-item';
         card.innerHTML = `
-            <div class="book-card-header">
-                <div class="book-cover-container"></div>
-                <div class="book-card-badges">
-                    <span class="grade-badge">${book.grade || 'N/A'}</span>
-                    <span class="book-status-pill ${statusClass}"><i class="status-dot"></i>${statusLabel}</span>
-                </div>
-            </div>
-            <div class="book-info">
-                <h3 class="book-title">${book.title}</h3>
-                <div class="book-meta">
-                    <span><i class="bi bi-person"></i>${book.author || 'Unknown author'}</span>
-                    <span><i class="bi bi-upc-scan"></i>${book.isbn || 'No ISBN'}</span>
-                    <span><i class="bi bi-tag"></i>${book.category}</span>
-                </div>
-                <div class="book-stats">
-                    <div class="book-stat">
-                        <strong>${available}</strong>
-                        <span>Available</span>
-                    </div>
-                    <div class="book-stat">
-                        <strong>${quantity}</strong>
-                        <span>Total</span>
-                    </div>
-                    <div class="book-stat book-stat-lost">
-                        <strong>${lost}</strong>
-                        <span>Lost</span>
-                    </div>
-                </div>
-                <div class="book-cost">Replacement &middot; KES ${Number(book.replacementCost || 0).toLocaleString()}</div>
-            </div>
+             <div class="book-info">
+            <div class="book-cover-container"></div>
+            <h3 style="background-color: blue;">${book.grade}</h3>
+           </div>
+            <div>
+            <h3>${book.title}</h3>
+            <p>Author: ${book.author}</p>
+            <p>ISBN: ${book.isbn || 'Not available'}</p>
+            <p>Category: ${book.category}</p>
+            <p>Available: ${book.available}/${book.quantity}</p>
+            <p>Lost: ${book.lost || 0}</p>
             <div class="card-actions">
-                <button onclick="bookManager.showBookModal('${bookId}')" class="btn-ghost">Edit</button>
-                <button onclick="bookManager.deleteBook('${bookId}')" class="btn-ghost btn-ghost-danger">Delete</button>
+                <button onclick="bookManager.showBookModal('${bookId}')">Edit</button>
+                <button onclick="bookManager.deleteBook('${bookId}')">Delete</button>
+                <button onclick="bookManager.reportLost('${bookId}')" class="btn-warning">Report Lost</button>
+            </div>
             </div>
         `;
         
         const coverContainer = card.querySelector('.book-cover-container');
-        BookCoverManager.renderBookCover(bookId, coverContainer, 'available', book);
+        BookCoverManager.renderBookCover(bookId, coverContainer);
 
         this.booksList.appendChild(card);
+    }
+
+    async reportLost(bookId) {
+        if (confirm('Are you sure you want to report this book as lost?')) {
+            const bookRef = db.ref(`books/${bookId}`);
+            const snapshot = await bookRef.once('value');
+            const book = snapshot.val();
+            
+            if (book.available > 0) {
+                await bookRef.update({
+                    available: book.available - 1,
+                    lost: (book.lost || 0) + 1
+                });
+            } else {
+                alert('No available copies to mark as lost');
+            }
+        }
     }
 
     async checkBookIssuance(bookId) {
@@ -1434,59 +705,14 @@ class BookManager {
 // Students Management
 class StudentManager {
     constructor() {
-        this.studentsRef = db.ref(STUDENTS_PATH);
+        this.studentsRef = db.ref('students');
         this.studentsList = document.getElementById('studentsList');
         this.studentForm = document.getElementById('studentForm');
-        this.pageSize = 30;
-        this.renderedCount = 0;
-        this.currentFilteredList = [];
-        this.cacheStarted = false;
-        this.setupLoadMoreButton();
+        this.allStudents = new Map();
         this.setupListeners();
-        this.setupFilterListeners();
-        // NOTE: no data is fetched here. The full roster (via StudentsCache)
-        // is only pulled once ensureLoaded() runs — see below — which fires
-        // when the Students page is actually opened (see showPage()), not
-        // on every page load regardless of which page the user lands on.
-        const studentsPageEl = document.getElementById('students');
-        if (studentsPageEl && studentsPageEl.classList.contains('active')) {
-            this.ensureLoaded();
-        }
-    }
-
-    // Starts the (expensive, full-roster) cache sync the first time it's
-    // actually needed. Safe to call repeatedly — no-ops after the first call.
-    ensureLoaded() {
-        if (this.cacheStarted) return;
-        this.cacheStarted = true;
+        this.loadStudents();
         this.setupStatusListener();
-        this.applyFilters();
-        StudentsCache.onChange(() => this.applyFilters());
-    }
-
-    // Kept for compatibility with any code that expects a Map of
-    // studentId -> student; now backed by the shared cache instead of a
-    // private copy of the data.
-    get allStudents() {
-        return StudentsCache.getAll();
-    }
-
-    setupLoadMoreButton() {
-        // Created here rather than relying on markup in index.html, so this
-        // works regardless of what's already in the page.
-        this.loadMoreBtn = document.getElementById('studentsLoadMoreBtn');
-        if (!this.loadMoreBtn && this.studentsList) {
-            this.loadMoreBtn = document.createElement('button');
-            this.loadMoreBtn.id = 'studentsLoadMoreBtn';
-            this.loadMoreBtn.type = 'button';
-            this.loadMoreBtn.className = 'btn btn-outline-secondary w-100 mt-3';
-            this.loadMoreBtn.textContent = 'Load more students';
-            this.studentsList.insertAdjacentElement('afterend', this.loadMoreBtn);
-        }
-        if (this.loadMoreBtn) {
-            this.loadMoreBtn.style.display = 'none';
-            this.loadMoreBtn.addEventListener('click', () => this.renderNextPage());
-        }
+        this.setupFilterListeners();
     }
 
     setupStatusListener() {
@@ -1497,6 +723,7 @@ class StudentManager {
     }
 
     async updateAllStudentStatuses() {
+        const studentsSnapshot = await this.studentsRef.once('value');
         const issuanceSnapshot = await db.ref('issuance').once('value');
         
         const activeIssuances = new Map();
@@ -1510,31 +737,16 @@ class StudentManager {
             }
         });
 
-        // Update each student's status (student IDs come from the cache —
-        // no need to re-read the whole students node just for the key list).
-        // Only students whose flag actually FLIPS are written. This used to
-        // rewrite all ~400 records on every call, which under revision-gated
-        // sync would stamp a fresh `updatedAt` on the entire roster and make
-        // every device re-download it — the exact cost this cache exists to
-        // avoid. Typically this now writes zero or one or two records.
+        // Update each student's status
         const updates = {};
-        const touched = [];
-        StudentsCache.getAll().forEach((student, studentId) => {
-            const next = (activeIssuances.get(studentId) || 0) > 0;
-            if (Boolean(student.hasActiveBooks) === next) return;
-            updates[`${studentId}/hasActiveBooks`] = next;
-            updates[`${studentId}/updatedAt`] = firebase.database.ServerValue.TIMESTAMP;
-            touched.push([studentId, next]);
+        studentsSnapshot.forEach(childSnapshot => {
+            const studentId = childSnapshot.key;
+            const activeCount = activeIssuances.get(studentId) || 0;
+            updates[`${studentId}/hasActiveBooks`] = activeCount > 0;
         });
 
-        if (touched.length > 0) {
+        if (Object.keys(updates).length > 0) {
             await this.studentsRef.update(updates);
-            // One multi-path write above, so one revision bump below. Bumping
-            // per student would make every device run a delta sync per record.
-            touched.forEach(([studentId, next]) => {
-                StudentsCache.applyLocal(studentId, { hasActiveBooks: next });
-            });
-            await StudentsCache.touch();
         }
     }
     
@@ -1542,13 +754,8 @@ class StudentManager {
         if (confirm('Are you sure you want to delete ALL students? This action cannot be undone.')) {
             try {
                 await this.studentsRef.remove();
-                await db.ref(STUDENT_COUNT_PATH).set(0);
-                await db.ref(STUDENT_TOMBSTONES_PATH).remove();
                 this.studentsList.innerHTML = ''; // Clear the displayed list
-                // Bumps the sync `epoch`, which is the signal every other
-                // device checks on load to discard its local mirror outright
-                // rather than trying to reconcile 400 individual deletions.
-                await StudentsCache.markResetAll();
+                this.allStudents.clear(); // Clear the local cache
                 alert('All students have been deleted successfully.');
             } catch (error) {
                 console.error('Error deleting all students:', error);
@@ -1584,46 +791,19 @@ class StudentManager {
         }
     }
 
-    // One batched read of the whole issuance node, used to build per-student
-    // active/overdue flags in memory — replaces what used to be two separate
-    // Firebase queries PER STUDENT (up to 696 round trips for 348 students).
-    async loadIssuanceStatusMaps() {
-        const activeMap = new Map();
-        const overdueMap = new Map();
-        const snapshot = await db.ref('issuance').once('value');
-        const currentDate = Date.now();
-
-        snapshot.forEach(child => {
-            const issuance = child.val();
-            if (issuance.status !== 'active') return;
-            activeMap.set(issuance.studentId, true);
-            if (new Date(issuance.returnDate).getTime() < currentDate) {
-                overdueMap.set(issuance.studentId, true);
-            }
-        });
-
-        return { activeMap, overdueMap };
-    }
-
     async applyFilters() {
         const grade = document.getElementById('gradeFilter').value;
         const status = document.getElementById('studentStatusFilter').value;
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-        // Clear the current list and reset pagination — this is a fresh filter pass.
+        // Clear the current list
         this.studentsList.innerHTML = '';
-        this.renderedCount = 0;
-        this.currentFilteredList = [];
 
         try {
-            const students = StudentsCache.getAll();
+            const snapshot = await this.studentsRef.once('value');
+            const students = snapshot.val();
 
-            // Only pay for the issuance read when a status filter is actually applied.
-            const { activeMap, overdueMap } = status
-                ? await this.loadIssuanceStatusMaps()
-                : { activeMap: null, overdueMap: null };
-
-            for (const [studentId, student] of students.entries()) {
+            for (const [studentId, student] of Object.entries(students)) {
                 let showStudent = true;
 
                 // Apply grade filter
@@ -1631,10 +811,10 @@ class StudentManager {
                     showStudent = false;
                 }
 
-                // Apply status filter (from the batched maps — no per-student query)
-                if (showStudent && status) {
-                    const hasActiveBooks = activeMap.has(studentId);
-                    const hasOverdueBooks = overdueMap.has(studentId);
+                // Apply status filter
+                if (status) {
+                    const hasActiveBooks = await this.checkStudentHasActiveBooks(studentId);
+                    const hasOverdueBooks = await this.checkStudentHasOverdueBooks(studentId);
 
                     switch (status) {
                         case 'hasBooks':
@@ -1650,39 +830,21 @@ class StudentManager {
                 }
 
                 // Apply search filter
-                if (showStudent && searchTerm) {
+                if (searchTerm) {
                     const searchableText = `${student.name} ${student.assessmentNo} ${student.grade}`.toLowerCase();
                     if (!searchableText.includes(searchTerm)) {
                         showStudent = false;
                     }
                 }
 
+                // Render student if they match all filters
                 if (showStudent) {
-                    this.currentFilteredList.push([studentId, student]);
+                    this.renderStudentCard(student, studentId);
                 }
             }
-
-            // Render only the first page — the rest render on "Load more"
-            // click, so a search across 348 students doesn't mean painting
-            // 348 DOM cards (with an image lookup each) in one go.
-            this.renderNextPage();
         } catch (error) {
             console.error('Error applying filters:', error);
             await this.showError('Filter Error', 'Failed to apply filters');
-        }
-    }
-
-    renderNextPage() {
-        const nextBatch = this.currentFilteredList.slice(this.renderedCount, this.renderedCount + this.pageSize);
-        nextBatch.forEach(([studentId, student]) => this.renderStudentCard(student, studentId));
-        this.renderedCount += nextBatch.length;
-
-        if (this.loadMoreBtn) {
-            const remaining = this.currentFilteredList.length - this.renderedCount;
-            this.loadMoreBtn.style.display = remaining > 0 ? '' : 'none';
-            this.loadMoreBtn.textContent = remaining > 0
-                ? `Load more students (${remaining} remaining)`
-                : 'Load more students';
         }
     }
 
@@ -1722,18 +884,12 @@ class StudentManager {
     async showStudentModal(studentId = null) {
         const modal = document.getElementById('studentModal');
         if (studentId) {
-            // Prefer the cache (instant, no network round-trip); fall back
-            // to a live read only if this student somehow isn't cached yet.
-            let studentData = StudentsCache.get(studentId);
-            if (!studentData) {
-                const snapshot = await this.studentsRef.child(studentId).once('value');
-                studentData = normalizeStudent(snapshot.val());
-            }
+            const snapshot = await this.studentsRef.child(studentId).once('value');
+            const studentData = snapshot.val();
             if (studentData) {
-                document.getElementById('studentName').value = studentData.fullName || studentData.name || '';
-                document.getElementById('Assessment No').value = studentData.assessmentNo || '';
-                document.getElementById('ULI').value = studentData.ULI || '';
-                document.getElementById('phoneNumber').value = studentData.phoneNumber || '';
+                document.getElementById('studentName').value = studentData.name || '';
+                document.getElementById('assessmentNo').value = studentData.assessmentNo || '';
+                document.getElementById('upi').value = studentData.upi || '';
                 document.getElementById('grade').value = studentData.grade || '';
                 this.studentForm.setAttribute('data-edit-id', studentId);
             }
@@ -1747,28 +903,18 @@ class StudentManager {
     async handleStudentSubmit(e) {
         e.preventDefault();
         const studentData = {
-            fullName: document.getElementById('studentName').value,
             name: document.getElementById('studentName').value,
-            assessmentNo: document.getElementById('Assessment No').value,
-            ULI: document.getElementById('ULI').value,
-            phoneNumber: document.getElementById('phoneNumber').value,
+            assessmentNo: document.getElementById('assessmentNo').value,
+            upi: document.getElementById('upi').value,
             grade: document.getElementById('grade').value,
-            timestamp: Date.now(),
-            // Server-stamped: this is what the delta query filters on, so it
-            // must not come from the device clock.
-            ...StudentsCache.stamp()
+            timestamp: Date.now()
         };
 
         const editId = this.studentForm.getAttribute('data-edit-id');
         if (editId) {
             await this.studentsRef.child(editId).update(studentData);
-            // Applies the edit to the local mirror immediately and bumps the
-            // shared revision so other devices fetch just this one record.
-            await StudentsCache.markChanged(editId, studentData);
         } else {
-            const newRef = await this.studentsRef.push(studentData);
-            await db.ref(STUDENT_COUNT_PATH).transaction(current => (current || 0) + 1);
-            await StudentsCache.markChanged(newRef.key, studentData);
+            await this.studentsRef.push(studentData);
         }
 
         studentModal.classList.remove('active');
@@ -1786,17 +932,26 @@ class StudentManager {
             }
         });
 
-        // Skip the write when the number hasn't moved — an unchanged value
-        // would still bump `updatedAt` and pull this record down onto every
-        // other device for nothing.
-        const cached = StudentsCache.get(studentId);
-        if (cached && (cached.activeIssuances || 0) === activeIssuances) return;
-
         await this.studentsRef.child(studentId).update({
-            activeIssuances: activeIssuances,
-            updatedAt: firebase.database.ServerValue.TIMESTAMP
+            activeIssuances: activeIssuances
         });
-        await StudentsCache.markChanged(studentId, { activeIssuances });
+    }
+
+    loadStudents() {
+        this.studentsRef.on('value', async (snapshot) => {
+            this.allStudents.clear();
+            const promises = [];
+            
+            snapshot.forEach((childSnapshot) => {
+                const student = childSnapshot.val();
+                const studentId = childSnapshot.key;
+                this.allStudents.set(studentId, student);
+                promises.push(this.updateStudentIssuanceStatus(studentId));
+            });
+            
+            await Promise.all(promises);
+            this.applyFilters();
+        });
     }
 
     renderStudentCard(student, studentId) {
@@ -1804,31 +959,21 @@ class StudentManager {
         card.className = 'student-card';
         card.innerHTML = `
         <div class="student-info">
-            <div class="student-profile-head">
                 <div class="student-image-container"></div>
-                <div class="student-identity">
-                    <span class="student-eyebrow">${student.grade || 'Student record'}</span>
-                    <h3>${student.fullName || student.name || 'Unknown'}</h3>
-                    <span class="student-id">${student.assessmentNo || 'No assessment number'}</span>
-                </div>
-            </div>
-            <div class="student-meta">
-                <p><span>Entry number</span><strong>${student.EntryNo || 'Not assigned'}</strong></p>
-                <p><span>Phone</span><strong>${student.phoneNumber || student.FathersPhoneNumber || 'Not assigned'}</strong></p>
-                <p><span>Home contact</span><strong>${student.FathersPhoneNumber || 'Not assigned'}</strong></p>
-                <p><span>ULI number</span><strong>${student.ULI || 'Not assigned'}</strong></p>
-            </div>
-            <div class="student-status-row">
-                <span>Book status</span>
-                <span class="badge ${student.hasActiveBooks ? 'bg-primary' : 'bg-secondary'}">
-                    ${student.hasActiveBooks ? 'Has Active Books' : 'No Active Books'}
-                </span>
-            </div>
+
+            <h3>👨‍⚕️${student.name}</h3>
+            <p>Assessment No: ${student.assessmentNo || 'Not assigned'}</p>
+            <p>Entry no: ${student.EntryNo|| 'Not assigned'}</p>
+            <p>Home contact: ${student.FathersPhoneNumber|| 'Not assigned'}</p>
+            <p>UPI No: ${student.upi || 'Not assigned'}</p>
+            <p>Status: <span class="badge ${student.hasActiveBooks ? 'bg-primary' : 'bg-secondary'}">
+                ${student.hasActiveBooks ? 'Has Active Books' : 'No Active Books'}
+            </span></p>
             <div class="card-actions">
-                <button onclick="studentManager.showStudentModal('${studentId}')"><i class="bi bi-pencil-square"></i> Edit</button>
-                <button onclick="studentManager.deleteStudent('${studentId}')"><i class="bi bi-trash3"></i> Delete</button>
+                <button onclick="studentManager.showStudentModal('${studentId}')">Edit</button>
+                <button onclick="studentManager.deleteStudent('${studentId}')">Delete</button>
             </div>
-        </div>
+             </div>
         `;
         
           // Add student image
@@ -1839,7 +984,7 @@ class StudentManager {
      // Add student image with grade as status
         const imageContainer = card.querySelector('.student-image-container');
         const status = student.grade ? `${student.grade.toLowerCase().replace(/\s+/g, ' -')}` : 'no-grade';
-        StudentImageManager.renderStudentImage(student.fullName || student.name, student.grade, imageContainer, status);
+        StudentImageManager.renderStudentImage(studentId, imageContainer, status);
 
          // Add student image with gender as status
         // const imageContainer = card.querySelector('.student-image-container');
@@ -1852,10 +997,6 @@ class StudentManager {
     async deleteStudent(studentId) {
         if (confirm('Are you sure you want to delete this student?')) {
             await this.studentsRef.child(studentId).remove();
-            await db.ref(STUDENT_COUNT_PATH).transaction(current => Math.max(0, (current || 0) - 1));
-            // Leaves the dated tombstone the delta sync needs — without it the
-            // student stays visible on every other device until its cache ages out.
-            await StudentsCache.markDeleted(studentId);
         }
     }
 }
@@ -1867,7 +1008,6 @@ class IssuanceManager {
         this.issuanceList = document.getElementById('issuanceList');
         this.issuanceForm = document.getElementById('issuanceForm');
         this.statusFilter = document.getElementById('issuanceStatusFilter');
-        this.classFilter = document.getElementById('issuanceGradeFilter');
         this.allIssuances = new Map();
         this.gradeSelect = document.getElementById('issuanceGrade');
         this.studentSelect = document.getElementById('issuanceStudent');
@@ -1876,19 +1016,11 @@ class IssuanceManager {
         }
         this.setupListeners();
         this.loadIssuances();
-
-        // Re-apply filters whenever the student or book caches change, so
-        // filtering never has to wait on a fresh network round-trip per card.
-        StudentsCache.onChange(() => this.applyFilters());
-        db.ref('books').on('value', () => this.applyFilters());
     }
 
     setupListeners() {
         if (this.statusFilter) {
             this.statusFilter.addEventListener('change', () => this.applyFilters());
-        }
-        if (this.classFilter) {
-            this.classFilter.addEventListener('change', () => this.applyFilters());
         }
         document.getElementById('newIssuanceBtn').addEventListener('click', () => this.showIssuanceModal());
         this.issuanceForm.addEventListener('submit', (e) => this.handleIssuanceSubmit(e));
@@ -1902,110 +1034,6 @@ class IssuanceManager {
         if (deleteIssuanceOptionsBtn) {
             deleteIssuanceOptionsBtn.addEventListener('click', () => this.showDeleteIssuanceOptionsModal());
         }
-
-        const bulkReturnClassBtn = document.getElementById('bulkReturnClassBtn');
-        if (bulkReturnClassBtn) {
-            bulkReturnClassBtn.addEventListener('click', () => this.handleBulkReturnByClass());
-        }
-    }
-
-    // Returns every active/overdue loan for whichever grade is currently
-    // selected in the class filter — for end-of-term collection days, so the
-    // librarian doesn't have to return each student's book one at a time.
-    async handleBulkReturnByClass() {
-        const grade = this.classFilter ? this.classFilter.value : '';
-
-        if (!grade) {
-            await Swal.fire({
-                icon: 'info',
-                title: 'Choose a class first',
-                text: 'Select a grade from the filter above, then use Bulk Return Class to return every active loan in that class at once.',
-                confirmButtonText: 'Got it'
-            });
-            return;
-        }
-
-        const candidates = [];
-        for (const [issuanceId, issuance] of this.allIssuances) {
-            if (issuance.status !== 'active' && issuance.status !== 'overdue') continue;
-            const student = StudentsCache.get(issuance.studentId);
-            if (student && student.grade === grade) {
-                candidates.push({ issuanceId, bookId: issuance.bookId, studentId: issuance.studentId });
-            }
-        }
-
-        if (candidates.length === 0) {
-            await Swal.fire({
-                icon: 'info',
-                title: 'Nothing to return',
-                text: `No active loans found for ${grade}.`,
-                timer: 1800,
-                showConfirmButton: false
-            });
-            return;
-        }
-
-        const result = await Swal.fire({
-            title: `Return all books for ${grade}?`,
-            text: `This will mark ${candidates.length} active loan(s) as returned.`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: `Yes, return all ${candidates.length}`,
-            cancelButtonText: 'Cancel'
-        });
-        if (!result.isConfirmed) return;
-
-        Swal.fire({
-            title: 'Returning books...',
-            html: `Processing 0 of ${candidates.length}`,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: () => Swal.showLoading()
-        });
-
-        let done = 0;
-        let failed = 0;
-        const touchedBookIds = new Set();
-        const touchedStudentIds = new Set();
-
-        for (const { issuanceId, bookId, studentId } of candidates) {
-            try {
-                await db.ref(`issuance/${issuanceId}`).update({
-                    status: 'returned',
-                    returnedDate: new Date().toISOString(),
-                    actualReturnDate: new Date().toISOString(),
-                    updatedAt: Date.now()
-                });
-                touchedBookIds.add(bookId);
-                touchedStudentIds.add(studentId);
-            } catch (error) {
-                console.error('Bulk return failed for issuance', issuanceId, error);
-                failed++;
-            }
-            done++;
-            Swal.update({ html: `Processing ${done} of ${candidates.length}` });
-        }
-
-        // Recalculate availability/status once per affected book/student
-        // rather than once per loan, same as the single-return flow does.
-        await Promise.all([
-            ...Array.from(touchedBookIds).map(id => recalculateBookAvailability(id)),
-            ...Array.from(touchedStudentIds).map(id => studentManager.updateStudentIssuanceStatus(id))
-        ]);
-
-        await Swal.fire({
-            icon: failed > 0 ? 'warning' : 'success',
-            title: failed > 0 ? 'Returned with some errors' : 'Class returned',
-            text: failed > 0
-                ? `${candidates.length - failed} of ${candidates.length} loan(s) returned for ${grade}. ${failed} failed — check the console.`
-                : `${candidates.length} book(s) marked as returned for ${grade}.`,
-            timer: failed > 0 ? undefined : 2000,
-            showConfirmButton: failed > 0
-        });
-
-        this.loadIssuances();
     }
 
     handleSearch() {
@@ -2015,25 +1043,8 @@ class IssuanceManager {
         }
     }
 
-    applyFilters() {
-        // NOTE: this used to look up the student/book for every issuance with
-        // an `await db.ref(...).once('value')` inside this loop. Because
-        // applyFilters() can be re-triggered (dropdown change, a return/loss
-        // action, or the realtime `issuance` listener firing again) before an
-        // earlier, still-in-flight run had finished awaiting all its network
-        // calls, two overlapping runs could interleave: the newer (correctly
-        // filtered) run would render first, and the older run — still
-        // working through its awaits with a stale/empty filter value — would
-        // land its unfiltered cards on top afterwards. That's what caused
-        // "Overdue" (or any filter) to appear to do nothing.
-        //
-        // Fixed by reading student/book data from the in-memory caches that
-        // already exist elsewhere in the app (StudentsCache, bookManager's
-        // allBooks map) instead of hitting the database per card. That makes
-        // this whole function synchronous, so there is no window in which a
-        // second call can start before the first one finishes.
+    async applyFilters() {
         const status = this.statusFilter.value;
-        const grade = this.classFilter ? this.classFilter.value : '';
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const currentDate = new Date();
 
@@ -2042,42 +1053,45 @@ class IssuanceManager {
         for (const [issuanceId, issuance] of this.allIssuances) {
             let showIssuance = true;
 
-            const student = StudentsCache.get(issuance.studentId);
-            const book = window.bookManager ? window.bookManager.allBooks.get(issuance.bookId) : undefined;
+            try {
+                const studentSnapshot = await db.ref(`students/${issuance.studentId}`).once('value');
+                const bookSnapshot = await db.ref(`books/${issuance.bookId}`).once('value');
+                const student = studentSnapshot.val();
+                const book = bookSnapshot.val();
 
-            if (status) {
-                const returnDate = new Date(issuance.returnDate);
-                const isOverdue = returnDate < currentDate && issuance.status === 'active';
+                if (status) {
+                    const returnDate = new Date(issuance.returnDate);
+                    const isOverdue = returnDate < currentDate && issuance.status === 'active';
 
-                switch (status) {
-                    case 'active':
-                        showIssuance = issuance.status === 'active' && !isOverdue;
-                        break;
-                    case 'returned':
-                        showIssuance = issuance.status === 'returned';
-                        break;
-                    case 'overdue':
-                        showIssuance = isOverdue;
-                        break;
-                    case 'lost':
-                        showIssuance = issuance.status === 'lost';
-                        break;
+                    switch (status) {
+                        case 'active':
+                            showIssuance = issuance.status === 'active' && !isOverdue;
+                            break;
+                        case 'returned':
+                            showIssuance = issuance.status === 'returned';
+                            break;
+                        case 'overdue':
+                            showIssuance = isOverdue;
+                            break;
+                        case 'lost':
+                            showIssuance = issuance.status === 'lost';
+                            break;
+                    }
                 }
-            }
 
-            if (grade && showIssuance) {
-                showIssuance = student?.grade === grade;
-            }
-
-            if (searchTerm && showIssuance) {
-                const searchableText = `${student?.name || ''} ${student?.assessmentNo || ''} ${book?.title || ''}`.toLowerCase();
-                if (!searchableText.includes(searchTerm)) {
-                    showIssuance = false;
+                if (searchTerm && showIssuance) {
+                    const searchableText = `${student?.name || ''} ${student?.assessmentNo || ''} ${book?.title || ''}`.toLowerCase();
+                    if (!searchableText.includes(searchTerm)) {
+                        showIssuance = false;
+                    }
                 }
-            }
 
-            if (showIssuance) {
-                this.renderIssuanceCard(issuance, issuanceId, student, book);
+                if (showIssuance) {
+                    await this.renderIssuanceCard(issuance, issuanceId);
+                }
+
+            } catch (error) {
+                console.error('Error filtering issuance:', error);
             }
         }
     }
@@ -2116,19 +1130,16 @@ class IssuanceManager {
         }
 
         try {
-            // Filter the already-synced cache instead of issuing a fresh
-            // Firebase query every time this dropdown is opened.
-            const matches = [];
-            StudentsCache.getAll().forEach((student, studentId) => {
-                if (student.grade === grade) {
-                    matches.push([studentId, student]);
-                }
-            });
+            const snapshot = await db.ref('students')
+                .orderByChild('grade')
+                .equalTo(grade)
+                .once('value');
 
-            if (matches.length > 0) {
-                matches.forEach(([studentId, student]) => {
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    const student = childSnapshot.val();
                     const option = document.createElement('option');
-                    option.value = studentId;
+                    option.value = childSnapshot.key;
                     option.textContent = `${student.name} (${student.assessmentNo || 'No Assessment No'})`;
                     this.studentSelect.appendChild(option);
                 });
@@ -2173,11 +1184,12 @@ class IssuanceManager {
                 throw new Error('Please fill in all required fields');
             }
 
-            const [student, bookSnapshot] = await Promise.all([
-                getStudentCached(studentId),
+            const [studentSnapshot, bookSnapshot] = await Promise.all([
+                db.ref(`students/${studentId}`).once('value'),
                 db.ref(`books/${bookId}`).once('value')
             ]);
 
+            const student = studentSnapshot.val();
             const book = bookSnapshot.val();
 
             if (!student || !book) {
@@ -2192,7 +1204,7 @@ class IssuanceManager {
                 studentId,
                 studentName: student.name,
                 grade: student.grade,
-                ULI: student.ULI,
+                upi: student.upi,
                 bookId,
                 bookTitle: book.title,
                 issueDate,
@@ -2201,24 +1213,20 @@ class IssuanceManager {
                 timestamp: Date.now()
             };
 
-            // Grab the issuance's key up front (push() assigns it synchronously)
-            // so the activity log entry can point at this exact issuance,
-            // not just this book title — needed so "Report Lost" from the
-            // activity feed marks the right student's copy when the same
-            // book has several copies out at once.
-            const newIssuanceRef = this.issuanceRef.push();
             await Promise.all([
-                newIssuanceRef.set(issuanceData),
+                this.issuanceRef.push(issuanceData),
+                db.ref().update({
+                    [`books/${bookId}/available`]: book.available - 1,
+                    [`books/${bookId}/updatedAt`]: Date.now()
+                }),
                 db.ref('activities').push({
                     type: 'issue',
                     bookId,
                     studentId,
-                    issuanceId: newIssuanceRef.key,
                     description: `Issued "${book.title}" to ${student.name}`,
                     timestamp: Date.now()
                 })
             ]);
-            await recalculateBookAvailability(bookId);
 
             const bsModal = bootstrap.Modal.getInstance(modalElement);
             bsModal.hide();
@@ -2259,8 +1267,13 @@ class IssuanceManager {
         });
     }
 
-    renderIssuanceCard(issuance, issuanceId, student, book) {
+    async renderIssuanceCard(issuance, issuanceId) {
         try {
+            const studentSnapshot = await db.ref(`students/${issuance.studentId}`).once('value');
+            const bookSnapshot = await db.ref(`books/${issuance.bookId}`).once('value');
+            const student = studentSnapshot.val();
+            const book = bookSnapshot.val();
+
             if (!student || !book) return;
 
             const currentDate = new Date();
@@ -2277,8 +1290,11 @@ class IssuanceManager {
                 <div class="book-cover-container"></div>
                 </div>
                 <div class="issuance-info">
-                    <h3>${student.name} | ${student.assessmentNo}</h3>
-                    <h3>${student.grade || 'Not assigned'}: ${issuance.isbn || 'N/A'}</h3>
+                    <h3>${student.name}</h3>
+                    <h4>${book.title}</h4>
+                    <h4>${student.assessmentNo}</h4>
+                    <h5>Book No: ${issuance.isbn || 'N/A'}</h5>
+                    <p>Grade: ${student.grade || 'Not assigned'}</p>
                     <p>Issue Date: ${issuance.issueDate}</p>
                     <p>Return Date: ${issuance.returnDate}</p>
                     <p class="status ${displayStatus}">Status: ${displayStatus}</p>
@@ -2300,7 +1316,7 @@ class IssuanceManager {
  // Add student Gender below image
         const imageContainer = card.querySelector('.student-image-container');
         const status = student.Gender ? `${student.Gender.toLowerCase().replace(/\s+/g, ' -')}` : 'no-gender';
-        StudentImageManager.renderStudentImage(student.name || student.fullName, student.grade, imageContainer, status);
+        StudentImageManager.renderStudentImage(issuance.studentId, imageContainer, status);
 
             const coverContainer = card.querySelector('.book-cover-container');
             BookCoverManager.renderBookCover(issuance.bookId, coverContainer);
@@ -2334,8 +1350,17 @@ class IssuanceManager {
 
                 await this.issuanceRef.child(issuanceId).remove();
 
-                if (issuance.status === 'active' || issuance.status === 'overdue') {
-                    await recalculateBookAvailability(bookId);
+                if (issuance.status === 'active') {
+                    const bookRef = db.ref(`books/${bookId}`);
+                    const bookSnapshot = await bookRef.once('value');
+                    const book = bookSnapshot.val();
+
+                    if (book) {
+                        await bookRef.update({
+                            available: book.available + 1,
+                            updatedAt: Date.now()
+                        });
+                    }
                 }
 
                 await Swal.fire({
@@ -2386,11 +1411,6 @@ class IssuanceManager {
                     lost: (book.lost || 0) + 1,
                     updatedAt: Date.now()
                 });
-                // Issuance just moved from active -> lost, and lost went up by
-                // one, so this nets out to the same available count — but
-                // recompute from ground truth rather than assume that math
-                // holds if available had already drifted.
-                await recalculateBookAvailability(bookId);
 
                 await Swal.fire({
                     icon: 'success',
@@ -2437,11 +1457,19 @@ class IssuanceManager {
                 await issuanceRef.update({
                     status: 'returned',
                     returnedDate: new Date().toISOString(),
-                    actualReturnDate: new Date().toISOString(),
                     updatedAt: Date.now()
                 });
 
-                await recalculateBookAvailability(bookId);
+                const bookRef = db.ref(`books/${bookId}`);
+                const bookSnapshot = await bookRef.once('value');
+                const book = bookSnapshot.val();
+
+                if (book) {
+                    await bookRef.update({
+                        available: book.available + 1,
+                        updatedAt: Date.now()
+                    });
+                }
 
                 if (issuance.studentId) {
                     await studentManager.updateStudentIssuanceStatus(issuance.studentId);
@@ -2470,10 +1498,10 @@ class IssuanceManager {
 
     async renderLostBookCard(issuance, issuanceId) {
         try {
-            const [student, book] = await Promise.all([
-                getStudentCached(issuance.studentId),
-                getBookCached(issuance.bookId)
-            ]);
+            const studentSnapshot = await db.ref(`students/${issuance.studentId}`).once('value');
+            const bookSnapshot = await db.ref(`books/${issuance.bookId}`).once('value');
+            const student = studentSnapshot.val();
+            const book = bookSnapshot.val();
 
             if (!student || !book) return;
 
@@ -2506,8 +1534,8 @@ class IssuanceManager {
             const issuance = this.allIssuances.get(issuanceId);
             if (!issuance) return;
 
-            const student = await getStudentCached(issuance.studentId);
-            const book = await getBookCached(issuance.bookId);
+            const student = (await db.ref(`students/${issuance.studentId}`).once('value')).val();
+            const book = (await db.ref(`books/${issuance.bookId}`).once('value')).val();
 
             if (!student || !book) return;
 
@@ -2568,14 +1596,10 @@ class IssuanceManager {
                 const bookSnapshot = await bookRef.once('value');
                 const book = bookSnapshot.val();
                 await bookRef.update({
-                    lost: Math.max(0, (book.lost || 0) - 1),
+                    available: book.available + 1,
+                    lost: book.lost - 1,
                     updatedAt: Date.now()
                 });
-                // Recompute available instead of assuming +1 is correct — it
-                // isn't when this copy's lost-report never actually subtracted
-                // it from available in the first place (e.g. a book reported
-                // lost while still on active issuance).
-                await recalculateBookAvailability(issuance.bookId);
             }
 
             await Swal.fire({
@@ -2636,12 +1660,16 @@ class IssuanceManager {
 
                     console.log(`Found ${Object.keys(updates).length} issuances to delete, ${activeCount} active.`);
 
-                    await db.ref().update(updates);
                     if (activeCount > 0) {
-                        // All issuances for this book are gone, so recompute
-                        // from ground truth rather than guess the delta.
-                        await recalculateBookAvailability(bookId);
+                        const bookSnapshot = await db.ref(`books/${bookId}`).once('value');
+                        const book = bookSnapshot.val();
+                        if (book) {
+                            updates[`books/${bookId}/available`] = book.available + activeCount;
+                            updates[`books/${bookId}/updatedAt`] = Date.now();
+                        }
                     }
+
+                    await db.ref().update(updates);
                     console.log(`Successfully deleted issuances for book ID: ${bookId}`);
                     return true;
                 }
@@ -2697,17 +1725,22 @@ class IssuanceManager {
                     if (activeIssuances.exists()) {
                         activeIssuances.forEach(snapshot => {
                             const issuance = snapshot.val();
-                            bookUpdates.set(issuance.bookId, true);
+                            const count = bookUpdates.get(issuance.bookId) || 0;
+                            bookUpdates.set(issuance.bookId, count + 1);
                         });
+
+                        for (const [bookId, count] of bookUpdates) {
+                            const bookSnapshot = await db.ref(`books/${bookId}`).once('value');
+                            const book = bookSnapshot.val();
+                            if (book) {
+                                updates[`books/${bookId}/available`] = book.available + count;
+                                updates[`books/${bookId}/updatedAt`] = Date.now();
+                            }
+                        }
                     }
 
                     updates['issuance'] = null;
                     await db.ref().update(updates);
-                    // All issuances are gone now, so recompute each affected
-                    // book's available from ground truth (quantity - lost).
-                    for (const bookId of bookUpdates.keys()) {
-                        await recalculateBookAvailability(bookId);
-                    }
                     console.log('Successfully deleted all issuances');
                     return true;
                 }
@@ -2827,534 +1860,6 @@ class IssuanceManager {
     }
 }
 
-// =============================================================================
-// ENHANCED EXPORT FUNCTIONALITY - PDF, WORD, EXCEL
-// =============================================================================
-// Required libraries:
-// - jsPDF: https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js
-// - jsPDF-AutoTable: https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js
-// - SheetJS (XLSX): https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
-
-// =============================================================================
-// ENHANCED EXPORT TO PDF WITH PREMIUM STYLING
-// =============================================================================
-
-// Helper function to determine optimal column widths
-const getColumnStyles = (headers) => {
-    // Return empty object to let autoTable distribute columns evenly across full width
-    return {};
-};
-
-const exportToPdfEnhanced = async (reportData, reportTitle) => {
-    if (!window.jspdf) {
-        Swal.fire('Error', 'PDF library not loaded. Please refresh the page.', 'error');
-        return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('landscape');
-
-    const title = reportTitle || 'Library Report';
-    const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    
-    // Extract headers and body from reportData
-    const headers = reportData.headers || [];
-    const body = reportData.body || [];
-    
-    // Premium Header Function
-    const addHeader = (data) => {
-        const pageWidth = doc.internal.pageSize.width;
-        const pageHeight = doc.internal.pageSize.height;
-        
-        // Header background
-        doc.setFillColor(41, 128, 185);
-        doc.rect(0, 0, pageWidth, 20, 'F');
-        
-        // School name
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(16);
-        doc.setFont(undefined, 'bold');
-        doc.text('KANYADET PRI & JUNIOR SCHOOL', 14, 10);
-        
-        // Report title
-        doc.setFontSize(12);
-        doc.text(title, 14, 16);
-        
-        // Date and info (right aligned)
-        doc.setFontSize(9);
-        doc.setFont(undefined, 'normal');
-        const dateText = `Date: ${currentDate}`;
-        doc.text(dateText, pageWidth - 14, 8, { align: 'right' });
-        doc.text(`Total Records: ${body.length}`, pageWidth - 14, 13, { align: 'right' });
-        
-        // Decorative line
-        doc.setDrawColor(41, 128, 185);
-        doc.setLineWidth(0.5);
-        doc.line(0, 20, pageWidth, 20);
-    };
-
-    // Premium Footer Function
-    const addFooter = (data, totalPages) => {
-        const pageWidth = doc.internal.pageSize.width;
-        const pageHeight = doc.internal.pageSize.height;
-        const footerY = pageHeight - 15;
-        
-        // Footer background
-        doc.setFillColor(245, 245, 245);
-        doc.rect(0, footerY - 5, pageWidth, 20, 'F');
-        
-        // Top border
-        doc.setDrawColor(41, 128, 185);
-        doc.setLineWidth(0.3);
-        doc.line(0, footerY - 5, pageWidth, footerY - 5);
-        
-        doc.setTextColor(60, 60, 60);
-        doc.setFontSize(8);
-        
-        // Left section
-        doc.setFont(undefined, 'bold');
-        doc.text('Prepared by:', 14, footerY);
-        doc.setFont(undefined, 'normal');
-        doc.text('_________________', 14, footerY + 4);
-        doc.setFontSize(7);
-        doc.text('Signature & Date', 14, footerY + 8);
-        
-        // Center - Page number
-        doc.setFontSize(9);
-        const pageText = `Page ${data.pageNumber} of ${totalPages}`;
-        doc.text(pageText, pageWidth / 2, footerY + 2, { align: 'center' });
-        
-        // Right section
-        doc.setFontSize(8);
-        doc.setFont(undefined, 'bold');
-        doc.text('Verified by:', pageWidth - 14, footerY, { align: 'right' });
-        doc.setFont(undefined, 'normal');
-        doc.text('_________________', pageWidth - 14, footerY + 4, { align: 'right' });
-        doc.setFontSize(7);
-        doc.text('Signature & Stamp', pageWidth - 14, footerY + 8, { align: 'right' });
-    };
-
-    // Generate table
-    doc.autoTable({
-        head: [headers],
-        body: body,
-        startY: 25,
-        styles: { 
-            fontSize: 9,
-            cellPadding: 3,
-            overflow: 'linebreak',
-            font: 'helvetica'
-        },
-        columnStyles: getColumnStyles(headers),
-        headStyles: { 
-            fillColor: [41, 128, 185], 
-            textColor: [255, 255, 255],
-            fontStyle: 'bold'
-        },
-        alternateRowStyles: { fillColor: [245, 245, 245] },
-        margin: { top: 25, right: 5, bottom: 20, left: 5 },
-        tableWidth: 'auto',
-        didDrawPage: function(data) {
-            addHeader(data);
-        }
-    });
-
-    // Add footers with correct page count
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        addFooter({ pageNumber: i }, totalPages);
-    }
-
-    const filename = `${reportTitle.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(filename);
-};
-
-// =============================================================================
-// EXPORT TO EXCEL WITH PREMIUM STYLING
-// =============================================================================
-const exportToExcelEnhanced = async (reportData, reportTitle) => {
-    const XLSX = window.XLSX;
-    if (!XLSX) {
-        Swal.fire('Error', 'Excel export library not loaded. Please refresh the page.', 'error');
-        return;
-    }
-
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    
-    // Extract headers and body from reportData
-    const headers = reportData.headers || [];
-    const body = reportData.body || [];
-    const statsInfo = reportData.statsInfo || {};
-
-    // Create header rows
-    const headerData = [
-        ['KANYADET PRI & JUNIOR SCHOOL'],
-        [reportTitle],
-        [`Date: ${new Date().toLocaleDateString()}`, '', '', `Total Records: ${body.length}`],
-        []
-    ];
-
-    // Add statistics if available
-    if (Object.keys(statsInfo).length > 0) {
-        const statsRow = [];
-        for (const [key, value] of Object.entries(statsInfo)) {
-            statsRow.push(`${key}: ${value}`);
-        }
-        headerData.push(statsRow);
-        headerData.push([]);
-    }
-
-    // Add column headers
-    headerData.push(headers);
-
-    // Combine all data
-    const wsData = [...headerData, ...body];
-
-    // Create worksheet
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-    // Set column widths
-    ws['!cols'] = headers.map(() => ({ wch: 18 }));
-
-    // Merge cells for headers
-    const merges = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } }
-    ];
-    ws['!merges'] = merges;
-
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Report');
-
-    // Save file
-    const filename = `${reportTitle.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, filename);
-};
-
-// =============================================================================
-// EXPORT TO WORD WITH PREMIUM STYLING
-// =============================================================================
-const exportToWordEnhanced = async (reportData, reportTitle) => {
-    // Extract headers and body from reportData
-    const headers = reportData.headers || [];
-    const body = reportData.body || [];
-    const statsInfo = reportData.statsInfo || {};
-
-    // Create table rows HTML
-    let tableRowsHtml = '';
-    body.forEach(row => {
-        tableRowsHtml += '<tr>' + 
-            row.map(cell => `<td>${cell || '-'}</td>`).join('') + 
-            '</tr>';
-    });
-
-    // Create stats section if available
-    let statsHtml = '';
-    if (Object.keys(statsInfo).length > 0) {
-        statsHtml = '<div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-left: 4px solid #2980B9;">';
-        for (const [key, value] of Object.entries(statsInfo)) {
-            statsHtml += `<div style="margin: 5px 0;"><strong>${key}:</strong> ${value}</div>`;
-        }
-        statsHtml += '</div>';
-    }
-
-    // Create HTML content with premium styling
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <style>
-        @page {
-            size: A4 landscape;
-            margin: 0.5in;
-        }
-        body {
-            font-family: 'Calibri', Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        .header {
-            background: linear-gradient(135deg, #2980B9 0%, #3498DB 100%);
-            color: white;
-            padding: 20px;
-            margin: -20px -20px 20px -20px;
-            text-align: center;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .header h2 {
-            margin: 10px 0 0 0;
-            font-size: 18px;
-            font-weight: normal;
-        }
-        .header-info {
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        th {
-            background-color: #2980B9;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-            border: 1px solid #2471A3;
-        }
-        td {
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-        tr:nth-child(even) {
-            background-color: #f5f5f5;
-        }
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #2980B9;
-            display: flex;
-            justify-content: space-between;
-        }
-        .footer-section {
-            flex: 1;
-        }
-        .signature-line {
-            border-top: 1px solid #333;
-            margin-top: 40px;
-            padding-top: 5px;
-            font-size: 11px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>KANYADET PRI & JUNIOR SCHOOL</h1>
-        <h2>${reportTitle}</h2>
-        <div class="header-info">
-            <div>Date: ${new Date().toLocaleDateString()}</div>
-            <div>Total Records: ${body.length}</div>
-        </div>
-    </div>
-    
-    ${statsHtml}
-    
-    <table>
-        <thead>
-            <tr>
-                ${headers.map(h => `<th>${h}</th>`).join('')}
-            </tr>
-        </thead>
-        <tbody>
-            ${tableRowsHtml}
-        </tbody>
-    </table>
-    
-    <div class="footer">
-        <div class="footer-section">
-            <strong>Prepared by:</strong>
-            <div class="signature-line">Signature & Date</div>
-        </div>
-        <div class="footer-section" style="text-align: right;">
-            <strong>Verified by:</strong>
-            <div class="signature-line">Signature & Date</div>
-        </div>
-    </div>
-</body>
-</html>
-    `;
-
-    // Convert HTML to blob and download
-    const blob = new Blob(['\ufeff', htmlContent], {
-        type: 'application/msword'
-    });
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${reportTitle.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.doc`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-};
-
-// =============================================================================
-// UNIFIED EXPORT FUNCTION
-// =============================================================================
-const handleExportEnhanced = async (reportData, reportTitle) => {
-    const exportOptions = [
-        { label: 'Export to PDF (Premium Format)', value: 'pdf', icon: '📄' },
-        { label: 'Export to Excel (Premium Format)', value: 'excel', icon: '📊' },
-        { label: 'Export to Word (Premium Format)', value: 'word', icon: '📝' },
-        { label: 'Export as CSV', value: 'csv', icon: '📋' }
-    ];
-
-    // Create HTML with onclick handlers that call executeExport
-    let optionsHtml = '<div style="display: grid; gap: 10px;">';
-    exportOptions.forEach(option => {
-        optionsHtml += `
-            <button class="export-option-btn" onclick="window.executeExport('${option.value}')" 
-                    style="padding: 14px 16px; text-align: left; background:transparent; 
-                           border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 14px; color: #333; 
-                           font-weight: 500; display: flex; align-items: center; gap: 5px;">
-                <span style="font-size: 24px;">${option.icon}</span>
-                <span>${option.label}</span>
-            </button>
-        `;
-    });
-    optionsHtml += '</div>';
-
-    try {
-        await Swal.fire({
-            title: 'Export Report',
-            html: optionsHtml,
-            showConfirmButton: false,
-            showCancelButton: true,
-            cancelButtonText: 'Cancel',
-            allowOutsideClick: true,
-            didOpen: (modal) => {
-                // Add hover effects to buttons
-                const buttons = modal.querySelectorAll('.export-option-btn');
-                buttons.forEach(btn => {
-                    btn.addEventListener('mouseenter', function() {
-                        this.style.background = 'linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%)';
-                        this.style.borderColor = '#2980B9';
-                        this.style.transform = 'translateX(4px)';
-                        this.style.boxShadow = '0 4px 12px rgba(41, 128, 185, 0.2)';
-                    });
-                    btn.addEventListener('mouseleave', function() {
-                        this.style.background = 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)';
-                        this.style.borderColor = '#ddd';
-                        this.style.transform = 'translateX(0)';
-                        this.style.boxShadow = 'none';
-                    });
-                });
-            }
-        });
-    } catch (error) {
-        console.error('Modal error:', error);
-    }
-};
-
-// Global export execution function
-window.executeExport = async function(exportType) {
-    // Close the modal
-    Swal.close();
-    
-    // Get the report data from the current ReportManager instance
-    if (!window.reportManager) {
-        Swal.fire('Error', 'Report manager not initialized', 'error');
-        return;
-    }
-
-    // Get table and stats
-    const table = window.reportManager.reportTable.querySelector('table');
-    if (!table) {
-        Swal.fire('Error', 'No report data available', 'error');
-        return;
-    }
-
-    // Extract headers
-    const thead = table.querySelector('thead tr');
-    const headers = Array.from(thead.cells).map(cell => cell.textContent.trim()).filter(h => h && h !== 'Action');
-
-    // Extract body rows
-    let tbody = table.querySelector('tbody');
-    let rows = Array.from(tbody.querySelectorAll('tr')).filter(row => !row.classList.contains('totals-row') && !row.classList.contains('averages-row'));
-
-    // Extract body data
-    const body = rows.map(row => 
-        Array.from(row.cells).map(cell => cell.textContent.trim()).filter((_, idx) => idx < headers.length)
-    );
-
-    // Extract stats
-    const statsCards = window.reportManager.reportStats.querySelectorAll('.stat-card');
-    const statsInfo = {};
-    statsCards.forEach(card => {
-        const title = card.querySelector('h3')?.textContent.trim();
-        const value = card.querySelector('p')?.textContent.trim();
-        if (title && value) {
-            statsInfo[title] = value;
-        }
-    });
-
-    // Get report title
-    const reportTitle = window.reportManager.reportType.options[window.reportManager.reportType.selectedIndex].text;
-
-    const reportData = {
-        headers: headers,
-        body: body,
-        statsInfo: statsInfo
-    };
-
-    try {
-        switch(exportType) {
-            case 'pdf':
-                Swal.fire({
-                    title: 'Exporting to PDF...',
-                    html: 'Please wait while your PDF is being generated.',
-                    icon: 'info',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: async () => {
-                        Swal.showLoading();
-                        await exportToPdfEnhanced(reportData, reportTitle);
-                        Swal.fire('Success!', 'PDF exported successfully!', 'success');
-                    }
-                });
-                break;
-            case 'excel':
-                Swal.fire({
-                    title: 'Exporting to Excel...',
-                    html: 'Please wait while your Excel file is being generated.',
-                    icon: 'info',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: async () => {
-                        Swal.showLoading();
-                        await exportToExcelEnhanced(reportData, reportTitle);
-                        Swal.fire('Success!', 'Excel file exported successfully!', 'success');
-                    }
-                });
-                break;
-            case 'word':
-                Swal.fire({
-                    title: 'Exporting to Word...',
-                    html: 'Please wait while your Word document is being generated.',
-                    icon: 'info',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: async () => {
-                        Swal.showLoading();
-                        await exportToWordEnhanced(reportData, reportTitle);
-                        Swal.fire('Success!', 'Word document exported successfully!', 'success');
-                    }
-                });
-                break;
-            case 'csv':
-                // Use existing CSV export method from ReportManager
-                window.reportManager.exportToCSV();
-                Swal.fire('Success!', 'CSV exported successfully!', 'success');
-                break;
-            default:
-                Swal.fire('Error', 'Unknown export type', 'error');
-        }
-    } catch (error) {
-        console.error('Export error:', error);
-        Swal.fire('Error', 'Failed to export data. Please try again. ' + error.message, 'error');
-    }
-};
-
 // Reports Management
 class ReportManager {
     constructor() {
@@ -3368,7 +1873,6 @@ class ReportManager {
         this.reportTable = document.getElementById('reportTable');
         this.setupListeners();
         this.initializeDates();
-        this.generateReport(); // Show the default report (Lost Books) immediately, no click needed
     }
 
 
@@ -3424,7 +1928,7 @@ getStartDateFromDatabase() {
 
     setupListeners() {
         this.generateReportBtn.addEventListener('click', () => this.generateReport());
-        this.exportReportBtn.addEventListener('click', () => this.printReport());
+        this.exportReportBtn.addEventListener('click', () => this.exportToCSV());
         this.reportType.addEventListener('change', () => this.generateReport());
         this.reportTable.addEventListener('input', (e) => {
             if (e.target.classList.contains('search-input')) {
@@ -3462,12 +1966,18 @@ getStartDateFromDatabase() {
             // Update issuance status
             await db.ref(`issuance/${issuanceId}`).update({
                 status: 'returned',
-                returnedAt: Date.now(),
-                actualReturnDate: new Date().toISOString()
+                returnedAt: Date.now()
             });
 
             // Update book availability
-            await recalculateBookAvailability(bookId);
+            const bookRef = db.ref(`books/${bookId}`);
+            const bookSnapshot = await bookRef.once('value');
+            const book = bookSnapshot.val();
+            
+            await bookRef.update({
+                available: book.available + 1,
+                updatedAt: Date.now()
+            });
 
             alert('Book returned successfully');
             // Refresh the current report
@@ -3608,15 +2118,293 @@ getStartDateFromDatabase() {
 
     printReport(selectedGrade = null) {
         const reportTitle = this.reportType.options[this.reportType.selectedIndex].text;
-        const table = this.reportTable.querySelector('table');
-        
-        if (!table) {
-            Swal.fire('Error', 'No report data to print', 'error');
-            return;
+        const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        let tableContent = this.reportTable.querySelector('table').cloneNode(true);
+        let statsContent = this.reportStats.innerHTML;
+
+        if (selectedGrade && selectedGrade !== 'all') {
+            const gradeColIndex = Array.from(tableContent.querySelector('thead tr').children)
+                .findIndex(th => th.textContent.trim() === 'Grade');
+            
+            if (gradeColIndex !== -1) {
+                // Filter table rows
+                const tbody = tableContent.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const filteredRows = rows.filter(row => 
+                    row.cells[gradeColIndex].textContent.trim() === selectedGrade
+                );
+
+                // Reassign sequential numbers for filtered rows
+                filteredRows.forEach((row, index) => {
+                    const numberCell = row.cells[0];
+                    if (numberCell && numberCell.classList.contains('number-cell')) {
+                        numberCell.textContent = index + 1;
+                    }
+                });
+
+                tbody.innerHTML = '';
+                filteredRows.forEach(row => tbody.appendChild(row));
+
+                // Recalculate totals and averages for filtered data
+                const tfoot = tableContent.querySelector('tfoot');
+                if (tfoot) {
+                    const totalsRow = tfoot.querySelector('.totals-row');
+                    const averagesRow = tfoot.querySelector('.averages-row');
+                    if (this.reportType.value === 'studentActivity') {
+                        let totalBooks = 0, totalActive = 0, totalReturned = 0, totalLost = 0;
+                        filteredRows.forEach(row => {
+                            totalBooks += parseInt(row.cells[3].textContent) || 0;
+                            totalActive += parseInt(row.cells[4].textContent) || 0;
+                            totalReturned += parseInt(row.cells[5].textContent) || 0;
+                            totalLost += parseInt(row.cells[6].textContent) || 0;
+                        });
+                        const rowCount = filteredRows.length;
+                        totalsRow.innerHTML = `
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>${totalBooks}</td>
+                            <td>${totalActive}</td>
+                            <td>${totalReturned}</td>
+                            <td>${totalLost}</td>
+                            <td>N/A</td>
+                        `;
+                        averagesRow.innerHTML = `
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>${rowCount ? (totalBooks / rowCount).toFixed(2) : 0}</td>
+                            <td>${rowCount ? (totalActive / rowCount).toFixed(2) : 0}</td>
+                            <td>${rowCount ? (totalReturned / rowCount).toFixed(2) : 0}</td>
+                            <td>${rowCount ? (totalLost / rowCount).toFixed(2) : 0}</td>
+                            <td>N/A</td>
+                        `;
+                    } else if (this.reportType.value === 'overdueBooks') {
+                        let totalDaysOverdue = 0;
+                        filteredRows.forEach(row => {
+                            totalDaysOverdue += parseInt(row.cells[7].textContent) || 0;
+                        });
+                        const rowCount = filteredRows.length;
+                        totalsRow.innerHTML = `
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>${totalDaysOverdue} days</td>
+                            <td>N/A</td>
+                        `;
+                        averagesRow.innerHTML = `
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>${rowCount ? (totalDaysOverdue / rowCount).toFixed(2) : 0} days</td>
+                            <td>N/A</td>
+                        `;
+                    } else if (this.reportType.value === 'issuanceHistory') {
+                        const rowCount = filteredRows.length;
+                        totalsRow.innerHTML = `
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>${rowCount} issuances</td>
+                            <td>N/A</td>
+                        `;
+                        averagesRow.innerHTML = `
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                        `;
+                    } else if (this.reportType.value === 'lostBooks') {
+                        totalsRow.innerHTML = `
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                        `;
+                        averagesRow.innerHTML = `
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                            <td>N/A</td>
+                        `;
+                    }
+                }
+
+                // Update stats for selected grade
+                if (this.reportType.value === 'studentActivity') {
+                    const totalStudents = filteredRows.length;
+                    const totalIssuances = filteredRows.reduce((sum, row) => sum + (parseInt(row.cells[3].textContent) || 0), 0);
+                    const totalLost = filteredRows.reduce((sum, row) => sum + (parseInt(row.cells[6].textContent) || 0), 0);
+                    statsContent = `
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Active Students</h3>
+                                <p>${totalStudents}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Total Issuances</h3>
+                                <p>${totalIssuances}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info warning">
+                                <h3>Total Lost</h3>
+                                <p>${totalLost}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Average Books per Student</h3>
+                                <p>${totalStudents ? (totalIssuances / totalStudents).toFixed(2) : 0}</p>
+                            </div>
+                        </div>
+                    `;
+                } else if (this.reportType.value === 'overdueBooks') {
+                    const totalOverdue = filteredRows.length;
+                    const totalDaysOverdue = filteredRows.reduce((sum, row) => sum + (parseInt(row.cells[7].textContent) || 0), 0);
+                    statsContent = `
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Total Overdue</h3>
+                                <p>${totalOverdue}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Total Days Overdue</h3>
+                                <p>${totalDaysOverdue}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Average Days Overdue</h3>
+                                <p>${totalOverdue ? (totalDaysOverdue / totalOverdue).toFixed(2) : 0}</p>
+                            </div>
+                        </div>
+                    `;
+                } else if (this.reportType.value === 'issuanceHistory') {
+                    const totalIssuances = filteredRows.length;
+                    const activeIssuances = filteredRows.filter(row => row.cells[7].textContent.trim() === 'active').length;
+                    const returnedIssuances = filteredRows.filter(row => row.cells[7].textContent.trim() === 'returned').length;
+                    const lostIssuances = filteredRows.filter(row => row.cells[7].textContent.trim() === 'lost').length;
+                    statsContent = `
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Total Issuances</h3>
+                                <p>${totalIssuances}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Active</h3>
+                                <p>${activeIssuances}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Returned</h3>
+                                <p>${returnedIssuances}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info warning">
+                                <h3>Lost</h3>
+                                <p>${lostIssuances}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Average Issuances per Student</h3>
+                                <p>${totalIssuances ? (totalIssuances / [...new Set(filteredRows.map(row => row.cells[1].textContent.trim()))].length).toFixed(2) : 0}</p>
+                            </div>
+                        </div>
+                    `;
+                } else if (this.reportType.value === 'lostBooks') {
+                    const totalLost = filteredRows.length;
+                    statsContent = `
+                        <div class="stat-card">
+                            <div class="stat-info warning">
+                                <h3>Total Lost Books</h3>
+                                <p>${totalLost}</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>Average Lost Books per Student</h3>
+                                <p>${totalLost ? (totalLost / [...new Set(filteredRows.map(row => row.cells[1].textContent.trim()))].length).toFixed(2) : 0}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
         }
 
-        // Call the enhanced export handler - it will extract data from reportManager
-        handleExportEnhanced(null, reportTitle + (selectedGrade && selectedGrade !== 'all' ? ` - ${selectedGrade}` : ''));
+        const printContent = `
+            <div class="header">
+                <img src="../images/logo.png" alt="Kanyadet Logo" class="logo">
+                <h1>Kanyadet Primary and Junior Secondary</h1>
+                <h2>${reportTitle}${selectedGrade && selectedGrade !== 'all' ? ` - ${selectedGrade}` : ''}</h2>
+                <p>Date: ${currentDate}</p>
+            </div>
+            <div>${statsContent}</div>
+            <div>${tableContent.outerHTML}</div>
+        `;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Library Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+                        .header { margin-bottom: 30px; }
+                        .logo { width: 100px; height: 100px; margin-bottom: 10px; }
+                        h1 { font-size: 24px; margin: 10px 0; }
+                        h2 { font-size: 20px; margin: 10px 0; }
+                        p { font-size: 16px; margin: 5px 0; }
+                        table { border-collapse: collapse; width: 100%; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .stat-card { display: inline-block; margin: 10px; padding: 10px; border: 1px solid #ddd; }
+                        .warning { color: #ff4444; }
+                        .search-input, .delete-btn, .sort-select, .grade-filter, .status-filter, .return-btn { display: none; }
+                        tfoot td { font-weight: bold; }
+                        .totals-row { background-color: #e8f4f8; }
+                        .averages-row { background-color: #f0f8e8; }
+                        .number-cell { text-align: center; }
+                    </style>
+                </head>
+                <body>${printContent}</body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
     }
 
     async generateReport() {
@@ -3833,7 +2621,7 @@ getStartDateFromDatabase() {
         const studentIds = [...new Set(filteredIssuances.map(issuance => issuance.studentId))];
         const grades = new Set();
         for (const studentId of studentIds) {
-            const student = await getStudentCached(studentId);
+            const student = (await db.ref(`students/${studentId}`).once('value')).val();
             if (student?.grade) grades.add(student.grade);
         }
         const gradeOptions = [...grades].sort((a, b) => a.localeCompare(b, { numeric: true }));
@@ -3844,8 +2632,8 @@ getStartDateFromDatabase() {
             const issueDate = new Date(iss.issueDate);
             return issueDate >= start && issueDate <= end;
         })) {
-            const student = await getStudentCached(issuance.studentId);
-            const book = await getBookCached(issuance.bookId);
+            const student = (await db.ref(`students/${issuance.studentId}`).once('value')).val();
+            const book = (await db.ref(`books/${issuance.bookId}`).once('value')).val();
             tableRows.push(`
                 <tr>
                     <td class="number-cell">${rowNumber++}</td>
@@ -3990,7 +2778,7 @@ getStartDateFromDatabase() {
         const studentIds = [...new Set(overdueIssuances.map(issuance => issuance.studentId))];
         const grades = new Set();
         for (const studentId of studentIds) {
-            const student = await getStudentCached(studentId);
+            const student = (await db.ref(`students/${studentId}`).once('value')).val();
             if (student?.grade) grades.add(student.grade);
         }
         const gradeOptions = [...grades].sort((a, b) => a.localeCompare(b, { numeric: true }));
@@ -4001,8 +2789,8 @@ getStartDateFromDatabase() {
             const returnDate = new Date(iss.returnDate);
             return iss.status === 'active' && returnDate < currentDate;
         })) {
-            const student = await getStudentCached(issuance.studentId);
-            const book = await getBookCached(issuance.bookId);
+            const student = (await db.ref(`students/${issuance.studentId}`).once('value')).val();
+            const book = (await db.ref(`books/${issuance.bookId}`).once('value')).val();
             const daysOverdue = Math.floor((currentDate - new Date(issuance.returnDate)) / (1000 * 60 * 60 * 24));
             tableRows.push(`
                 <tr>
@@ -4127,7 +2915,7 @@ getStartDateFromDatabase() {
         const studentIds = [...new Set(lostIssuances.map(issuance => issuance.studentId))];
         const grades = new Set();
         for (const studentId of studentIds) {
-            const student = await getStudentCached(studentId);
+            const student = (await db.ref(`students/${studentId}`).once('value')).val();
             if (student?.grade) grades.add(student.grade);
         }
         const gradeOptions = [...grades].sort((a, b) => a.localeCompare(b, { numeric: true }));
@@ -4137,8 +2925,8 @@ getStartDateFromDatabase() {
         for (const [key, issuance] of Object.entries(issuances).filter(([_, iss]) => 
             iss.status === 'lost'
         )) {
-            const student = await getStudentCached(issuance.studentId);
-            const book = await getBookCached(issuance.bookId);
+            const student = (await db.ref(`students/${issuance.studentId}`).once('value')).val();
+            const book = (await db.ref(`books/${issuance.bookId}`).once('value')).val();
             tableRows.push(`
                 <tr>
                     <td class="number-cell">${rowNumber++}</td>
@@ -4230,9 +3018,10 @@ getStartDateFromDatabase() {
 
     async generateStudentActivityReport(start, end) {
         const issuanceSnapshot = await db.ref('issuance').once('value');
-        const students = StudentsCache.getAll();
+        const studentsSnapshot = await db.ref('students').once('value');
         
         const issuances = issuanceSnapshot.val();
+        const students = studentsSnapshot.val();
         
         let studentActivity = {};
         
@@ -4241,7 +3030,7 @@ getStartDateFromDatabase() {
             if (issueDate >= start && issueDate <= end) {
                 if (!studentActivity[issuance.studentId]) {
                     studentActivity[issuance.studentId] = {
-                        student: students.get(issuance.studentId),
+                        student: students[issuance.studentId],
                         totalBooks: 0,
                         active: 0,
                         returned: 0,
@@ -4384,15 +3173,7 @@ getStartDateFromDatabase() {
         window.deleteStudent = async (studentId) => {
             if (confirm('Are you sure you want to delete this student and all their issuance records?')) {
                 try {
-                    // Was deleting from the un-scoped 'students/{id}' path,
-                    // which isn't where the real record lives (STUDENTS_PATH
-                    // is 'artifacts/{appId}/students') — so this silently
-                    // never actually removed the student. Also keep the
-                    // denormalized student counter in sync, same as
-                    // StudentManager.deleteStudent does.
-                    await db.ref(`${STUDENTS_PATH}/${studentId}`).remove();
-                    await db.ref(STUDENT_COUNT_PATH).transaction(current => Math.max(0, (current || 0) - 1));
-                    await StudentsCache.markDeleted(studentId);
+                    await db.ref(`students/${studentId}`).remove();
                     const issuanceIds = studentActivity[studentId].issuanceIds;
                     for (const issuanceId of issuanceIds) {
                         await db.ref(`issuance/${issuanceId}`).remove();
@@ -4578,7 +3359,6 @@ class LostBooksManager {
             if (!snapshot.exists()) {
                 this.lostBooksTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No lost books found.</td></tr>';
                 this.updateTotalCount();
-                this.addLostBooksModalButtons();
                 return;
             }
 
@@ -4589,15 +3369,15 @@ class LostBooksManager {
                 const issuance = childSnapshot.val();
                 promises.push(
                     Promise.all([
-                        getStudentCached(issuance.studentId),
-                        getBookCached(issuance.bookId)
-                    ]).then(([student, book]) => {
-                        if (student && book) {
+                        db.ref(`students/${issuance.studentId}`).once('value'),
+                        db.ref(`books/${issuance.bookId}`).once('value')
+                    ]).then(([studentSnapshot, bookSnapshot]) => {
+                        if (studentSnapshot.exists() && bookSnapshot.exists()) {
                             this.allLostBooks.push({
                                 id: childSnapshot.key,
                                 issuance,
-                                student,
-                                book
+                                student: studentSnapshot.val(),
+                                book: bookSnapshot.val()
                             });
                         }
                     }).catch(error => {
@@ -4611,7 +3391,6 @@ class LostBooksManager {
             if (this.allLostBooks.length === 0) {
                 this.lostBooksTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No valid lost book records found.</td></tr>';
                 this.updateTotalCount();
-                this.addLostBooksModalButtons();
                 return;
             }
 
@@ -4619,15 +3398,11 @@ class LostBooksManager {
             this.filteredBooks = [...this.allLostBooks];
             this.updateTotalCount();
             this.renderLostBooksTable(this.filteredBooks);
-            
-            // Add buttons AFTER data is loaded
-            this.addLostBooksModalButtons();
 
         } catch (error) {
             console.error('Error loading lost books:', error);
             this.lostBooksTableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading lost books. Please try again.</td></tr>';
             this.updateTotalCount();
-            this.addLostBooksModalButtons();
         }
     }
 
@@ -4694,301 +3469,6 @@ class LostBooksManager {
         });
     }
 
-    addLostBooksModalButtons() {
-        const modalHeader = this.lostBooksModal.querySelector('.modal-header');
-        if (!modalHeader) return;
-
-        // Remove existing action buttons if any
-        const existingButtonGroup = modalHeader.querySelector('.lost-books-actions');
-        if (existingButtonGroup) existingButtonGroup.remove();
-
-        // Create button group
-        const buttonGroup = document.createElement('div');
-        buttonGroup.className = 'lost-books-actions d-flex gap-2';
-        buttonGroup.innerHTML = `
-            <button id="printLostBooksBtn" class="btn btn-primary btn-sm">
-                <i class="bi bi-printer"></i> Print
-            </button>
-            <button id="exportLostBooksBtn" class="btn btn-info btn-sm">
-                <i class="bi bi-download"></i> Export
-            </button>
-            <button id="addLostBookBtn" class="btn btn-success btn-sm">
-                <i class="bi bi-plus-circle"></i> Add Lost Book
-            </button>
-        `;
-        modalHeader.appendChild(buttonGroup);
-
-        // Add event listeners
-        document.getElementById('printLostBooksBtn').addEventListener('click', () => this.printLostBooks());
-        document.getElementById('exportLostBooksBtn').addEventListener('click', () => this.handleLostBooksExport());
-        document.getElementById('addLostBookBtn').addEventListener('click', () => this.showAddLostBookModal());
-    }
-
-    async printLostBooks() {
-        const reportData = {
-            headers: ['No.', 'Grade', 'Student Name', 'Assessment No.', 'Book Title', 'ISBN', 'Issue Date', 'Lost Date', 'Status'],
-            body: this.filteredBooks.map((item, index) => [
-                index + 1,
-                item.student?.grade || 'N/A',
-                item.student?.name || 'Unknown',
-                item.student?.assessmentNo || 'N/A',
-                item.book?.title || 'Unknown',
-                item.issuance.isbn || 'N/A',
-                item.issuance.issueDate || 'N/A',
-                new Date(item.issuance.lostDate || item.issuance.timestamp).toLocaleDateString(),
-                item.issuance.recoveryStatus ? `Recovered (${item.issuance.recoveryMethod})` : 'Pending'
-            ]),
-            statsInfo: {
-                'Total Lost Books': this.filteredBooks.length,
-                'Recovered': this.filteredBooks.filter(b => b.issuance.recoveryStatus).length,
-                'Pending Recovery': this.filteredBooks.filter(b => !b.issuance.recoveryStatus).length
-            }
-        };
-
-        await exportToPdfEnhanced(reportData, 'Lost Books Report');
-    }
-
-    async handleLostBooksExport() {
-        const exportOptions = [
-            { label: 'Export to PDF (Premium Format)', value: 'pdf', icon: '📄' },
-            { label: 'Export to Excel (Premium Format)', value: 'excel', icon: '📊' },
-            { label: 'Export to Word (Premium Format)', value: 'word', icon: '📝' },
-            { label: 'Export as CSV', value: 'csv', icon: '📋' }
-        ];
-
-        let optionsHtml = '<div style="display: grid; gap: 10px;">';
-        exportOptions.forEach(option => {
-            optionsHtml += `
-                <button class="export-btn" data-export-type="${option.value}" 
-                        style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; transition: all 0.3s;" 
-                        onmouseover="this.style.backgroundColor='#e9ecef'; this.style.transform='translateX(5px)';" 
-                        onmouseout="this.style.backgroundColor=''; this.style.transform='translateX(0)'">
-                    ${option.icon} ${option.label}
-                </button>
-            `;
-        });
-        optionsHtml += '</div>';
-
-        try {
-            await Swal.fire({
-                title: 'Export Lost Books',
-                html: optionsHtml,
-                icon: 'info',
-                showConfirmButton: false,
-                showCancelButton: true,
-                cancelButtonText: 'Close',
-                didOpen: () => {
-                    // Add click handlers to buttons after they're created
-                    const buttons = document.querySelectorAll('.export-btn');
-                    buttons.forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const exportType = e.target.closest('.export-btn').getAttribute('data-export-type');
-                            this.executeLostBooksExport(exportType);
-                        });
-                    });
-                }
-            });
-        } catch (error) {
-            console.error('Export modal error:', error);
-        }
-    }
-
-    async executeLostBooksExport(exportType) {
-        try {
-            // Debug: Check if filteredBooks has data
-            console.log('FilteredBooks length:', this.filteredBooks.length);
-            console.log('FilteredBooks data:', this.filteredBooks);
-
-            // Build the report data BEFORE closing modal
-            const reportData = {
-                headers: ['No.', 'Grade', 'Student Name', 'Assessment No.', 'Book Title', 'ISBN', 'Issue Date', 'Lost Date', 'Status'],
-                body: this.filteredBooks.map((item, index) => [
-                    String(index + 1),
-                    item.student?.grade || 'N/A',
-                    item.student?.name || 'Unknown',
-                    item.student?.assessmentNo || 'N/A',
-                    item.book?.title || 'Unknown',
-                    item.issuance.isbn || 'N/A',
-                    item.issuance.issueDate || 'N/A',
-                    new Date(item.issuance.lostDate || item.issuance.timestamp).toLocaleDateString(),
-                    item.issuance.recoveryStatus ? `Recovered (${item.issuance.recoveryMethod})` : 'Pending'
-                ]),
-                statsInfo: {
-                    'Total Lost Books': this.filteredBooks.length,
-                    'Recovered': this.filteredBooks.filter(b => b.issuance.recoveryStatus).length,
-                    'Pending Recovery': this.filteredBooks.filter(b => !b.issuance.recoveryStatus).length
-                }
-            };
-
-            console.log('Report Data Body:', reportData.body);
-            console.log('Report Data Body Length:', reportData.body.length);
-
-            // Now close the modal
-            Swal.close();
-
-            // Execute the appropriate export
-            switch(exportType) {
-                case 'pdf':
-                    await exportToPdfEnhanced(reportData, 'Lost Books Report');
-                    break;
-                case 'excel':
-                    await exportToExcelEnhanced(reportData, 'Lost Books Report');
-                    break;
-                case 'word':
-                    await exportToWordEnhanced(reportData, 'Lost Books Report');
-                    break;
-                case 'csv':
-                    this.exportLostBooksToCSV(reportData);
-                    break;
-            }
-            
-            await Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: `Lost books exported to ${exportType.toUpperCase()}`,
-                timer: 2000,
-                showConfirmButton: false
-            });
-        } catch (error) {
-            console.error('Export error:', error);
-            console.log('Filtered Books:', this.filteredBooks);
-            await Swal.fire({
-                icon: 'error',
-                title: 'Export Failed',
-                text: 'Failed to export lost books: ' + error.message
-            });
-        }
-    }
-
-    exportLostBooksToCSV(reportData) {
-        let csv = reportData.headers.join(',') + '\n';
-        reportData.body.forEach(row => {
-            csv += row.map(cell => `"${cell}"`).join(',') + '\n';
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `lost_books_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    async showAddLostBookModal() {
-        try {
-            const modal = new bootstrap.Modal(document.getElementById('addLostBookModal'));
-            const form = document.getElementById('addLostBookForm');
-            const studentSelect = document.getElementById('lostBookStudentSelect');
-            const bookSelect = document.getElementById('lostBookBookSelect');
-            const submitBtn = document.getElementById('submitLostBookBtn');
-
-            // Clear form
-            form.reset();
-
-            // Populate students (from the synced cache — no fresh network read)
-            studentSelect.innerHTML = '<option value="">Select Student</option>';
-            StudentsCache.getAll().forEach((student, studentId) => {
-                const studentName = student.fullName || student.name || 'Unknown';
-                const grade = student.grade || 'N/A';
-                const assessmentNo = student.assessmentNo || '';
-                studentSelect.innerHTML += `<option value="${studentId}" data-grade="${grade}" data-assessment="${assessmentNo}">${grade} - ${studentName} (${assessmentNo})</option>`;
-            });
-
-            // Populate books
-            const booksSnapshot = await db.ref('books').once('value');
-            bookSelect.innerHTML = '<option value="">Select Book</option>';
-            if (booksSnapshot.exists()) {
-                booksSnapshot.forEach(childSnapshot => {
-                    const book = childSnapshot.val();
-                    const bookId = childSnapshot.key;
-                    const bookTitle = book.title || 'Unknown';
-                    const isbn = book.isbn || 'N/A';
-                    bookSelect.innerHTML += `<option value="${bookId}" data-isbn="${isbn}">${bookTitle} (${isbn})</option>`;
-                });
-            }
-
-            // Update ISBN when book is selected
-            bookSelect.addEventListener('change', (e) => {
-                const selectedOption = e.target.options[e.target.selectedIndex];
-                const isbn = selectedOption.getAttribute('data-isbn');
-                document.getElementById('lostBookISBN').value = isbn || '';
-            });
-
-            // Handle form submission
-            submitBtn.onclick = async () => {
-                const studentId = studentSelect.value;
-                const bookId = bookSelect.value;
-                const lostDate = document.getElementById('lostBookDate').value;
-                const notes = document.getElementById('lostBookNotes').value;
-                const conditionField = document.getElementById('lostBookCondition');
-                const condition = conditionField ? conditionField.value : '';
-
-                if (!studentId || !bookId || !lostDate) {
-                    await Swal.fire('Validation Error', 'Please fill in all required fields', 'warning');
-                    return;
-                }
-
-                try {
-                    // Create new lost book record
-                    const newIssuanceId = db.ref('issuance').push().key;
-                    
-                    const lostBookRecord = {
-                        studentId: studentId,
-                        bookId: bookId,
-                        status: 'lost',
-                        lostDate: lostDate,
-                        notes: notes,
-                        condition: condition,
-                        recoveryStatus: false,
-                        timestamp: new Date().getTime(),
-                        issueDate: document.getElementById('lostBookIssueDate').value || new Date().toISOString().split('T')[0]
-                    };
-
-                    await db.ref(`issuance/${newIssuanceId}`).set(lostBookRecord);
-
-                    await Swal.fire('Success', 'Lost book record created successfully', 'success');
-                    modal.hide();
-                    
-                    // Refresh the lost books list
-                    await this.showLostBooksModal();
-                } catch (error) {
-                    console.error('Error creating lost book record:', error);
-                    await Swal.fire('Error', 'Failed to create lost book record: ' + error.message, 'error');
-                }
-            };
-
-            modal.show();
-        } catch (error) {
-            console.error('Error showing add lost book modal:', error);
-            await Swal.fire('Error', 'Failed to load add lost book form: ' + error.message, 'error');
-        }
-    }
-
-    async deleteLostBook(issuanceId, bookId) {
-        const confirm = await Swal.fire({
-            icon: 'question',
-            title: 'Delete Lost Book Record',
-            text: 'Are you sure you want to delete this lost book record?',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Delete',
-            cancelButtonText: 'Cancel'
-        });
-
-        if (!confirm.isConfirmed) return;
-
-        try {
-            await db.ref(`issuance/${issuanceId}`).remove();
-            await Swal.fire('Success', 'Lost book record deleted successfully', 'success');
-            await this.showLostBooksModal();
-        } catch (error) {
-            console.error('Error deleting lost book:', error);
-            await Swal.fire('Error', 'Failed to delete lost book record: ' + error.message, 'error');
-        }
-    }
-
     async showRecoveryNotes(issuanceId) {
         try {
             // Show loading indicator
@@ -5020,11 +3500,14 @@ class LostBooksManager {
             const issuance = issuanceSnapshot.val();
 
             // Fetch related student and book data
-            const [student, book] = await Promise.all([
-                getStudentCached(issuance.studentId),
-                getBookCached(issuance.bookId)
+            const [studentSnapshot, bookSnapshot] = await Promise.all([
+                db.ref(`students/${issuance.studentId}`).once('value'),
+                db.ref(`books/${issuance.bookId}`).once('value')
             ]);
 
+            const student = studentSnapshot.exists() ? studentSnapshot.val() : null;
+            const book = bookSnapshot.exists() ? bookSnapshot.val() : null;
+            
             // Prepare the content for the modal
             const lostDate = new Date(issuance.lostDate || issuance.timestamp);
             const recoveryStatus = issuance.recoveryStatus;
@@ -5143,10 +3626,13 @@ class LostBooksManager {
             const issuance = issuanceSnapshot.val();
 
             // Fetch related student and book data
-            const [student, book] = await Promise.all([
-                getStudentCached(issuance.studentId),
-                getBookCached(issuance.bookId)
+            const [studentSnapshot, bookSnapshot] = await Promise.all([
+                db.ref(`students/${issuance.studentId}`).once('value'),
+                db.ref(`books/${issuance.bookId}`).once('value')
             ]);
+
+            const student = studentSnapshot.exists() ? studentSnapshot.val() : null;
+            const book = bookSnapshot.exists() ? bookSnapshot.val() : null;
 
             if (!student || !book) {
                 await Swal.fire({
@@ -5292,10 +3778,10 @@ class LostBooksManager {
                 
                 if (book) {
                     await bookRef.update({
+                        available: (book.available || 0) + 1,
                         lost: Math.max(0, (book.lost || 0) - 1),
                         updatedAt: Date.now()
                     });
-                    await recalculateBookAvailability(issuance.bookId);
                 }
             }
 

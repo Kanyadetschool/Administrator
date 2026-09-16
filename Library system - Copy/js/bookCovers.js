@@ -19,39 +19,20 @@ const bookCovers = {
 const defaultCover = 'covers/default-book.png';
 
 class BookCoverManager {
-    /**
-     * Resolve the best cover image URL for a book.
-     * Priority: book.coverUrl (remote) → hardcoded bookCovers map → defaultCover.
-     * @param {string} bookKey - The Firebase key of the book.
-     * @param {object} [bookData] - Optional book object that may contain a coverUrl.
-     */
-    static getBookCover(bookKey, bookData) {
-        if (bookData && bookData.coverUrl) return bookData.coverUrl;
+    static getBookCover(bookKey) {
         return bookCovers[bookKey] || defaultCover;
     }
 
-    /**
-     * Render a cover image with status badge into the given element.
-     * @param {string} bookKey
-     * @param {HTMLElement} element
-     * @param {string} [status='available']
-     * @param {object} [bookData] - Optional book object with coverUrl.
-     */
-    static renderBookCover(bookKey, element, status = 'available', bookData) {
+    static renderBookCover(bookKey, element, status = 'available') {
         const coverContainer = document.createElement('div');
         coverContainer.className = 'book-cover-container';
         
         const img = document.createElement('img');
-        img.src = this.getBookCover(bookKey, bookData);
+        img.src = this.getBookCover(bookKey);
         img.alt = 'Book Cover';
         img.className = 'book-cover';
         img.onerror = () => {
-            // If remote coverUrl failed, try static map, then default
-            if (bookCovers[bookKey] && img.src !== bookCovers[bookKey]) {
-                img.src = bookCovers[bookKey];
-            } else {
-                img.src = defaultCover;
-            }
+            img.src = defaultCover;
         };
         
         const statusElement = document.createElement('div');

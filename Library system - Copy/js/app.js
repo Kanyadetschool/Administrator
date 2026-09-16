@@ -2,7 +2,7 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 const sanitizedAppId = appId.replace(/\./g, '_');
 
 // Real DB records store fields like "Official Student Name", "Grade",
-// "Assessment No", "ULI", "Home phone" (see actual students/{id} sample).
+// "Assessment No", "UPI", "Home phone" (see actual students/{id} sample).
 // This maps them onto the lowerCamelCase fields the UI code reads,
 // without dropping the original raw fields.
 function normalizeStudent(raw) {
@@ -13,7 +13,7 @@ function normalizeStudent(raw) {
         fullName: raw.fullName || raw['Official Student Name'] || raw.name || 'Unknown',
         assessmentNo: (raw.assessmentNo || raw['Assessment No'] || '').toString().trim(),
         grade: raw.grade || raw['Grade'] || '',
-        ULI: raw.ULI || raw.ULINo || raw['ULI'] || '',
+        upi: raw.upi || raw.upiNo || raw['UPI'] || '',
         phoneNumber: raw.phoneNumber || raw['Home phone'] || ''
     };
 }
@@ -892,7 +892,7 @@ class BookManager {
             }
 
             const modalHtml = `
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title">${bookId ? 'Edit' : 'Add New'} Book</h5>
@@ -900,115 +900,59 @@ class BookManager {
                         </div>
                         <div class="modal-body">
                             <form id="bookForm">
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <div class="mb-3">
-                                            <label class="form-label">Grade Level</label>
-                                            <select class="form-select" name="grade" required>
-                                                <option value="">Select Grade</option>
-                                                ${this.grades.map(grade => `
-                                                    <option value="${grade}" ${bookData?.grade === grade ? 'selected' : ''}>
-                                                        ${grade}
-                                                    </option>
-                                                `).join('')}
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">ISBN</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" name="isbn" required 
-                                                    placeholder="Enter ISBN (e.g. 9780198390212)" 
-                                                    value="${bookData?.isbn || ''}">
-                                                <button type="button" class="btn btn-outline-primary" id="fetchIsbnBtn" title="Auto-fill details from ISBN">
-                                                    <i class="bi bi-cloud-download me-1"></i>Auto-Fill
-                                                </button>
-                                            </div>
-                                            <small class="text-muted">Enter ISBN and click Auto-Fill to fetch title, author, cover & more</small>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Title</label>
-                                            <input type="text" class="form-control" name="title" required 
-                                                value="${bookData?.title || ''}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Author</label>
-                                            <input type="text" class="form-control" name="author" required 
-                                                value="${bookData?.author || ''}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Category</label>
-                                            <select class="form-select" name="category" required>
-                                                <option value="">Select Category</option>
-                                                ${bookCategories.map(cat => `
-                                                    <option value="${cat}" ${bookData?.category === cat ? 'selected' : ''}>
-                                                        ${cat}
-                                                    </option>
-                                                `).join('')}
-                                            </select>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Subject</label>
-                                                <input type="text" class="form-control" name="subject" 
-                                                    value="${bookData?.subject || ''}">
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Publisher</label>
-                                                <input type="text" class="form-control" name="publisher" 
-                                                    placeholder="e.g. Oxford University Press"
-                                                    value="${bookData?.publisher || ''}">
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-4 mb-3">
-                                                <label class="form-label">Quantity</label>
-                                                <input type="number" class="form-control" name="quantity" required min="1" 
-                                                    value="${bookData?.quantity || 1}">
-                                            </div>
-                                            <div class="col-md-4 mb-3">
-                                                <label class="form-label">Replacement Cost (KES)</label>
-                                                <input type="number" class="form-control" name="replacementCost" min="0" step="1"
-                                                    placeholder="Cost per copy"
-                                                    value="${bookData?.replacementCost || ''}">
-                                            </div>
-                                            <div class="col-md-4 mb-3">
-                                                <label class="form-label">Page Count</label>
-                                                <input type="number" class="form-control" name="pageCount" min="0"
-                                                    placeholder="Pages"
-                                                    value="${bookData?.pageCount || ''}">
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Cover Image URL <small class="text-muted">(optional)</small></label>
-                                            <input type="url" class="form-control" name="coverUrl" 
-                                                placeholder="https://... (auto-filled from ISBN lookup)"
-                                                value="${bookData?.coverUrl || ''}">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Description <small class="text-muted">(optional)</small></label>
-                                            <textarea class="form-control" name="description" rows="2" 
-                                                placeholder="Brief description of the book">${bookData?.description || ''}</textarea>
-                                        </div>
-                                    </div>
-                                    <!-- Cover Preview Panel -->
-                                    <div class="col-md-4">
-                                        <div id="isbnPreviewPanel" class="text-center p-3 border rounded bg-light" style="position:sticky; top:0;">
-                                            <div id="isbnCoverPreview" class="mb-2">
-                                                <img id="isbnCoverImg" 
-                                                    src="${bookData?.coverUrl || (bookId && bookCovers[bookId]) || defaultCover}" 
-                                                    alt="Book Cover Preview" 
-                                                    style="max-width:100%; max-height:220px; border-radius:8px; box-shadow: 0 4px 12px rgba(0,0,0,.15);"
-                                                    onerror="this.src='${defaultCover}'">
-                                            </div>
-                                            <div id="isbnFetchStatus" class="small text-muted mb-2"></div>
-                                            <div id="isbnExtraInfo" class="small text-start" style="display:none;">
-                                                <hr>
-                                                <p class="mb-1"><strong>Publisher:</strong> <span id="isbnPublisher">—</span></p>
-                                                <p class="mb-1"><strong>Pages:</strong> <span id="isbnPageCount">—</span></p>
-                                                <p class="mb-0"><strong>Source:</strong> <span id="isbnSource">—</span></p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Grade Level</label>
+                                    <select class="form-select" name="grade" required>
+                                        <option value="">Select Grade</option>
+                                        ${this.grades.map(grade => `
+                                            <option value="${grade}" ${bookData?.grade === grade ? 'selected' : ''}>
+                                                ${grade}
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" class="form-control" name="title" required 
+                                        value="${bookData?.title || ''}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Author</label>
+                                    <input type="text" class="form-control" name="author" required 
+                                        value="${bookData?.author || ''}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">ISBN</label>
+                                    <input type="text" class="form-control" name="isbn" required 
+                                        placeholder="The International Standard Book Number (ISBN)" 
+                                        value="${bookData?.isbn || ''}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" name="category" required>
+                                        <option value="">Select Category</option>
+                                        ${bookCategories.map(cat => `
+                                            <option value="${cat}" ${bookData?.category === cat ? 'selected' : ''}>
+                                                ${cat}
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Subject</label>
+                                    <input type="text" class="form-control" name="subject" 
+                                        value="${bookData?.subject || ''}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" name="quantity" required min="1" 
+                                        value="${bookData?.quantity || 1}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Replacement Cost (KES)</label>
+                                    <input type="number" class="form-control" name="replacementCost" min="0" step="1"
+                                        placeholder="Cost to replace one copy"
+                                        value="${bookData?.replacementCost || ''}">
                                 </div>
                                 ${bookId ? `<input type="hidden" name="bookId" value="${bookId}">` : ''}
                             </form>
@@ -1024,104 +968,6 @@ class BookManager {
             document.getElementById('bookModal').innerHTML = modalHtml;
             const modal = new bootstrap.Modal(document.getElementById('bookModal'));
             modal.show();
-
-            // Wire up ISBN Auto-Fill Button
-            const fetchBtn = document.getElementById('fetchIsbnBtn');
-            const isbnInput = document.querySelector('#bookForm input[name="isbn"]');
-            const coverInput = document.querySelector('#bookForm input[name="coverUrl"]');
-            const coverImg = document.getElementById('isbnCoverImg');
-
-            // Update preview if coverUrl changed manually
-            coverInput?.addEventListener('input', (e) => {
-                const url = e.target.value.trim();
-                coverImg.src = url || (bookId && bookCovers[bookId]) || defaultCover;
-            });
-
-            fetchBtn?.addEventListener('click', async () => {
-                const rawIsbn = isbnInput?.value?.trim();
-                if (!rawIsbn) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Enter ISBN',
-                        text: 'Please type or scan an ISBN before clicking Auto-Fill.'
-                    });
-                    isbnInput?.focus();
-                    return;
-                }
-
-                const originalBtnHtml = fetchBtn.innerHTML;
-                fetchBtn.disabled = true;
-                fetchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Fetching...';
-                const statusEl = document.getElementById('isbnFetchStatus');
-                if (statusEl) statusEl.textContent = 'Searching Google Books & Open Library...';
-
-                try {
-                    const data = await IsbnService.lookup(rawIsbn);
-                    if (!data) {
-                        if (statusEl) statusEl.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> No record found for this ISBN.</span>';
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Book Not Found',
-                            text: 'No online catalog record found for this ISBN. You can still enter details manually.'
-                        });
-                        return;
-                    }
-
-                    // Populate fields if found
-                    const form = document.getElementById('bookForm');
-                    if (data.title && form.elements['title']) {
-                        form.elements['title'].value = data.title;
-                    }
-                    if (data.authors && form.elements['author']) {
-                        form.elements['author'].value = data.authors;
-                    }
-                    if (data.publisher && form.elements['publisher']) {
-                        form.elements['publisher'].value = data.publisher;
-                    }
-                    if (data.pageCount && form.elements['pageCount']) {
-                        form.elements['pageCount'].value = data.pageCount;
-                    }
-                    if (data.description && form.elements['description']) {
-                        form.elements['description'].value = data.description;
-                    }
-                    if (data.subject && form.elements['subject'] && !form.elements['subject'].value) {
-                        form.elements['subject'].value = data.subject;
-                    }
-                    // Auto-select category if matched
-                    if (data.subject && form.elements['category']) {
-                        const catSelect = form.elements['category'];
-                        for (let opt of catSelect.options) {
-                            if (opt.value.toLowerCase() === data.subject.toLowerCase()) {
-                                opt.selected = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (data.coverUrl) {
-                        if (form.elements['coverUrl']) form.elements['coverUrl'].value = data.coverUrl;
-                        if (coverImg) coverImg.src = data.coverUrl;
-                    }
-
-                    // Show preview extra info
-                    const extraInfo = document.getElementById('isbnExtraInfo');
-                    if (extraInfo) {
-                        document.getElementById('isbnPublisher').textContent = data.publisher || 'N/A';
-                        document.getElementById('isbnPageCount').textContent = data.pageCount || 'N/A';
-                        document.getElementById('isbnSource').textContent = data.source === 'google' ? 'Google Books' : 'Open Library';
-                        extraInfo.style.display = 'block';
-                    }
-
-                    if (statusEl) statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Details fetched successfully!</span>';
-
-                } catch (err) {
-                    console.error('ISBN lookup failed:', err);
-                    if (statusEl) statusEl.innerHTML = '<span class="text-danger">Error retrieving metadata</span>';
-                } finally {
-                    fetchBtn.disabled = false;
-                    fetchBtn.innerHTML = originalBtnHtml;
-                }
-            });
 
             document.getElementById('saveBook').onclick = async () => {
                 const form = document.getElementById('bookForm');
@@ -1154,10 +1000,6 @@ class BookManager {
                 category: formData.get('category'),
                 grade: formData.get('grade'),
                 subject: formData.get('subject'),
-                publisher: formData.get('publisher') || '',
-                description: formData.get('description') || '',
-                pageCount: parseInt(formData.get('pageCount')) || 0,
-                coverUrl: formData.get('coverUrl') || '',
                 quantity: quantity,
                 replacementCost: parseFloat(formData.get('replacementCost')) || 0,
                 updatedAt: Date.now()
@@ -1269,7 +1111,7 @@ class BookManager {
         `;
         
         const coverContainer = card.querySelector('.book-cover-container');
-        BookCoverManager.renderBookCover(bookId, coverContainer, 'available', book);
+        BookCoverManager.renderBookCover(bookId, coverContainer);
 
         this.booksList.appendChild(card);
     }
@@ -1732,7 +1574,7 @@ class StudentManager {
             if (studentData) {
                 document.getElementById('studentName').value = studentData.fullName || studentData.name || '';
                 document.getElementById('Assessment No').value = studentData.assessmentNo || '';
-                document.getElementById('ULI').value = studentData.ULI || '';
+                document.getElementById('upi').value = studentData.upi || '';
                 document.getElementById('phoneNumber').value = studentData.phoneNumber || '';
                 document.getElementById('grade').value = studentData.grade || '';
                 this.studentForm.setAttribute('data-edit-id', studentId);
@@ -1750,7 +1592,7 @@ class StudentManager {
             fullName: document.getElementById('studentName').value,
             name: document.getElementById('studentName').value,
             assessmentNo: document.getElementById('Assessment No').value,
-            ULI: document.getElementById('ULI').value,
+            upi: document.getElementById('upi').value,
             phoneNumber: document.getElementById('phoneNumber').value,
             grade: document.getElementById('grade').value,
             timestamp: Date.now(),
@@ -1816,7 +1658,7 @@ class StudentManager {
                 <p><span>Entry number</span><strong>${student.EntryNo || 'Not assigned'}</strong></p>
                 <p><span>Phone</span><strong>${student.phoneNumber || student.FathersPhoneNumber || 'Not assigned'}</strong></p>
                 <p><span>Home contact</span><strong>${student.FathersPhoneNumber || 'Not assigned'}</strong></p>
-                <p><span>ULI number</span><strong>${student.ULI || 'Not assigned'}</strong></p>
+                <p><span>UPI number</span><strong>${student.upi || 'Not assigned'}</strong></p>
             </div>
             <div class="student-status-row">
                 <span>Book status</span>
@@ -2192,7 +2034,7 @@ class IssuanceManager {
                 studentId,
                 studentName: student.name,
                 grade: student.grade,
-                ULI: student.ULI,
+                upi: student.upi,
                 bookId,
                 bookTitle: book.title,
                 issueDate,

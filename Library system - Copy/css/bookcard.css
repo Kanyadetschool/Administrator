@@ -1,15 +1,12 @@
 /* ============================================================
-   Book card — "library index card" style: a book's spine on
-   the left, paper-cream body, catalog-ruled stat strip, and a
-   stamped highlight action, evoking a physical library shelf
-   ticket rather than a generic SaaS card.
+   Book card — premium "brand card" style: navy + warm cream
+   palette, gold accent line, small cover tile, grade + status
+   badges, icon meta row, stat strip, refined pill actions.
 
    Scope: rules under `.book-card` only affect the main book
    catalogue grid. `.grid-item` base rules still apply to
    issuance-card / lost-book-card so those are untouched.
    ============================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 .grid-list {
     display: grid;
@@ -37,57 +34,46 @@
 }
 
 /* ------------------------------------------------------------
-   Library index card — book spine + catalog styling
+   Premium book card
    ------------------------------------------------------------ */
 
 .book-card {
-    --ink: #20362E;
-    --ink-soft: #566A61;
-    --paper: #F5F0DF;
-    --paper-edge: #E7DEC3;
-    --forest: #2B6B4C;
-    --forest-soft: rgba(43, 107, 76, 0.13);
-    --ochre: #A2761E;
-    --ochre-soft: rgba(162, 118, 30, 0.15);
-    --rust: #9C3B2E;
-    --rust-soft: rgba(156, 59, 46, 0.12);
-
     position: relative;
-    padding: 1.2rem 1.25rem 1.15rem 1.55rem;
-    border-radius: 10px;
-    background: var(--paper);
-    border: 1px solid var(--paper-edge);
+    padding: 1.3rem 1.3rem 1.25rem;
+    border-radius: 20px;
+    border-color: #EAE6DA;
     overflow: hidden;
-    box-shadow: 0 1px 0 rgba(32, 54, 46, 0.04), 0 10px 22px rgba(32, 54, 46, 0.06);
+    box-shadow: 0 2px 6px rgba(22, 35, 61, 0.05);
 }
 
-/* The spine: a book stood on a shelf, seen edge-on */
+/* Gold-on-navy accent line across the top, echoing a brand card edge */
 .book-card::before {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 0;
-    width: 12px;
-    background: linear-gradient(180deg, #33513F 0%, #20362E 55%, #1A2C25 100%);
-    box-shadow: inset -2px 0 3px rgba(0, 0, 0, 0.25);
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #16233D 0%, #1F5F8B 55%, #D8A93A 100%);
 }
 
-/* A single ochre band on the spine, like foil detailing on a hardback */
+/* Soft glow flourish in the corner, echoing the wave in a brand card */
 .book-card::after {
     content: "";
     position: absolute;
-    top: 34px;
-    left: 0;
-    width: 12px;
-    height: 5px;
-    background: var(--ochre);
+    top: -60px;
+    right: -60px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(31, 95, 139, 0.07), rgba(31, 95, 139, 0) 70%);
+    pointer-events: none;
 }
 
 .book-card:hover {
     transform: translateY(-4px);
-    border-color: #DCCFA4;
-    box-shadow: 0 1px 0 rgba(32, 54, 46, 0.05), 0 18px 32px rgba(32, 54, 46, 0.14);
+    border-color: #DCD5C0;
+    box-shadow: 0 18px 34px rgba(22, 35, 61, 0.12);
 }
 
 .book-card-header {
@@ -108,11 +94,10 @@
 
 .grade-badge {
     display: inline-block;
-    padding: 0.24rem 0.6rem;
-    border-radius: 4px;
-    background: var(--ink);
-    color: var(--paper);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: #16233D;
+    color: #F4EFE1;
     font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.03em;
@@ -120,16 +105,16 @@
     white-space: nowrap;
 }
 
-/* Cover: a small photo-mount slot, like a card-catalog insert */
+/* Cover: rounded "icon tile" — tinted, not overlaid */
 .book-cover-container {
-    width: 54px;
-    height: 54px;
+    width: 56px;
+    height: 56px;
     flex: none;
     position: relative;
     overflow: hidden;
-    border-radius: 5px;
-    background: #FFFDF6;
-    box-shadow: inset 0 0 0 1px var(--paper-edge), 0 1px 2px rgba(32, 54, 46, 0.08);
+    border-radius: 14px;
+    background: linear-gradient(145deg, #EEF2F1, #FAF6EC);
+    box-shadow: inset 0 0 0 1px rgba(31, 95, 139, 0.1);
 }
 
 .book-cover,
@@ -155,23 +140,22 @@
     height: 14px;
     padding: 0;
     border-radius: 50%;
-    border: 2px solid var(--paper);
+    border: 2px solid #ffffff;
     font-size: 0;
     color: transparent;
 }
 
-.status-available { background-color: var(--forest); }
-.status-borrowed  { background-color: var(--ochre); }
-.status-lost      { background-color: var(--rust); }
+.status-available { background-color: #2EA85A; }
+.status-borrowed  { background-color: #E3A011; }
+.status-lost      { background-color: #DC4545; }
 
 /* Status pill badge */
 .book-status-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.26rem 0.58rem 0.26rem 0.5rem;
-    border-radius: 4px;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 0.28rem 0.6rem 0.28rem 0.5rem;
+    border-radius: 999px;
     font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -186,9 +170,9 @@
     flex: none;
 }
 
-.book-status-pill.status-available { background: var(--forest-soft); color: var(--forest); }
-.book-status-pill.status-borrowed  { background: var(--ochre-soft); color: var(--ochre); }
-.book-status-pill.status-lost      { background: var(--rust-soft); color: var(--rust); }
+.book-status-pill.status-available { background: rgba(46, 168, 90, 0.12); color: #1E8245; }
+.book-status-pill.status-borrowed  { background: rgba(227, 160, 17, 0.14); color: #92670A; }
+.book-status-pill.status-lost      { background: rgba(220, 69, 69, 0.12); color: #B92E2E; }
 
 /* Text block */
 .book-card .book-info {
@@ -201,13 +185,13 @@
 
 .book-card .book-title {
     margin: 0;
-    font-family: 'Bitter', serif;
-    font-weight: 700;
-    font-size: 1.08rem;
-    line-height: 1.3;
-    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    line-height: 1.32;
+    color: #ffff;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 2px;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -222,9 +206,8 @@
     display: flex;
     align-items: center;
     gap: 0.45rem;
-    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 0.8rem;
-    color: var(--ink-soft);
+    color: #7A7566;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -233,19 +216,19 @@
 .book-meta i {
     flex: none;
     font-size: 0.85rem;
-    color: var(--ochre);
+    color: #1F5F8B;
     width: 1rem;
     text-align: center;
 }
 
-/* Stat strip: styled like the ruled table on a library due-date card */
+/* Stat strip: Available / Total / Lost */
 .book-stats {
     display: flex;
     align-items: stretch;
-    background: #FBF8EE;
-    border-top: 2px solid var(--ink);
-    border-bottom: 2px solid var(--ink);
-    padding: 0.5rem 0.35rem;
+    background: #FAF8F3;
+    border: 1px solid #EFEBDF;
+    border-radius: 12px;
+    padding: 0.55rem 0.4rem;
     margin-top: 0.1rem;
 }
 
@@ -256,7 +239,7 @@
     align-items: center;
     gap: 0.1rem;
     text-align: center;
-    border-left: 1px dashed var(--paper-edge);
+    border-left: 1px solid #EFEBDF;
 }
 
 .book-stat:first-child {
@@ -264,30 +247,28 @@
 }
 
 .book-stat strong {
-    font-family: 'Bitter', serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #16233D;
     line-height: 1.1;
 }
 
 .book-stat span {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 0.6rem;
+    font-size: 0.62rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--ink-soft);
+    color: #9A9484;
 }
 
 .book-stat-lost strong {
-    color: var(--rust);
+    color: #B92E2E;
 }
 
 .book-cost {
-    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 0.74rem;
-    color: var(--ink-soft);
+    color: #9A9484;
     font-weight: 600;
 }
 
@@ -296,19 +277,18 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 0.35rem;
+    margin-top: 0.3rem;
     position: relative;
     z-index: 1;
 }
 
 .btn-ghost,
 .book-card .card-actions button {
-    padding: 0.4rem 0.8rem;
+    padding: 0.42rem 0.85rem;
     border-radius: 999px;
-    border: 1px solid var(--paper-edge);
-    background: #FBF8EE;
-    color: var(--ink);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    border: 1px solid #E2DFD5;
+    background: #FBFAF7;
+    color: #16233D;
     font-size: 0.78rem;
     font-weight: 600;
     text-decoration: none;
@@ -318,37 +298,30 @@
 
 .btn-ghost:hover,
 .book-card .card-actions button:hover {
-    background: #F1EAD1;
-    border-color: #DCCFA4;
+    background: #F1EEE4;
+    border-color: #D6D2C4;
 }
 
 .btn-ghost-danger {
-    color: var(--rust);
+    color: #B92E2E;
 }
 
 .btn-ghost-danger:hover {
-    background: var(--rust-soft);
-    border-color: rgba(156, 59, 46, 0.35);
+    background: rgba(220, 69, 69, 0.08);
+    border-color: rgba(220, 69, 69, 0.3);
 }
 
-/* Highlighted action: a rubber-stamp treatment instead of a filled pill */
 .book-card .card-actions .btn-warning {
     margin-left: auto;
-    padding: 0.36rem 0.7rem;
-    border-radius: 5px;
-    background: transparent;
-    border: 2px dashed var(--ochre);
-    color: var(--ochre);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #E3A011;
+    border-color: #E3A011;
+    color: #16233D;
     font-weight: 700;
-    letter-spacing: 0.03em;
-    transform: rotate(-2.5deg);
-    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .book-card .card-actions .btn-warning:hover {
-    transform: rotate(0deg);
-    background: var(--ochre-soft);
+    background: #CB8E0B;
+    border-color: #CB8E0B;
 }
 
 @media (max-width: 480px) {
@@ -363,6 +336,5 @@
     .book-card .card-actions .btn-warning {
         margin-left: 0;
         flex: 1 1 100%;
-        transform: none;
     }
 }

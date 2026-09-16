@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - Textbook Management System</title>
+    <!-- Bootstrap Icons (icon font only — the Bootstrap CSS framework itself is not used) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+   <link rel="stylesheet" href="./css/students.css">
+   <link rel="stylesheet" href="./css/swalOnly.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- Design system matched to teachers.html (navy/gold, Plus Jakarta Sans + JetBrains Mono) -->
+    <style>
+:root{
+  --blue:#25443d; --blue-dk:#152e28; --blue-lt:#3f6d61; --blue-glow:rgba(37,68,61,.35);
+  --orange:#d7a33e; --orange-dk:#b3841f; --gold:#d7a33e;
+  --green:#3f9463; --green-dk:#2f7a4e; --red:#e0604c; --red-dk:#b8402f;
+  --purple:#a8703f; --teal:#3f6d61;
+  --brand-1:#152e28; --brand-2:#25443d; --brand-3:#d7a33e;
+  --radius-xl:24px; --radius-lg:18px; --radius-md:12px; --radius-sm:8px;
+  --transition:all .25s cubic-bezier(.4,0,.2,1);
+  --sidebar-w:250px; --sidebar-gap:20px;
+  --bg:linear-gradient(160deg,#eef4ee 0%,#f6f2e6 55%,#fbe9c3 100%);
+  --bg2:#f7edd0; --surface:#ffffff; --surface2:#fffdf7;
+  --surface3:#f3ead4; --border:rgba(183,143,45,.22); --border-strong:rgba(183,143,45,.48);
+  --text:#17251f; --text2:#5a5342; --text3:#a89b7a;
+  --card-shadow:0 10px 28px rgba(37,68,61,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.85;
+  background:
+    radial-gradient(circle at 92% 6%, rgba(215,163,62,.30), transparent 22%),
+    radial-gradient(circle at 8% 90%, rgba(37,68,61,.10), transparent 26%),
+    linear-gradient(120deg, rgba(255,255,255,.14), transparent 60%);
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(37,68,61,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(37,68,61,.045) 1px, transparent 1px);
+  background-size:26px 26px;
+  mask-image:radial-gradient(circle at center, black 50%, transparent 92%);
+}
+a{color:inherit;text-decoration:none;}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:8px;}
+
+/* ══════════════════════════════════════════════════════════
+   Pure-CSS base layer — replaces Bootstrap's grid, utilities
+   and components. Bootstrap Icons (the font) is kept; the
+   Bootstrap CSS/JS framework itself is not loaded anymore.
+   ══════════════════════════════════════════════════════════ */
+.container-fluid{width:100%;padding-right:.75rem;padding-left:.75rem;margin-right:auto;margin-left:auto;}
+.row{display:flex;flex-wrap:wrap;margin-right:-.75rem;margin-left:-.75rem;}
+.row>*{width:100%;padding-right:.75rem;padding-left:.75rem;}
+.col-6{width:50%;}
+.col-12{width:100%;}
+@media(min-width:768px){.col-md-4{width:33.3333%;}.col-md-6{width:50%;}.col-md-8{width:66.6667%;}}
+@media(min-width:992px){.col-lg-4{width:33.3333%;}}
+
+.d-flex{display:flex!important;}
+.flex-column{flex-direction:column!important;}
+.flex-grow-1{flex:1 1 auto!important;}
+.d-none{display:none!important;}
+.flex-wrap{flex-wrap:wrap!important;}
+.justify-content-between{justify-content:space-between!important;}
+.justify-content-center{justify-content:center!important;}
+.align-items-center{align-items:center!important;}
+.gap-2{gap:.5rem!important;}
+
+.p-0{padding:0!important;}
+.p-3{padding:1rem!important;}
+.p-4{padding:1.5rem!important;}
+.py-2{padding-top:.5rem!important;padding-bottom:.5rem!important;}
+.mb-0{margin-bottom:0!important;}
+.mb-1{margin-bottom:.25rem!important;}
+.mb-2{margin-bottom:.5rem!important;}
+.mb-3{margin-bottom:1rem!important;}
+.mb-4{margin-bottom:1.5rem!important;}
+.mt-1{margin-top:.25rem!important;}
+.mt-2{margin-top:.5rem!important;}
+.mt-3{margin-top:1rem!important;}
+.me-1{margin-right:.25rem!important;}
+.me-2{margin-right:.5rem!important;}
+.ms-2{margin-left:.5rem!important;}
+.h-100{height:100%!important;}
+.w-100{width:100%!important;}
+
+.text-center{text-align:center!important;}
+.text-muted{color:var(--text3)!important;}
+.text-danger{color:var(--red)!important;}
+.text-primary{color:var(--blue)!important;}
+.text-success{color:var(--green)!important;}
+.text-warning{color:var(--orange)!important;}
+.fs-1{font-size:2.2rem!important;}
+.lead{font-size:1.1rem;font-weight:500;color:var(--text2);}
+.border-0{border:none!important;}
+.border-danger{border-color:var(--red)!important;}
+.rounded{border-radius:.5rem!important;}
+.rounded-pill{border-radius:999px!important;}
+.shadow-sm{box-shadow:0 2px 8px rgba(0,0,0,.06)!important;}
+.bg-white{background:#fff!important;}
+.bg-danger{background:var(--red)!important;color:#fff;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:.55rem 1.1rem;font-size:14px;font-weight:700;border-radius:12px;border:1.5px solid transparent;cursor:pointer;transition:var(--transition);text-decoration:none;font-family:inherit;}
+.btn-sm{padding:.35rem .75rem;font-size:12px;border-radius:9px;}
+.btn-secondary{background:var(--surface3);color:var(--text);border-color:var(--border);}
+.btn-secondary:hover{background:var(--surface2);}
+.btn-outline-primary{background:transparent;color:var(--blue-dk);}
+.btn-close{width:26px;height:26px;border:none;background:transparent;font-size:20px;line-height:1;color:var(--text3);cursor:pointer;border-radius:8px;}
+.btn-close:hover{background:var(--surface3);}
+.btn-close::before{content:'\00d7';}
+
+.form-control,.form-select{display:block;width:100%;padding:.65rem .85rem;font-size:14px;font-family:inherit;color:var(--text);background:#fff;}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23a89b7a' d='M8 11 3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .75rem center;background-size:14px;appearance:none;}
+.form-control:focus,.form-select:focus{outline:none;}
+.form-group{margin-bottom:1rem;}
+.input-group{display:flex;align-items:stretch;}
+.input-group-text{display:flex;align-items:center;padding:.5rem .75rem;background:var(--surface3);border:1.5px solid var(--border);border-right:none;border-radius:12px 0 0 12px;color:var(--text3);}
+.input-group .form-control{border-radius:0 12px 12px 0;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);}
+.card-body{padding:1.25rem;}
+.card-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);font-weight:700;}
+.card-title{font-size:16px;font-weight:800;margin-bottom:.4rem;}
+.card-text{font-size:13px;color:var(--text2);}
+.card-img-top{width:100%;display:block;}
+
+.badge{display:inline-block;padding:.3em .6em;font-size:11px;font-weight:700;border-radius:6px;line-height:1;}
+
+.alert{padding:.85rem 1rem;border-radius:var(--radius-sm);font-size:13px;border:1px solid transparent;}
+.alert-info{background:rgba(37,68,61,.08);border-color:var(--border);color:var(--text2);}
+.alert-danger{background:rgba(224,96,76,.08);border-color:rgba(224,96,76,.25);color:var(--red-dk);}
+
+.progress{height:8px;border-radius:999px;overflow:hidden;}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-dk));}
+
+.spinner-border{display:inline-block;width:2rem;height:2rem;vertical-align:text-bottom;border:.25em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .75s linear infinite;}
+.spinner-border-sm{width:1rem;height:1rem;border-width:.2em;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.modal{display:none;position:fixed;inset:0;z-index:3000;overflow-y:auto;padding:2rem 1rem;}
+.modal.show{display:block;}
+.modal-dialog{max-width:500px;margin:0 auto;position:relative;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(21,46,40,.55);z-index:2990;}
+.img-thumbnail{max-width:100%;border:1px solid var(--border);border-radius:8px;padding:4px;background:#fff;}
+
+/* ── Login screen ── */
+.login-container{position:fixed;inset:0;z-index:2000;background:var(--bg);display:flex;flex-direction:row;align-items:stretch;justify-content:center;overflow-y:auto;overflow-x:hidden;min-height:0 !important;box-shadow:none !important;}
+.login-container .login-form-wrap{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:1;width:100%;}
+.auth-side-panel,.auth-divider-wave{display:none;}
+.auth-blob{position:fixed;border-radius:50%;pointer-events:none;z-index:0;}
+.auth-blob-1{width:460px;height:460px;top:-160px;left:-170px;background:linear-gradient(135deg,var(--blue-dk),var(--blue));opacity:.9;filter:blur(60px);}
+.auth-blob-2{width:560px;height:560px;bottom:-260px;right:-220px;background:linear-gradient(135deg,var(--blue-lt),var(--blue));opacity:.28;filter:blur(60px);}
+@media(max-width:560px){.auth-blob{display:none;}}
+@media(min-width:901px){
+  .login-container{justify-content:flex-start;--auth-panel-w:min(42%,600px);--auth-wave-amp:72px;}
+  .auth-side-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--auth-panel-w);flex-shrink:0;min-height:100vh;position:relative;overflow:hidden;padding:4rem 3rem;color:#fff;}
+  .auth-side-panel::before{content:'';position:absolute;top:0;bottom:0;left:0;right:var(--auth-wave-amp);background:linear-gradient(160deg,var(--blue-dk) 0%,#1f3630 55%,#0f1e1a 100%);}
+  .asp-blob{position:absolute;border-radius:50%;pointer-events:none;}
+  .asp-blob-1{width:360px;height:360px;top:-130px;right:-130px;background:rgba(255,255,255,.055);}
+  .asp-blob-2{width:280px;height:280px;bottom:-110px;left:-90px;background:rgba(63,109,97,.18);}
+  .asp-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.22);}
+  .asp-dot-1{width:14px;height:14px;top:16%;right:20%;}
+  .asp-dot-2{width:10px;height:10px;bottom:22%;left:14%;background:var(--blue-lt);opacity:.9;}
+  .asp-illustration{position:relative;z-index:1;width:100%;max-width:320px;margin:0 auto 2.4rem;}
+  .asp-illustration svg{width:100%;height:auto;display:block;}
+  .asp-brand{position:relative;z-index:1;text-align:center;}
+  .asp-brand-name{font-size:1.5rem;font-weight:900;margin-bottom:.6rem;letter-spacing:-.01em;}
+  .asp-brand-tag{font-size:.88rem;color:rgba(255,255,255,.72);font-weight:500;line-height:1.55;max-width:320px;margin:0 auto;}
+  .auth-divider-wave{display:block;position:absolute;top:0;bottom:0;left:calc(var(--auth-panel-w) - var(--auth-wave-amp));width:calc(var(--auth-wave-amp) * 2);z-index:2;pointer-events:none;}
+  .auth-divider-wave svg{width:100%;height:100%;display:block;}
+  .login-container .login-form-wrap{flex:1 1 auto;width:calc(100% - var(--auth-panel-w));min-height:100vh;padding:40px 4vw;}
+  .auth-blob{display:none;}
+  .login-container .card{box-shadow:none;border:none;background:transparent;}
+}
+.login-container .card{position:relative;z-index:1;background:var(--surface);border-radius:28px;box-shadow:0 30px 90px rgba(21,46,40,.28),0 0 0 1px rgba(37,68,61,.07);padding:2.3rem 2.1rem 2.1rem !important;border:1px solid var(--border);animation:fadeUp .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes fadeUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+.login-container .card h2{font-size:1.55rem;font-weight:900;color:var(--text);letter-spacing:-.01em;}
+.login-container .card h2:last-of-type{font-size:1rem;font-weight:700;color:var(--blue-dk);margin-top:.15rem !important;}
+.login-container .bi-book-half.fs-1{color:var(--blue) !important;}
+.login-container .form-label{font-size:.78rem;font-weight:700;color:var(--text2);}
+.login-container .form-control{padding:.8rem .95rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:.9rem;}
+.login-container .form-control:focus{border-color:var(--blue-lt);box-shadow:none;}
+.login-container .btn-primary{width:100%;padding:.95rem 1.5rem;font-size:.9rem;font-weight:800;border:none;border-radius:14px;background:linear-gradient(135deg,var(--blue-dk),#0c1e33);box-shadow:0 12px 28px rgba(21,46,40,.35);transition:var(--transition);}
+.login-container .btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(21,46,40,.45);}
+.login-container p.mt-2{text-align:center;font-size:.8rem;color:var(--text2);font-weight:500;margin-top:1rem !important;}
+.login-container p.mt-2 a{color:var(--blue-lt);font-weight:700;}
+.login-container p.mt-2 a:hover{text-decoration:underline;}
+
+/* ── App shell ── */
+#dashboardContent.active-shell{display:flex !important;min-height:100vh;position:relative;z-index:1;width:100%;}
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:linear-gradient(190deg,var(--blue) 0%,var(--blue-dk) 100%);border-radius:var(--radius-xl);display:flex;flex-direction:column;position:fixed;top:var(--sidebar-gap);left:var(--sidebar-gap);bottom:var(--sidebar-gap);height:auto;z-index:600;overflow-y:auto;overflow-x:hidden;transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 24px 60px rgba(21,46,40,.28);}
+.sidebar-brand{padding:18px 18px 6px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.brand-icon{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--gold);}
+.brand-text .b-name{font-size:13px;font-weight:900;letter-spacing:.01em;color:#fff;}
+.brand-text .b-role{font-size:9px;color:rgba(255,255,255,.55);font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+
+.sidebar-profile{padding:18px 18px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;border-bottom:1px solid rgba(255,255,255,.12);margin:0 6px 10px;}
+.student-avatar{border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;overflow:hidden;}
+.student-avatar img{width:100%;height:100%;object-fit:cover;}
+.sidebar-profile .student-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--purple),#7a4a26);font-size:22px;margin-bottom:10px;box-shadow:0 0 0 3px rgba(255,255,255,.18);}
+.sidebar-profile .student-details{align-items:center;}
+.sidebar-profile .student-name{font-size:13px;font-weight:800;color:#fff;white-space:normal;}
+.sidebar-profile .student-grade{font-size:11px;color:rgba(255,255,255,.6);}
+
+.sidebar-section{padding:6px 12px;}
+.s-label{font-size:9px;font-weight:800;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase;padding:0 10px;margin-bottom:8px;}
+.nav-link{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:999px;cursor:pointer;transition:var(--transition);font-size:13px;font-weight:700;color:rgba(255,255,255,.68);margin-bottom:4px;white-space:nowrap;border:1px solid transparent;background:none;width:100%;text-align:left;}
+.nav-link:hover{background:rgba(255,255,255,.08);color:#fff;transform:none;}
+.nav-link.active{background:var(--gold);color:var(--blue-dk);box-shadow:0 8px 20px rgba(0,0,0,.22);}
+.nav-link .nav-icon{font-size:15px;flex-shrink:0;width:18px;text-align:center;}
+#unreadCount{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;}
+.nav-link.active #unreadCount{box-shadow:0 0 0 2px var(--gold);}
+.sidebar-footer{margin-top:auto;padding:12px;}
+.sidebar-footer .nav-link{color:rgba(255,255,255,.5);}
+.sidebar-footer .nav-link:hover{color:#fff;}
+
+.student-details{min-width:0;display:flex;flex-direction:column;}
+.student-name{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.student-grade{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.main-shell{margin-left:calc(var(--sidebar-w) + (var(--sidebar-gap) * 2));flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;transition:margin-left .25s cubic-bezier(.4,0,.2,1);}
+.topbar{display:flex;align-items:center;gap:14px;padding:20px 28px 4px;position:sticky;top:0;z-index:550;}
+.burger{background:none;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--text2);font-size:15px;flex-shrink:0;display:none;}
+.page-title{font-size:20px;font-weight:900;color:var(--text);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+
+.content-area{padding:24px clamp(12px,2.5vw,28px);flex:1;min-width:0;}
+.view-container{display:none;}
+.view-container.active{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.sec-hdr h1,.sec-hdr h4{font-size:18px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:8px;}
+.sec-hdr h1::before,.sec-hdr h4::before{content:'';display:inline-block;width:4px;height:18px;background:linear-gradient(180deg,var(--blue),var(--teal));border-radius:2px;}
+
+.kpi-grid{display:flex;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:999px;box-shadow:var(--card-shadow);overflow:hidden;}
+.kpi-grid .stat-card{background:transparent !important;border:none !important;border-radius:0 !important;box-shadow:none !important;position:relative;flex:1 1 0;min-width:130px;display:flex;align-items:center;gap:12px;padding:14px 22px;transition:var(--transition);}
+.kpi-grid .stat-card::after{display:none;}
+.kpi-grid .stat-card:not(:last-child)::before{content:'';position:absolute;right:0;top:22%;bottom:22%;width:1px;background:var(--border);}
+.kpi-grid .stat-card:hover{transform:none;border-color:transparent;box-shadow:none !important;background:rgba(37,68,61,.04) !important;}
+.stat-figures{display:flex;flex-direction:column;}
+
+.card,.messages-container .card,#borrowingStats{background:linear-gradient(180deg, rgba(255,255,255,.84), rgba(255,255,255,.66));border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow);}
+.card-header{background:transparent !important;border-bottom:1px solid var(--border) !important;font-weight:800;}
+.badge.bg-danger{background:var(--red) !important;}
+.table{background:var(--surface);}
+.btn-primary{background:var(--gold) !important;color:var(--blue-dk) !important;border:none !important;box-shadow:0 6px 16px rgba(183,143,45,.32);font-weight:800;}
+.btn-primary:hover{transform:translateY(-2px);}
+
+/* ── Stat card icons ── */
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.kpi-grid .stat-card .bi{width:44px;height:44px;display:inline-flex !important;align-items:center;justify-content:center;border-radius:14px;font-size:19px !important;margin-bottom:0 !important;flex-shrink:0;}
+.kpi-grid .stat-card .bi-book{background:rgba(37,68,61,.12);color:var(--blue-dk) !important;}
+.kpi-grid .stat-card .bi-book-half{background:rgba(63,148,99,.16);color:var(--green-dk) !important;}
+.kpi-grid .stat-card .bi-exclamation-triangle{background:rgba(215,163,62,.20);color:var(--orange-dk) !important;}
+.kpi-grid .stat-card .bi-x-circle{background:rgba(224,96,76,.16);color:var(--red-dk) !important;}
+.kpi-grid .stat-card h3{font-size:22px;margin:0;color:var(--text);line-height:1.15;font-family:'JetBrains Mono',monospace;font-weight:900;}
+.kpi-grid .stat-card p{font-size:11px;font-weight:600;color:var(--text3) !important;margin:0;}
+.stat-card.stats-clickable{cursor:pointer;}
+
+/* ── Student ID card ── */
+.id-card-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.id-card-head i{font-size:18px;color:var(--blue);}
+.id-card-head h6{margin:0;font-size:12px;font-weight:800;color:var(--text2);}
+.id-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:7px 0;border-bottom:1px dashed var(--border);}
+.id-row:last-child{border-bottom:none;}
+.id-row span:first-child{color:var(--text3);font-weight:600;}
+.id-row span:last-child{color:var(--text);font-weight:800;text-align:right;}
+
+.side-panel-dark .stat-card{background:linear-gradient(165deg,var(--blue),var(--blue-dk)) !important;border:none !important;color:#fff;position:relative;overflow:hidden;}
+.side-panel-dark .stat-card::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.16) 1px, transparent 1.4px);background-size:14px 14px;opacity:.55;pointer-events:none;}
+.side-panel-dark .stat-card > *{position:relative;z-index:1;}
+.side-panel-dark .id-card-head i{color:var(--gold);}
+.side-panel-dark .id-card-head h6{color:rgba(255,255,255,.85);}
+.side-panel-dark .id-row{border-bottom-color:rgba(255,255,255,.16);}
+.side-panel-dark .id-row span:first-child{color:rgba(255,255,255,.55);}
+.side-panel-dark .id-row span:last-child{color:#fff;}
+.side-panel-dark #borrowingStats{display:flex;flex-direction:column;justify-content:center;gap:16px;}
+.side-panel-dark #borrowingStats small{color:rgba(255,255,255,.6) !important;}
+.side-panel-dark #borrowingStats h4{color:#fff;font-family:'JetBrains Mono',monospace;font-weight:800;margin-top:2px;}
+.side-panel-dark #borrowingStats .spinner-border{color:#fff;}
+
+/* ── Book result rows ── */
+.book-result{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow);transition:var(--transition);overflow:hidden;cursor:pointer;}
+.book-result:hover{border-color:var(--border-strong);transform:translateY(-2px);}
+.book-result-row{display:flex;align-items:center;gap:16px;padding:14px 20px;flex-wrap:wrap;}
+.book-result-cover{width:52px;height:68px;border-radius:10px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--brand-1),var(--brand-2));}
+.book-cover{width:100%;height:100%;object-fit:cover;display:block;}
+.book-result-info{flex:1 1 200px;min-width:0;}
+.book-result-info .card-title{font-size:15px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.book-result-sub{font-size:12px;color:var(--text3);font-weight:600;}
+.book-result-dates{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.book-result-dates > div{text-align:center;min-width:88px;}
+.book-result-dates small{font-size:10px;font-weight:700;color:var(--text3);display:block;}
+.book-result-dates p{font-size:12px;font-weight:700;color:var(--text2);margin:0;white-space:nowrap;}
+.book-result-arrow{color:var(--border-strong);font-size:14px;}
+.book-result-status{flex-shrink:0;text-align:center;min-width:90px;}
+.status-badge{font-size:10px;font-weight:800;letter-spacing:.03em;padding:.35em .8em;border-radius:999px;}
+.book-result-status small{font-size:10px;color:var(--text3);display:block;margin-top:4px;}
+.book-result-action{flex-shrink:0;}
+.book-result-action .btn-outline-primary{border-radius:999px;font-weight:700;border:1.5px solid var(--blue);color:var(--blue-dk);padding:.4rem .9rem;font-size:12px;}
+.book-result-action .btn-outline-primary:hover{background:var(--blue);color:#fff;}
+.book-result-extra{padding:0 20px 16px;}
+.book-result-extra .progress{background:rgba(37,68,61,.12) !important;border-radius:999px;overflow:hidden;height:5px;}
+.book-result-extra .progress-bar{border-radius:999px;}
+.book-result-extra .alert-info{background:rgba(37,68,61,.06);border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);}
+@media(max-width:640px){
+  .book-result-dates{order:3;width:100%;justify-content:flex-start;}
+  .book-result-status{order:4;text-align:left;}
+  .book-result-action{order:5;}
+}
+
+.print-only{display:none;}
+@media print{
+  body *{visibility:hidden;}
+  #printRecordArea, #printRecordArea *{visibility:visible;}
+  #printRecordArea{display:block !important;position:absolute;top:0;left:0;width:100%;padding:24px;}
+  #printRecordArea h2{font-size:18px;margin-bottom:6px;}
+  #printRecordArea p{font-size:12px;margin:2px 0;color:#333;}
+  #printRecordArea table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px;}
+  #printRecordArea th,#printRecordArea td{border:1px solid #999;padding:6px 8px;text-align:left;}
+  #printRecordArea th{background:#eee;}
+}
+
+/* ── Achievements ── */
+.achievements-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow);padding:16px 20px;}
+.achievements-title{font-size:11px;font-weight:800;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;}
+.achievements-row{display:flex;flex-wrap:wrap;gap:10px;}
+.achievement-badge{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--border);transition:var(--transition);}
+.achievement-badge.earned{background:rgba(215,163,62,.14);border-color:rgba(215,163,62,.4);color:var(--orange-dk);}
+.achievement-badge.earned i{color:var(--gold);}
+.achievement-badge.locked{color:var(--text3);opacity:.55;}
+
+/* ── Due-soon / overdue banner ── */
+.due-banner{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.due-banner-line{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:var(--radius-md);font-size:13px;line-height:1.5;}
+.due-banner-line i{font-size:16px;flex-shrink:0;margin-top:1px;}
+.due-banner-overdue{background:rgba(224,96,76,.10);border:1px solid rgba(224,96,76,.3);color:var(--red-dk);}
+.due-banner-soon{background:rgba(215,163,62,.14);border:1px solid rgba(215,163,62,.38);color:var(--orange-dk);}
+
+/* ── Borrowing activity chart ── */
+.activity-chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow);padding:18px 20px;}
+.activity-chart-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;}
+.activity-chart-svg{width:100%;height:auto;display:block;overflow:visible;}
+.activity-chart-svg .chart-count{font-size:10px;font-weight:800;fill:var(--text2);font-family:'JetBrains Mono',monospace;}
+.activity-chart-svg .chart-label{font-size:10px;font-weight:700;fill:var(--text3);}
+
+/* ── Wishlist ── */
+.wishlist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow);padding:16px 20px;}
+.wishlist-title{font-size:12px;font-weight:800;color:var(--text2);margin-bottom:10px;}
+.wishlist-title i{color:var(--red);}
+.wishlist-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.wishlist-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(37,68,61,.08);border:1px solid var(--border);border-radius:999px;padding:6px 8px 6px 12px;font-size:12px;font-weight:600;color:var(--text2);}
+.wishlist-chip button{background:none;border:none;color:var(--text3);cursor:pointer;display:flex;align-items:center;padding:2px;border-radius:50%;}
+.wishlist-chip button:hover{color:var(--red);background:rgba(224,96,76,.12);}
+
+/* ── Book detail modal ── */
+.book-detail-cover{width:80px;height:106px;border-radius:10px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--brand-1),var(--brand-2));}
+.book-detail-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+
+/* ── Empty / error states ── */
+.col-12.text-center.text-muted,.col-12.text-center.text-danger{padding:56px 20px !important;font-size:14px;font-weight:600;border-radius:var(--radius-lg);background:var(--surface2);border:1px dashed var(--border);}
+
+/* ── Messages ── */
+.message-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:14px;cursor:pointer;transition:var(--transition);}
+.message-item:hover{border-color:var(--border-strong);box-shadow:var(--card-shadow);}
+.message-item.unread{border-left:4px solid var(--blue);background:linear-gradient(90deg, rgba(37,68,61,.07), transparent 45%);}
+.message-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap;}
+.message-header h6{font-size:14px;font-weight:800;color:var(--text);}
+.message-content p{font-size:13px;color:var(--text2);margin-bottom:4px;}
+.attachment-link{display:inline-flex;align-items:center;font-size:12px;font-weight:700;color:var(--blue-dk);background:rgba(37,68,61,.1);padding:4px 10px;border-radius:8px;margin-right:6px;margin-top:4px;}
+.attachment-link:hover{background:rgba(37,68,61,.18);}
+.message-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--text3);margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
+.chat-thread{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
+.chat-message{max-width:82%;padding:8px 12px;border-radius:14px;font-size:13px;}
+.chat-message.student{margin-left:auto;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;border-bottom-right-radius:4px;}
+.chat-message.librarian{margin-right:auto;background:var(--surface3);color:var(--text);border-bottom-left-radius:4px;}
+.chat-message small{display:block;margin-top:3px;opacity:.75;font-size:10px;}
+.chat-message.student small{color:rgba(255,255,255,.8) !important;}
+.badge.bg-warning{background:var(--orange)!important;color:#fff;}
+.badge.bg-success{background:var(--green)!important;color:#fff;}
+.badge.bg-secondary{background:var(--text3)!important;color:#fff;}
+.message-type-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:rgba(37,68,61,.12);color:var(--blue-dk);font-size:14px;margin-right:8px;flex-shrink:0;}
+.message-title-row{display:flex;align-items:center;}
+.reply-box{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;}
+.reply-box textarea{resize:none;min-height:40px;max-height:110px;border-radius:12px;}
+.reply-box,.reply-box *{cursor:auto;}
+.reply-send-btn{flex-shrink:0;height:40px;width:40px;padding:0;border-radius:12px;}
+.messages-state{text-align:center;padding:56px 20px;color:var(--text3);font-weight:600;font-size:14px;}
+.messages-state i{font-size:2.4rem;display:block;margin-bottom:10px;opacity:.55;}
+.messages-state.messages-error{color:var(--red-dk);}
+
+/* ── Student hover card ── */
+.student-avatar{position:relative;cursor:pointer;}
+.student-hover-card{display:none;position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%) translateY(-10px);width:200px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 20px 50px rgba(21,46,40,.32);padding:14px;z-index:900;opacity:0;transition:var(--transition);}
+.student-hover-card::after{content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-bottom-color:var(--surface);}
+.hover-card-content{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;}
+.hover-card-image{width:60px;height:60px;border-radius:14px;object-fit:cover;border:2px solid var(--border-strong);}
+.hover-card-info h5{font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.hover-card-info p{font-size:11px;color:var(--text2);margin-bottom:2px;text-align:left;}
+
+/* ── Modals ── */
+.modal-content{border-radius:var(--radius-lg);border:1px solid var(--border);box-shadow:0 30px 80px rgba(21,46,40,.35); background:var(--surface);overflow:hidden; align-items: center;}
+.modal-header{background:linear-gradient(90deg, rgba(37,68,61,.08), rgba(215,163,62,.06));border-bottom:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.modal-title{font-weight:800;color:var(--text);font-size:16px;}
+.modal-body{padding:20px;}
+.modal-footer{border-top:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;}
+.form-control,.form-select{border-radius:12px;border:1.5px solid var(--border);padding:.65rem .85rem;}
+.form-control:focus,.form-select:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow);}
+.form-label{font-size:12px;font-weight:700;color:var(--text2);}
+.btn-secondary{border-radius:12px;font-weight:700;}
+.attachment-preview .file-preview{display:flex;align-items:center;gap:6px;background:var(--surface3);border:1px solid var(--border);padding:6px 10px;border-radius:10px;font-size:12px;margin-bottom:4px;}
+
+@media(max-width:900px){
+  .burger{display:flex;align-items:center;justify-content:center;}
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,.4);}
+  .main-shell{margin-left:0;}
+  .topbar{padding:16px 16px 4px;}
+}
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0">
+
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <div class="auth-blob auth-blob-1"></div>
+        <div class="auth-blob auth-blob-2"></div>
+
+        <!-- Desktop side panel -->
+        <div class="auth-side-panel" aria-hidden="true">
+            <div class="asp-blob asp-blob-1"></div>
+            <div class="asp-blob asp-blob-2"></div>
+            <div class="asp-dot asp-dot-1"></div>
+            <div class="asp-dot asp-dot-2"></div>
+            <div class="asp-illustration">
+                <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="160" cy="130" r="112" fill="rgba(255,255,255,.06)"/>
+                    <rect x="96" y="30" width="128" height="200" rx="24" fill="rgba(255,255,255,.09)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+                    <rect x="118" y="54" width="84" height="10" rx="5" fill="rgba(255,255,255,.35)"/>
+                    <g transform="translate(160,136)">
+                        <rect x="-34" y="-6" width="68" height="52" rx="12" fill="var(--blue-lt)"/>
+                        <path d="M-22 -6 v-16 a22 22 0 0 1 44 0 v16" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+                        <circle cx="0" cy="18" r="7" fill="#0f1e1a"/>
+                        <rect x="-3.5" y="18" width="7" height="15" rx="3.5" fill="#0f1e1a"/>
+                    </g>
+                    <rect x="118" y="196" width="84" height="10" rx="5" fill="rgba(255,255,255,.25)"/>
+                    <circle cx="66" cy="52" r="18" fill="var(--blue-lt)" opacity=".45"/>
+                    <circle cx="258" cy="204" r="14" fill="rgba(255,255,255,.2)"/>
+                    <path d="M46 200 q16 -34 44 -10" stroke="var(--blue-lt)" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
+                    <path d="M244 50 l14 -14 m0 14 l-14 -14" stroke="rgba(255,255,255,.5)" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="asp-brand">
+                <div class="asp-brand-name">Kanyadet Student Portal</div>
+                <div class="asp-brand-tag">Track active books, due dates, messages from the librarian, and your borrowing history — all in one place.</div>
+            </div>
+        </div>
+
+        <!-- Wave divider -->
+        <div class="auth-divider-wave" aria-hidden="true">
+            <svg viewBox="0 0 144 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="authWaveGrad" x1="0" y1="0" x2="0.4" y2="1">
+                        <stop offset="0%"  stop-color="#25443d"/>
+                        <stop offset="55%" stop-color="#1f3630"/>
+                        <stop offset="100%" stop-color="#0f1e1a"/>
+                    </linearGradient>
+                </defs>
+                <path fill="url(#authWaveGrad)" d="M88,0 L103.7,16 L101.8,32 L96.3,48 L100.9,64 L114.1,80 L120.3,96 L105.6,112 L73.2,128 L41.4,144 L27.7,160 L33.5,176 L44.2,192 L45.2,208 L37.4,224 L35.5,240 L52.7,256 L85.5,272 L115.6,288 L125.5,304 L114.7,320 L98.4,336 L91.9,352 L95.3,368 L94.4,384 L76.6,400 L45.2,416 L18.6,432 L13.5,448 L30,464 L51.8,480 L63,496 L62.6,512 L64.4,528 L81,544 L109.2,560 L131,576 L130.5,592 L108.4,608 L81.8,624 L67.4,640 L66.6,656 L65.7,672 L52.1,688 L28.6,704 L12.3,720 L18.5,736 L45.4,752 L75.5,768 L91.3,784 L91.5,800 L0,800 L0,0 Z"/>
+            </svg>
+        </div>
+
+        <div class="login-form-wrap">
+            <div class="row justify-content-center">
+                <div class="">
+                    <div class="card p-4">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-book-half fs-1 text-primary"></i>
+                            <h2 class="mt-2">Kanyadet Library</h2>
+                            <h2 class="mt-2">Student Portal</h2>
+                        </div>
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label class="form-label">Assessment Number</label>
+                                <input type="text" id="assessmentNo" class="form-control" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                            <p class="mt-2">Forgot your assessment number? <a href="./SearchAssNo.html" id="forgotAssessmentNo" target="_blank">Click here</a></p>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Dashboard - Initially Hidden -->
+    <div id="dashboardContent" class="d-none">
+        <div id="printRecordArea" class="print-only"></div>
+        <aside class="sidebar" id="portalSidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon"><i class="bi bi-book-half"></i></div>
+                <div class="brand-text"><div class="b-name">Kanyadet SP</div><div class="b-role">Student Portal</div></div>
+            </div>
+            <div class="sidebar-profile">
+                <div class="student-avatar"></div>
+                <div class="student-details">
+                    <span id="studentName" class="student-name">Student Name</span>
+                    <small id="studentGrade" class="student-grade">Grade</small>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <div class="s-label">Library</div>
+                <button class="nav-link active" data-view="dashboard">
+                    <i class="bi bi-speedometer2 nav-icon"></i>
+                    Dashboard
+                </button>
+                <button class="nav-link" data-view="activeBooks">
+                    <i class="bi bi-book nav-icon"></i>
+                    Active Books
+                </button>
+                <button class="nav-link" data-view="browse">
+                    <i class="bi bi-collection nav-icon"></i>
+                    Browse Library
+                </button>
+                <button class="nav-link" data-view="messages">
+                    <i class="bi bi-chat-dots nav-icon"></i>
+                    Messages
+                    <span id="unreadCount" class="badge bg-danger rounded-pill" style="display:none;"></span>
+                </button>
+                <button class="nav-link" data-view="history">
+                    <i class="bi bi-clock-history nav-icon"></i>
+                    History
+                </button>
+            </div>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="nav-link logout-link" title="Sign out">
+                    <i class="bi bi-box-arrow-right nav-icon"></i>
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <div class="main-shell">
+            <div class="topbar">
+                <button class="burger" id="sidebarBurger" type="button" aria-label="Toggle navigation">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="page-title">Welcome back, <span id="studentFirstName">Student</span></div>
+            </div>
+
+            <div class="content-area">
+                <div class="row">
+                    <div class="col-12 sec-hdr">
+                        <p class="lead mb-0">Manage your library activities efficiently.</p>
+                    </div>
+                </div>
+
+                <!-- Dashboard View -->
+                <div id="dashboardView" class="view-container active">
+                    <div id="dueSoonBanner"></div>
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <div class="kpi-grid">
+                                <div class="stat-card">
+                                    <i class="bi bi-book fs-1 text-primary mb-2"></i>
+                                    <div class="stat-figures">
+                                        <h3 id="totalBooks">0</h3>
+                                        <p class="text-muted mb-0">Total Books</p>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <i class="bi bi-book-half fs-1 text-success mb-2"></i>
+                                    <div class="stat-figures">
+                                        <h3 id="activeBooks">0</h3>
+                                        <p class="text-muted mb-0">Active Books</p>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <i class="bi bi-exclamation-triangle fs-1 text-warning mb-2"></i>
+                                    <div class="stat-figures">
+                                        <h3 id="overdueBooks">0</h3>
+                                        <p class="text-muted mb-0">Overdue Books</p>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <i class="bi bi-x-circle fs-1 text-danger mb-2"></i>
+                                    <div class="stat-figures">
+                                        <h3 id="lostBooks">0</h3>
+                                        <p class="text-muted mb-0">Lost Books</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-flex flex-column side-panel-dark">
+                            <div class="stat-card p-3 rounded shadow-sm bg-white mb-3">
+                                <div class="id-card-head"><i class="bi bi-person-vcard"></i><h6>Student ID</h6></div>
+                                <div class="id-row"><span>Name</span><span id="infoName">—</span></div>
+                                <div class="id-row"><span>Grade</span><span id="infoGrade">—</span></div>
+                                <div class="id-row"><span>Assessment No.</span><span id="infoAssessmentNo">—</span></div>
+                                <div class="id-row"><span>UPI No.</span><span id="infoUpiNo">—</span></div>
+                            </div>
+                            <div class="stat-card flex-grow-1 p-3 rounded shadow-sm bg-white" id="borrowingStats">
+                                <!-- Borrowing statistics will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div id="achievementsRow"></div>
+                    <div id="booksContainer" class="row">
+                        <!-- Current books will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Active Books View -->
+                <div id="activeBooksView" class="view-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0">Active Books</h4>
+                        <div class="input-group" style="max-width: 300px;">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" placeholder="Search books...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Active books will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Browse Library View -->
+                <div id="browseView" class="view-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <h4 class="mb-0">Browse Library</h4>
+                        <div class="d-flex gap-2">
+                            <select id="browseCategoryFilter" class="form-select" style="max-width: 180px;">
+                                <option value="">All Categories</option>
+                            </select>
+                            <div class="input-group" style="max-width: 260px;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" id="browseSearchInput" class="form-control" placeholder="Search catalog...">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="wishlistPanel" class="mb-4"></div>
+                    <div id="browseResults" class="row">
+                        <!-- Library catalog will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Messages View -->
+                <div id="messagesView" class="view-container">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0">Messages from Librarian</h5>
+                                    <small class="text-muted">Chat with the librarian about books, requests, or issues</small>
+                                </div>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span id="unreadMessagesCount" class="badge bg-danger rounded-pill" style="display:none;"></span>
+                                    <button class="btn btn-primary btn-sm" onclick="studentPortal.showNewMessageDialog()">
+                                        <i class="bi bi-chat-dots me-1"></i>New Message
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="messagesContainer" class="messages-container">
+                                <!-- Messages will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History View -->
+                <div id="historyView" class="view-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0">Borrowing History</h4>
+                        <div class="d-flex gap-2 align-items-center">
+                            <button id="printRecordBtn" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-printer me-1"></i>Print My Record
+                            </button>
+                            <div class="input-group" style="max-width: 260px;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" placeholder="Search history...">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="historyChartContainer"></div>
+                    <div class="row">
+                        <!-- Returned books will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Minimal Modal shim replacing bootstrap.bundle.min.js — student-portal.js calls
+         new bootstrap.Modal(el), .show(), .hide(), bootstrap.Modal.getInstance(el),
+         wires up [data-bs-dismiss="modal"], and listens for 'hidden.bs.modal'. -->
+    <script>
+    (function(){
+      class SimpleModal{
+        constructor(el){ this.el = el; SimpleModal._instances.set(el, this); }
+        show(){
+          this.el.classList.add('show');
+          this.el.style.display = 'block';
+          document.body.classList.add('modal-open');
+          document.body.style.overflow = 'hidden';
+          const backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop';
+          document.body.appendChild(backdrop);
+          this._backdrop = backdrop;
+          backdrop.addEventListener('click', () => this.hide());
+          this.el.querySelectorAll('[data-bs-dismiss="modal"]').forEach((btn) => {
+            btn.addEventListener('click', () => this.hide());
+          });
+          // The .modal overlay spans the full screen (it's what centers the
+          // dialog), so a click anywhere outside the dialog box lands on
+          // .modal itself, not the backdrop underneath — close on that too.
+          this._outsideClickHandler = (e) => { if (e.target === this.el) this.hide(); };
+          this.el.addEventListener('click', this._outsideClickHandler);
+          this._escHandler = (e) => { if (e.key === 'Escape') this.hide(); };
+          document.addEventListener('keydown', this._escHandler);
+        }
+        hide(){
+          this.el.classList.remove('show');
+          document.body.classList.remove('modal-open');
+          document.body.style.overflow = '';
+          if (this._backdrop) { this._backdrop.remove(); this._backdrop = null; }
+          if (this._outsideClickHandler) { this.el.removeEventListener('click', this._outsideClickHandler); this._outsideClickHandler = null; }
+          if (this._escHandler) { document.removeEventListener('keydown', this._escHandler); this._escHandler = null; }
+          // Deferred, like Bootstrap's own fade-out timing, so callers that hide()
+          // then immediately act (resolve a promise, read form values) run first.
+          setTimeout(() => {
+            this.el.style.display = 'none';
+            this.el.dispatchEvent(new CustomEvent('hidden.bs.modal'));
+          }, 200);
+        }
+        static getInstance(el){ return SimpleModal._instances.get(el); }
+      }
+      SimpleModal._instances = new WeakMap();
+      window.bootstrap = { Modal: SimpleModal };
+    })();
+    </script>
+    <script src="./js/GoogleAuthmain.js"></script>
+
+    <script src="./js/firebaseConfig.js"></script>
+    <script src="./js/bookCovers.js"></script>
+    <script type="module" src="./js/student-portal.js"></script>
+    <script type="module" src="./js/studentImages.js"></script>
+    <!-- <script type="module" src="./js/authChecker.js"></script> -->
+
+    <!-- UI-only: sidebar shows as a flex shell once dashboardContent loses d-none, and mobile burger toggle -->
+    <script>
+        (function() {
+            const dashboardContent = document.getElementById('dashboardContent');
+            const sidebar = document.getElementById('portalSidebar');
+            const burger = document.getElementById('sidebarBurger');
+
+            if (dashboardContent) {
+                const syncShellClass = () => {
+                    dashboardContent.classList.toggle('active-shell', !dashboardContent.classList.contains('d-none'));
+                };
+                syncShellClass();
+                new MutationObserver(syncShellClass).observe(dashboardContent, { attributes: true, attributeFilter: ['class'] });
+            }
+
+            if (burger && sidebar) {
+                burger.addEventListener('click', () => sidebar.classList.toggle('open'));
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 900 && sidebar.classList.contains('open') &&
+                        !sidebar.contains(e.target) && e.target !== burger && !burger.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+                sidebar.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => sidebar.classList.remove('open'));
+                });
+            }
+        })();
+    </script>
+
+</body>
+</html>

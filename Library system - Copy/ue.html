@@ -9,36 +9,38 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/styles2.css">
     <link rel="stylesheet" href="./css/bookcard.css">
     <link rel="stylesheet" href="./css/swalOnly.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Monthly Statistics / Book Categories redesign — scoped, does not touch global styles.css */
+        /* Monthly Statistics / Book Categories — scoped, aligned to the
+           design tokens in styles.css (does not touch global rules) */
         .analytics-panel {
-            background: #FBFAF7;
-            border: 1px solid #E7E2D6;
-            border-radius: 14px;
-            box-shadow: 0 1px 2px rgba(22, 35, 61, 0.04);
+            background: #FFFFFF;
+            border: 1px solid #E3E6ED;
+            border-radius: 16px;
+            box-shadow: 0 1px 2px rgba(18, 22, 31, 0.05);
             overflow: hidden;
         }
         .analytics-panel-header {
             padding: 22px 26px 18px;
-            border-bottom: 1px solid #ECE7DA;
+            border-bottom: 1px solid #EEF0F4;
         }
         .analytics-eyebrow {
             display: block;
             font-size: 12.5px;
-            font-weight: 600;
-            color: #B8862E;
-            letter-spacing: 0.01em;
+            font-weight: 700;
+            color: #C99A3D;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
             margin-bottom: 4px;
         }
         .analytics-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 800;
             font-size: 1.15rem;
-            color: #16233D;
+            color: #1F2635;
             margin: 0;
         }
         .analytics-panel-body {
@@ -53,171 +55,30 @@
         .analytics-col-title {
             font-weight: 700;
             font-size: 0.98rem;
-            color: #16233D;
+            color: #1F2635;
             margin-bottom: 2px;
         }
         .analytics-col-caption {
             font-size: 0.83rem;
-            color: #7A7566;
+            color: #717889;
             margin-bottom: 16px;
         }
         .analytics-chart-frame {
             background: #FFFFFF;
-            border: 1px solid #ECE7DA;
-            border-radius: 10px;
+            border: 1px solid #EEF0F4;
+            border-radius: 12px;
             padding: 16px 16px 8px;
         }
         .analytics-divider {
             width: 1px;
-            background: #ECE7DA;
+            background: #EEF0F4;
             margin: 22px 0;
             flex: 0 0 1px;
-        }
-        .analytics-chart-frame-pie {
-            position: relative;
-            padding-bottom: 14px;
-        }
-        .analytics-chart-canvas-wrap {
-            position: relative;
-            height: 220px;
-        }
-        .analytics-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 14px;
-            max-height: 132px;
-            overflow-y: auto;
-        }
-        .analytics-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.82rem;
-            color: #16233D;
-        }
-        .analytics-legend-swatch {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            flex: 0 0 9px;
-        }
-        .analytics-legend-label {
-            flex: 1 1 auto;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .analytics-legend-value {
-            flex: 0 0 auto;
-            color: #7A7566;
-            font-weight: 600;
-            font-size: 0.78rem;
-        }
-        .analytics-panel-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .analytics-export-trigger {
-            background: #FFFFFF;
-            border: 1px solid #E7E2D6;
-            color: #16233D;
-            font-weight: 600;
-            font-size: 0.82rem;
-            border-radius: 8px;
-            padding: 6px 14px;
-            white-space: nowrap;
-        }
-        .analytics-export-trigger:hover {
-            background: #FBFAF7;
-            border-color: #B8862E;
-            color: #B8862E;
-        }
-        .low-stock-banner {
-            background: #FBF3E4;
-            border: 1px solid #EAD9B0;
-            border-radius: 14px;
-            padding: 16px 20px;
-        }
-        .low-stock-banner-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #7A4B14;
-            font-size: 0.92rem;
-            margin-bottom: 10px;
-        }
-        .low-stock-banner-header i { font-size: 1.15rem; }
-        .low-stock-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .low-stock-chip {
-            background: #FFFFFF;
-            border: 1px solid #EAD9B0;
-            border-radius: 999px;
-            padding: 4px 12px;
-            font-size: 0.8rem;
-            color: #16233D;
-        }
-        .low-stock-chip strong { color: #B8862E; margin-left: 2px; }
-        .leaderboard-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 10px;
-            background: #FFFFFF;
-            border: 1px solid #ECE7DA;
-            border-radius: 10px;
-        }
-        .leaderboard-rank {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #16233D;
-            color: #FBFAF7;
-            font-size: 0.72rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex: 0 0 22px;
-        }
-        .leaderboard-item:first-child .leaderboard-rank { background: #B8862E; }
-        .leaderboard-name {
-            flex: 1 1 auto;
-            font-size: 0.86rem;
-            color: #16233D;
-            font-weight: 600;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .leaderboard-count {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #B8862E;
-            flex: 0 0 auto;
-            white-space: nowrap;
-        }
-        .leaderboard-empty {
-            font-size: 0.82rem;
-            color: #7A7566;
-            padding: 10px 2px;
         }
         @media (max-width: 767px) {
             .analytics-panel-body { flex-direction: column; }
             .analytics-divider { display: none; }
-            .analytics-col { border-bottom: 1px solid #ECE7DA; }
+            .analytics-col { border-bottom: 1px solid #EEF0F4; }
             .analytics-col:last-child { border-bottom: none; }
         }
     </style>
@@ -265,27 +126,6 @@
                 <li data-page="reports">
                     <i class="bi bi-graph-up me-2"></i>Reports
                 </li>
-                <li data-page="classLibrary">
-                    <i class="bi bi-collection me-2"></i>Class Library
-                </li>
-                <li data-page="reservations">
-                    <i class="bi bi-bookmark-star me-2"></i>Reservations
-                </li>
-                <li data-page="bookRequests">
-                    <i class="bi bi-bookmark-plus me-2"></i>Book Requests
-                </li>
-                <li data-page="fines">
-                    <i class="bi bi-currency-dollar me-2"></i>Fines Management
-                </li>
-                <li data-page="bookCondition">
-                    <i class="bi bi-box-seam me-2"></i>Book Condition
-                </li>
-                <li data-page="advancedAnalytics">
-                    <i class="bi bi-graph-up-arrow me-2"></i>Advanced Analytics
-                </li>
-                <li data-page="studentPortal">
-                    <i class="bi bi-person-badge me-2"></i>Student Portal
-                </li>
                 <!-- Replace the existing messages list item in nav-links -->
                 <li data-page="messages">
                     <div class="d-flex align-items-center justify-content-between">
@@ -294,15 +134,7 @@
                         </div>
                         <span id="unreadCount" class="badge bg-danger rounded-pill"></span>
                     </div>
-                    <a href="./student-portal.html" target="_blank" class="text-decoration-none text-dark">
                 </li>
-                <li data-page="">
-                        <div>
-                                <i class="bi bi-chat-dots me-2"></i>Students Library
-                            </div>
-                        </div>
-                    </li>
-                </a>
             </ul>
         </nav>
 
@@ -389,10 +221,6 @@
                     </div>
                 </div>
 
-
-
-
-                
                 <!-- Dashboard actions and analytics -->
 <div class="dashboard-sections mt-4">
     <!-- Quick Actions Section -->
@@ -428,44 +256,24 @@
             <button id="bulkIssuanceBtn" class="btn btn-info">
                 <i class="bi bi-file-earmark-spreadsheet"></i> Bulk Issuance
             </button>
-            <button id="runOverdueScanBtn" class="btn btn-outline-danger" title="Flag overdue books now and message students who haven't been reminded in the last 3 days">
-                <i class="bi bi-alarm"></i> Run Overdue Scan
-            </button>
         </div>
     </div>
- 
-
-    <!-- Low Stock Alert -->
-    <div id="lowStockBanner" class="low-stock-banner mb-4" style="display:none;">
-        <div class="low-stock-banner-header">
-            <i class="bi bi-box-seam"></i>
-            <div>
-                <strong>Running low</strong>
-                <span id="lowStockSummary"></span>
-            </div>
-        </div>
-        <div id="lowStockList" class="low-stock-list"></div>
-    </div>
+ >
 
     <!-- Analytics Section -->
     <div class="analytics-panel mb-4">
-        <div class="analytics-panel-header analytics-panel-header-row">
+        <div class="analytics-panel-header">
             <div>
                 <span class="analytics-eyebrow">Library activity</span>
                 <h3 class="analytics-title">How the shelves are moving</h3>
             </div>
-            <button id="exportAnalyticsBtn" class="analytics-export-trigger" title="Export this activity report">
-                <i class="bi bi-download"></i> Export
-            </button>
         </div>
         <div class="analytics-panel-body">
             <div class="analytics-col analytics-col-wide">
                 <h5 class="analytics-col-title">Monthly Statistics</h5>
                 <p class="analytics-col-caption">Issuances and returns, month by month</p>
                 <div class="analytics-chart-frame">
-                    <div class="analytics-chart-canvas-wrap" style="height:280px;">
-                        <canvas id="monthlyStatsChart"></canvas>
-                    </div>
+                    <canvas id="monthlyStatsChart" height="300"></canvas>
                 </div>
             </div>
             <div class="analytics-divider" aria-hidden="true"></div>
@@ -473,34 +281,8 @@
                 <h5 class="analytics-col-title">Book Categories</h5>
                 <p class="analytics-col-caption">What's currently in circulation</p>
                 <div class="analytics-chart-frame analytics-chart-frame-pie">
-                    <div class="analytics-chart-canvas-wrap">
-                        <canvas id="categoryPieChart"></canvas>
-                    </div>
-                    <div id="categoryChartLegend" class="analytics-legend"></div>
+                    <canvas id="categoryPieChart" height="300"></canvas>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Leaderboard Section -->
-    <div class="analytics-panel mb-4">
-        <div class="analytics-panel-header">
-            <div>
-                <span class="analytics-eyebrow">Who's reading</span>
-                <h3 class="analytics-title">Library leaderboard</h3>
-            </div>
-        </div>
-        <div class="analytics-panel-body">
-            <div class="analytics-col analytics-col-wide">
-                <h5 class="analytics-col-title">Top Borrowers</h5>
-                <p class="analytics-col-caption">Most books borrowed, all time</p>
-                <div id="topBorrowersList" class="leaderboard-list"></div>
-            </div>
-            <div class="analytics-divider" aria-hidden="true"></div>
-            <div class="analytics-col analytics-col-narrow">
-                <h5 class="analytics-col-title">Most Borrowed Books</h5>
-                <p class="analytics-col-caption">Highest demand titles</p>
-                <div id="mostBorrowedList" class="leaderboard-list"></div>
             </div>
         </div>
     </div>
@@ -511,10 +293,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Recent Activities</h5>
-                    <div>
-                        <button class="btn btn-sm btn-outline-primary" id="viewAllActivities">View All</button>
-                        <button class="btn btn-sm btn-outline-danger" id="clearAllActivitiesBtn">Clear All</button>
-                    </div>
+                    <button class="btn btn-sm btn-outline-primary" id="viewAllActivities">View All</button>
                 </div>
                 <div class="card-body">
                     <div id="recentActivitiesList" class="activities-list"></div>
@@ -523,9 +302,8 @@
         </div>
         <div class="col-md-6 mb-4">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header">
                     <h5 class="card-title mb-0">Important Notifications</h5>
-                    <button class="btn btn-sm btn-outline-danger" id="clearAllNotificationsBtn">Clear All</button>
                 </div>
                 <div class="card-body">
                     <div id="notificationsList" class="notifications-list"></div>
@@ -554,9 +332,6 @@
         </div>
         <button id="addBookBtn" class="btn btn-primary">
             <i class="bi bi-plus-circle me-1"></i>Add Book
-        </button>
-        <button id="printSpineLabelsBtn" class="btn btn-outline-primary">
-            <i class="bi bi-printer me-1"></i>Spine Labels
         </button>
         <button id="deleteOptionsBtn" class="btn btn-danger">
             <i class="bi bi-trash me-1"></i>Delete Options
@@ -633,9 +408,6 @@
             <button id="newIssuanceBtn" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-1"></i>New Issuance
             </button>
-            <button id="bulkReturnClassBtn" class="btn btn-outline-success" title="Select a grade above, then return every active loan in that class at once">
-                <i class="bi bi-arrow-return-left me-1"></i>Bulk Return Class
-            </button>
             <button id="deleteIssuanceOptionsBtn" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete issuances for a specific book or all records">
                 <i class="bi bi-trash me-1"></i>Delete Options
             </button>
@@ -655,7 +427,7 @@
                             <option value="issuanceHistory">Issuance History Report</option>
                             <option value="overdueBooks">Overdue Books Report</option>
                             <option value="studentActivity">Student Activity Report</option>
-                            <option value="lostBooks" selected>Lost Books Report</option>
+                            <option value="lostBooks">Lost Books Report</option>
                         </select>
                         <input type="date" id="startDate">
                         <input type="date" id="endDate">
@@ -670,403 +442,6 @@
                 <div id="reportContent" class="mt-4">
                     <div id="reportStats" class="stats-container mb-4"></div>
                     <div id="reportTable" class="table-responsive"></div>
-                </div>
-            </div>
-
-            <div id="classLibrary" class="page">
-                <div class="action-bar">
-                    <div class="filters">
-                        <select id="classLibraryGrade" class="form-select" style="max-width: 220px;">
-                            <option value="">Select Grade</option>
-                            <option value="Grade 1">Grade 1</option>
-                            <option value="Grade 2">Grade 2</option>
-                            <option value="Grade 3">Grade 3</option>
-                            <option value="Grade 4">Grade 4</option>
-                            <option value="Grade 5">Grade 5</option>
-                            <option value="Grade 6">Grade 6</option>
-                            <option value="Grade 7">Grade 7</option>
-                            <option value="Grade 8">Grade 8</option>
-                            <option value="Grade 9">Grade 9</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="classLibraryList" class="mt-3">
-                    <p class="text-muted">Select a grade to see its active and overdue books.</p>
-                </div>
-            </div>
-
-            <div id="reservations" class="page">
-                <div class="action-bar">
-                    <button id="addReservationBtn" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>Add Reservation
-                    </button>
-                </div>
-                <div id="reservationsList" class="mt-3">
-                    <p class="text-muted">Loading reservations…</p>
-                </div>
-            </div>
-
-            <div id="bookRequests" class="page">
-                <div class="action-bar">
-                    <div class="filters">
-                        <select id="requestStatusFilter" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                            <option value="ordered">Ordered</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                    <button id="addBookRequestBtn" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>Add Request
-                    </button>
-                </div>
-                <div id="bookRequestsList" class="mt-3">
-                    <p class="text-muted">Loading book requests…</p>
-                </div>
-            </div>
-
-            <div id="fines" class="page">
-                <div class="action-bar">
-                    <div class="filters">
-                        <select id="fineStatusFilter" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="partial">Partial Payment</option>
-                            <option value="paid">Paid</option>
-                            <option value="waived">Waived</option>
-                        </select>
-                        <select id="fineGradeFilter" class="form-select">
-                            <option value="">All Grades</option>
-                            <option value="Grade 1">Grade 1</option>
-                            <option value="Grade 2">Grade 2</option>
-                            <option value="Grade 3">Grade 3</option>
-                            <option value="Grade 4">Grade 4</option>
-                            <option value="Grade 5">Grade 5</option>
-                            <option value="Grade 6">Grade 6</option>
-                            <option value="Grade 7">Grade 7</option>
-                            <option value="Grade 8">Grade 8</option>
-                            <option value="Grade 9">Grade 9</option>
-                        </select>
-                    </div>
-                    <button id="addFineBtn" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>Add Fine
-                    </button>
-                    <button id="bulkCalculateFinesBtn" class="btn btn-warning">
-                        <i class="bi bi-calculator me-1"></i>Calculate Overdue Fines
-                    </button>
-                    <button id="fineSettingsBtn" class="btn btn-secondary">
-                        <i class="bi bi-gear me-1"></i>Settings
-                    </button>
-                </div>
-                
-                <!-- Fine Statistics -->
-                <div class="stats-container mb-4">
-                    <div class="stat-card">
-                        <i class="bi bi-currency-dollar"></i>
-                        <div class="stat-info">
-                            <h3>Total Outstanding</h3>
-                            <p id="totalOutstandingFines">$0.00</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="bi bi-check-circle"></i>
-                        <div class="stat-info">
-                            <h3>Total Collected</h3>
-                            <p id="totalCollectedFines">$0.00</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="bi bi-clock"></i>
-                        <div class="stat-info">
-                            <h3>Pending Fines</h3>
-                            <p id="pendingFinesCount">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <div class="stat-info">
-                            <h3>Overdue Fines</h3>
-                            <p id="overdueFinesCount">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="finesList" class="mt-3">
-                    <p class="text-muted">Loading fines…</p>
-                </div>
-            </div>
-
-            <div id="bookCondition" class="page">
-                <div class="action-bar">
-                    <div class="filters">
-                        <select id="conditionFilter" class="form-select">
-                            <option value="">All Conditions</option>
-                            <option value="new">New</option>
-                            <option value="good">Good</option>
-                            <option value="fair">Fair</option>
-                            <option value="damaged">Damaged</option>
-                            <option value="lost">Lost</option>
-                            <option value="retired">Retired</option>
-                        </select>
-                        <select id="conditionCategoryFilter" class="form-select">
-                            <option value="">All Categories</option>
-                        </select>
-                    </div>
-                    <button id="bulkConditionUpdateBtn" class="btn btn-warning">
-                        <i class="bi bi-arrow-repeat me-1"></i>Bulk Update
-                    </button>
-                    <button id="conditionReportBtn" class="btn btn-info">
-                        <i class="bi bi-file-earmark-text me-1"></i>Condition Report
-                    </button>
-                </div>
-
-                <!-- Condition Statistics -->
-                <div class="stats-container mb-4">
-                    <div class="stat-card">
-                        <i class="bi bi-star"></i>
-                        <div class="stat-info">
-                            <h3>New Books</h3>
-                            <p id="newBooksCount">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="bi bi-check-circle"></i>
-                        <div class="stat-info">
-                            <h3>Good Condition</h3>
-                            <p id="goodConditionCount">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="bi bi-exclamation-circle"></i>
-                        <div class="stat-info">
-                            <h3>Needs Attention</h3>
-                            <p id="needsAttentionCount">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="bi bi-trash"></i>
-                        <div class="stat-info">
-                            <h3>Retired/Lost</h3>
-                            <p id="retiredLostCount">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="bookConditionList" class="mt-3">
-                    <p class="text-muted">Loading book conditions…</p>
-                </div>
-            </div>
-
-            <div id="advancedAnalytics" class="page">
-                <div class="action-bar">
-                    <div class="filters">
-                        <select id="analyticsPeriod" class="form-select">
-                            <option value="7">Last 7 Days</option>
-                            <option value="30" selected>Last 30 Days</option>
-                            <option value="90">Last 90 Days</option>
-                            <option value="365">Last Year</option>
-                            <option value="all">All Time</option>
-                        </select>
-                        <select id="analyticsGrade" class="form-select">
-                            <option value="">All Grades</option>
-                            <option value="Grade 1">Grade 1</option>
-                            <option value="Grade 2">Grade 2</option>
-                            <option value="Grade 3">Grade 3</option>
-                            <option value="Grade 4">Grade 4</option>
-                            <option value="Grade 5">Grade 5</option>
-                            <option value="Grade 6">Grade 6</option>
-                            <option value="Grade 7">Grade 7</option>
-                            <option value="Grade 8">Grade 8</option>
-                            <option value="Grade 9">Grade 9</option>
-                        </select>
-                    </div>
-                    <button id="refreshAnalyticsBtn" class="btn btn-primary">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                    </button>
-                    <button id="exportAnalyticsBtn" class="btn btn-info">
-                        <i class="bi bi-download me-1"></i>Export Report
-                    </button>
-                </div>
-
-                <!-- Analytics Overview -->
-                <div class="stats-container mb-4">
-                    <div class="stat-card">
-                        <i class="bi bi-book"></i>
-                        <div class="stat-info">
-                            <h3>Total Issues</h3>
-                            <p id="analyticsTotalIssues">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="bi bi-arrow-return-left"></i>
-                        <div class="stat-info">
-                            <h3>Total Returns</h3>
-                            <p id="analyticsTotalReturns">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="bi bi-clock"></i>
-                        <div class="stat-info">
-                            <h3>Avg Loan Duration</h3>
-                            <p id="analyticsAvgDuration">0 days</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <div class="stat-info">
-                            <h3>Overdue Rate</h3>
-                            <p id="analyticsOverdueRate">0%</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reading Trends Chart -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Reading Trends Over Time</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="readingTrendsChart" style="height: 300px;"></canvas>
-                    </div>
-                </div>
-
-                <!-- Popular Genres by Grade -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Popular Genres by Grade Level</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="genreByGradeChart" style="height: 400px;"></canvas>
-                    </div>
-                </div>
-
-                <!-- Student Reading Habits -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Top Readers This Period</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="topReadersList"></div>
-                    </div>
-                </div>
-
-                <!-- Seasonal Patterns -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Seasonal Reading Patterns</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="seasonalPatternsChart" style="height: 300px;"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div id="studentPortal" class="page">
-                <div class="action-bar">
-                    <div class="filters">
-                        <select id="portalStudentSelect" class="form-select">
-                            <option value="">Select Student</option>
-                        </select>
-                    </div>
-                    <button id="viewStudentCardBtn" class="btn btn-info">
-                        <i class="bi bi-credit-card me-1"></i>View Library Card
-                    </button>
-                </div>
-
-                <!-- Student Overview -->
-                <div id="studentOverview" class="mb-4" style="display:none;">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="text-center">
-                                        <div class="student-avatar-large">
-                                            <i class="bi bi-person"></i>
-                                        </div>
-                                        <h5 id="portalStudentName">Student Name</h5>
-                                        <p id="portalStudentGrade" class="text-muted">Grade</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-9">
-                                    <div class="stats-container">
-                                        <div class="stat-card">
-                                            <i class="bi bi-book"></i>
-                                            <div class="stat-info">
-                                                <h3>Books Read</h3>
-                                                <p id="portalBooksRead">0</p>
-                                            </div>
-                                        </div>
-                                        <div class="stat-card">
-                                            <i class="bi bi-book-half"></i>
-                                            <div class="stat-info">
-                                                <h3>Current Loans</h3>
-                                                <p id="portalCurrentLoans">0</p>
-                                            </div>
-                                        </div>
-                                        <div class="stat-card">
-                                            <i class="bi bi-trophy"></i>
-                                            <div class="stat-info">
-                                                <h3>Reading Goal</h3>
-                                                <p id="portalReadingGoal">0/0</p>
-                                            </div>
-                                        </div>
-                                        <div class="stat-card">
-                                            <i class="bi bi-star"></i>
-                                            <div class="stat-info">
-                                                <h3>Achievements</h3>
-                                                <p id="portalAchievements">0</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reading History -->
-                <div class="card mb-4" id="readingHistoryCard" style="display:none;">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Reading History</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="readingHistoryList"></div>
-                    </div>
-                </div>
-
-                <!-- Book Recommendations -->
-                <div class="card mb-4" id="recommendationsCard" style="display:none;">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Recommended Books</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="recommendationsList"></div>
-                    </div>
-                </div>
-
-                <!-- Reading Goals -->
-                <div class="card mb-4" id="readingGoalsCard" style="display:none;">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Reading Goals</h5>
-                        <button id="setReadingGoalBtn" class="btn btn-sm btn-primary">
-                            <i class="bi bi-plus-circle"></i> Set Goal
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div id="readingGoalsList"></div>
-                    </div>
-                </div>
-
-                <!-- Achievements -->
-                <div class="card mb-4" id="achievementsCard" style="display:none;">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Achievements</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="achievementsList"></div>
-                    </div>
                 </div>
             </div>
 
@@ -1215,9 +590,9 @@
                 
                 <label for="studentName">Student Name</label>
                 <input type="text" id="studentName" placeholder="Student Name" required>
-                <label for="Assessment No">Assessment Number</label>
-                <input type="text" id="Assessment No" placeholder="Assessment Number" required>
-                <label for="upi">ULI Number</label>
+                <label for="assessmentNo">Assessment Number</label>
+                <input type="text" id="assessmentNo" placeholder="Assessment Number" required>
+                <label for="upi">UPI Number</label>
                 <input type="text" id="upi" placeholder="UPI Number" required>
                 <label for="phoneNumber">Phone Number</label>
                 <input type="tel" id="phoneNumber" placeholder="Phone Number">
@@ -1568,365 +943,6 @@
     </div>
 </div>
 
-    <!-- Book Request Modal -->
-    <div class="modal fade" id="bookRequestModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Book Request</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="bookRequestForm">
-                        <div class="mb-3">
-                            <label for="requestBookTitle" class="form-label">Book Title <span class="text-danger">*</span></label>
-                            <input type="text" id="requestBookTitle" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="requestBookAuthor" class="form-label">Author</label>
-                            <input type="text" id="requestBookAuthor" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label for="requestBookISBN" class="form-label">ISBN</label>
-                            <input type="text" id="requestBookISBN" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label for="requestBookCategory" class="form-label">Category</label>
-                            <select id="requestBookCategory" class="form-select">
-                                <option value="">Select Category</option>
-                                <option value="Fiction">Fiction</option>
-                                <option value="Non-Fiction">Non-Fiction</option>
-                                <option value="Science">Science</option>
-                                <option value="Mathematics">Mathematics</option>
-                                <option value="History">History</option>
-                                <option value="Geography">Geography</option>
-                                <option value="Literature">Literature</option>
-                                <option value="Technology">Technology</option>
-                                <option value="Art">Art</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="requestQuantity" class="form-label">Quantity Requested</label>
-                            <input type="number" id="requestQuantity" class="form-control" min="1" value="1">
-                        </div>
-                        <div class="mb-3">
-                            <label for="requestPriority" class="form-label">Priority</label>
-                            <select id="requestPriority" class="form-select">
-                                <option value="low">Low</option>
-                                <option value="medium" selected>Medium</option>
-                                <option value="high">High</option>
-                                <option value="urgent">Urgent</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="requestReason" class="form-label">Reason for Request</label>
-                            <textarea id="requestReason" class="form-control" rows="3" placeholder="Why is this book needed?"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="requestStudentId" class="form-label">Student ID (if student request)</label>
-                            <input type="text" id="requestStudentId" class="form-control">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="submitBookRequestBtn">Submit Request</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Book Request Review Modal -->
-    <div class="modal fade" id="bookRequestReviewModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Review Book Request</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="requestReviewDetails"></div>
-                    <div class="mt-3">
-                        <label class="form-label">Decision</label>
-                        <select id="requestDecision" class="form-select">
-                            <option value="approved">Approve</option>
-                            <option value="rejected">Reject</option>
-                            <option value="ordered">Mark as Ordered</option>
-                        </select>
-                    </div>
-                    <div class="mt-3">
-                        <label for="requestNotes" class="form-label">Admin Notes</label>
-                        <textarea id="requestNotes" class="form-control" rows="3" placeholder="Add any notes about this decision..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmRequestDecisionBtn">Confirm Decision</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Fine Modal -->
-    <div class="modal fade" id="addFineModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Fine</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addFineForm">
-                        <div class="mb-3">
-                            <label for="fineStudent" class="form-label">Student <span class="text-danger">*</span></label>
-                            <select id="fineStudent" class="form-select" required>
-                                <option value="">Select Student</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="fineIssuance" class="form-label">Related Issuance</label>
-                            <select id="fineIssuance" class="form-select">
-                                <option value="">Select Issuance (Optional)</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="fineAmount" class="form-label">Fine Amount ($) <span class="text-danger">*</span></label>
-                            <input type="number" id="fineAmount" class="form-control" step="0.01" min="0" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="fineReason" class="form-label">Reason <span class="text-danger">*</span></label>
-                            <select id="fineReason" class="form-select" required>
-                                <option value="">Select Reason</option>
-                                <option value="overdue">Overdue Book</option>
-                                <option value="damaged">Damaged Book</option>
-                                <option value="lost">Lost Book</option>
-                                <option value="late_return">Late Return</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="fineDescription" class="form-label">Description</label>
-                            <textarea id="fineDescription" class="form-control" rows="3" placeholder="Additional details about the fine..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="fineDueDate" class="form-label">Due Date</label>
-                            <input type="date" id="fineDueDate" class="form-control">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="submitFineBtn">Add Fine</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Payment Modal -->
-    <div class="modal fade" id="paymentModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Record Payment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="paymentDetails"></div>
-                    <div class="mt-3">
-                        <label for="paymentAmount" class="form-label">Payment Amount ($) <span class="text-danger">*</span></label>
-                        <input type="number" id="paymentAmount" class="form-control" step="0.01" min="0" required>
-                    </div>
-                    <div class="mt-3">
-                        <label for="paymentMethod" class="form-label">Payment Method <span class="text-danger">*</span></label>
-                        <select id="paymentMethod" class="form-select" required>
-                            <option value="">Select Method</option>
-                            <option value="cash">Cash</option>
-                            <option value="check">Check</option>
-                            <option value="card">Card</option>
-                            <option value="mobile">Mobile Payment</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div class="mt-3">
-                        <label for="paymentReference" class="form-label">Reference Number</label>
-                        <input type="text" id="paymentReference" class="form-control" placeholder="Check number, receipt number, etc.">
-                    </div>
-                    <div class="mt-3">
-                        <label for="paymentNotes" class="form-label">Notes</label>
-                        <textarea id="paymentNotes" class="form-control" rows="2" placeholder="Additional payment details..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" id="confirmPaymentBtn">Record Payment</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Waive Fine Modal -->
-    <div class="modal fade" id="waiveFineModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Waive Fine</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="waiveFineDetails"></div>
-                    <div class="mt-3">
-                        <label for="waiveReason" class="form-label">Waiver Reason <span class="text-danger">*</span></label>
-                        <textarea id="waiveReason" class="form-control" rows="3" required placeholder="Explain why this fine is being waived..."></textarea>
-                    </div>
-                    <div class="mt-3">
-                        <label for="waiveAuthorizedBy" class="form-label">Authorized By</label>
-                        <input type="text" id="waiveAuthorizedBy" class="form-control" placeholder="Administrator name">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-warning" id="confirmWaiveBtn">Waive Fine</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Fine Settings Modal -->
-    <div class="modal fade" id="fineSettingsModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Fine Settings</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="dailyFineRate" class="form-label">Daily Fine Rate ($)</label>
-                        <input type="number" id="dailyFineRate" class="form-control" step="0.01" min="0" value="0.50">
-                    </div>
-                    <div class="mb-3">
-                        <label for="maxFineAmount" class="form-label">Maximum Fine Amount ($)</label>
-                        <input type="number" id="maxFineAmount" class="form-control" step="0.01" min="0" value="10.00">
-                    </div>
-                    <div class="mb-3">
-                        <label for="gracePeriodDays" class="form-label">Grace Period (Days)</label>
-                        <input type="number" id="gracePeriodDays" class="form-control" min="0" value="3">
-                    </div>
-                    <div class="mb-3">
-                        <label for="lostBookFine" class="form-label">Lost Book Fine ($)</label>
-                        <input type="number" id="lostBookFine" class="form-control" step="0.01" min="0" value="15.00">
-                    </div>
-                    <div class="mb-3">
-                        <label for="damagedBookFine" class="form-label">Damaged Book Fine ($)</label>
-                        <input type="number" id="damagedBookFine" class="form-control" step="0.01" min="0" value="5.00">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveFineSettingsBtn">Save Settings</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Update Book Condition Modal -->
-    <div class="modal fade" id="updateConditionModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Update Book Condition</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="conditionBookDetails"></div>
-                    <div class="mt-3">
-                        <label for="newCondition" class="form-label">New Condition <span class="text-danger">*</span></label>
-                        <select id="newCondition" class="form-select" required>
-                            <option value="">Select Condition</option>
-                            <option value="new">New</option>
-                            <option value="good">Good</option>
-                            <option value="fair">Fair (worn)</option>
-                            <option value="damaged">Damaged</option>
-                            <option value="lost">Lost</option>
-                            <option value="retired">Retired</option>
-                        </select>
-                    </div>
-                    <div class="mt-3">
-                        <label for="conditionNotes" class="form-label">Condition Notes</label>
-                        <textarea id="conditionNotes" class="form-control" rows="3" placeholder="Describe the condition change..."></textarea>
-                    </div>
-                    <div class="mt-3">
-                        <label for="conditionAction" class="form-label">Required Action</label>
-                        <select id="conditionAction" class="form-select">
-                            <option value="">No Action Required</option>
-                            <option value="repair">Needs Repair</option>
-                            <option value="replace">Needs Replacement</option>
-                            <option value="remove">Remove from Circulation</option>
-                            <option value="retire">Retire from Library</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmConditionUpdateBtn">Update Condition</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bulk Condition Update Modal -->
-    <div class="modal fade" id="bulkConditionModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Bulk Condition Update</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="bulkConditionFilter" class="form-label">Filter Books</label>
-                        <select id="bulkConditionFilter" class="form-select">
-                            <option value="all">All Books</option>
-                            <option value="category">By Category</option>
-                            <option value="current_condition">By Current Condition</option>
-                            <option value="age">By Age (older than)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="bulkFilterOptions" style="display:none;">
-                        <label id="bulkFilterLabel" class="form-label">Filter Value</label>
-                        <select id="bulkFilterValue" class="form-select">
-                            <!-- Options populated dynamically -->
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="bulkNewCondition" class="form-label">New Condition <span class="text-danger">*</span></label>
-                        <select id="bulkNewCondition" class="form-select" required>
-                            <option value="">Select Condition</option>
-                            <option value="new">New</option>
-                            <option value="good">Good</option>
-                            <option value="fair">Fair (worn)</option>
-                            <option value="damaged">Damaged</option>
-                            <option value="lost">Lost</option>
-                            <option value="retired">Retired</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="bulkConditionNotes" class="form-label">Notes</label>
-                        <textarea id="bulkConditionNotes" class="form-control" rows="2" placeholder="Reason for bulk update..."></textarea>
-                    </div>
-                    <div class="alert alert-info">
-                        <strong>Preview:</strong> <span id="bulkUpdatePreview">0 books will be updated</span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-warning" id="confirmBulkConditionBtn">Update All</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Add Lost Book Modal -->
     <div class="modal fade" id="addLostBookModal" tabindex="-1">
         <div class="modal-dialog">
@@ -1960,16 +976,6 @@
                         <div class="mb-3">
                             <label for="lostBookDate" class="form-label">Lost Date <span class="text-danger">*</span></label>
                             <input type="date" id="lostBookDate" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="lostBookCondition" class="form-label">Book Condition</label>
-                            <select id="lostBookCondition" class="form-select">
-                                <option value="">Not assessed</option>
-                                <option value="good">Good</option>
-                                <option value="fair">Fair (worn)</option>
-                                <option value="damaged">Damaged</option>
-                                <option value="lost">Fully lost / not recoverable</option>
-                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="lostBookNotes" class="form-label">Notes</label>
@@ -2142,26 +1148,6 @@
     <script src="./js/studentBulkImport.js"></script>
     <script src="./js/loading.js"></script>
     <script src="./js/image-popup.js"></script>
-
-    <!-- New features: overdue reminders, barcode scanning, reservations,
-         class library view, and lost-book replacement-cost summary. Each
-         is additive and self-initializes on DOMContentLoaded. -->
-    <script src="./js/overdue-automation.js"></script>
-    <script src="./js/barcode-scanner.js"></script>
-    <script src="./js/reservations.js"></script>
-    <script src="./js/class-library.js"></script>
-    <script src="./js/replacement-cost-summary.js"></script>
-    <script src="./js/book-requests.js"></script>
-    <script src="./js/fines-management.js"></script>
-    <script src="./js/book-condition.js"></script>
-    <script src="./js/advanced-analytics.js"></script>
-    <script src="./js/student-Cards.js"></script>
-
-    <!-- Phase 1: Smart Cataloging & Barcode Spine Labels -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="./js/isbn-service.js"></script>
-    <script src="./js/spine-labels.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Management Portal - Student Records</title>
+
+    <!-- SheetJS for Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- jsPDF + autoTable for PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="Nominal-roll.css">
+
+   
+</head>
+<body>
+
+<div class="loader" id="loader"></div>
+
+<div class="container">
+    <div class="header">
+        <h1>📊 Student Data Management Portal</h1>
+        <p>Import, Manage, Edit & Export Student Records</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('import')">📥 Import Data</button>
+        <button class="tab-btn" onclick="switchTab('manage')">👥 Manage Students</button>
+    </div>
+
+    <!-- IMPORT TAB -->
+    <div id="import" class="tab-content active">
+        <h2>📄 Upload Assessment Data</h2>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="classInput">Class / Section</label>
+                <input type="text" id="classInput" placeholder="e.g., Form 4A, Grade 6 Yellow">
+            </div>
+            <div class="control-group">
+                <label for="yearInput">Year</label>
+                <input type="number" id="yearInput" placeholder="e.g., 2026" value="2026">
+            </div>
+            <div class="control-group">
+                <label for="gradeInput">Grade Level *</label>
+                <select id="gradeInput" required>
+                    <option value="">Select Grade</option>
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Form 1">Form 1</option>
+                    <option value="Form 2">Form 2</option>
+                    <option value="Form 3">Form 3</option>
+                    <option value="Form 4">Form 4</option>
+                </select>
+            </div>
+        </div>
+
+        <textarea id="dataInput" placeholder="Paste tab-separated data here...\n\nExample:\nAssessment No.\tFull Name\tGender\tEntry No\tDoB\tPhone Number\tUPI\tStatus\nB000000000\tVALENCIA ACHIENG ODHIAMBO\tFemale\t000000000\t2015\t0712345678\tBK001\tActive"></textarea>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="processAndDownload()">💾 Parse & Download Excel</button>
+            <button class="btn-success" onclick="saveToDatabase()">🗄️ Save to Database</button>
+            <button class="btn-secondary" onclick="clearData()">🗑️ Clear Form</button>
+        </div>
+    </div>
+
+    <!-- MANAGE TAB -->
+    <div id="manage" class="tab-content">
+        <h2>👥 Manage Students</h2>
+
+        <!-- Statistics -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div style="background: linear-gradient(135deg, #667eea, #5a67d8); color: white; padding: 1.5rem; border-radius: 0.75rem;">
+                <div>Total Students</div>
+                <div id="statTotal" style="font-size: 2.5rem; font-weight: bold;">0</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 1.5rem; border-radius: 0.75rem;">
+                <div>Active</div>
+                <div id="statActive" style="font-size: 2.5rem; font-weight: bold;">0</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 1.5rem; border-radius: 0.75rem;">
+                <div>Male</div>
+                <div id="statMale" style="font-size: 2.5rem; font-weight: bold;">0</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #ec4899, #db2777); color: white; padding: 1.5rem; border-radius: 0.75rem;">
+                <div>Female</div>
+                <div id="statFemale" style="font-size: 2.5rem; font-weight: bold;">0</div>
+            </div>
+        </div>
+
+        <!-- Grade distribution -->
+        <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+            <h3 style="margin: 0 0 1rem 0;">Students by Grade</h3>
+            <div id="gradeStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;"></div>
+        </div>
+
+        <!-- Export & Selection controls -->
+        <div class="button-group" style="margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+            <button class="btn-success" onclick="exportToExcel()">📊 Export Excel</button>
+            <button class="btn-info" onclick="exportToPDF()">📄 Export PDF</button>
+            <button class="btn-warning" onclick="exportToWordSimple()">📝 Export Word (basic)</button>
+            <button id="selectModeBtn" class="btn-secondary" onclick="toggleSelectMode()">☑️ Select Mode</button>
+            <button id="deleteSelectedBtn" class="btn-danger" style="display:none;" onclick="deleteSelected()">🗑️ Delete Selected</button>
+            <button id="cancelSelectBtn" class="btn-secondary" style="display:none;" onclick="cancelSelectMode()">Cancel</button>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <input type="text" id="searchInput" placeholder="🔍 Search by name, assessment no, UPI, entry no..." 
+                   oninput="searchStudents()" style="width:100%; max-width:500px; padding:0.8rem;">
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="students-table" id="studentsTable">
+                <thead>
+                    <tr>
+                        <th id="checkboxHeader" style="display:none; width:40px;">
+                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                        </th>
+                        <th>Assessment No</th>
+                        <th>Full Name</th>
+                        <th>Grade</th>
+                        <th>Gender</th>
+                        <th>UPI</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsList">
+                    <tr><td colspan="8" style="text-align:center; padding:3rem; color:#64748b;">Loading students...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 2rem;">
+            <div>
+                <label>Show: </label>
+                <select id="itemsPerPage" onchange="changeItemsPerPage()">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="all">All</option>
+                </select>
+                <span style="margin-left: 1rem;">
+                    Showing <span id="showingRange">1-25</span> of <span id="totalItems">0</span>
+                </span>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button id="firstPageBtn" class="btn-secondary" onclick="goToPage(1)">First</button>
+                <button id="prevPageBtn" class="btn-secondary" onclick="goToPage(currentPage-1)">Prev</button>
+                <div id="pageNumbers" style="display: flex; gap: 0.5rem;"></div>
+                <button id="nextPageBtn" class="btn-secondary" onclick="goToPage(currentPage+1)">Next</button>
+                <button id="lastPageBtn" class="btn-secondary" onclick="goToPage(totalPages)">Last</button>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div class="modal" id="editModal">
+            <div class="modal-content">
+                <h2>✏️ Edit Student</h2>
+                <form id="editForm">
+                    <div class="control-group">
+                        <label>Assessment No</label>
+                        <input type="text" id="editAssessmentNo" readonly>
+                    </div>
+                    <div class="control-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="editFullName" required>
+                    </div>
+                    <div class="control-group">
+                        <label>Grade</label>
+                        <select id="editGrade" required>
+                            <option value="">Select Grade</option>
+                            <option value="Grade 1">Grade 1</option>
+                            <option value="Grade 2">Grade 2</option>
+                            <option value="Grade 3">Grade 3</option>
+                            <option value="Grade 4">Grade 4</option>
+                            <option value="Grade 5">Grade 5</option>
+                            <option value="Grade 6">Grade 6</option>
+                            <option value="Grade 7">Grade 7</option>
+                            <option value="Grade 8">Grade 8</option>
+                            <option value="Grade 9">Grade 9</option>
+                            <option value="Form 1">Form 1</option>
+                            <option value="Form 2">Form 2</option>
+                            <option value="Form 3">Form 3</option>
+                            <option value="Form 4">Form 4</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Gender</label>
+                        <select id="editGender">
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Entry No</label>
+                        <input type="text" id="editEntryNo">
+                    </div>
+                    <div class="control-group">
+                        <label>Date of Birth (Year)</label>
+                        <input type="text" id="editDOB" placeholder="e.g. 2010">
+                    </div>
+                    <div class="control-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="editPhone" placeholder="07XXXXXXXX">
+                    </div>
+                    <div class="control-group">
+                        <label>UPI</label>
+                        <input type="text" id="editUPI">
+                    </div>
+                    <div class="control-group">
+                        <label>Status</label>
+                        <select id="editStatus">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Transferred">Transferred</option>
+                            <option value="Graduated">Graduated</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group" style="margin-top: 2rem;">
+                        <button type="submit" class="btn-success">Save Changes</button>
+                        <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- JavaScript goes here (your full script from previous messages) -->
+
+<script>
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE",
+    authDomain: "kanyadet-school-admin.firebaseapp.com",
+    databaseURL: "https://kanyadet-school-admin-default-rtdb.firebaseio.com",
+    projectId: "kanyadet-school-admin",
+    storageBucket: "kanyadet-school-admin.firebasestorage.app",
+    messagingSenderId: "409708360032",
+    appId: "1:409708360032:web:a21d63e8cb5fa1ecabee05"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
+// Error boundary for Firebase init
+if (typeof firebase === 'undefined') {
+    console.error('Firebase not loaded');
+    showToast('Firebase failed to load—check internet/CDNs', 'error');
+}
+
+// Global state variables
+let allStudents = [];
+let filteredStudents = [];
+let currentEditStudentId = null;
+let selectMode = false;
+let selectedStudents = new Set();
+let currentPage = 1;
+let itemsPerPage = 25;
+let totalPages = 1;
+
+// ────────────────────────────────────────────────────────────────
+// UTILITY FUNCTIONS
+// ────────────────────────────────────────────────────────────────
+
+function showLoader(show) {
+    document.getElementById('loader').classList.toggle('active', show);
+}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    
+    const icons = {
+        success: '✓',
+        error: '✗',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+    
+    toast.innerHTML = `
+        <div class="toast-${type}">
+            <span class="toast-icon">${icons[type] || 'ℹ'}</span>
+            <span>${escapeHtml(message)}</span>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+    return container;
+}
+
+function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+// ────────────────────────────────────────────────────────────────
+// TAB SWITCHING
+// ────────────────────────────────────────────────────────────────
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    document.getElementById(tabName).classList.add('active');
+    
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.textContent.includes(tabName === 'import' ? 'Import' : 'Manage')) {
+            btn.classList.add('active');
+        }
+    });
+
+    if (tabName === 'manage') {
+        loadStudents();
+    }
+}
+
+// ────────────────────────────────────────────────────────────────
+// EXPORT FUNCTIONS
+// ────────────────────────────────────────────────────────────────
+
+function exportToExcel() {
+    if (filteredStudents.length === 0) {
+        showToast("No students to export!", "warning");
+        return;
+    }
+
+    showToast("Preparing Excel file...", "info");
+
+    const exportData = filteredStudents.map(student => ({
+        "Assessment No": student.assessmentNo || student.id || "",
+        "Full Name": student.name || "",
+        "Current Grade": student.CurentGrade || student.grade || "",
+        "Gender": student.Gender || "",
+        "UPI": student.upi || "",
+        "Entry No": student.EntryNo || "",
+        "DoB Year": student.DateOfBirth || "",
+        "Phone": student.FathersPhoneNumber || "",
+        "Status": student.Status || "Active"
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    
+    // Auto-fit columns
+    const colWidths = {};
+    exportData.forEach(row => {
+        Object.keys(row).forEach((key, idx) => {
+            const len = Math.max(
+                String(key).length,
+                String(row[key] || "").length
+            );
+            colWidths[idx] = Math.max(colWidths[idx] || 0, len);
+        });
+    });
+    worksheet['!cols'] = Object.values(colWidths).map(w => ({ wch: Math.min(w + 3, 60) }));
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
+
+    const filename = `Students_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(workbook, filename);
+
+    showToast(`Excel exported (${exportData.length} records)`, "success");
+}
+
+function exportToPDF() {
+    if (filteredStudents.length === 0) {
+        showToast("No students to export!", "warning");
+        return;
+    }
+
+    showToast("Generating PDF...", "info");
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Student List", 14, 20);
+    
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleDateString()} | Records: ${filteredStudents.length}`, 14, 28);
+
+    const tableColumn = [
+        "Assess.No", "Full Name", "Grade", "Gender", 
+        "UPI", "Status"
+    ];
+
+    const tableRows = filteredStudents.map(s => [
+        s.assessmentNo || s.id || "",
+        s.name || "",
+        s.CurentGrade || s.grade || "",
+        s.Gender || "",
+        s.upi || "",
+        s.Status || "Active"
+    ]);
+
+    doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 35,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [44, 62, 80] },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        columnStyles: {
+            0: { cellWidth: 35 },
+            1: { cellWidth: 60 },
+            2: { cellWidth: 30 },
+            5: { cellWidth: 30 }
+        }
+    });
+
+    const filename = `Students_List_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(filename);
+
+    showToast("PDF generated successfully!", "success");
+}
+
+function exportToWordSimple() {
+    if (filteredStudents.length === 0) {
+        showToast("No students to export!", "warning");
+        return;
+    }
+
+    const header = `
+        <h1>Student List</h1>
+        <p>Generated: ${new Date().toLocaleString()}</p>
+        <p>Total students: ${filteredStudents.length}</p>
+        <hr>
+    `;
+
+    const table = `
+        <table border="1" style="border-collapse: collapse; width:100%;">
+            <tr style="background:#2c3e50; color:white;">
+                <th>Assessment No</th>
+                <th>Full Name</th>
+                <th>Grade</th>
+                <th>Gender</th>
+                <th>UPI</th>
+                <th>Status</th>
+            </tr>
+            ${filteredStudents.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.assessmentNo || s.id || '')}</td>
+                    <td>${escapeHtml(s.name || '')}</td>
+                    <td>${escapeHtml(s.CurentGrade || s.grade || '')}</td>
+                    <td>${escapeHtml(s.Gender || '')}</td>
+                    <td>${escapeHtml(s.upi || '')}</td>
+                    <td>${escapeHtml(s.Status || 'Active')}</td>
+                </tr>
+            `).join('')}
+        </table>
+    `;
+
+    const content = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${header}${table}</body></html>`;
+
+    const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Students_${new Date().toISOString().slice(0,10)}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast("Basic Word file downloaded!", "success");
+}
+
+// ────────────────────────────────────────────────────────────────
+// DATA PROCESSING & DATABASE OPERATIONS
+// ────────────────────────────────────────────────────────────────
+
+function parseTabDelimitedData(text) {
+    const lines = text.trim().split('\n');
+    if (lines.length === 0) throw new Error('No data to process');
+    return lines.map(line => line.split('\t').map(cell => cell.trim()));
+}
+
+async function processAndDownload() {
+    const inputText = document.getElementById('dataInput').value.trim();
+    const classValue = document.getElementById('classInput').value.trim();
+    const yearValue = document.getElementById('yearInput').value.trim();
+    const gradeValue = document.getElementById('gradeInput').value.trim();
+
+    if (!inputText) {
+        showToast('Please paste your data!', 'error');
+        return;
+    }
+
+    const finalClass = classValue || 'Class';
+    const finalYear = yearValue || new Date().getFullYear();
+
+    try {
+        showLoader(true);
+        showToast('Processing...', 'info');
+
+        let data = parseTabDelimitedData(inputText);
+        data.splice(1, 0, ['Class: ' + finalClass, 'Year: ' + finalYear, '', '', '', '', '', '']);
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data);
+
+        const maxWidth = {};
+        data.forEach(row => {
+            row.forEach((cell, idx) => {
+                const len = cell ? cell.toString().length : 0;
+                maxWidth[idx] = Math.max(maxWidth[idx] || 0, len);
+            });
+        });
+
+        ws['!cols'] = Object.keys(maxWidth).map(idx => ({
+            wch: Math.min(maxWidth[idx] + 2, 50)
+        }));
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Data');
+        const fileName = `${finalClass}_${finalYear}_data_${new Date().toISOString().split('T')[0]}.xlsx`;
+        
+        XLSX.writeFile(wb, fileName);
+
+        showToast(`Downloaded ${fileName}!`, 'success');
+        showLoader(false);
+    } catch (error) {
+        console.error('Download error:', error);
+        showToast(`Error: ${error.message}`, 'error');
+        showLoader(false);
+    }
+}
+
+async function saveToDatabase() {
+    const inputText = document.getElementById('dataInput').value.trim();
+    const gradeValue = document.getElementById('gradeInput').value.trim();
+
+    if (!inputText) {
+        showToast('Please paste your data!', 'error');
+        return;
+    }
+
+    if (!gradeValue) {
+        showToast('Please select a grade!', 'error');
+        return;
+    }
+
+    try {
+        showLoader(true);
+        showToast('Saving to database...', 'info');
+
+        const data = parseTabDelimitedData(inputText);
+        const headers = data[0];
+
+        let saveCount = 0;
+        let skippedCount = 0;
+
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            if (!row || row.length === 0 || row.every(cell => !cell.trim())) {
+                skippedCount++;
+                continue;
+            }
+
+            const record = {};
+            headers.forEach((header, idx) => {
+                const key = header.toLowerCase()
+                    .replace(/\s+/g, '_')
+                    .replace(/\./g, '')
+                    .replace(/_+/g, '_')
+                    .replace(/^_|_$/g, '');
+                record[key] = row[idx] || '';
+            });
+
+            const assessmentNo = record.assessment_no || row[0] || '';
+            if (!assessmentNo || assessmentNo.trim() === '' || assessmentNo.toLowerCase().includes('assessment')) {
+                skippedCount++;
+                continue;
+            }
+
+            const studentRecord = {
+                assessmentNo: assessmentNo.trim(),
+                name: (record.full_name || row[1] || 'Unknown').trim(),
+                CurentGrade: gradeValue,
+                grade: gradeValue,
+                Gender: record.gender || '',
+                EntryNo: record.entry_no || '',
+                DateOfBirth: record.dob || '',
+                FathersPhoneNumber: record.phone_number || '',
+                upi: record.upi || '',
+                Status: record.status || 'Active',
+                timestamp: Date.now()
+            };
+
+            await db.ref(`students/${assessmentNo.trim()}`).set(studentRecord);
+            saveCount++;
+        }
+
+        showToast(`Saved ${saveCount} records! (Skipped ${skippedCount})`, 'success');
+        showLoader(false);
+        
+        if (confirm('Data saved! Clear form?')) {
+            document.getElementById('dataInput').value = '';
+            document.getElementById('gradeInput').value = '';
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        showToast(`Error: ${error.message}`, 'error');
+        showLoader(false);
+    }
+}
+
+// ────────────────────────────────────────────────────────────────
+// STUDENT MANAGEMENT FUNCTIONS
+// ────────────────────────────────────────────────────────────────
+
+async function loadStudents() {
+    try {
+        showLoader(true);
+        document.getElementById('studentsList').innerHTML = 
+            '<tr><td colspan="8" style="text-align:center">Loading...</td></tr>';
+
+        const snapshot = await db.ref('students').once('value');
+        allStudents = [];
+
+        if (snapshot.exists()) {
+            snapshot.forEach(child => {
+                allStudents.push({
+                    id: child.key,
+                    ...child.val()
+                });
+            });
+        }
+
+        filteredStudents = [...allStudents];
+        updateStats();
+        currentPage = 1;
+        renderStudentsTable(filteredStudents);
+        showLoader(false);
+    } catch (error) {
+        console.error('Load error:', error);
+        showToast('Error loading students', 'error');
+        showLoader(false);
+    }
+}
+
+function updateStats() {
+    const total = allStudents.length;
+    const active = allStudents.filter(s => s.Status === 'Active').length;
+    const male = allStudents.filter(s => s.Gender === 'Male').length;
+    const female = allStudents.filter(s => s.Gender === 'Female').length;
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statMale').textContent = male;
+    document.getElementById('statFemale').textContent = female;
+
+    // Grade distribution (you can expand this)
+    const gradeCount = {};
+    allStudents.forEach(s => {
+        const g = s.CurentGrade || s.grade || 'Unknown';
+        gradeCount[g] = (gradeCount[g] || 0) + 1;
+    });
+
+    const gradeHtml = Object.entries(gradeCount)
+        .map(([grade, count]) => `
+            <div style="padding:10px;background:#f8f9fa;border-radius:6px;">
+                <strong>${grade}</strong><br>
+                <span style="color:#6366f1;font-size:1.2rem">${count}</span>
+            </div>
+        `).join('');
+
+    document.getElementById('gradeStats').innerHTML = gradeHtml || '<div>No grades data</div>';
+}
+
+function renderStudentsTable(students) {
+    const tbody = document.getElementById('studentsList');
+    
+    if (students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#666">No students found</td></tr>';
+        return;
+    }
+
+    const perPage = itemsPerPage === 'all' ? students.length : Number(itemsPerPage);
+    totalPages = Math.ceil(students.length / perPage);
+    currentPage = Math.min(Math.max(currentPage, 1), totalPages || 1);
+
+    const start = (currentPage - 1) * perPage;
+    const end = start + perPage;
+    const pageStudents = students.slice(start, end);
+
+    tbody.innerHTML = pageStudents.map(student => `
+        <tr>
+            ${selectMode ? `<td><input type="checkbox" class="student-checkbox" 
+                ${selectedStudents.has(student.id) ? 'checked' : ''} 
+                onchange="toggleStudentSelection('${student.id}')"></td>` : ''}
+            <td>${escapeHtml(student.assessmentNo || student.id)}</td>
+            <td>${escapeHtml(student.name || '—')}</td>
+            <td>${escapeHtml(student.CurentGrade || student.grade || '—')}</td>
+            <td>${escapeHtml(student.Gender || '—')}</td>
+            <td>${escapeHtml(student.upi || '—')}</td>
+            <td><span style="padding:4px 8px;border-radius:4px;background:${
+                student.Status === 'Active' ? '#d1fae5' : '#fee2e2'
+            };color:${
+                student.Status === 'Active' ? '#065f46' : '#991b1b'
+            }">${escapeHtml(student.Status || 'Active')}</span></td>
+            <td>
+                <button class="btn-edit" onclick="openEditModal('${student.id}')">Edit</button>
+                <button class="btn-delete" onclick="deleteStudent('${student.id}')">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+
+    updatePaginationControls(students.length);
+}
+
+// ────────────────────────────────────────────────────────────────
+// SELECTION MODE & BULK OPERATIONS
+// ────────────────────────────────────────────────────────────────
+
+function toggleSelectMode() {
+    selectMode = !selectMode;
+    selectedStudents.clear();
+
+    const checkboxHeader = document.getElementById('checkboxHeader');
+    const selectModeBtn = document.getElementById('selectModeBtn');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const cancelSelectBtn = document.getElementById('cancelSelectBtn');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+    checkboxHeader.style.display = selectMode ? '' : 'none';
+    selectModeBtn.style.display = selectMode ? 'none' : '';
+    deleteSelectedBtn.style.display = selectMode ? '' : 'none';
+    cancelSelectBtn.style.display = selectMode ? '' : 'none';
+    selectAllCheckbox.checked = false;
+
+    renderStudentsTable(filteredStudents);
+}
+
+function cancelSelectMode() {
+    selectMode = false;
+    selectedStudents.clear();
+    toggleSelectMode(); // This will reset UI
+}
+
+function toggleSelectAll() {
+    const checked = document.getElementById('selectAllCheckbox').checked;
+
+    selectedStudents.clear();
+
+    if (checked) {
+        const start = (currentPage - 1) * (itemsPerPage === 'all' ? filteredStudents.length : itemsPerPage);
+        const end = itemsPerPage === 'all' ? filteredStudents.length : Math.min(start + itemsPerPage, filteredStudents.length);
+        const currentPageStudents = filteredStudents.slice(start, end);
+
+        currentPageStudents.forEach(student => {
+            selectedStudents.add(student.id);
+        });
+    }
+
+    document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+        checkbox.checked = checked;
+    });
+}
+
+function toggleStudentSelection(studentId) {
+    if (selectedStudents.has(studentId)) {
+        selectedStudents.delete(studentId);
+    } else {
+        selectedStudents.add(studentId);
+    }
+
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    selectAllCheckbox.checked = 
+        selectedStudents.size === filteredStudents.length && filteredStudents.length > 0;
+}
+
+// ────────────────────────────────────────────────────────────────
+// DELETE OPERATIONS
+// ────────────────────────────────────────────────────────────────
+
+async function deleteSelected() {
+    if (selectedStudents.size === 0) {
+        showToast('No students selected!', 'warning');
+        return;
+    }
+
+    if (!confirm(`Delete ${selectedStudents.size} selected student(s)? This cannot be undone.`)) {
+        return;
+    }
+
+    try {
+        showLoader(true);
+
+        const promises = Array.from(selectedStudents).map(id => 
+            db.ref(`students/${id}`).remove()
+        );
+
+        await Promise.all(promises);
+
+        showToast(`Successfully deleted ${selectedStudents.size} student(s)`, 'success');
+        selectedStudents.clear();
+        selectMode = false;
+        toggleSelectMode();
+        await loadStudents();
+    } catch (error) {
+        console.error('Bulk delete error:', error);
+        showToast('Error deleting selected students', 'error');
+    } finally {
+        showLoader(false);
+    }
+}
+
+async function deleteStudent(studentId) {
+    if (!confirm('Delete this student? This action cannot be undone.')) return;
+
+    try {
+        showLoader(true);
+        await db.ref(`students/${studentId}`).remove();
+        showToast('Student deleted successfully', 'success');
+        await loadStudents();
+    } catch (error) {
+        console.error('Delete error:', error);
+        showToast('Error deleting student', 'error');
+    } finally {
+        showLoader(false);
+    }
+}
+
+// ────────────────────────────────────────────────────────────────
+// EDIT MODAL
+// ────────────────────────────────────────────────────────────────
+
+function openEditModal(studentId) {
+    const student = allStudents.find(s => s.id === studentId);
+    if (!student) return;
+
+    currentEditStudentId = studentId;
+
+    // Fill form fields - adjust IDs according to your actual HTML
+    document.getElementById('editAssessmentNo').value = student.assessmentNo || student.id;
+    document.getElementById('editFullName').value = student.name || '';
+    document.getElementById('editGrade').value = student.CurentGrade || student.grade || '';
+    document.getElementById('editGender').value = student.Gender || '';
+    document.getElementById('editEntryNo').value = student.EntryNo || '';
+    document.getElementById('editDOB').value = student.DateOfBirth || '';
+    document.getElementById('editPhone').value = student.FathersPhoneNumber || '';
+    document.getElementById('editUPI').value = student.upi || '';
+    document.getElementById('editStatus').value = student.Status || 'Active';
+
+    document.getElementById('editModal').classList.add('active');
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+    currentEditStudentId = null;
+}
+
+// Handle form submission (you should have form with id="editForm")
+document.getElementById('editForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!currentEditStudentId) return;
+
+    try {
+        showLoader(true);
+
+        const updated = {
+            name: document.getElementById('editFullName').value.trim(),
+            CurentGrade: document.getElementById('editGrade').value,
+            grade: document.getElementById('editGrade').value,
+            Gender: document.getElementById('editGender').value,
+            EntryNo: document.getElementById('editEntryNo').value.trim(),
+            DateOfBirth: document.getElementById('editDOB').value.trim(),
+            FathersPhoneNumber: document.getElementById('editPhone').value.trim(),
+            upi: document.getElementById('editUPI').value.trim(),
+            Status: document.getElementById('editStatus').value,
+            lastModified: firebase.database.ServerValue.TIMESTAMP
+        };
+
+        await db.ref(`students/${currentEditStudentId}`).update(updated);
+
+        showToast('Student updated successfully', 'success');
+        closeEditModal();
+        await loadStudents();
+    } catch (error) {
+        console.error('Update error:', error);
+        showToast('Failed to update student', 'error');
+    } finally {
+        showLoader(false);
+    }
+});
+
+// ────────────────────────────────────────────────────────────────
+// SEARCH & PAGINATION
+// ────────────────────────────────────────────────────────────────
+
+function searchStudents() {
+    const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+    filteredStudents = allStudents.filter(student => {
+        return (
+            (student.name || '').toLowerCase().includes(query) ||
+            (student.assessmentNo || student.id || '').toLowerCase().includes(query) ||
+            (student.upi || '').toLowerCase().includes(query) ||
+            (student.EntryNo || '').toLowerCase().includes(query)
+        );
+    });
+
+    currentPage = 1;
+    renderStudentsTable(filteredStudents);
+}
+
+function changeItemsPerPage() {
+    const select = document.getElementById('itemsPerPage');
+    itemsPerPage = select.value === 'all' ? 'all' : parseInt(select.value);
+    currentPage = 1;
+    renderStudentsTable(filteredStudents);
+}
+
+function goToPage(page) {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    currentPage = page;
+    renderStudentsTable(filteredStudents);
+}
+
+function updatePaginationControls(totalItems) {
+    document.getElementById('totalItems').textContent = totalItems;
+
+    const perPage = itemsPerPage === 'all' ? totalItems : itemsPerPage;
+    const start = totalItems === 0 ? 0 : (currentPage - 1) * perPage + 1;
+    const end = Math.min(start + perPage - 1, totalItems);
+    document.getElementById('showingRange').textContent = totalItems === 0 ? '0-0' : `${start}-${end}`;
+
+    document.getElementById('firstPageBtn').disabled = currentPage === 1;
+    document.getElementById('prevPageBtn').disabled = currentPage === 1;
+    document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+    document.getElementById('lastPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+
+    const pageNumbersDiv = document.getElementById('pageNumbers');
+    pageNumbersDiv.innerHTML = '';
+
+    if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) {
+            pageNumbersDiv.appendChild(createPageButton(i));
+        }
+    } else {
+        pageNumbersDiv.appendChild(createPageButton(1));
+        if (currentPage > 3) pageNumbersDiv.appendChild(createEllipsis());
+
+        const start = Math.max(2, currentPage - 1);
+        const end = Math.min(totalPages - 1, currentPage + 1);
+
+        for (let i = start; i <= end; i++) {
+            pageNumbersDiv.appendChild(createPageButton(i));
+        }
+
+        if (currentPage < totalPages - 2) pageNumbersDiv.appendChild(createEllipsis());
+        pageNumbersDiv.appendChild(createPageButton(totalPages));
+    }
+}
+
+function createPageButton(page) {
+    const btn = document.createElement('button');
+    btn.textContent = page;
+    btn.className = page === currentPage ? 'btn-primary' : 'btn-secondary';
+    btn.style.padding = '8px 12px';
+    btn.style.minWidth = '40px';
+    btn.onclick = () => goToPage(page);
+    return btn;
+}
+
+function createEllipsis() {
+    const span = document.createElement('span');
+    span.textContent = '...';
+    span.style.padding = '8px 12px';
+    span.style.color = '#666';
+    return span;
+}
+
+// Optional: Close modal when clicking outside
+document.getElementById('editModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+});
+
+window.addEventListener('load', () => {
+    showLoader(true);
+    setTimeout(() => {
+        loadStudents();
+        showLoader(false);
+    }, 800);
+});
+</script>
+</body>
+</html>
