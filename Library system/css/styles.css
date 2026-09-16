@@ -931,6 +931,8 @@ body::before {
     overflow: hidden;
 }
 
+
+
 .logo::before {
     content: '';
     position: absolute;
@@ -1027,6 +1029,8 @@ header .navbar {
     background: rgba(255, 253, 248, 0.78) !important;
     box-shadow: 0 10px 26px rgba(20, 43, 64, 0.07) !important;
     backdrop-filter: blur(16px);
+    border: 5px solid red;
+    border-radius: 20px;
 }
 
 .topbar-context,
@@ -1339,10 +1343,30 @@ select,
     scrollbar-width: thin;
     scrollbar-color: rgba(31, 95, 139, 0.25) transparent;
     border-radius: 0 22px 22px 0;
-}
+} 
+
+/* .sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    background: linear-gradient(180deg, var(--sidebar-bg), rgba(255, 255, 255, .66));
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 600;
+    transition: var(--transition), transform .3s;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .2) inset;
+} */
 
 .sidebar::-webkit-scrollbar {
     width: 5px;
+    /* display: none; */
+
 }
 
 .sidebar::-webkit-scrollbar-thumb {
@@ -1494,7 +1518,6 @@ header.mb-4 {
 .library-topbar {
     min-height: 64px;
     padding: 0 !important;
-    border-radius: 0 !important;
     border: 0 !important;
     background: rgba(255, 253, 248, 0.92) !important;
     box-shadow: 0 1px 0 rgba(31, 95, 139, 0.13), 0 8px 22px rgba(20, 43, 64, 0.05) !important;
