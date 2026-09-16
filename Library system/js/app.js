@@ -1907,6 +1907,20 @@ class IssuanceManager {
         if (bulkReturnClassBtn) {
             bulkReturnClassBtn.addEventListener('click', () => this.handleBulkReturnByClass());
         }
+
+        this.setupStudentSearch();
+
+        const bookSelect = document.getElementById('issuanceBook');
+        const bookNoInput = document.getElementById('issuanceBookNo');
+        bookSelect?.addEventListener('change', async () => {
+            const bookId = bookSelect.value;
+            if (!bookId) return;
+            const bookSnap = await db.ref(`books/${bookId}`).once('value');
+            const b = bookSnap.val();
+            if (b && b.isbn && !bookNoInput?.value) {
+                bookNoInput.value = b.isbn;
+            }
+        });
     }
 
     // Returns every active/overdue loan for whichever grade is currently
@@ -2086,6 +2100,9 @@ class IssuanceManager {
         const modal = document.getElementById('issuanceModal');
         
         this.gradeSelect.value = '';
+        this.clearSelectedStudent();
+        const bookNoInput = document.getElementById('issuanceBookNo');
+        if (bookNoInput) bookNoInput.value = '';
         await this.populateStudentSelect();
         await this.populateBookSelect();
         
@@ -2100,63 +2117,230 @@ class IssuanceManager {
         bsModal.show();
     }
 
+    setupStudentSearch() {
+        const searchInput = document.getElementById('issuanceStudentSearch');
+        const resultsBox = document.getElementById('issuanceStudentSearchResults');
+        const selectedCard = document.getElementById('issuanceSelectedStudentCard');
+        const clearBtn = document.getElementById('clearStudentSearchBtn');
+        const studentSelect = document.getElementById('issuanceStudent');
+        const gradeSelect = document.getElementById('issuanceGrade');
+
+        if (!searchInput || !resultsBox) return;
+
+        const performSearch = () => {
+            const query = (searchInput.value || '').trim().toLowerCase();
+            if (query.length === 0) {
+                resultsBox.style.display = 'none';
+                resultsBox.innerHTML = '';
+                return;
+            }
+
+            const currentGrade = gradeSelect?.value || '';
+            const matches = [];
+
+            // Search across StudentsCache
+            const allStudents = (typeof StudentsCache !== 'undefined') ? StudentsCache.getAll() : new Map();
+            allStudents.forEach((student, studentId) => {
+                // If grade is currently selected, filter to that grade
+                if (currentGrade && student.grade && student.grade !== currentGrade) return;
+
+                const name = (student.name || '').toLowerCase();
+                const assess = (student.assessmentNo || '').toLowerCase();
+                const upi = (student.upi || '').toLowerCase();
+                const grade = (student.grade || '').toLowerCase();
+
+                if (name.includes(query) || assess.includes(query) || upi.includes(query) || grade.includes(query)) {
+                    matches.push({ id: studentId, ...student });
+                }
+            });
+
+            if (matches.length === 0) {
+                resultsBox.innerHTML = `
+                    <div class="list-group-item text-muted small py-3 text-center">
+                        <i class="bi bi-person-x me-1"></i> No student found matching "<strong>${query.replace(/</g, '&lt;')}</strong>"
+                    </div>
+                `;
+                resultsBox.style.display = 'block';
+                return;
+            }
+
+            // Limit to top 8 matches for responsiveness
+            const topMatches = matches.slice(0, 8);
+            resultsBox.innerHTML = topMatches.map(s => {
+                const initials = (s.name || '').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'ST';
+                return `
+                    <button type="button" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-2 px-3 student-search-item" data-id="${s.id}">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 12px; flex-shrink: 0;">
+                                ${initials}
+                            </div>
+                            <div class="text-start">
+                                <strong class="d-block text-dark" style="font-size: 13px;">${s.name}</strong>
+                                <small class="text-muted">${s.grade || 'No Grade'} &bull; Assess: ${s.assessmentNo || '—'} &bull; UPI: ${s.upi || '—'}</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary">Select</span>
+                    </button>
+                `;
+            }).join('');
+
+            resultsBox.style.display = 'block';
+
+            // Wire click handlers on items
+            resultsBox.querySelectorAll('.student-search-item').forEach(btn => {
+                btn.onclick = () => {
+                    const sid = btn.getAttribute('data-id');
+                    const student = allStudents.get(sid);
+                    if (student) {
+                        this.selectStudent(sid, student);
+                    }
+                };
+            });
+        };
+
+        searchInput.addEventListener('input', performSearch);
+        searchInput.addEventListener('focus', performSearch);
+
+        // Hide dropdown on click outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+                resultsBox.style.display = 'none';
+            }
+        });
+
+        clearBtn?.addEventListener('click', () => {
+            this.clearSelectedStudent();
+        });
+    }
+
+    selectStudent(studentId, student) {
+        const studentSelect = document.getElementById('issuanceStudent');
+        const gradeSelect = document.getElementById('issuanceGrade');
+        const searchInput = document.getElementById('issuanceStudentSearch');
+        const resultsBox = document.getElementById('issuanceStudentSearchResults');
+        const selectedCard = document.getElementById('issuanceSelectedStudentCard');
+        const clearBtn = document.getElementById('clearStudentSearchBtn');
+
+        // Set hidden select value for form submission
+        studentSelect.innerHTML = `<option value="${studentId}" selected>${student.name}</option>`;
+        studentSelect.value = studentId;
+
+        // Auto-select the student's grade
+        if (student.grade && gradeSelect) {
+            gradeSelect.value = student.grade;
+            this.populateBookSelect(student.grade);
+        }
+
+        // Update selected card preview
+        const initials = (student.name || '').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'ST';
+        const avatarEl = document.getElementById('selectedStudentAvatar');
+        const nameEl = document.getElementById('selectedStudentName');
+        const metaEl = document.getElementById('selectedStudentMeta');
+
+        if (avatarEl) avatarEl.textContent = initials;
+        if (nameEl) nameEl.textContent = student.name;
+        if (metaEl) metaEl.textContent = `${student.grade || 'N/A'} · Assessment No: ${student.assessmentNo || 'N/A'} · UPI: ${student.upi || '—'}`;
+
+        if (selectedCard) selectedCard.style.display = 'flex';
+        if (clearBtn) clearBtn.style.display = 'block';
+        if (searchInput) searchInput.value = student.name;
+        if (resultsBox) resultsBox.style.display = 'none';
+    }
+
+    clearSelectedStudent() {
+        const studentSelect = document.getElementById('issuanceStudent');
+        const searchInput = document.getElementById('issuanceStudentSearch');
+        const resultsBox = document.getElementById('issuanceStudentSearchResults');
+        const selectedCard = document.getElementById('issuanceSelectedStudentCard');
+        const clearBtn = document.getElementById('clearStudentSearchBtn');
+
+        if (studentSelect) {
+            studentSelect.innerHTML = '<option value="">Select Student</option>';
+            studentSelect.value = '';
+        }
+        if (searchInput) searchInput.value = '';
+        if (selectedCard) selectedCard.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'none';
+        if (resultsBox) resultsBox.style.display = 'none';
+    }
+
     async populateStudentSelect() {
         const select = document.getElementById('issuanceStudent');
-        select.innerHTML = '<option value="">Select Student</option>';
-        select.disabled = true;
+        if (select) {
+            select.innerHTML = '<option value="">Select Student</option>';
+            select.disabled = false;
+        }
     }
 
     async populateStudentsByGrade() {
         const grade = this.gradeSelect.value;
-        this.studentSelect.innerHTML = '<option value="">Select Student</option>';
+        const searchInput = document.getElementById('issuanceStudentSearch');
         
-        if (!grade) {
-            this.studentSelect.disabled = true;
-            return;
+        // Re-populate book select prioritized for this grade
+        this.populateBookSelect(grade);
+
+        // If a student was already selected and belongs to this grade, keep it
+        const currentStudentId = this.studentSelect?.value;
+        if (currentStudentId && typeof StudentsCache !== 'undefined') {
+            const currentStudent = StudentsCache.get(currentStudentId);
+            if (currentStudent && currentStudent.grade === grade) {
+                return;
+            }
         }
 
-        try {
-            // Filter the already-synced cache instead of issuing a fresh
-            // Firebase query every time this dropdown is opened.
-            const matches = [];
-            StudentsCache.getAll().forEach((student, studentId) => {
-                if (student.grade === grade) {
-                    matches.push([studentId, student]);
-                }
-            });
-
-            if (matches.length > 0) {
-                matches.forEach(([studentId, student]) => {
-                    const option = document.createElement('option');
-                    option.value = studentId;
-                    option.textContent = `${student.name} (${student.assessmentNo || 'No Assessment No'})`;
-                    this.studentSelect.appendChild(option);
-                });
-                this.studentSelect.disabled = false;
-            } else {
-                this.studentSelect.innerHTML = '<option value="">No students in this grade</option>';
-                this.studentSelect.disabled = true;
-            }
-        } catch (error) {
-            console.error('Error loading students:', error);
-            this.studentSelect.innerHTML = '<option value="">Error loading students</option>';
-            this.studentSelect.disabled = true;
+        // Clear if not matching
+        this.clearSelectedStudent();
+        if (searchInput && grade) {
+            searchInput.placeholder = `Search students in ${grade}...`;
+        } else if (searchInput) {
+            searchInput.placeholder = 'Type student name, assessment no, or UPI...';
         }
     }
 
-    async populateBookSelect() {
+    async populateBookSelect(targetGrade = '') {
         const select = document.getElementById('issuanceBook');
+        if (!select) return;
         select.innerHTML = '<option value="">Select Book</option>';
         const snapshot = await db.ref('books').once('value');
+        
+        const matchingGradeBooks = [];
+        const otherBooks = [];
+
         snapshot.forEach((childSnapshot) => {
             const book = childSnapshot.val();
             if (book.available > 0) {
-                const option = document.createElement('option');
-                option.value = childSnapshot.key;
-                option.textContent = `${book.title} (${book.available} available)`;
-                select.appendChild(option);
+                const item = { id: childSnapshot.key, ...book };
+                if (targetGrade && book.grade === targetGrade) {
+                    matchingGradeBooks.push(item);
+                } else {
+                    otherBooks.push(item);
+                }
             }
         });
+
+        if (matchingGradeBooks.length > 0) {
+            const optGroup = document.createElement('optgroup');
+            optGroup.label = `⭐ Recommended for ${targetGrade}`;
+            matchingGradeBooks.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.id;
+                opt.textContent = `${b.title} (${b.grade || 'All'} · ${b.available} avail)`;
+                optGroup.appendChild(opt);
+            });
+            select.appendChild(optGroup);
+        }
+
+        if (otherBooks.length > 0) {
+            const optGroup = document.createElement('optgroup');
+            optGroup.label = matchingGradeBooks.length > 0 ? 'Other Available Books' : 'All Available Books';
+            otherBooks.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.id;
+                opt.textContent = `${b.title} (${b.grade || 'All'} · ${b.available} avail)`;
+                optGroup.appendChild(opt);
+            });
+            select.appendChild(optGroup);
+        }
     }
 
     async handleIssuanceSubmit(e) {
@@ -2166,11 +2350,12 @@ class IssuanceManager {
             
             const studentId = document.getElementById('issuanceStudent').value;
             const bookId = document.getElementById('issuanceBook').value;
+            const bookNo = (document.getElementById('issuanceBookNo')?.value || '').trim();
             const issueDate = document.getElementById('issueDate').value;
             const returnDate = document.getElementById('returnDate').value;
 
-            if (!studentId || !bookId || !issueDate || !returnDate) {
-                throw new Error('Please fill in all required fields');
+            if (!studentId || !bookId || !bookNo || !issueDate || !returnDate) {
+                throw new Error('Please fill in all required fields including Book Number');
             }
 
             const [student, bookSnapshot] = await Promise.all([
@@ -2192,9 +2377,11 @@ class IssuanceManager {
                 studentId,
                 studentName: student.name,
                 grade: student.grade,
-                ULI: student.ULI,
+                ULI: student.ULI || student.upi || '',
                 bookId,
                 bookTitle: book.title,
+                bookNo: bookNo,
+                isbn: bookNo || book.isbn || '',
                 issueDate,
                 returnDate,
                 status: 'active',
@@ -2214,7 +2401,7 @@ class IssuanceManager {
                     bookId,
                     studentId,
                     issuanceId: newIssuanceRef.key,
-                    description: `Issued "${book.title}" to ${student.name}`,
+                    description: `Issued "${book.title}" (${bookNo}) to ${student.name}`,
                     timestamp: Date.now()
                 })
             ]);
@@ -2223,12 +2410,13 @@ class IssuanceManager {
             const bsModal = bootstrap.Modal.getInstance(modalElement);
             bsModal.hide();
             this.issuanceForm.reset();
+            this.clearSelectedStudent();
 
             await Swal.fire({
-                icon: 'warning',
-                title: 'Success',
-                text: 'Book issued successfully',
-                timer: 1500,
+                icon: 'success',
+                title: 'Book Issued Successfully! 📕',
+                html: `Issued <strong>${book.title}</strong><br>Copy No: <strong class="badge bg-primary fs-6">${bookNo}</strong><br>To: <strong>${student.name}</strong> (${student.grade})`,
+                timer: 2000,
                 showConfirmButton: false
             });
 
@@ -2267,6 +2455,7 @@ class IssuanceManager {
             const returnDate = new Date(issuance.returnDate);
             const isOverdue = returnDate < currentDate && issuance.status === 'active';
             const displayStatus = isOverdue ? 'overdue' : issuance.status;
+            const bookNumber = issuance.bookNo || issuance.isbn || 'N/A';
 
             const card = document.createElement('div');
             card.className = 'grid-item issuance-card';
@@ -2277,8 +2466,8 @@ class IssuanceManager {
                 <div class="book-cover-container"></div>
                 </div>
                 <div class="issuance-info">
-                    <h3>${student.name} | ${student.assessmentNo}</h3>
-                    <h3>${student.grade || 'Not assigned'}: ${issuance.isbn || 'N/A'}</h3>
+                    <h3>${student.name} | ${student.assessmentNo || student.upi || 'N/A'}</h3>
+                    <h3>${student.grade || 'Not assigned'}: <span class="badge bg-dark">${bookNumber}</span></h3>
                     <p>Issue Date: ${issuance.issueDate}</p>
                     <p>Return Date: ${issuance.returnDate}</p>
                     <p class="status ${displayStatus}">Status: ${displayStatus}</p>

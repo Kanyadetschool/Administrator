@@ -1215,8 +1215,8 @@
                 <input type="text" id="studentName" placeholder="Student Name" required>
                 <label for="Assessment No">Assessment Number</label>
                 <input type="text" id="Assessment No" placeholder="Assessment Number" required>
-                <label for="upi">ULI Number</label>
-                <input type="text" id="upi" placeholder="UPI Number" required>
+                <label for="ULI">ULI Number</label>
+                <input type="text" id="ULI" placeholder="ULI Number" required>
                 <label for="phoneNumber">Phone Number</label>
                 <input type="tel" id="phoneNumber" placeholder="Phone Number">
                 <button type="submit" class="primary-btn">Save</button>
@@ -1234,6 +1234,37 @@
             </div>
             <div class="modal-body">
                 <form id="issuanceForm">
+                    <!-- Instant Student Search Component -->
+                    <div class="mb-3 position-relative">
+                        <label for="issuanceStudentSearch" class="form-label fw-bold">Search Student <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="issuanceStudentSearch" class="form-control" placeholder="Type student name, assessment no, or UPI..." autocomplete="off">
+                            <button type="button" class="btn btn-outline-secondary" id="clearStudentSearchBtn" style="display:none;" title="Clear selection">✕</button>
+                        </div>
+                        <small class="text-muted d-block mt-1">Start typing name or assessment number to instantly find and auto-populate student info.</small>
+
+                        <!-- Autocomplete Suggestions Dropdown -->
+                        <div id="issuanceStudentSearchResults" class="list-group position-absolute w-100 shadow-lg border mt-1" style="max-height: 240px; overflow-y: auto; z-index: 1070; display: none; background: #ffffff; border-radius: 8px;"></div>
+
+                        <!-- Selected Student Badge Card -->
+                        <div id="issuanceSelectedStudentCard" class="p-2 border rounded mt-2 bg-light d-flex align-items-center justify-content-between" style="display: none;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" id="selectedStudentAvatar" style="width: 38px; height: 38px; font-size: 14px;"></div>
+                                <div>
+                                    <strong id="selectedStudentName" class="d-block text-dark" style="font-size: 13.5px;"></strong>
+                                    <small class="text-muted" id="selectedStudentMeta"></small>
+                                </div>
+                            </div>
+                            <span class="badge bg-success-subtle text-success border border-success">Selected ✅</span>
+                        </div>
+
+                        <!-- Hidden select element to maintain full backward compatibility with existing submit logic -->
+                        <select id="issuanceStudent" class="form-select d-none" required>
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+
                     <div class="mb-3">
                         <label for="issuanceGrade" class="form-label">Grade</label>
                         <select id="issuanceGrade" class="form-select" required>
@@ -1250,16 +1281,18 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="issuanceStudent" class="form-label">Student</label>
-                        <select id="issuanceStudent" class="form-select" required disabled>
-                            <option value="">Select Student</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="issuanceBook" class="form-label">Book</label>
+                        <label for="issuanceBook" class="form-label fw-bold">Select Book <span class="text-danger">*</span></label>
                         <select id="issuanceBook" class="form-select" required>
                             <option value="">Select Book</option>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="issuanceBookNo" class="form-label fw-bold">Book Number / Specific Copy Identifier <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                            <input type="text" id="issuanceBookNo" class="form-control" placeholder="e.g. AGRIC-001, MATH-024, or scan barcode" required autocomplete="off">
+                        </div>
+                        <small class="text-muted">Enter or scan the specific book copy identifier (e.g. AGRIC-001) printed on the spine label.</small>
                     </div>
                     <div class="mb-3">
                         <label for="issueDate" class="form-label">Issue Date</label>
