@@ -151,7 +151,10 @@ class FinesManager {
             if (issuanceSnapshot.exists()) {
                 issuanceSnapshot.forEach(child => {
                     const issuance = child.val();
-                    if (issuance.status === 'active' || issuance.status === 'overdue') {
+                    // Only 'active' is ever actually stored (see note in
+                    // calculateOverdueFines) — an overdue loan is still
+                    // status 'active' until returned or written off.
+                    if (issuance.status === 'active') {
                         const option = document.createElement('option');
                         option.value = child.key;
                         option.textContent = `${issuance.bookTitle} (Due: ${issuance.returnDate})`;
@@ -251,9 +254,17 @@ class FinesManager {
             const dailyRate = this.fineSettings.dailyFineRate || 0.50;
             const maxFine = this.fineSettings.maxFineAmount || 10.00;
 
+            // NOTE: 'overdue' is never actually written to issuance.status in
+            // this database — app.js only computes it on the fly for display
+            // (`isOverdue ? 'overdue' : issuance.status`). The real stored
+            // values are 'active' / 'returned' / 'lost'. Querying for the
+            // literal string 'overdue' here always returned zero records, so
+            // this button silently calculated nothing. Fetch 'active'
+            // issuances instead and let the existing days-overdue/grace-
+            // period check below do the actual overdue filtering.
             const issuanceSnapshot = await this.db.ref('issuance')
                 .orderByChild('status')
-                .equalTo('overdue')
+                .equalTo('active')
                 .once('value');
 
             let calculatedCount = 0;

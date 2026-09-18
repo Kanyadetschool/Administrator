@@ -135,7 +135,7 @@
 </head>
 <body>
   <!-- AUTH GATE — this page's only job is to authenticate an Advanced Admin
-       and hand off to index.html. No dashboard markup lives here. -->
+       and hand off to library.html. No dashboard markup lives here. -->
   <div id="auth-gate">
 
     <!-- ── DESKTOP SIDE PANEL — hidden on mobile, fills the left side on wide screens ── -->
@@ -254,11 +254,11 @@
     const savedTheme = localStorage.getItem('aap_theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
 
-    /* ── Redirect target — go back to wherever the user was headed, else index.html ── */
+    /* ── Redirect target — go back to wherever the user was headed, else library.html ── */
     const params = new URLSearchParams(location.search);
-    const redirectTo = params.get('redirect') || 'index.html';
+    const redirectTo = params.get('redirect') || 'library.html';
 
-    /* ── Reason banner — index.html sends people back here with a reason ── */
+    /* ── Reason banner — library.html sends people back here with a reason ── */
     (function showReasonNotice(){
       const reason = params.get('reason');
       if(!reason) return;
@@ -289,7 +289,7 @@
       const data = snap.data() || {};
       if(data.disabled === true) throw new Error('Account disabled by an administrator.');
       // Advancedadmin keeps full access everywhere; Librarian is scoped by
-      // index.html's own gate to just the library pages, but both need to
+      // library.html's own gate to just the library pages, but both need to
       // get past this login screen to have a session at all.
       return data.Advancedadmin === true || data.Librarian === true;
     }

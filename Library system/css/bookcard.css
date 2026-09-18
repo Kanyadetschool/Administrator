@@ -353,7 +353,7 @@
 
 @media (max-width: 480px) {
     .grid-list {
-        grid-template-columns: 1fr 1fr;
+         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     }
 
     .book-card .card-actions {
