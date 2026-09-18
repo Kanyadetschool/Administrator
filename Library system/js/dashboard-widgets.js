@@ -127,13 +127,11 @@ class DashboardWidgetsManager {
 
         container.innerHTML = rows.slice(0, 8).map((r) => {
             const dueLabel = r.daysUntilDue === 0 ? 'Due today' : `Due in ${r.daysUntilDue}d`;
-            return `
-                <div class="leaderboard-item due-item">
-                    <span class="leaderboard-name">
-                        ${r.studentName} <small class="text-muted">(${r.grade})</small><br>
-                        <small class="text-muted">${r.bookTitle}</small>
-                    </span>
-                    <span class="leaderboard-count">${dueLabel}</span>
+            // Staff loans (see staff-issuance.js) have no studentId and no
+            // way to receive a message — messages/ is only ever read by
+            // student-portal.js — so skip the dead-end Remind button for them.
+            const isStaff = r.grade === 'Staff';
+            const remindBtn = isStaff ? '' : `
                     <button type="button" class="btn btn-sm btn-outline-primary due-remind-btn"
                         data-student-id="${r.studentId}"
                         data-student-name="${r.studentName}"
@@ -141,7 +139,15 @@ class DashboardWidgetsManager {
                         data-book-title="${r.bookTitle}"
                         data-return-date="${r.returnDate}">
                         Remind
-                    </button>
+                    </button>`;
+            return `
+                <div class="leaderboard-item due-item">
+                    <span class="leaderboard-name">
+                        ${r.studentName} <small class="text-muted">(${r.grade})</small><br>
+                        <small class="text-muted">${r.bookTitle}</small>
+                    </span>
+                    <span class="leaderboard-count">${dueLabel}</span>
+                    ${remindBtn}
                 </div>
             `;
         }).join('');

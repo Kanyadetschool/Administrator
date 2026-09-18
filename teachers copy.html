@@ -5300,67 +5300,29 @@ function wfAvatarHtml(m){
   if(url) return `<img class="chat-av" style="object-fit:cover;" src="${esc4(url)}" alt="${esc4(m.name||'')}" onerror="window._teacherAvatarFallback(this, ${JSON.stringify(m.name||'')})">`;
   return `<div class="chat-av">${esc4(initials(m.name||''))}</div>`;
 }
-// Feature 5 (notify-on-update): we can't hook the admin's write directly from
-// this read-only portal, so instead we remember the last amount/status this
-// teacher saw for each period (localStorage) and flag it if it changed since
-// their last visit — no changes needed in lunch.html/index.html for this.
-function wfLastSeenKey4(uidOrName){ return `wf_lastseen_${uidOrName||'anon'}`; }
-function wfLoadLastSeen4(who){
-  try{ return JSON.parse(localStorage.getItem(wfLastSeenKey4(who))||'{}'); }catch(e){ return {}; }
-}
-function wfSaveLastSeen4(who, data){
-  try{ localStorage.setItem(wfLastSeenKey4(who), JSON.stringify(data)); }catch(e){}
-}
-
 VR4['welfare'] = async function(area){
   area.innerHTML = `
     <div class="sec-hdr"><h2>Staff Welfare Fund</h2>
-      <div class="actions-row">
-        <button class="btn btn-outline btn-sm" id="wf-export-btn">⬇️ Export My Statement</button>
-        <select class="f-select" id="wf-period" style="width:170px;"></select>
-      </div>
+      <div class="actions-row"><select class="f-select" id="wf-period" style="width:170px;"></select></div>
     </div>
     <div style="font-size:11.5px;color:var(--text3);margin-bottom:14px;">Lunch contributions are recorded by the admin in the Lunch Contribution Manager — this is a read-only view of the fund for this period. Your row is highlighted.</div>
-    <div id="wf-update-banner"></div>
-    <div id="wf-balance-banner"></div>
-    <div class="kpi-grid" id="wf-kpis" style="display:none;">
-      <div class="kpi-card"><div class="kpi-label">Fund Collected</div><div class="kpi-value" id="wf-kpi-collected" style="color:var(--green)">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">Staff Paid</div><div class="kpi-value" id="wf-kpi-paid" style="color:var(--green)">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">Staff Owing</div><div class="kpi-value" id="wf-kpi-owing" style="color:var(--red)">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">Collection Rate</div><div class="kpi-value" id="wf-kpi-rate">—</div></div>
-    </div>
-    <div id="wf-list"><div class="empty-state"><div class="es-icon">⏳</div></div></div>
-    <div class="card" id="wf-history-card" style="margin-top:16px;display:none;">
-      <div class="card-hdr"><div class="card-title">My Contribution History</div></div>
-      <div style="height:220px;"><canvas id="wf-history-chart"></canvas></div>
-    </div>`;
+    <div id="wf-list"><div class="empty-state"><div class="es-icon">⏳</div></div></div>`;
 
   const periodSel = area.querySelector('#wf-period');
   const listEl = area.querySelector('#wf-list');
-  const updateBanner = area.querySelector('#wf-update-banner');
-  const balanceBanner = area.querySelector('#wf-balance-banner');
-  const kpiGrid = area.querySelector('#wf-kpis');
-  const exportBtn = area.querySelector('#wf-export-btn');
-  const historyCard = area.querySelector('#wf-history-card');
   if(!periodSel || !listEl){ return; }
 
-  const myName = (window._profile||{}).name || '';
-  const myNorm = normName4(myName);
-  const myWho = (typeof myUid === 'function' ? myUid() : null) || myName;
-
-  let lunchData = {};
+  const myNorm = normName4((window._profile||{}).name || '');
   let periods = [];
   try{
     const snap = await rtGet(ref(rtdb, 'lunch'));
     if(snap.exists()){
-      lunchData = snap.val();
-      periods = Object.keys(lunchData).filter(k=>k!=='_meta').sort((a,b)=>parsePeriod4(b)-parsePeriod4(a));
+      periods = Object.keys(snap.val()).filter(k=>k!=='_meta').sort((a,b)=>parsePeriod4(b)-parsePeriod4(a));
     }
   }catch(e){}
   if(!periods.length){
     listEl.innerHTML = `<div class="empty-state"><div class="es-icon">🤝</div><div class="es-sub">No welfare fund periods found yet.</div></div>`;
     periodSel.style.display = 'none';
-    exportBtn.style.display = 'none';
     return;
   }
   periodSel.innerHTML = periods.map(p=>`<option value="${esc4(p)}">${esc4(periodTitle4(p))}</option>`).join('');
@@ -5369,132 +5331,18 @@ VR4['welfare'] = async function(area){
     (!latest || parsePeriod4(k) > parsePeriod4(latest)) ? k : latest, '') || periods[0];
   periodSel.value = defaultPeriod;
 
-  // ── Feature 1: My Contribution History across every period ──
-  // Wrapped defensively: a Chart.js failure here must not take down the
-  // whole Welfare view (which is what "section not loading" turned out to be).
-  function renderHistoryChart(){
-    try{
-      const chronological = periods.slice().sort((a,b)=>parsePeriod4(a)-parsePeriod4(b));
-      const points = chronological.map(p=>{
-        const membersObj = (lunchData[p]||{}).members || {};
-        const std = Number((lunchData[p]||{}).std || 0) || 620;
-        const mine = Object.values(membersObj).find(m => namesMatch4(m.name, myNorm));
-        const amount = mine ? Number(mine.amount||0) : null;
-        const cStd = mine ? (Number(mine.customStd||0)||std) : std;
-        const balance = mine ? Math.max(0, cStd - amount) : null;
-        const status = mine ? (amount===0 ? 'Nil' : amount>=cStd ? 'Paid' : 'Partial') : 'No record';
-        return { label: periodTitle4(p), amount, std: cStd, balance, status, paidAt: mine ? (mine.paidAt||'—') : '—' };
-      });
-      const hasAny = points.some(p=>p.amount!==null);
-      if(!hasAny || typeof Chart === 'undefined'){ historyCard.style.display = 'none'; return; }
-      historyCard.style.display = '';
-      const ctx = historyCard.querySelector('#wf-history-chart');
-      if(!ctx) return;
-      if(window.__wfHistoryChart){ try{ window.__wfHistoryChart.destroy(); }catch(e){} window.__wfHistoryChart = null; }
-      window.__wfHistoryChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: points.map(p=>p.label),
-          datasets: [
-            { label: 'My Contribution (KES)', data: points.map(p=>p.amount), backgroundColor: 'rgba(41,128,185,.55)' },
-            { label: 'Standard (KES)', data: points.map(p=>p.std), type: 'line', borderColor: 'rgba(230,126,34,.9)', borderDash: [5,4], pointRadius: 0, fill: false },
-          ]
-        },
-        options: {
-          responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } },
-          plugins: {
-            tooltip: {
-              callbacks: {
-                // Default label per dataset (keeps "My Contribution (KES): 620" / "Standard (KES): 620")
-                label(ctx2){
-                  const v = ctx2.parsed.y;
-                  return `${ctx2.dataset.label}: ${v===null||v===undefined ? '—' : 'KES ' + Number(v).toLocaleString()}`;
-                },
-                // Extra detail appended once per hovered bar/point: status, balance, paid date
-                afterLabel(ctx2){
-                  try{
-                    const p = points[ctx2.dataIndex];
-                    if(!p || p.amount===null) return '';
-                    const lines = [`Status: ${p.status}`];
-                    if(p.balance>0) lines.push(`Balance: KES ${p.balance.toLocaleString()}`);
-                    lines.push(`Paid on: ${p.paidAt}`);
-                    return lines;
-                  }catch(e){ return ''; }
-                }
-              }
-            }
-          }
-        }
-      });
-    }catch(e){
-      console.error('Welfare history chart failed to render:', e);
-      historyCard.style.display = 'none';
-    }
-  }
-  renderHistoryChart();
-
-  // ── Feature 3: Fund-wide snapshot for the selected period ──
-  function renderFundKpis(period){
-    const membersObj = (lunchData[period]||{}).members || {};
-    const list = Object.values(membersObj);
-    const std = Number((lunchData[period]||{}).std || 0) || 620;
-    if(!list.length){ kpiGrid.style.display = 'none'; return; }
-    let collected = 0, paid = 0, owing = 0;
-    list.forEach(m=>{
-      const amt = Number(m.amount||0);
-      const cStd = Number(m.customStd||0) || std;
-      collected += amt;
-      if(amt >= cStd) paid++; else owing++;
-    });
-    const targetTotal = list.length * std;
-    const rate = targetTotal>0 ? Math.round((collected/targetTotal)*100) : 0;
-    kpiGrid.style.display = '';
-    area.querySelector('#wf-kpi-collected').textContent = `KES ${collected.toLocaleString()}`;
-    area.querySelector('#wf-kpi-paid').textContent = String(paid);
-    area.querySelector('#wf-kpi-owing').textContent = String(owing);
-    area.querySelector('#wf-kpi-rate').textContent = `${rate}%`;
-  }
-
-  // ── Feature 4: Balance reminder banner for the teacher's own row ──
-  function renderBalanceBanner(mine, std){
-    if(!mine){ balanceBanner.innerHTML = ''; return; }
-    const amt = Number(mine.amount||0);
-    const cStd = Number(mine.customStd||0) || std;
-    const owed = Math.max(0, cStd - amt);
-    if(owed <= 0){ balanceBanner.innerHTML = ''; return; }
-    balanceBanner.innerHTML = `<div class="card" style="border-color:rgba(230,126,34,.4);background:rgba(230,126,34,.08);margin-bottom:14px;">
-      <div style="font-size:12.5px;color:var(--text2);"><strong>You have an outstanding welfare balance of KES ${owed.toLocaleString()}</strong> for this period. Contact the admin if you believe this is incorrect.</div>
-    </div>`;
-  }
-
-  // ── Feature 5: flag any change since the teacher's last visit ──
-  function renderUpdateNotice(period, mine){
-    const seen = wfLoadLastSeen4(myWho);
-    const key = period;
-    const prev = seen[key];
-    const current = mine ? { amount: Number(mine.amount||0), paidAt: mine.paidAt||'' } : null;
-    if(current && prev && (prev.amount !== current.amount || prev.paidAt !== current.paidAt)){
-      updateBanner.innerHTML = `<div class="card" style="border-color:rgba(39,174,96,.4);background:rgba(39,174,96,.08);margin-bottom:14px;">
-        <div style="font-size:12.5px;color:var(--text2);">🤝 Your welfare contribution for ${esc4(periodTitle4(period))} was updated by the admin — now <strong>KES ${current.amount.toLocaleString()}</strong>.</div>
-      </div>`;
-      toast('Your welfare contribution was updated.', 'info');
-    } else {
-      updateBanner.innerHTML = '';
-    }
-    if(current){ seen[key] = current; wfSaveLastSeen4(myWho, seen); }
-  }
-
-  function loadPeriod(period){
+  async function loadPeriod(period){
     listEl.innerHTML = `<div class="empty-state"><div class="es-icon">⏳</div></div>`;
     try{
-      const std = Number((lunchData[period]||{}).std || 0) || 620;
-      const membersObj = (lunchData[period]||{}).members || {};
-      const list = Object.values(membersObj);
+      const [membersSnap, stdSnap] = await Promise.all([
+        rtGet(ref(rtdb, `lunch/${period}/members`)),
+        rtGet(ref(rtdb, `lunch/${period}/std`)),
+      ]);
+      const std = stdSnap.exists() ? Number(stdSnap.val()) : 620;
+      const list = membersSnap.exists() ? Object.values(membersSnap.val()) : [];
       const periodLabel = periodTitle4(period);
-      renderFundKpis(period);
       if(!list.length){
         listEl.innerHTML = `<div class="empty-state"><div class="es-icon">🤝</div><div class="es-sub">No members recorded for ${esc4(periodLabel)} yet.</div></div>`;
-        balanceBanner.innerHTML = ''; updateBanner.innerHTML = '';
         return;
       }
       // Sort so the viewer's own row surfaces first, then alphabetically by name.
@@ -5504,8 +5352,6 @@ VR4['welfare'] = async function(area){
         return String(a.name||'').localeCompare(String(b.name||''));
       });
       const mine = rows.find(m => namesMatch4(m.name, myNorm)) || null;
-      renderBalanceBanner(mine, std);
-      renderUpdateNotice(period, mine);
       const banner = mine
         ? ''
         : `<div style="font-size:11.5px;color:var(--text3);margin-bottom:10px;">We couldn't match a row to your name automatically — check the table below yourself. Ask your admin if your record looks missing or wrong.</div>`;
@@ -5531,29 +5377,8 @@ VR4['welfare'] = async function(area){
         <div style="font-size:11px;color:var(--text3);margin-top:10px;">Read-only — recorded by the admin in the Lunch Contribution Manager for ${esc4(periodLabel)}.</div>`;
     }catch(e){ listEl.innerHTML = `<div class="empty-state"><div class="es-sub">${esc4(e.message)}</div></div>`; }
   }
-
-  // ── Feature 2: Export my own statement across all periods as CSV ──
-  exportBtn?.addEventListener('click', ()=>{
-    const chronological = periods.slice().sort((a,b)=>parsePeriod4(a)-parsePeriod4(b));
-    const rows = [];
-    chronological.forEach(p=>{
-      const membersObj = (lunchData[p]||{}).members || {};
-      const std = Number((lunchData[p]||{}).std || 0) || 620;
-      const mine = Object.values(membersObj).find(m => namesMatch4(m.name, myNorm));
-      if(!mine) return;
-      const amt = Number(mine.amount||0);
-      const cStd = Number(mine.customStd||0) || std;
-      const status = amt===0 ? 'Nil' : amt>=cStd ? 'Paid' : 'Partial';
-      rows.push([periodTitle4(p), amt, cStd, status, mine.paidAt||'']);
-    });
-    if(!rows.length){ toast('No contribution records found for you yet.', 'warning'); return; }
-    exportRowsToCsv(`welfare-statement-${(myName||'me').replace(/\s+/g,'_')}.csv`,
-      ['Period','Contribution (KES)','Standard (KES)','Status','Paid On'], rows);
-    toast('Statement exported.', 'success');
-  });
-
   periodSel.addEventListener('change', ()=>loadPeriod(periodSel.value));
-  loadPeriod(defaultPeriod);
+  await loadPeriod(defaultPeriod);
 };
 
 /* ══════════════════════════════════════════

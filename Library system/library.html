@@ -252,6 +252,7 @@
     
 </head>
 <body>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="appToastContainer" style="z-index: 1200;"></div>
     <div class="back-to-top-wrap hidden" id="backToTopWrap" aria-hidden="true">
         <svg class="back-to-top-ring" viewBox="0 0 56 56" aria-hidden="true">
             <circle cx="28" cy="28" r="25"></circle>
@@ -484,6 +485,9 @@
             </button>
             <button id="runOverdueScanBtn" class="btn btn-outline-danger" title="Flag overdue books now and message students who haven't been reminded in the last 3 days">
                 <i class="bi bi-alarm"></i> Run Overdue Scan
+            </button>
+            <button id="issueToStaffBtn" class="btn btn-outline-primary" title="Issue a book to a teacher/staff account instead of a student">
+                <i class="bi bi-person-workspace"></i> Issue to Staff
             </button>
         </div>
     </div>
@@ -718,6 +722,7 @@
                 <option value="Grade 7">Grade 7</option>
                 <option value="Grade 8">Grade 8</option>
                 <option value="Grade 9">Grade 9</option>
+                <option value="Staff">Staff</option>
             </select>
             <select id="issuanceStatusFilter" class="form-select" style="max-width: 200px;">
                 <option value="">All Status</option>
@@ -1854,6 +1859,56 @@
         </div>
     </div>
 
+    <!-- Issue to Staff Modal -->
+    <div class="modal fade" id="issueToStaffModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Issue Book to Staff</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="staffIssuanceAlert" class="alert alert-danger d-none" role="alert"></div>
+                    <form id="issueToStaffForm">
+                        <div class="mb-3">
+                            <label for="siBook" class="form-label">Book <span class="text-danger">*</span></label>
+                            <select id="siBook" class="form-select" required>
+                                <option value="">Select book</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="siTeacher" class="form-label">Staff Member <span class="text-danger">*</span></label>
+                            <select id="siTeacher" class="form-select" required>
+                                <option value="">Select staff member</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="siBookNo" class="form-label">Book/Copy Number <span class="text-danger">*</span></label>
+                            <input type="text" id="siBookNo" class="form-control" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label for="siIssueDate" class="form-label">Issue Date <span class="text-danger">*</span></label>
+                                <input type="date" id="siIssueDate" class="form-control" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label for="siReturnDate" class="form-label">Return By <span class="text-danger">*</span></label>
+                                <input type="date" id="siReturnDate" class="form-control" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitStaffIssuanceBtn">
+                        <span class="spinner-border spinner-border-sm d-none" id="siSpinner"></span>
+                        Issue Book
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Payment Modal -->
     <div class="modal fade" id="paymentModal" tabindex="-1">
         <div class="modal-dialog">
@@ -2205,6 +2260,27 @@
         }
       })();
 
+      /* Lightweight success/error notifications — a plain Bootstrap Toast
+         instead of SweetAlert2, for any script on this page to reuse
+         (window.showAppToast). Bootstrap's JS is already loaded here. */
+      window.showAppToast = function (type, message) {
+        const container = document.getElementById('appToastContainer');
+        if (!container) { alert(message); return; }
+        const bg = type === 'error' ? 'text-bg-danger' : type === 'warning' ? 'text-bg-warning' : 'text-bg-success';
+        const el = document.createElement('div');
+        el.className = `toast align-items-center ${bg} border-0`;
+        el.setAttribute('role', 'alert');
+        el.innerHTML = `
+          <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+          </div>`;
+        container.appendChild(el);
+        const toast = new bootstrap.Toast(el, { delay: 3200 });
+        toast.show();
+        el.addEventListener('hidden.bs.toast', () => el.remove());
+      };
+
       /* Mobile sidebar: open/close via the topbar toggle, and close on
          backdrop click, outside click, or Escape. */
       (function(){
@@ -2374,6 +2450,7 @@
     <script src="./js/book-requests.js"></script>
     <script src="./js/fines-management.js"></script>
     <script src="./js/dashboard-widgets.js"></script>
+    <script src="./js/staff-issuance.js"></script>
     <script src="./js/book-condition.js"></script>
     <script src="./js/advanced-analytics.js"></script>
     <script src="./js/student-Cards.js"></script>
