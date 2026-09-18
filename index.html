@@ -603,6 +603,7 @@
         <div class="nav-item" data-view="attendance"><span class="nav-icon">🧾</span>Attendance</div>
         <div class="nav-item" data-view="results"><span class="nav-icon">📝</span>Results</div>
         <div class="nav-item" data-view="welfare"><span class="nav-icon">🍽️</span>Welfare <span class="nav-badge orange" id="nav-welfare">—</span></div>
+        <div class="nav-item" data-view="library"><span class="nav-icon">📚</span>Library <span class="nav-badge red" id="nav-library">0</span></div>
         <div class="nav-item" data-view="settings"><span class="nav-icon">⚙️</span>Settings</div>
       </div>
 
@@ -693,6 +694,26 @@
               <div class="kpi-label">Lunch Shortfall</div>
               <div class="kpi-value" id="kpi-pending">—</div>
               <div class="kpi-meta"><span class="kpi-variant warn" id="kpi-welfare-meta">Welfare</span></div>
+            </div>
+            <div class="kpi-card" id="kpi-library-card" style="display:none;cursor:pointer;" data-goto="library">
+              <div class="kpi-label">Library Catalogue</div>
+              <div class="kpi-value" id="kpi-library">&mdash;</div>
+              <div class="kpi-meta"><span class="kpi-variant" id="kpi-library-meta">&mdash; copies</span></div>
+            </div>
+            <div class="kpi-card" id="kpi-textbook-card" style="display:none;cursor:pointer;" data-goto="library">
+              <div class="kpi-label">Books on Loan</div>
+              <div class="kpi-value" id="kpi-textbook">&mdash;</div>
+              <div class="kpi-meta"><span class="kpi-variant" id="kpi-textbook-meta">&mdash; overdue</span></div>
+            </div>
+            <div class="kpi-card" id="kpi-textbook-fines-card" style="display:none;cursor:pointer;" data-goto="library">
+              <div class="kpi-label">Library Fines Owing</div>
+              <div class="kpi-value" id="kpi-textbook-fines">&mdash;</div>
+              <div class="kpi-meta"><span class="kpi-variant" id="kpi-textbook-fines-meta">&mdash; students</span></div>
+            </div>
+            <div class="kpi-card" id="kpi-book-requests-card" style="display:none;cursor:pointer;" data-goto="library">
+              <div class="kpi-label">Book Requests</div>
+              <div class="kpi-value" id="kpi-book-requests">&mdash;</div>
+              <div class="kpi-meta"><span class="kpi-variant" id="kpi-book-requests-meta">pending</span></div>
             </div>
           </div>
 
@@ -825,6 +846,9 @@
               <h2>Admission Requests</h2>
               <div class="sec-sub">Requests submitted by parents through the Parent Portal.</div>
             </div>
+            <div class="actions-row">
+              <button class="btn btn-outline btn-sm" id="adm-export-btn">Export CSV</button>
+            </div>
           </div>
           <div class="kpi-grid" style="margin-bottom:16px">
             <div class="kpi-card" data-adm-stat="pending"><div class="kpi-label">Pending</div><div class="kpi-value" id="adm-kpi-pending">—</div></div>
@@ -900,7 +924,8 @@
             </div>
             <div class="actions-row">
               <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/teachers.html" target="_blank">Teachers Portal ↗</a>
-              <a class="btn btn-outline btn-sm" href=/Results/Results-portal.html" target="_blank">Manage in Results Portal ↗</a>
+              <a class="btn btn-outline btn-sm" href="/Results/Results-portal.html" target="_blank">Manage in Results Portal ↗</a>
+              <button class="btn btn-outline btn-sm" id="tch-export-btn">Export CSV</button>
             </div>
           </div>
           <div class="kpi-grid" style="margin-bottom:16px">
@@ -939,6 +964,7 @@
             <div class="actions-row">
               <button class="btn btn-green btn-sm" id="att-save-btn">💾 Save Attendance</button>
               <button class="btn btn-outline btn-sm" id="att-mark-all-p">Mark All Present</button>
+              <button class="btn btn-outline btn-sm" id="att-export-btn">Export CSV</button>
             </div>
           </div>
           <div class="kpi-grid" style="margin-bottom:16px">
@@ -1117,6 +1143,136 @@
               </table>
             </div>
           </div>
+        </section>
+
+        <!-- LIBRARY & TEXTBOOKS -->
+        <section class="view" id="library">
+          <div class="sec-hdr">
+            <div>
+              <h2>Library &amp; Textbooks</h2>
+              <div class="sec-sub">Read-only oversight of the Library system — loans, overdues, fines, stock and requests.</div>
+            </div>
+            <div class="actions-row">
+              <span id="lib-state" class="muted" style="font-size:11px;font-weight:700;align-self:center;"></span>
+              <button class="btn btn-outline btn-sm" id="lib-refresh-btn">🔄 Refresh</button>
+              <button class="btn btn-outline btn-sm" id="lib-export-btn">Export CSV</button>
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/Library system/library.html" target="_blank">Open Library System ↗</a>
+            </div>
+          </div>
+          <div class="kpi-grid" style="margin-bottom:16px">
+            <div class="kpi-card"><div class="kpi-label">Titles</div><div class="kpi-value" id="lib-titles">&mdash;</div><div class="kpi-meta"><span class="kpi-variant" id="lib-copies">&mdash; copies</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">On Loan</div><div class="kpi-value" id="lib-onloan">&mdash;</div><div class="kpi-meta"><span class="kpi-variant" id="lib-available">&mdash; free</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">Overdue</div><div class="kpi-value" id="lib-overdue">&mdash;</div><div class="kpi-meta"><span class="kpi-variant warn" id="lib-overdue-meta">&mdash;</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">Lost (unrecovered)</div><div class="kpi-value" id="lib-lost">&mdash;</div><div class="kpi-meta"><span class="kpi-variant warn" id="lib-replacement">&mdash;</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">Fines Outstanding</div><div class="kpi-value" id="lib-fines">&mdash;</div><div class="kpi-meta"><span class="kpi-variant" id="lib-fines-meta">&mdash; students</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">Reservations Waiting</div><div class="kpi-value" id="lib-waiting">&mdash;</div><div class="kpi-meta"><span class="kpi-variant" id="lib-requests-meta">&mdash; requests</span></div></div>
+          </div>
+          <div class="panel">
+            <div class="toolbar" style="flex-wrap:wrap;gap:8px;">
+              <input class="search-input" id="lib-search" placeholder="Search student, book, grade…" style="flex:1;min-width:180px;" />
+              <select class="sel" id="lib-grade-filter"><option value="">All Grades</option></select>
+              <select class="sel" id="lib-status-filter">
+                <option value="all">All active loans</option>
+                <option value="overdue">Overdue only</option>
+                <option value="due7">Due within 7 days</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Student</th><th>Grade</th><th>Book</th><th>Issued</th><th>Due</th><th>Status</th></tr></thead>
+                <tbody id="lib-tbody"><tr><td colspan="6" class="muted">Loading library data…</td></tr></tbody>
+              </table>
+            </div>
+            <div class="muted" style="margin-top:10px" id="lib-count-label"></div>
+            <div class="pager" id="lib-pager"></div>
+          </div>
+          <div class="cards-grid">
+            <div class="panel">
+              <div class="panel-title">Class Library Health</div>
+              <div class="table-wrap">
+                <table style="min-width:0">
+                  <thead><tr><th>Grade</th><th>Out</th><th>Overdue</th></tr></thead>
+                  <tbody id="lib-grade-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Low Stock <span class="muted" style="font-size:11px;font-weight:600;">(1 or fewer copies free)</span></div>
+              <div id="lib-lowstock"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Pending Book Requests</div>
+              <div id="lib-requests"></div>
+            </div>
+          </div>
+
+          <div class="sec-hdr" style="margin-top:22px">
+            <div>
+              <h2 style="font-size:16px">Library Analytics</h2>
+              <div class="sec-sub">Derived from the full issuance history, not just what is out today.</div>
+            </div>
+            <div class="actions-row">
+              <button class="btn btn-outline btn-sm" id="lib-deadstock-export-btn">Export Dead Stock CSV</button>
+            </div>
+          </div>
+          <div class="kpi-grid" style="margin-bottom:16px">
+            <div class="kpi-card"><div class="kpi-label">Stock Utilisation</div><div class="kpi-value" id="lib-util">&mdash;</div><div class="kpi-meta"><span class="kpi-variant" id="lib-util-meta">&mdash;</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">On-time Return Rate</div><div class="kpi-value" id="lib-ontime">&mdash;</div><div class="kpi-meta"><span class="kpi-variant" id="lib-ontime-meta">&mdash;</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">Avg Loan Length</div><div class="kpi-value" id="lib-avgdays">&mdash;</div><div class="kpi-meta"><span class="kpi-variant" id="lib-avgdays-meta">&mdash;</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">Borrower Reach</div><div class="kpi-value" id="lib-reach">&mdash;</div><div class="kpi-meta"><span class="kpi-variant" id="lib-reach-meta">&mdash;</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">Dead Stock</div><div class="kpi-value" id="lib-dead">&mdash;</div><div class="kpi-meta"><span class="kpi-variant" id="lib-dead-meta">never issued</span></div></div>
+            <div class="kpi-card"><div class="kpi-label">Needs Attention</div><div class="kpi-value" id="lib-attention">&mdash;</div><div class="kpi-meta"><span class="kpi-variant warn" id="lib-attention-meta">fair or damaged</span></div></div>
+          </div>
+          <div class="cards-grid">
+            <div class="panel" style="grid-column:1/-1">
+              <div class="panel-title">Circulation Flow <span class="muted" style="font-size:11px;font-weight:600;">(issued vs returned, last 12 months)</span></div>
+              <div style="height:260px"><canvas id="lib-flow-chart"></canvas></div>
+            </div>
+          </div>
+          <div class="cards-grid">
+            <div class="panel">
+              <div class="panel-title">Loans by Grade</div>
+              <div style="height:240px"><canvas id="lib-grade-chart"></canvas></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Catalogue Condition</div>
+              <div style="height:240px"><canvas id="lib-condition-chart"></canvas></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Categories on Loan</div>
+              <div style="height:240px"><canvas id="lib-category-chart"></canvas></div>
+            </div>
+          </div>
+          <div class="cards-grid">
+            <div class="panel">
+              <div class="panel-title">Most Borrowed Titles <span class="muted" style="font-size:11px;font-weight:600;">(all time)</span></div>
+              <div id="lib-top-titles"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Most Active Borrowers</div>
+              <div id="lib-top-borrowers"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Reservation Queues</div>
+              <div id="lib-top-reserved"></div>
+            </div>
+          </div>
+          <div class="cards-grid">
+            <div class="panel">
+              <div class="panel-title">Dead Stock <span class="muted" style="font-size:11px;font-weight:600;">(titles never issued)</span></div>
+              <div id="lib-deadstock"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Needs Attention <span class="muted" style="font-size:11px;font-weight:600;">(fair, damaged or retired)</span></div>
+              <div id="lib-attention-list"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Jump into the Library System</div>
+              <div class="muted" style="font-size:11px;margin-bottom:10px;">Deep links need js/library-deeplink.js added to library.html — without it each card opens the library dashboard.</div>
+              <div id="lib-quicklinks" class="links-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;"></div>
+            </div>
+          </div>
+
         </section>
 
         <!-- SETTINGS -->
@@ -1304,8 +1460,24 @@
               <h2>Feedback</h2>
               <div class="sec-sub">Issues from the teacher landing page and inquiries from the Parent Portal.</div>
             </div>
+            <div class="actions-row">
+              <button class="btn btn-outline btn-sm" id="feedback-export-btn">Export CSV</button>
+            </div>
           </div>
           <div class="panel">
+            <div class="toolbar" style="margin-bottom:14px">
+              <input class="search-input" id="feedback-search" placeholder="Search name, email, message…" />
+              <select class="sel" id="feedback-source-filter">
+                <option value="">All sources</option>
+                <option value="parent_inquiry">Parent</option>
+                <option value="landing_feedback">Teacher</option>
+              </select>
+              <select class="sel" id="feedback-status-filter">
+                <option value="">All statuses</option>
+                <option value="open">Open</option>
+                <option value="answered">Answered</option>
+              </select>
+            </div>
             <div class="activity-list" id="feedback-list">
               <div class="empty-state"><div class="es-icon">🐞</div><div class="es-title">No feedback yet</div></div>
             </div>
@@ -1322,6 +1494,7 @@
             </div>
             <div class="actions-row">
               <button class="btn btn-blue btn-sm" id="cal-new-btn">+ New Event</button>
+              <button class="btn btn-outline btn-sm" id="cal-export-btn">Export CSV</button>
             </div>
           </div>
 
@@ -1382,12 +1555,16 @@
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
               <a class="link-card" href="https://kanyadet-school-admin.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
-              <a class="link-card" href="./Report-Cards/Admin-Individual-student-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Admin Student Progress</div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
-              <a class="link-card" href="./updater.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Bulk Updater</div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
-              <a class="link-card" href="./cleaner.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Cleaner Updater</div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Admin-Active -Students.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Admin Student Progress </div><div class="lc-desc"> View detailed students progres across all classes  </div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Library</div><div class="lc-desc">Get advanced learning resources instantly  </div></a>
-
+              <a class="link-card" href="./Report-Cards/Admin-Individual-student-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Admin Student Progress</div><div class="lc-desc">View detailed student progress across all classes.</div></a>
+              <a class="link-card" href="./updater.html" target="_blank"><div class="lc-icon">🛠️</div><div class="lc-title">Bulk Updater</div><div class="lc-desc">Bulk-edit student records across the database in one pass.</div></a>
+              <a class="link-card" href="./cleaner.html" target="_blank"><div class="lc-icon">🧹</div><div class="lc-title">Cleaner Updater</div><div class="lc-desc">Find and clean up duplicate or malformed student records.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html" target="_blank"><div class="lc-icon">📚</div><div class="lc-title">Library</div><div class="lc-desc">Book catalog, loans, and reservations admin.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#advancedAnalytics" target="_blank"><div class="lc-icon">📈</div><div class="lc-title">Library Analytics</div><div class="lc-desc">The library system's own deep reporting: trends, per-book history, exports.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#classLibrary" target="_blank"><div class="lc-icon">🏫</div><div class="lc-title">Class Library</div><div class="lc-desc">Per-grade issuance, class-kit bulk issue and end-of-term stream clearance.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#fines" target="_blank"><div class="lc-icon">💰</div><div class="lc-title">Library Fines</div><div class="lc-desc">Outstanding fines, payments and waivers.</div></a>
+              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#bookCondition" target="_blank"><div class="lc-icon">🔍</div><div class="lc-title">Book Condition</div><div class="lc-desc">Condition grading, damaged/retired stock and replacement costs.</div></a>
+              <a class="link-card" href="https://kanyadet-school-portal.web.app/student-portal.html" target="_blank"><div class="lc-icon">📗</div><div class="lc-title">Textbook Portal</div><div class="lc-desc">Textbook issuance and return tracking (verify link before use).</div></a>
+              <a class="link-card" href="https://kanyadetschool.github.io/" target="_blank"><div class="lc-icon">🗓️</div><div class="lc-title">Timetable</div><div class="lc-desc">School-wide timetable index (verify link before use).</div></a>
 
             </div>
           </div>
@@ -1488,6 +1665,14 @@
       lunchStd: 620,
       lunchMembers: [],
       lunchPeriods: [],
+      libBooks: [],
+      libIssuance: [],
+      libFines: [],
+      libRequests: [],
+      libReservations: {},
+      libLoadError: null,
+      libPage: 1,
+      libCharts: {},
       attendance: {},
       attDraft: {},
       stuPage: 1,
@@ -1509,6 +1694,7 @@
       attendance: ['Attendance', 'Daily compliance tracking'],
       results: ['Results', 'Exam performance oversight'],
       welfare: ['Welfare', 'Lunch contributions & shortfall'],
+      library: ['Library & Textbooks', 'Loans, overdues, fines, stock & requests'],
       settings: ['Settings', 'Portal preferences'],
       audit: ['Audit Trail', 'System activity log'],
       messages: ['Announcements', 'School-wide broadcasts'],
@@ -2564,6 +2750,7 @@
       if(view === 'attendance') renderAttendance();
       if(view === 'messages') renderAnnouncements();
       if(view === 'welfare') renderWelfare();
+      if(view === 'library') renderLibrary();
       if(view === 'audit') renderAudit();
       if(view === 'calendar') renderCalendar();
     }
@@ -2997,6 +3184,20 @@
         });
       });
     }
+    $('cal-export-btn')?.addEventListener('click', () => {
+      const rows = filteredCalendarEvents();
+      if(!rows.length){ toast('No events to export', 'warn'); return; }
+      const header = ['Title','Type','Date','Notes'];
+      const csv = [header.join(',')].concat(rows.map(ev => {
+        const meta = CAL_TYPE_META[ev.type] || CAL_TYPE_META.event;
+        return [ev.title||'Untitled', meta.label, ev.date||'—', ev.notes||''].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+      })).join('\n');
+      const a7 = document.createElement('a');
+      a7.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a7.download = `calendar-events-${todayISO()}.csv`;
+      a7.click();
+      toast('CSV exported', 'ok');
+    });
     $('cal-new-btn')?.addEventListener('click', () => $('cal-form').style.display = 'block');
     $('cal-cancel')?.addEventListener('click', () => $('cal-form').style.display = 'none');
     $('cal-submit')?.addEventListener('click', async () => {
@@ -3088,6 +3289,581 @@
       const data = snap.exists() ? snap.val() : {};
       if(cacheChanged('lunch', data)) computeLunch(data);
     }
+    // ── Library rollup (Dashboard + Library view) ────────────────────
+    // The Library system ("Library system/library.html") and the Textbook
+    // Issuance system are the SAME app — confirmed against its own source
+    // (js/app.js, js/functions.js, js/dashboard-widgets.js), not guessed.
+    // It is compat-SDK Realtime Database only, keyed off top-level nodes:
+    //
+    //   books/{id}      title, author, isbn, category, grade, subject,
+    //                   quantity, available, lost, replacementCost
+    //                   (app.js saveBook + recalculateBookAvailability, which
+    //                   defines available = quantity - lost - active loans)
+    //   issuance/{id}   studentId, studentName, grade, bookId, bookTitle,
+    //                   issueDate, returnDate, status 'active'|'returned'|
+    //                   'lost', recoveryStatus (true once a lost copy is
+    //                   recovered — app.js line ~2746)
+    //   fines/{id}      amount, amountPaid, amountOutstanding, status
+    //                   ('waived' excluded — dashboard-widgets.js wireFines)
+    //   bookRequests/{} status 'pending'|'approved'|…, priority 'urgent'|…
+    //   reservations/{bookId}/{key}  one child per student in the queue
+    //
+    // Same Firebase project as this app: that app reads the roster from
+    // artifacts/{appId}/students (app.js line 21) — the exact node this
+    // page reads. The previous rollup here queried Firestore collections
+    // `libraryBooks` / `libraryTransactions`, which do not exist anywhere in
+    // that codebase; that is why its tile never once appeared. Removed.
+
+    function libDueInfo(returnDate, today){
+      if(!returnDate) return { daysUntil: null, daysOverdue: 0 };
+      const d = new Date(returnDate);
+      if(isNaN(d)) return { daysUntil: null, daysOverdue: 0 };
+      d.setHours(0,0,0,0);
+      const daysUntil = Math.round((d - today) / 86400000);
+      return { daysUntil, daysOverdue: daysUntil < 0 ? -daysUntil : 0 };
+    }
+
+    function libraryStats(){
+      const today = new Date(); today.setHours(0,0,0,0);
+      const books = state.libBooks;
+      const issuance = state.libIssuance;
+
+      const bookById = {};
+      books.forEach(b => { bookById[b.id] = b; });
+
+      const loans = issuance.filter(i => i.status === 'active').map(i => ({
+        ...i, ...libDueInfo(i.returnDate, today)
+      }));
+      const overdue = loans.filter(l => l.daysOverdue > 0);
+
+      // "Lost" mirrors the Library system's own Lost Books view: a lost
+      // issuance stops counting once recoveryStatus is set.
+      const lost = issuance.filter(i => i.status === 'lost' && !i.recoveryStatus);
+      const replacementAtRisk = lost.reduce(
+        (s, i) => s + Number(bookById[i.bookId]?.replacementCost || 0), 0);
+
+      const copies = books.reduce((s,b) => s + (Number(b.quantity)||0), 0);
+      const available = books.reduce((s,b) => s + (Number(b.available)||0), 0);
+
+      const outstanding = state.libFines
+        .filter(f => f.status !== 'waived')
+        .map(f => Number(f.amountOutstanding ?? ((Number(f.amount)||0) - (Number(f.amountPaid)||0))))
+        .filter(n => n > 0);
+
+      const byGrade = {};
+      loans.forEach(l => {
+        const g = l.grade || 'Ungraded';
+        if(!byGrade[g]) byGrade[g] = { out:0, overdue:0 };
+        byGrade[g].out++;
+        if(l.daysOverdue > 0) byGrade[g].overdue++;
+      });
+
+      const lowStock = books
+        .filter(b => (Number(b.quantity)||0) > 0 && (Number(b.available)||0) <= 1)
+        .sort((a,b) => (Number(a.available)||0) - (Number(b.available)||0));
+
+      const waiting = Object.values(state.libReservations || {})
+        .reduce((s,q) => s + Object.keys(q || {}).length, 0);
+
+      const pendingRequests = state.libRequests.filter(r => r.status === 'pending');
+
+      return {
+        books, loans, overdue, lost, replacementAtRisk, copies, available,
+        finesTotal: outstanding.reduce((a,b) => a+b, 0),
+        finesCount: outstanding.length,
+        byGrade, lowStock, waiting, pendingRequests, bookById,
+        analytics: libraryAnalytics(books, issuance, bookById, loans, copies, available),
+        hasData: !!(books.length || issuance.length)
+      };
+    }
+
+    // Everything below is derived from the full issuance history, not just
+    // the currently-active set — that history is the only place the
+    // school's actual reading behaviour lives, and nothing in the suite has
+    // ever surfaced it.
+    function libMonthKey(value){
+      if(!value) return null;
+      const d = new Date(value);
+      if(isNaN(d)) return null;
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function libraryAnalytics(books, issuance, bookById, loans, copies, available){
+      const returnedAt = (i) => i.actualReturnDate || i.returnedDate || null;
+
+      // — Return discipline —
+      const returned = issuance.filter(i => i.status === 'returned');
+      let durationSum = 0, durationCount = 0, onTime = 0, judged = 0;
+      returned.forEach(i => {
+        const back = returnedAt(i);
+        if(i.issueDate && back){
+          const d = (new Date(back) - new Date(i.issueDate)) / 86400000;
+          if(isFinite(d) && d >= 0){ durationSum += d; durationCount++; }
+        }
+        if(back && i.returnDate){
+          const late = new Date(back) > new Date(i.returnDate + 'T23:59:59');
+          judged++;
+          if(!late) onTime++;
+        }
+      });
+
+      // — Reach — distinct borrowers need no roster join; only the
+      // coverage percentage does, and that uses the enrolled count this page
+      // already derives, so a studentId/Assessment-No mismatch can't produce
+      // a wrong name, only a slightly wrong denominator.
+      const everBorrowed = new Set(issuance.map(i => i.studentId).filter(Boolean));
+      const activeBorrowers = new Set(loans.map(l => l.studentId).filter(Boolean));
+      const enrolled = state.students.length;
+
+      // — Dead stock — titles with no issuance record of any status.
+      const everIssued = new Set(issuance.map(i => i.bookId).filter(Boolean));
+      const deadStock = books.filter(b => !everIssued.has(b.id));
+
+      // — Condition mix — books/{id}.condition, defaulting to 'good'
+      // exactly as book-condition.js does.
+      const CONDITIONS = ['new','good','fair','damaged','lost','retired'];
+      const condition = {}; CONDITIONS.forEach(c => condition[c] = 0);
+      books.forEach(b => {
+        const c = String(b.condition || 'good').toLowerCase();
+        condition[c] = (condition[c] || 0) + 1;
+      });
+      const needsAttention = books.filter(b => ['fair','damaged','retired']
+        .includes(String(b.condition || 'good').toLowerCase()));
+
+      // — Circulation flow, last 12 months —
+      const months = [];
+      const cursor = new Date(); cursor.setDate(1);
+      for(let k = 11; k >= 0; k--){
+        const d = new Date(cursor.getFullYear(), cursor.getMonth() - k, 1);
+        months.push({
+          key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,
+          label: d.toLocaleDateString('en-KE', { month:'short', year:'2-digit' }),
+          issued: 0, returned: 0
+        });
+      }
+      const monthIndex = {}; months.forEach((m,idx) => monthIndex[m.key] = idx);
+      issuance.forEach(i => {
+        const mi = monthIndex[libMonthKey(i.issueDate || i.timestamp)];
+        if(mi != null) months[mi].issued++;
+        const mr = monthIndex[libMonthKey(returnedAt(i))];
+        if(mr != null) months[mr].returned++;
+      });
+
+      // — Leaderboards —
+      const titleCounts = {};
+      const borrowerCounts = {};
+      issuance.forEach(i => {
+        if(i.bookId){
+          const t = titleCounts[i.bookId] || (titleCounts[i.bookId] = { count:0, title: i.bookTitle || bookById[i.bookId]?.title || 'Untitled' });
+          t.count++;
+        }
+        const key = i.studentId || i.studentName;
+        if(key){
+          const b = borrowerCounts[key] || (borrowerCounts[key] = { count:0, out:0, overdue:0, name: i.studentName || 'Unknown student', grade: i.grade || '' });
+          b.count++;
+          if(i.studentName) b.name = i.studentName;
+        }
+      });
+      loans.forEach(l => {
+        const key = l.studentId || l.studentName;
+        const b = borrowerCounts[key];
+        if(!b) return;
+        b.out++;
+        if(l.daysOverdue > 0) b.overdue++;
+      });
+      const topTitles = Object.values(titleCounts).sort((a,b) => b.count - a.count).slice(0, 8);
+      const topBorrowers = Object.values(borrowerCounts).sort((a,b) => b.count - a.count).slice(0, 8);
+
+      // — Category mix of what is out right now —
+      const categories = {};
+      loans.forEach(l => {
+        const c = bookById[l.bookId]?.category || 'Uncategorised';
+        categories[c] = (categories[c] || 0) + 1;
+      });
+      const topCategories = Object.entries(categories).sort((a,b) => b[1] - a[1]).slice(0, 7);
+
+      // — Reservation queues, with titles resolved from the books node —
+      const queues = Object.entries(state.libReservations || {})
+        .map(([bookId, q]) => ({
+          bookId,
+          title: bookById[bookId]?.title || 'Unknown title',
+          waiting: Object.keys(q || {}).length,
+          available: Number(bookById[bookId]?.available || 0)
+        }))
+        .filter(q => q.waiting > 0)
+        .sort((a,b) => b.waiting - a.waiting)
+        .slice(0, 8);
+
+      return {
+        utilisation: copies ? loans.length / copies : 0,
+        copiesFree: available,
+        onTimeRate: judged ? onTime / judged : null,
+        lateCount: judged - onTime,
+        judged,
+        avgLoanDays: durationCount ? durationSum / durationCount : null,
+        completedLoans: returned.length,
+        everBorrowed: everBorrowed.size,
+        activeBorrowers: activeBorrowers.size,
+        enrolled,
+        coverage: enrolled ? activeBorrowers.size / enrolled : null,
+        deadStock, condition, needsAttention, months,
+        topTitles, topBorrowers, topCategories, queues
+      };
+    }
+
+    const LIB_PALETTE = ['#2980b9','#16a085','#8e44ad','#e67e22','#27ae60','#c0392b','#7f8c8d','#f1c40f'];
+
+    function libChart(id, config){
+      const el = $(id);
+      if(!el) return;
+      // Chart.js measures its canvas on creation, so building one inside a
+      // hidden view yields a 0-height chart that never recovers. The view is
+      // only rendered when it's on screen (see navTo), but guard anyway.
+      if(!$('library')?.classList.contains('active')) return;
+      if(state.libCharts[id]) state.libCharts[id].destroy();
+      state.libCharts[id] = new Chart(el, config);
+    }
+
+    function libListHtml(rows){
+      if(!rows.length) return '<div class="muted" style="font-size:12px">Nothing to show yet.</div>';
+      return rows.map((r, idx) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
+          <span style="display:flex;gap:8px;align-items:baseline;min-width:0;">
+            <span class="muted" style="font-weight:800;font-size:11px;">${idx+1}</span>
+            <span style="min-width:0;">${r.main}${r.sub ? `<br><span class="muted" style="font-size:11px">${r.sub}</span>` : ''}</span>
+          </span>
+          ${r.right}
+        </div>`).join('');
+    }
+
+    const LIB_QUICKLINKS = [
+      ['books','\u{1F4D6}','Catalogue'],
+      ['issuance','\u{1F4E4}','Issuance'],
+      ['classLibrary','\u{1F3EB}','Class Library'],
+      ['reservations','\u{1F517}','Reservations'],
+      ['bookRequests','\u{1F4DD}','Requests'],
+      ['fines','\u{1F4B0}','Fines'],
+      ['bookCondition','\u{1F50D}','Condition'],
+      ['advancedAnalytics','\u{1F4C8}','Analytics'],
+      ['students','\u{1F393}','Borrowers'],
+      ['messages','\u{1F4AC}','Messages'],
+      ['reports','\u{1F4CA}','Reports'],
+      ['studentPortal','\u{1F464}','Student View'],
+    ];
+    const LIB_BASE = 'https://kanyadet-school-admin.web.app/Library system/library.html';
+
+    function renderLibraryAnalytics(stats){
+      const a = stats.analytics;
+      if(!a || !$('lib-util')) return;
+
+      $('lib-util').textContent = `${Math.round(a.utilisation * 100)}%`;
+      $('lib-util-meta').textContent = `${stats.loans.length} out · ${a.copiesFree.toLocaleString()} free`;
+      $('lib-ontime').textContent = a.onTimeRate == null ? '—' : `${Math.round(a.onTimeRate * 100)}%`;
+      $('lib-ontime-meta').textContent = a.judged ? `${a.lateCount} of ${a.judged} came back late` : 'No completed loans yet';
+      $('lib-ontime-meta').className = (a.onTimeRate != null && a.onTimeRate < 0.8) ? 'kpi-variant warn' : 'kpi-variant up';
+      $('lib-avgdays').textContent = a.avgLoanDays == null ? '—' : `${a.avgLoanDays.toFixed(1)}d`;
+      $('lib-avgdays-meta').textContent = `${a.completedLoans} completed loan${a.completedLoans===1?'':'s'}`;
+      $('lib-reach').textContent = String(a.activeBorrowers);
+      $('lib-reach-meta').textContent = a.coverage == null
+        ? `${a.everBorrowed} have ever borrowed`
+        : `${Math.round(a.coverage*100)}% of ${a.enrolled} enrolled · ${a.everBorrowed} ever`;
+      $('lib-dead').textContent = String(a.deadStock.length);
+      $('lib-dead-meta').textContent = stats.books.length
+        ? `${Math.round(a.deadStock.length / stats.books.length * 100)}% of the catalogue`
+        : 'never issued';
+      $('lib-attention').textContent = String(a.needsAttention.length);
+
+      libChart('lib-flow-chart', {
+        type: 'line',
+        data: {
+          labels: a.months.map(m => m.label),
+          datasets: [
+            { label:'Issued', data:a.months.map(m => m.issued), borderColor:LIB_PALETTE[0], backgroundColor:'rgba(41,128,185,.14)', tension:.35, fill:true, borderWidth:2, pointRadius:3 },
+            { label:'Returned', data:a.months.map(m => m.returned), borderColor:LIB_PALETTE[1], backgroundColor:'rgba(22,160,133,.10)', tension:.35, fill:true, borderWidth:2, pointRadius:3 }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } },
+          scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } }
+        }
+      });
+
+      const gradeRows = Object.entries(stats.byGrade).sort((a1,b1) => b1[1].out - a1[1].out).slice(0, 10);
+      libChart('lib-grade-chart', {
+        type: 'bar',
+        data: {
+          labels: gradeRows.map(([g]) => g),
+          datasets: [
+            { label:'On time', data:gradeRows.map(([,c]) => c.out - c.overdue), backgroundColor:LIB_PALETTE[1], stack:'s' },
+            { label:'Overdue', data:gradeRows.map(([,c]) => c.overdue), backgroundColor:LIB_PALETTE[5], stack:'s' }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } },
+          scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true, ticks:{ precision:0 } } }
+        }
+      });
+
+      const condLabels = Object.keys(a.condition).filter(k => a.condition[k] > 0);
+      libChart('lib-condition-chart', {
+        type: 'doughnut',
+        data: {
+          labels: condLabels.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
+          datasets: [{ data: condLabels.map(c => a.condition[c]), backgroundColor: LIB_PALETTE, borderWidth: 0 }]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false, cutout:'60%',
+          plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } }
+        }
+      });
+
+      libChart('lib-category-chart', {
+        type: 'bar',
+        data: {
+          labels: a.topCategories.map(([c]) => c),
+          datasets: [{ label:'Copies out', data:a.topCategories.map(([,n]) => n), backgroundColor:LIB_PALETTE[2] }]
+        },
+        options: {
+          indexAxis:'y', responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false } },
+          scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } } }
+        }
+      });
+
+      $('lib-top-titles').innerHTML = libListHtml(a.topTitles.map(t => ({
+        main: escapeHtml(t.title),
+        sub: '',
+        right: `<span class="pill blue">${t.count} loan${t.count===1?'':'s'}</span>`
+      })));
+
+      $('lib-top-borrowers').innerHTML = libListHtml(a.topBorrowers.map(b => ({
+        main: escapeHtml(b.name),
+        sub: `${escapeHtml(b.grade || 'Ungraded')} · ${b.out} out now`,
+        right: b.overdue
+          ? `<span class="pill bad">${b.overdue} overdue</span>`
+          : `<span class="pill gray">${b.count} total</span>`
+      })));
+
+      $('lib-top-reserved').innerHTML = libListHtml(a.queues.map(q => ({
+        main: escapeHtml(q.title),
+        sub: q.available > 0 ? `${q.available} copy free now — ready to hand out` : 'no copies free',
+        right: `<span class="pill ${q.available > 0 ? 'ok' : 'warn'}">${q.waiting} waiting</span>`
+      })));
+
+      $('lib-deadstock').innerHTML = libListHtml(a.deadStock.slice(0, 8).map(b => ({
+        main: escapeHtml(b.title || 'Untitled'),
+        sub: `${escapeHtml(b.grade || '')} ${escapeHtml(b.subject || b.category || '')}`.trim(),
+        right: `<span class="pill gray">${Number(b.quantity)||0} cop${(Number(b.quantity)||0)===1?'y':'ies'}</span>`
+      })));
+
+      $('lib-attention-list').innerHTML = libListHtml(a.needsAttention.slice(0, 8).map(b => {
+        const c = String(b.condition || 'good').toLowerCase();
+        return {
+          main: escapeHtml(b.title || 'Untitled'),
+          sub: b.conditionNotes ? escapeHtml(b.conditionNotes) : '',
+          right: `<span class="pill ${c === 'damaged' ? 'bad' : (c === 'retired' ? 'gray' : 'warn')}">${escapeHtml(c)}</span>`
+        };
+      }));
+
+      const ql = $('lib-quicklinks');
+      if(ql && !ql.dataset.built){
+        ql.dataset.built = '1';
+        ql.innerHTML = LIB_QUICKLINKS.map(([page, icon, label]) => `
+          <a class="link-card" style="padding:10px;gap:4px;" href="${LIB_BASE}#${page}" target="_blank">
+            <div class="lc-icon" style="font-size:18px">${icon}</div>
+            <div class="lc-title" style="font-size:11px">${label}</div>
+          </a>`).join('');
+      }
+    }
+
+    $('lib-deadstock-export-btn')?.addEventListener('click', () => {
+      const rows = libraryStats().analytics.deadStock;
+      const header = ['Title','Author','ISBN','Category','Grade','Subject','Quantity','Condition'];
+      const csv = [header.join(',')].concat(rows.map(b =>
+        [b.title||'—', b.author||'—', b.isbn||'—', b.category||'—', b.grade||'—',
+         b.subject||'—', Number(b.quantity)||0, b.condition||'good']
+          .map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
+      )).join('\n');
+      const aDead = document.createElement('a');
+      aDead.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      aDead.download = `library-dead-stock-${todayISO()}.csv`;
+      aDead.click();
+      toast('Dead stock exported','ok');
+    });
+
+
+    // Five listeners feed this one loader, so coalesce their bursts instead
+    // of re-reading all five nodes once per event.
+    let libReloadTimer = null;
+    function scheduleLibraryReload(){
+      clearTimeout(libReloadTimer);
+      libReloadTimer = setTimeout(() => loadLibrary(), 400);
+    }
+
+    async function loadLibrary(){
+      try{
+        const [booksSnap, issSnap, finesSnap, reqSnap, resSnap] = await Promise.all([
+          get(ref(db, 'books')),
+          get(ref(db, 'issuance')),
+          get(ref(db, 'fines')),
+          get(ref(db, 'bookRequests')),
+          get(ref(db, 'reservations')),
+        ]);
+        const toList = (snap) => snap.exists()
+          ? Object.entries(snap.val()).map(([id, v]) => ({ id, ...(v || {}) }))
+          : [];
+        state.libBooks = toList(booksSnap);
+        state.libIssuance = toList(issSnap);
+        state.libFines = toList(finesSnap);
+        state.libRequests = toList(reqSnap);
+        state.libReservations = resSnap.exists() ? resSnap.val() : {};
+        state.libLoadError = null;
+      }catch(e){
+        // A rules/permissions gap here must not take the rest of the
+        // dashboard down — the tiles just stay hidden.
+        state.libLoadError = e?.message || String(e);
+        console.warn('Library data not available for the rollup:', e);
+      }
+      updateDashboard();
+      renderLibrary();
+    }
+
+    /* ── Library view ── */
+    const LIB_PAGE_SIZE = 25;
+
+    function filteredLibraryLoans(stats){
+      const q = ($('lib-search')?.value || '').trim().toLowerCase();
+      const grade = $('lib-grade-filter')?.value || '';
+      const status = $('lib-status-filter')?.value || 'all';
+      return stats.loans.filter(l => {
+        if(grade && (l.grade || 'Ungraded') !== grade) return false;
+        if(status === 'overdue' && l.daysOverdue <= 0) return false;
+        if(status === 'due7' && !(l.daysOverdue === 0 && l.daysUntil != null && l.daysUntil <= 7)) return false;
+        if(!q) return true;
+        return [l.studentName, l.bookTitle, l.grade, l.isbn, l.bookNo]
+          .join(' ').toLowerCase().includes(q);
+      }).sort((a,b) => {
+        if(b.daysOverdue !== a.daysOverdue) return b.daysOverdue - a.daysOverdue;
+        return String(a.returnDate||'').localeCompare(String(b.returnDate||''));
+      });
+    }
+
+    function populateLibGradeFilter(stats){
+      const sel = $('lib-grade-filter');
+      if(!sel) return;
+      const cur = sel.value;
+      const grades = Object.keys(stats.byGrade).sort();
+      sel.innerHTML = '<option value="">All Grades</option>' +
+        grades.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+      if(grades.includes(cur)) sel.value = cur;
+    }
+
+    function renderLibrary(){
+      if(!$('lib-tbody')) return;
+      const stats = libraryStats();
+
+      $('lib-state').textContent = state.libLoadError
+        ? 'Library data unreachable'
+        : (stats.hasData ? '' : 'No library data found');
+
+      $('lib-titles').textContent = stats.books.length.toLocaleString();
+      $('lib-copies').textContent = `${stats.copies.toLocaleString()} copies`;
+      $('lib-onloan').textContent = String(stats.loans.length);
+      $('lib-available').textContent = `${stats.available.toLocaleString()} free`;
+      $('lib-overdue').textContent = String(stats.overdue.length);
+      $('lib-overdue').style.color = stats.overdue.length ? 'var(--red)' : '';
+      const worst = stats.overdue.reduce((m,l) => Math.max(m, l.daysOverdue), 0);
+      $('lib-overdue-meta').textContent = worst ? `worst: ${worst}d late` : 'None overdue';
+      $('lib-overdue-meta').className = stats.overdue.length ? 'kpi-variant warn' : 'kpi-variant up';
+      $('lib-lost').textContent = String(stats.lost.length);
+      $('lib-replacement').textContent = `${fmtKsh(stats.replacementAtRisk)} to replace`;
+      $('lib-fines').textContent = fmtKsh(stats.finesTotal);
+      $('lib-fines-meta').textContent = `${stats.finesCount} student${stats.finesCount===1?'':'s'} owing`;
+      $('lib-waiting').textContent = String(stats.waiting);
+      $('lib-requests-meta').textContent = `${stats.pendingRequests.length} pending request${stats.pendingRequests.length===1?'':'s'}`;
+
+      populateLibGradeFilter(stats);
+
+      const rows = filteredLibraryLoans(stats);
+      const totalPages = Math.max(1, Math.ceil(rows.length / LIB_PAGE_SIZE));
+      if(state.libPage > totalPages) state.libPage = totalPages;
+      const page = state.libPage;
+      const slice = rows.slice((page-1)*LIB_PAGE_SIZE, page*LIB_PAGE_SIZE);
+
+      $('lib-tbody').innerHTML = slice.length ? slice.map(l => {
+        const pill = l.daysOverdue > 0
+          ? `<span class="pill bad">${l.daysOverdue}d overdue</span>`
+          : (l.daysUntil != null && l.daysUntil <= 7
+              ? `<span class="pill warn">due in ${l.daysUntil}d</span>`
+              : '<span class="pill ok">On time</span>');
+        return `<tr>
+          <td>${escapeHtml(l.studentName || 'Unknown student')}</td>
+          <td>${escapeHtml(l.grade || 'Ungraded')}</td>
+          <td>${escapeHtml(l.bookTitle || 'Untitled')}</td>
+          <td>${escapeHtml(l.issueDate || '—')}</td>
+          <td>${escapeHtml(l.returnDate || '—')}</td>
+          <td>${pill}</td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="6" class="muted">No loans match these filters.</td></tr>';
+
+      $('lib-count-label').textContent = `${rows.length} loan${rows.length===1?'':'s'} shown · ${stats.loans.length} active in total`;
+      renderPager('lib-pager', page, totalPages, p => { state.libPage = p; renderLibrary(); });
+
+      const gradeRows = Object.entries(stats.byGrade).sort((a,b) => b[1].overdue - a[1].overdue);
+      $('lib-grade-tbody').innerHTML = gradeRows.length ? gradeRows.map(([g,c]) => `
+        <tr>
+          <td>${escapeHtml(g)}</td>
+          <td>${c.out}</td>
+          <td>${c.overdue ? `<span class="pill bad">${c.overdue}</span>` : '0'}</td>
+        </tr>`).join('') : '<tr><td colspan="3" class="muted">No active loans.</td></tr>';
+
+      $('lib-lowstock').innerHTML = stats.lowStock.length
+        ? stats.lowStock.slice(0, 8).map(b => `
+            <div class="list-row" style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
+              <span>${escapeHtml(b.title || 'Untitled')}<br><span class="muted" style="font-size:11px">${escapeHtml(b.grade || '')} ${escapeHtml(b.subject || '')}</span></span>
+              <span class="pill ${(Number(b.available)||0) === 0 ? 'bad' : 'warn'}">${Number(b.available)||0} of ${Number(b.quantity)||0}</span>
+            </div>`).join('')
+        : '<div class="muted" style="font-size:12px">Every title has spare copies.</div>';
+
+      $('lib-requests').innerHTML = stats.pendingRequests.length
+        ? stats.pendingRequests.slice(0, 8).map(r => `
+            <div class="list-row" style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
+              <span>${escapeHtml(r.title || 'Untitled')}<br><span class="muted" style="font-size:11px">×${Number(r.quantity)||1} · ${escapeHtml(r.requestedByName || 'Unknown')}</span></span>
+              <span class="pill ${r.priority === 'urgent' ? 'bad' : (r.priority === 'high' ? 'warn' : 'gray')}">${escapeHtml(r.priority || 'medium')}</span>
+            </div>`).join('')
+        : '<div class="muted" style="font-size:12px">No pending requests.</div>';
+
+      renderLibraryAnalytics(stats);
+    }
+
+    ['lib-search','lib-grade-filter','lib-status-filter'].forEach(id => {
+      const el = $(id);
+      if(!el) return;
+      el.addEventListener(id === 'lib-search' ? 'input' : 'change', () => {
+        state.libPage = 1;
+        renderLibrary();
+      });
+    });
+    $('lib-refresh-btn')?.addEventListener('click', () => {
+      loadLibrary();
+      toast('Refreshing library data…','info');
+    });
+    $('lib-export-btn')?.addEventListener('click', () => {
+      const rows = filteredLibraryLoans(libraryStats());
+      const header = ['Student','Grade','Book','Issued','Due','Days Overdue'];
+      const csv = [header.join(',')].concat(rows.map(l =>
+        [l.studentName||'—', l.grade||'—', l.bookTitle||'—', l.issueDate||'—', l.returnDate||'—', l.daysOverdue||0]
+          .map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
+      )).join('\n');
+      const aLib = document.createElement('a');
+      aLib.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      aLib.download = `library-loans-${todayISO()}.csv`;
+      aLib.click();
+      toast('CSV exported','ok');
+    });
+
 
     function applyLunchPeriod(periodKey){
       state.lunchPeriod = periodKey;
@@ -3404,6 +4180,7 @@
         loadPendingEnrollments().catch(e => console.error('pendingEnrollments', e)),
         loadRecentlyAddedStudents().catch(e => console.error('recentlyAddedStudents', e)),
         loadLunch().catch(e => console.error('lunch', e)),
+        loadLibrary().catch(e => console.error('library', e)),
         loadAttendanceForDate(todayISO()).catch(e => console.error('att', e)),
         loadCalendar().catch(e => console.error('calendar', e))
       ]);
@@ -3428,6 +4205,12 @@
       onValue(ref(db, 'pendingEnrollments'), () => loadPendingEnrollments());
       onValue(ref(db, `artifacts/${APP_ID}/students`), () => loadRecentlyAddedStudents());
       onValue(ref(db, LUNCH_PATH), () => loadLunch());
+      // Library system nodes — same RTDB, so one debounced reload covers all.
+      ['books','issuance','fines','bookRequests','reservations'].forEach(node => {
+        onValue(ref(db, node), () => scheduleLibraryReload(), (err) => {
+          console.warn(`Can't watch library node "${node}":`, err?.message || err);
+        });
+      });
       onValue(ref(db, CALENDAR_PATH), () => loadCalendar());
       onValue(ref(db, QE_ACTIVE_PATH), snap => {
         const raw = snap.exists() ? snap.val() : {};
@@ -3498,6 +4281,38 @@
       $('kpi-welfare-meta').className = unpaid ? 'kpi-variant warn' : 'kpi-variant up';
       $('nav-pending').textContent = String(unpaid);
       if($('nav-welfare')) $('nav-welfare').textContent = String(unpaid);
+
+      // Library / Textbook rollup — every tile stays hidden until real data
+      // arrives, so a permissions or loading gap never shows a false "0".
+      const lib = libraryStats();
+      const showLibTile = (id, show) => { const el = $(id); if(el) el.style.display = show ? '' : 'none'; };
+
+      showLibTile('kpi-library-card', lib.hasData);
+      showLibTile('kpi-textbook-card', lib.hasData);
+      if(lib.hasData){
+        $('kpi-library').textContent = lib.books.length.toLocaleString();
+        $('kpi-library-meta').textContent = `${lib.copies.toLocaleString()} copies`;
+        $('kpi-textbook').textContent = String(lib.loans.length);
+        $('kpi-textbook-meta').textContent = lib.overdue.length ? `${lib.overdue.length} overdue` : 'None overdue';
+        $('kpi-textbook-meta').className = lib.overdue.length ? 'kpi-variant warn' : 'kpi-variant up';
+      }
+
+      showLibTile('kpi-textbook-fines-card', lib.finesCount > 0);
+      if(lib.finesCount > 0){
+        $('kpi-textbook-fines').textContent = fmtKsh(lib.finesTotal);
+        $('kpi-textbook-fines-meta').textContent = `${lib.finesCount} student${lib.finesCount===1?'':'s'} owing`;
+      }
+
+      showLibTile('kpi-book-requests-card', lib.pendingRequests.length > 0);
+      if(lib.pendingRequests.length){
+        const urgentReq = lib.pendingRequests.filter(r => r.priority === 'urgent').length;
+        $('kpi-book-requests').textContent = String(lib.pendingRequests.length);
+        $('kpi-book-requests-meta').textContent = urgentReq ? `${urgentReq} urgent` : 'pending';
+        $('kpi-book-requests-meta').className = urgentReq ? 'kpi-variant warn' : 'kpi-variant';
+      }
+
+      if($('nav-library')) $('nav-library').textContent = String(lib.overdue.length);
+
 
       updateDashAttendance();
       renderEnrollChart();
@@ -4374,6 +5189,24 @@
       const t = state.teachers.find(x => x.uid === tr.dataset.rowId);
       if(t) openTeacherDetail(t);
     });
+    $('tch-export-btn')?.addEventListener('click', () => {
+      const rows = filteredTeachers();
+      if(!rows.length){ toast('No teachers to export', 'warn'); return; }
+      const header = ['Name','Email','Subject/Grades','Role','Status'];
+      const csv = [header.join(',')].concat(rows.map(t => {
+        const name = t.displayName || t.name || [t.firstName,t.lastName].filter(Boolean).join(' ') || '—';
+        const grades = Array.isArray(t.assignedGrades) ? t.assignedGrades.join('; ') : (t.assignedGrade || '');
+        const subj = t.subject || t.mainSubject || grades || '—';
+        const role = t.Advancedadmin ? 'Advanced Admin' : 'Teacher';
+        const status = t.disabled ? 'Disabled' : 'Active';
+        return [name, t.email||'—', subj, role, status].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+      })).join('\n');
+      const a4 = document.createElement('a');
+      a4.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a4.download = `teachers-${todayISO()}.csv`;
+      a4.click();
+      toast('CSV exported', 'ok');
+    });
     function openTeacherDetail(t){
       const name = t.displayName || t.name || [t.firstName,t.lastName].filter(Boolean).join(' ') || '—';
       const grades = Array.isArray(t.assignedGrades) ? t.assignedGrades.join(', ') : (t.assignedGrade || '—');
@@ -4499,6 +5332,29 @@
       });
       renderAttendance();
       toast('All marked present','ok');
+    });
+
+    $('att-export-btn')?.addEventListener('click', () => {
+      const grade = $('att-grade').value;
+      if(!grade){ toast('Select a grade first', 'err'); return; }
+      const date = $('att-date').value || todayISO();
+      const q = ($('att-search').value||'').trim().toLowerCase();
+      let list = state.students.filter(s => studentGrade(s) === grade);
+      if(q) list = list.filter(s => [studentName(s), studentUli(s)].join(' ').toLowerCase().includes(q));
+      list.sort((a,b) => studentName(a).localeCompare(studentName(b)));
+      if(!list.length){ toast('No learners to export', 'warn'); return; }
+      const header = ['Learner','ULI','Status','Date','Grade'];
+      const statusLabel = { P:'Present', A:'Absent', L:'Late' };
+      const csv = [header.join(',')].concat(list.map(s => {
+        const id = s.firebaseKey || s.id;
+        const st = state.attDraft[id] || 'P';
+        return [studentName(s), studentUli(s), statusLabel[st]||st, date, grade].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+      })).join('\n');
+      const a5 = document.createElement('a');
+      a5.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a5.download = `attendance-${grade.replace(/\s+/g,'_')}-${date}.csv`;
+      a5.click();
+      toast('CSV exported', 'ok');
     });
 
     $('att-save-btn').addEventListener('click', async () => {
@@ -5040,14 +5896,39 @@
       renderDashAnnouncements();
     }
 
+    function filteredFeedbackRows(){
+      const q = ($('feedback-search')?.value || '').trim().toLowerCase();
+      const sourceFilter = $('feedback-source-filter')?.value || '';
+      const statusFilter = $('feedback-status-filter')?.value || '';
+      return state.feedback.filter(f => {
+        if(sourceFilter && f.type !== sourceFilter) return false;
+        if(statusFilter){
+          const replies = f.replies ? Object.values(f.replies) : [];
+          const answered = replies.some(r => r.from === 'admin');
+          if(statusFilter === 'answered' && !answered) return false;
+          if(statusFilter === 'open' && answered) return false;
+        }
+        if(q){
+          const hay = `${f.userName||''} ${f.userEmail||''} ${f.message||''} ${f.childName||''}`.toLowerCase();
+          if(!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
     function renderFeedback(){
       const box = $('feedback-list');
       if(!box) return;
+      const rows = filteredFeedbackRows();
       if(!state.feedback.length){
         box.innerHTML = '<div class="empty-state"><div class="es-icon">🐞</div><div class="es-title">No feedback yet</div><div class="muted">Reports from the teacher landing page and parent inquiries will show up here.</div></div>';
         return;
       }
-      box.innerHTML = state.feedback.map(f => {
+      if(!rows.length){
+        box.innerHTML = '<div class="empty-state"><div class="es-icon">🔎</div><div class="es-title">No feedback matches your filters</div></div>';
+        return;
+      }
+      box.innerHTML = rows.map(f => {
         const isParent = f.type === 'parent_inquiry';
         const sourcePill = isParent
           ? '<span class="pill blue">Parent</span>'
@@ -5140,10 +6021,7 @@
       });
     }
 
-    function renderAdmissions(){
-      const box = $('adm-list');
-      if(!box) return;
-
+    function filteredAdmissionRows(){
       const q = ($('adm-search')?.value || '').trim().toLowerCase();
       const filter = state.admissionsFilter || 'pending';
       let rows = state.admissions.filter(a => filter === 'all' || (a.status||'pending') === filter);
@@ -5154,6 +6032,14 @@
           String(a.gradeApplyingFor||'').toLowerCase().includes(q)
         );
       }
+      return rows;
+    }
+
+    function renderAdmissions(){
+      const box = $('adm-list');
+      if(!box) return;
+
+      const rows = filteredAdmissionRows();
 
       $('adm-kpi-pending').textContent = String(state.admissions.filter(a => (a.status||'pending')==='pending').length);
       $('adm-kpi-approved').textContent = String(state.admissions.filter(a => a.status==='approved').length);
@@ -5345,6 +6231,46 @@
         renderAdmissions();
         $('adm-list')?.scrollIntoView({ behavior:'smooth', block:'start' });
       });
+    });
+    $('adm-export-btn')?.addEventListener('click', () => {
+      const rows = filteredAdmissionRows();
+      if(!rows.length){ toast('No admission requests to export', 'warn'); return; }
+      const header = ['Child Name','Grade Applying For','Gender','DOB','Guardian','Relationship','Phone','Email','Status','Submitted'];
+      const csv = [header.join(',')].concat(rows.map(a => [
+        a.childName||'—', a.gradeApplyingFor||'—', a.gender||'—', a.dob||'—',
+        a.guardianName||'—', a.relationship||'Parent', a.phone||'—', a.email||'—',
+        a.status||'pending', fmtTime(a.timestamp)
+      ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))).join('\n');
+      const a6 = document.createElement('a');
+      a6.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a6.download = `admissions-${todayISO()}.csv`;
+      a6.click();
+      toast('CSV exported', 'ok');
+    });
+
+    /* ── Feedback: search/filter/export ── */
+    $('feedback-search')?.addEventListener('input', renderFeedback);
+    $('feedback-source-filter')?.addEventListener('change', renderFeedback);
+    $('feedback-status-filter')?.addEventListener('change', renderFeedback);
+    $('feedback-export-btn')?.addEventListener('click', () => {
+      const rows = filteredFeedbackRows();
+      if(!rows.length){ toast('No feedback to export', 'warn'); return; }
+      const header = ['Name','Email','Source','Status','Message','Related Child','Time'];
+      const csv = [header.join(',')].concat(rows.map(f => {
+        const replies = f.replies ? Object.values(f.replies) : [];
+        const answered = replies.some(r => r.from === 'admin');
+        return [
+          f.userName || '—', f.userEmail || '—',
+          f.type === 'parent_inquiry' ? 'Parent' : 'Teacher',
+          answered ? 'Answered' : 'Open',
+          f.message || '', f.childName || '—', fmtTime(f.timestamp)
+        ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+      })).join('\n');
+      const a3 = document.createElement('a');
+      a3.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a3.download = `feedback-${todayISO()}.csv`;
+      a3.click();
+      toast('CSV exported', 'ok');
     });
 
     function renderRecentlyAddedStudents(){
