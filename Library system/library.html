@@ -2373,7 +2373,7 @@
     </style>
     <script>
       (function () {
-        var LOGIN_URL = './Library system/login.html';
+        var LOGIN_URL = './login.html';
         var NO_ACCESS_URL = './no-access.html';
 
         // guardPage() (below) auto-wires #logoutBtn to just clear the local
@@ -2417,8 +2417,8 @@
       })();
     </script>
     <script type="module">
-      import { guardPage } from './Library system/js/session-manager.js';
-      guardPage({ loginUrl: './Library system/login.html?reason=session-expired&redirect=' + encodeURIComponent(window.location.pathname) });
+      import { guardPage } from './js/session-manager.js';
+      guardPage({ loginUrl: './login.html?reason=session-expired&redirect=' + encodeURIComponent(window.location.pathname) });
     </script>
     <!-- ── End access gate ─────────────────────────────────────────── -->
 

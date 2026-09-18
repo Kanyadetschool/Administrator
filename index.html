@@ -3528,8 +3528,9 @@
       if(!rows.length) return '<div class="muted" style="font-size:12px">Nothing to show yet.</div>';
       return rows.map((r, idx) => `
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
-          <span style="display:flex;gap:8px;align-items:baseline;min-width:0;">
-            <span class="muted" style="font-weight:800;font-size:11px;">${idx+1}</span>
+          <span style="display:flex;gap:8px;align-items:center;min-width:0;">
+            <span class="muted" style="font-weight:800;font-size:11px;width:14px;text-align:center;flex-shrink:0;">${idx+1}</span>
+            ${r.avatar || ''}
             <span style="min-width:0;">${r.main}${r.sub ? `<br><span class="muted" style="font-size:11px">${r.sub}</span>` : ''}</span>
           </span>
           ${r.right}
@@ -3639,6 +3640,7 @@
       })));
 
       $('lib-top-borrowers').innerHTML = libListHtml(a.topBorrowers.map(b => ({
+        avatar: makePhotoAvatar(b.name, b.grade, 'stu-av-sm'),
         main: escapeHtml(b.name),
         sub: `${escapeHtml(b.grade || 'Ungraded')} · ${b.out} out now`,
         right: b.overdue
@@ -3799,7 +3801,7 @@
               ? `<span class="pill warn">due in ${l.daysUntil}d</span>`
               : '<span class="pill ok">On time</span>');
         return `<tr>
-          <td>${escapeHtml(l.studentName || 'Unknown student')}</td>
+          <td><div class="stu-name-cell">${makePhotoAvatar(l.studentName || 'Unknown student', l.grade, 'stu-av-sm')}<span>${escapeHtml(l.studentName || 'Unknown student')}</span></div></td>
           <td>${escapeHtml(l.grade || 'Ungraded')}</td>
           <td>${escapeHtml(l.bookTitle || 'Untitled')}</td>
           <td>${escapeHtml(l.issueDate || '—')}</td>

@@ -31,6 +31,16 @@ class ReservationManager {
         document.querySelectorAll('.nav-links li[data-page="reservations"]').forEach(li => {
             li.addEventListener('click', () => this.render());
         });
+
+        if (!document.getElementById('reservationPhotoStyles')) {
+            const style = document.createElement('style');
+            style.id = 'reservationPhotoStyles';
+            style.textContent = `
+                #resStudentPhoto img.student-image { width:100%; height:100%; object-fit:cover; display:block; }
+                .res-photo img.student-image { width:100%; height:100%; object-fit:cover; display:block; border-radius:50%; }
+            `;
+            document.head.appendChild(style);
+        }
     }
 
     setupHooks() {
@@ -187,6 +197,7 @@ class ReservationManager {
                 <select id="resStudent" class="swal2-select" style="display:block;width:100%;" disabled>
                     <option value="">Select grade first</option>
                 </select>
+                <div id="resStudentPhoto" style="width:72px;height:72px;border-radius:50%;overflow:hidden;margin:10px auto 0;background:#eee;display:none;"></div>
             `,
             didOpen: () => {
                 document.getElementById('resGrade').addEventListener('change', (e) => {
@@ -197,6 +208,8 @@ class ReservationManager {
                     if (this._resStudentUnsub) { this._resStudentUnsub(); this._resStudentUnsub = null; }
 
                     studentSelect.innerHTML = '<option value="">Select student</option>';
+                    const photoEl = document.getElementById('resStudentPhoto');
+                    if (photoEl) { photoEl.style.display = 'none'; photoEl.innerHTML = ''; }
                     if (!grade) return;
 
                     const renderForGrade = () => {
@@ -223,6 +236,21 @@ class ReservationManager {
                     // once the real data actually lands.
                     renderForGrade();
                     this._resStudentUnsub = StudentsCache.onChange(renderForGrade);
+
+                    studentSelect.addEventListener('change', () => {
+                        const photo = document.getElementById('resStudentPhoto');
+                        if (!photo) return;
+                        const id = studentSelect.value;
+                        if (!id || typeof StudentImageManager === 'undefined') {
+                            photo.style.display = 'none';
+                            photo.innerHTML = '';
+                            return;
+                        }
+                        const student = StudentsCache.get(id);
+                        if (!student) return;
+                        photo.style.display = 'block';
+                        StudentImageManager.renderStudentImage(student.name, student.grade, photo);
+                    });
                 });
             },
             focusConfirm: false,
@@ -288,6 +316,7 @@ class ReservationManager {
         }));
 
         let html = '';
+        const photoTargets = []; // filled in below, rendered after innerHTML is set
         snapshot.forEach(bookChild => {
             const bookId = bookChild.key;
             const entries = [];
@@ -304,20 +333,34 @@ class ReservationManager {
                         <span class="badge bg-secondary">${entries.length} waiting</span>
                     </div>
                     <ul class="list-group list-group-flush">
-                        ${entries.map((e, i) => `
+                        ${entries.map((e, i) => {
+                            const photoId = `resPhoto-${bookId}-${e.id}`;
+                            photoTargets.push({ photoId, name: e.studentName, grade: e.grade });
+                            return `
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>${i + 1}. ${e.studentName} (${e.grade || 'N/A'}) — requested ${new Date(e.requestedAt).toLocaleDateString()}</span>
+                                <span class="d-flex align-items-center" style="gap:10px;">
+                                    <span class="res-photo" id="${photoId}" style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#eee;display:inline-block;"></span>
+                                    ${i + 1}. ${e.studentName} (${e.grade || 'N/A'}) — requested ${new Date(e.requestedAt).toLocaleDateString()}
+                                </span>
                                 <button class="btn btn-sm btn-outline-danger" onclick="reservationManager.cancelReservation('${bookId}', '${e.id}')">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             </li>
-                        `).join('')}
+                        `;
+                        }).join('')}
                     </ul>
                 </div>
             `;
         });
 
         container.innerHTML = html || '<p class="text-muted">No active reservations.</p>';
+
+        if (typeof StudentImageManager !== 'undefined') {
+            photoTargets.forEach(({ photoId, name, grade }) => {
+                const el = document.getElementById(photoId);
+                if (el) StudentImageManager.renderStudentImage(name, grade, el);
+            });
+        }
     }
 }
 

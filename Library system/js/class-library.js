@@ -16,9 +16,33 @@
 //     giant table
 //   - CSV export
 //   - defensive error/empty/loading states, listener cleanup on teardown
+//
+// v3:
+//   - status filter (All / Overdue / Due soon / Active-not-due) alongside
+//     the existing free-text search, instead of relying on sort order alone
+//     to surface overdue books
+//   - student photo avatars in the Student column. This app has no photo
+//     pipeline of its own (studentOverview's .student-avatar-large is a
+//     static Bootstrap icon, never a real image), so this file carries its
+//     own small image loader rather than assuming one exists. It tries a
+//     handful of relative paths — library.html is one level below the site
+//     root ("Library system/library.html"), so both "../" and "./" bases
+//     are tried — and falls back to initials silently if nothing resolves,
+//     exactly like the rest of this app degrades when data is missing.
 class ClassLibraryView {
     static PAGE_SIZE = 15;
     static DEBOUNCE_MS = 200;
+
+    // Tried in order for every student photo lookup. Grade is normalized to
+    // "Grade N" (stripping any stream suffix like "Grade 4 Blue") since
+    // that's the folder convention the main admin portal's photo uploads
+    // already use.
+    static PHOTO_BASES = [
+        '../Report-Cards/student_images/',
+        './Report-Cards/student_images/',
+        '../student_images/',
+        './student_images/',
+    ];
 
     constructor() {
         this.db = db;
@@ -27,6 +51,7 @@ class ClassLibraryView {
         this.state = {
             grade: '',
             search: '',
+            statusFilter: 'all',  // 'all' | 'overdue' | 'due7' | 'active'
             sortKey: 'overdue',   // 'overdue' | 'student' | 'book' | 'due'
             sortDir: 'desc',
             page: 1,
@@ -39,6 +64,7 @@ class ClassLibraryView {
         this._onIssuanceChange = null;
         this._searchDebounce = null;
 
+        this._injectStyles();
         this.setupUI();
     }
 
@@ -136,12 +162,16 @@ class ClassLibraryView {
             const dueDate = this._parseDate(issuance.returnDate);
             const overdue = !!dueDate && dueDate < today;
             const daysOverdue = overdue ? Math.floor((today - dueDate) / 86400000) : 0;
+            const daysUntilDue = (!overdue && dueDate)
+                ? Math.ceil((dueDate - today) / 86400000)
+                : null;
 
             rows.push({
                 ...issuance,
                 id: child.key,
                 overdue,
                 daysOverdue,
+                daysUntilDue,
                 _dueSortValue: dueDate ? dueDate.getTime() : Number.POSITIVE_INFINITY,
             });
         });
@@ -162,6 +192,14 @@ class ClassLibraryView {
     _getVisibleRows() {
         const q = this.state.search.trim().toLowerCase();
         let rows = this.state.rows;
+
+        if (this.state.statusFilter === 'overdue') {
+            rows = rows.filter(r => r.overdue);
+        } else if (this.state.statusFilter === 'due7') {
+            rows = rows.filter(r => !r.overdue && r.daysUntilDue != null && r.daysUntilDue <= 7);
+        } else if (this.state.statusFilter === 'active') {
+            rows = rows.filter(r => !r.overdue && !(r.daysUntilDue != null && r.daysUntilDue <= 7));
+        }
 
         if (q) {
             rows = rows.filter(r => {
@@ -239,6 +277,7 @@ class ClassLibraryView {
         }
 
         const overdueCount = allRows.filter(r => r.overdue).length;
+        const due7Count = allRows.filter(r => !r.overdue && r.daysUntilDue != null && r.daysUntilDue <= 7).length;
         const totalPages = Math.max(1, Math.ceil(visible.length / this.pageSize));
         this.state.page = Math.min(this.state.page, totalPages);
         const start = (this.state.page - 1) * this.pageSize;
@@ -249,16 +288,26 @@ class ClassLibraryView {
             return this.state.sortDir === 'asc' ? ' \u25B2' : ' \u25BC';
         };
 
+        const statusOption = (value, label) =>
+            `<option value="${value}" ${this.state.statusFilter === value ? 'selected' : ''}>${label}</option>`;
+
         container.innerHTML = `
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <div>
                     <span class="badge bg-primary me-2">${allRows.length} book(s) out</span>
-                    <span class="badge ${overdueCount ? 'bg-danger' : 'bg-success'}">${overdueCount} overdue</span>
+                    <span class="badge ${overdueCount ? 'bg-danger' : 'bg-success'} me-2">${overdueCount} overdue</span>
+                    <span class="badge bg-warning text-dark">${due7Count} due within 7d</span>
                     ${visible.length !== allRows.length
                         ? `<span class="text-muted ms-2 small">(${visible.length} match filter)</span>`
                         : ''}
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap">
+                    <select id="classLibraryStatusFilter" class="form-select form-select-sm" style="width:170px" aria-label="Filter by status">
+                        ${statusOption('all', 'All active loans')}
+                        ${statusOption('overdue', 'Overdue only')}
+                        ${statusOption('due7', 'Due within 7 days')}
+                        ${statusOption('active', 'Not due soon')}
+                    </select>
                     <input type="search" id="classLibrarySearch" class="form-control form-control-sm"
                            style="width:220px" placeholder="Search student or book…"
                            value="${this._esc(this.state.search)}" aria-label="Search class library">
@@ -269,10 +318,10 @@ class ClassLibraryView {
             </div>
 
             ${visible.length === 0
-                ? `<p class="text-muted">No results match "${this._esc(this.state.search)}".</p>`
+                ? `<p class="text-muted">No results match the current search/filter.</p>`
                 : `
                 <div class="table-responsive">
-                    <table class="table table-sm" aria-describedby="classLibraryList">
+                    <table class="table table-sm align-middle" aria-describedby="classLibraryList">
                         <thead>
                             <tr>
                                 <th scope="col" role="button" data-sort="student" style="cursor:pointer">Student${sortIndicator('student')}</th>
@@ -285,13 +334,15 @@ class ClassLibraryView {
                         <tbody>
                             ${pageRows.map(r => `
                                 <tr class="${r.overdue ? 'table-danger' : ''}">
-                                    <td>${this._esc(r.studentName) || 'N/A'}</td>
+                                    <td>${this._studentCellHtml(r)}</td>
                                     <td>${this._esc(r.bookTitle) || 'N/A'}</td>
                                     <td>${this._esc(r.issueDate) || ''}</td>
                                     <td>${this._esc(r.returnDate) || ''}</td>
                                     <td>${r.overdue
                                         ? `Overdue (${r.daysOverdue}d)`
-                                        : 'Active'}</td>
+                                        : (r.daysUntilDue != null && r.daysUntilDue <= 7
+                                            ? `Due in ${r.daysUntilDue}d`
+                                            : 'Active')}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -302,6 +353,7 @@ class ClassLibraryView {
         `;
 
         this._wireInteractions(container);
+        this._hydratePhotos(container);
     }
 
     _wireInteractions(container) {
@@ -321,6 +373,15 @@ class ClassLibraryView {
                         el.setSelectionRange(el.value.length, el.value.length);
                     }
                 }, ClassLibraryView.DEBOUNCE_MS);
+            });
+        }
+
+        const statusSelect = document.getElementById('classLibraryStatusFilter');
+        if (statusSelect) {
+            statusSelect.addEventListener('change', (e) => {
+                this.state.statusFilter = e.target.value;
+                this.state.page = 1;
+                this.render();
             });
         }
 
@@ -370,6 +431,152 @@ class ClassLibraryView {
     _skeletonHtml() {
         const line = () => `<div class="placeholder-glow mb-2"><span class="placeholder col-12"></span></div>`;
         return `<div aria-live="polite" aria-busy="true">${line()}${line()}${line()}</div>`;
+    }
+
+    // ---------------------------------------------------------------------
+    // Student photo avatars
+    // ---------------------------------------------------------------------
+    // Self-contained: no shared cache or helper exists elsewhere in this app
+    // to lean on, so this loads/caches its own images. Renders initials
+    // instantly (synchronously, in the row markup) and swaps in a real photo
+    // a moment later if one resolves — never blocks or delays the table.
+
+    _injectStyles() {
+        if (document.querySelector('style#class-library-avatar-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'class-library-avatar-styles';
+        style.textContent = `
+            .cl-av-wrap {
+                position: relative; overflow: hidden; flex-shrink: 0;
+                width: 28px; height: 28px; border-radius: 8px;
+                display: flex; align-items: center; justify-content: center;
+                background: linear-gradient(135deg, #f39c12, #f1c40f);
+                color: #fff; font-weight: 800; font-size: 11px;
+            }
+            .cl-av-wrap img {
+                position: absolute; inset: 0; width: 100%; height: 100%;
+                object-fit: cover;
+            }
+            .cl-av-wrap.has-photo { cursor: zoom-in; }
+            .cl-student-cell { display: flex; align-items: center; gap: 8px; }
+            #classLibraryPhotoLightbox {
+                display: none; position: fixed; inset: 0; z-index: 2000;
+                background: rgba(0,0,0,.5); backdrop-filter: blur(6px);
+                align-items: center; justify-content: center; cursor: zoom-out;
+            }
+            #classLibraryPhotoLightbox img {
+                max-width: min(85vw, 420px); max-height: 75vh;
+                border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,.5);
+                background: #fff;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    _initials(name) {
+        const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return '?';
+        if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    _normalizedGrade(grade) {
+        return String(grade || '').match(/Grade\s*\d+/i)?.[0] || grade || '';
+    }
+
+    _loadImg(src) {
+        this._imgCache = this._imgCache || {};
+        if (this._imgCache[src] !== undefined) return Promise.resolve(this._imgCache[src]);
+        return new Promise(resolve => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            const timer = setTimeout(() => { this._imgCache[src] = null; resolve(null); }, 2000);
+            img.onload = () => { clearTimeout(timer); this._imgCache[src] = img.src; resolve(img.src); };
+            img.onerror = () => { clearTimeout(timer); this._imgCache[src] = null; resolve(null); };
+            img.src = src;
+        });
+    }
+
+    async _resolveStudentPhoto(name, grade) {
+        const g = this._normalizedGrade(grade);
+        const cleanName = String(name || '').trim();
+        if (!cleanName) return null;
+        const encGrade = encodeURIComponent(g);
+        const encName = encodeURIComponent(cleanName);
+
+        const candidates = [];
+        ClassLibraryView.PHOTO_BASES.forEach(base => {
+            candidates.push(`${base}${g}/${cleanName}.jpg`);
+            candidates.push(`${base}${encGrade}/${encName}.jpg`);
+        });
+
+        for (const src of candidates) {
+            const resolved = await this._loadImg(src);
+            if (resolved) return resolved;
+        }
+        return null;
+    }
+
+    // Synchronous placeholder markup for a row — initials, tagged with a
+    // unique id so the async photo swap below can find it after render.
+    _studentCellHtml(row) {
+        const uid = 'cl_av_' + row.id.replace(/[^a-zA-Z0-9]/g, '') + '_' + Math.random().toString(36).slice(2, 6);
+        return `
+            <div class="cl-student-cell">
+                <div class="cl-av-wrap" id="${uid}" data-student="${this._esc(row.studentName || '')}" data-grade="${this._esc(row.grade || '')}">
+                    ${this._esc(this._initials(row.studentName))}
+                </div>
+                <span>${this._esc(row.studentName) || 'N/A'}</span>
+            </div>`;
+    }
+
+    // Called once per render, after the table is in the DOM: resolves every
+    // visible row's photo in parallel and swaps it in if found. Deliberately
+    // scoped to `container` (the current page of rows only), so paging
+    // never triggers lookups for rows that aren't on screen.
+    _hydratePhotos(container) {
+        const wraps = container.querySelectorAll('.cl-av-wrap[id]');
+        wraps.forEach(async (el) => {
+            const name = el.getAttribute('data-student');
+            const grade = el.getAttribute('data-grade');
+            if (!name) return;
+            const src = await this._resolveStudentPhoto(name, grade);
+            // The table may have re-rendered (search/sort/page) while this
+            // was in flight — bail if this element is no longer attached.
+            if (!src || !document.body.contains(el)) return;
+            let img = el.querySelector('img');
+            if (!img) {
+                img = document.createElement('img');
+                img.loading = 'lazy';
+                img.alt = name;
+                el.textContent = '';
+                el.appendChild(img);
+            }
+            img.src = src;
+            el.classList.add('has-photo');
+            el.title = `${name} — click to view photo`;
+            el.onclick = () => this._openPhotoLightbox(src, name, grade);
+        });
+    }
+
+    _openPhotoLightbox(src, name, grade) {
+        let lb = document.getElementById('classLibraryPhotoLightbox');
+        if (!lb) {
+            lb = document.createElement('div');
+            lb.id = 'classLibraryPhotoLightbox';
+            lb.innerHTML = `
+                <figure style="margin:0;text-align:center" onclick="event.stopPropagation()">
+                    <img id="classLibraryPhotoLightboxImg" src="" alt="">
+                    <figcaption id="classLibraryPhotoLightboxCaption" style="color:#fff;margin-top:10px;font-weight:600;font-size:13px"></figcaption>
+                </figure>`;
+            lb.addEventListener('click', () => { lb.style.display = 'none'; });
+            document.body.appendChild(lb);
+        }
+        lb.querySelector('#classLibraryPhotoLightboxImg').src = src;
+        lb.querySelector('#classLibraryPhotoLightboxImg').alt = name || '';
+        lb.querySelector('#classLibraryPhotoLightboxCaption').textContent =
+            [name, grade].filter(Boolean).join(' — ');
+        lb.style.display = 'flex';
     }
 
     // ---------------------------------------------------------------------

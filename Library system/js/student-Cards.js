@@ -1,3 +1,8 @@
+// Relative path from this dashboard page to the student-facing portal.
+// Adjust this if student-portal.html lives in a different folder relative
+// to wherever this script is loaded from.
+const STUDENT_PORTAL_URL = 'student-portal.html';
+
 class StudentPortalManager {
     constructor() {
         this.db = firebase.database();
@@ -82,6 +87,7 @@ class StudentPortalManager {
             // Update student overview
             document.getElementById('portalStudentName').textContent = student.name;
             document.getElementById('portalStudentGrade').textContent = student.grade || 'Not specified';
+            this.renderPortalPhoto(student);
 
             // Load student data
             await Promise.all([
@@ -95,6 +101,41 @@ class StudentPortalManager {
         } catch (error) {
             console.error('Error loading student data:', error);
         }
+    }
+
+    // Creates (once) or reuses a small avatar container right before the
+    // student's name in the overview card, then hands it to
+    // StudentImageManager — same loader/lightbox used by the library-card
+    // photo and reservations, so all three stay visually consistent.
+    ensurePortalPhotoContainer() {
+        let el = document.getElementById('portalStudentPhoto');
+        if (el) return el;
+
+        const nameEl = document.getElementById('portalStudentName');
+        if (!nameEl || !nameEl.parentElement) return null;
+
+        el = document.createElement('div');
+        el.id = 'portalStudentPhoto';
+        el.className = 'student-photo-container';
+        el.style.cssText = 'width:88px;height:88px;border-radius:50%;overflow:hidden;margin:0 auto 10px;background:#eee;';
+        nameEl.parentElement.insertBefore(el, nameEl);
+
+        if (!document.getElementById('portalPhotoStyles')) {
+            const style = document.createElement('style');
+            style.id = 'portalPhotoStyles';
+            style.textContent = `
+                #portalStudentPhoto img.student-image { width:100%; height:100%; object-fit:cover; display:block; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        return el;
+    }
+
+    renderPortalPhoto(student) {
+        if (typeof StudentImageManager === 'undefined') return;
+        const photoEl = this.ensurePortalPhotoContainer();
+        if (photoEl) StudentImageManager.renderStudentImage(student.name, student.grade, photoEl);
     }
 
     hideStudentSections() {
@@ -235,24 +276,42 @@ class StudentPortalManager {
 
             container.innerHTML = `
                 <div class="row">
-                    ${topRecommendations.map(book => `
+                    ${topRecommendations.map(book => {
+                        const coverUrl = (typeof BookCoverManager !== 'undefined')
+                            ? BookCoverManager.getBookCover(book.id, book)
+                            : 'covers/default-book.png';
+                        // Deep-links into the student portal's Browse Library view,
+                        // scrolled to and highlighting this exact book (see
+                        // handleDeepLinkedBook/highlightBrowseBook in student-portal.js).
+                        const portalLink = `${STUDENT_PORTAL_URL}?book=${encodeURIComponent(book.id)}`;
+                        return `
                         <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h6 class="card-title">${book.title}</h6>
-                                    <p class="card-text mb-1">
-                                        <small class="text-muted">
-                                            ${book.author || 'Unknown author'} | 
-                                            ${book.category || 'Unknown category'}
-                                        </small>
-                                    </p>
-                                    <p class="card-text mb-0">
-                                        <span class="badge bg-success">${book.available} available</span>
-                                    </p>
+                            <div class="card h-100">
+                                <div class="card-body d-flex" style="gap:12px;">
+                                    <img src="${coverUrl}" alt="${book.title}" class="book-cover"
+                                         style="width:56px;height:80px;object-fit:cover;border-radius:4px;flex-shrink:0;background:#eee;"
+                                         onerror="this.onerror=null; this.src='covers/default-book.png';">
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title mb-1">${book.title}</h6>
+                                        <p class="card-text mb-1">
+                                            <small class="text-muted">
+                                                ${book.author || 'Unknown author'} |
+                                                ${book.category || 'Unknown category'}
+                                            </small>
+                                        </p>
+                                        <p class="card-text mb-2">
+                                            <span class="badge bg-success">${book.available} available</span>
+                                        </p>
+                                        <a href="${portalLink}" target="_blank" rel="noopener"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i>View in Student Portal
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    `).join('')}
+                    `;
+                    }).join('')}
                 </div>
             `;
 
@@ -547,8 +606,9 @@ class StudentPortalManager {
 
             const cardHtml = `
                 <div class="library-card">
-                    <div class="library-card-header">
-                        <h4>📚 Library Card</h4>
+                    <div class="library-card-header d-flex align-items-center" style="gap:14px;">
+                        <div id="libraryCardPhoto" style="width:64px;height:64px;border-radius:50%;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.25);"></div>
+                        <h4 class="mb-0">📚 Library Card</h4>
                     </div>
                     <div class="library-card-body">
                         <div class="row">
@@ -594,6 +654,12 @@ class StudentPortalManager {
                     .library-card-body p {
                         margin-bottom: 5px;
                     }
+                    #libraryCardPhoto img.student-image {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                        display: block;
+                    }
                 </style>
             `;
 
@@ -602,7 +668,13 @@ class StudentPortalManager {
                 html: cardHtml,
                 width: '600px',
                 showConfirmButton: true,
-                confirmButtonText: 'Close'
+                confirmButtonText: 'Close',
+                didOpen: () => {
+                    const photoEl = document.getElementById('libraryCardPhoto');
+                    if (photoEl && typeof StudentImageManager !== 'undefined') {
+                        StudentImageManager.renderStudentImage(student.name, student.grade, photoEl);
+                    }
+                }
             });
 
         } catch (error) {
