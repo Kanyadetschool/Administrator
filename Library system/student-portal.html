@@ -356,6 +356,8 @@ a{color:inherit;text-decoration:none;}
 .wishlist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--card-shadow);padding:16px 20px;}
 .wishlist-title{font-size:12px;font-weight:800;color:var(--text2);margin-bottom:10px;}
 .wishlist-title i{color:var(--red);}
+.reservations-card .wishlist-title i{color:var(--gold);}
+.reservations-card .wishlist-chip{background:rgba(215,163,62,.08);}
 .wishlist-chips{display:flex;flex-wrap:wrap;gap:8px;}
 .wishlist-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(37,68,61,.08);border:1px solid var(--border);border-radius:999px;padding:6px 8px 6px 12px;font-size:12px;font-weight:600;color:var(--text2);}
 .wishlist-chip button{background:none;border:none;color:var(--text3);cursor:pointer;display:flex;align-items:center;padding:2px;border-radius:50%;}
@@ -649,6 +651,7 @@ a{color:inherit;text-decoration:none;}
                             </div>
                         </div>
                     </div>
+                    <div id="reservationsPanel" class="mb-3"></div>
                     <div id="wishlistPanel" class="mb-4"></div>
                     <div id="browseResults" class="row">
                         <!-- Library catalog will be loaded here -->

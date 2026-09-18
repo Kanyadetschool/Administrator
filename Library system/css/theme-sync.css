@@ -297,6 +297,41 @@ body { transition: background .3s, color .3s; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); }
 .sidebar::-webkit-scrollbar-thumb { background: var(--border-strong) !important; }
 
+/* On mobile the sidebar (z-index 1045) sat BELOW .main-content
+   (z-index 1052, raised earlier so modals nested in it could clear
+   the sidebar) — meaning an opened sidebar was actually rendered
+   underneath the page content and effectively invisible/unusable.
+   Only correct this at the same breakpoint the mobile sidebar
+   already uses, so the desktop layout (where they never overlap)
+   and the modal-escaping fix are untouched. */
+@media (max-width: 768px) {
+    .sidebar-backdrop { z-index: 1051; }
+    .sidebar { z-index: 1053; }
+}
+
+/* ---- Due This Week / Class Library Health — small additions on top of
+   the existing analytics-panel/leaderboard-item look already defined
+   inline in library.html's <head> ---- */
+.due-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.due-item .leaderboard-name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.4;
+}
+.due-item .due-remind-btn {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+.class-health-table th,
+.class-health-table td { font-size: 0.82rem; padding: 0.4rem 0.5rem; }
+[data-theme="dark"] .class-health-table { color: var(--text-color); }
+[data-theme="dark"] .class-health-table th { color: var(--text2); border-color: var(--border-color); }
+[data-theme="dark"] .class-health-table td { border-color: var(--border-color); }
+
 /* ---- back-to-top (ported from index.html) ---- */
 .back-to-top-wrap {
     position: fixed;

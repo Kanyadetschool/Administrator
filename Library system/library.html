@@ -427,6 +427,20 @@
                             <p id="totalBooks">0</p>
                         </div>
                     </div>
+                    <div class="stat-card clickable" data-page="fines">
+                        <i class="bi bi-cash-coin"></i>
+                        <div class="stat-info">
+                            <h3>Outstanding Fines</h3>
+                            <p id="dashOutstandingFines">Ksh 0.00</p>
+                        </div>
+                    </div>
+                    <div class="stat-card clickable" data-page="reservations">
+                        <i class="bi bi-bookmark-star"></i>
+                        <div class="stat-info">
+                            <h3>Students Waiting</h3>
+                            <p id="dashStudentsWaiting">0</p>
+                        </div>
+                    </div>
                 </div>
 
 
@@ -541,6 +555,52 @@
                 <h5 class="analytics-col-title">Most Borrowed Books</h5>
                 <p class="analytics-col-caption">Highest demand titles</p>
                 <div id="mostBorrowedList" class="leaderboard-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fines & Reservations -->
+    <div class="analytics-panel mb-4">
+        <div class="analytics-panel-header">
+            <div>
+                <span class="analytics-eyebrow">Money &amp; demand</span>
+                <h3 class="analytics-title">Fines &amp; reservations</h3>
+            </div>
+        </div>
+        <div class="analytics-panel-body">
+            <div class="analytics-col analytics-col-wide">
+                <h5 class="analytics-col-title">Fines to Collect</h5>
+                <p class="analytics-col-caption">Highest outstanding balances</p>
+                <div id="topUnpaidFinesList" class="leaderboard-list"></div>
+            </div>
+            <div class="analytics-divider" aria-hidden="true"></div>
+            <div class="analytics-col analytics-col-narrow">
+                <h5 class="analytics-col-title">Most Reserved</h5>
+                <p class="analytics-col-caption">Longest hold queues</p>
+                <div id="mostReservedList" class="leaderboard-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Due This Week & Class Library Health -->
+    <div class="analytics-panel mb-4">
+        <div class="analytics-panel-header">
+            <div>
+                <span class="analytics-eyebrow">Coming due</span>
+                <h3 class="analytics-title">Due this week &amp; class health</h3>
+            </div>
+        </div>
+        <div class="analytics-panel-body">
+            <div class="analytics-col analytics-col-wide">
+                <h5 class="analytics-col-title">Due This Week</h5>
+                <p class="analytics-col-caption">Active loans returning in the next 7 days</p>
+                <div id="dueThisWeekList" class="leaderboard-list"></div>
+            </div>
+            <div class="analytics-divider" aria-hidden="true"></div>
+            <div class="analytics-col analytics-col-narrow">
+                <h5 class="analytics-col-title">Class Library Health</h5>
+                <p class="analytics-col-caption">Out &amp; overdue, by grade</p>
+                <div id="classHealthTable"></div>
             </div>
         </div>
     </div>
@@ -805,14 +865,14 @@
                         <i class="bi bi-currency-dollar"></i>
                         <div class="stat-info">
                             <h3>Total Outstanding</h3>
-                            <p id="totalOutstandingFines">$0.00</p>
+                            <p id="totalOutstandingFines">Ksh 0.00</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <i class="bi bi-check-circle"></i>
                         <div class="stat-info">
                             <h3>Total Collected</h3>
-                            <p id="totalCollectedFines">$0.00</p>
+                            <p id="totalCollectedFines">Ksh 0.00</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -1762,7 +1822,7 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="fineAmount" class="form-label">Fine Amount ($) <span class="text-danger">*</span></label>
+                            <label for="fineAmount" class="form-label">Fine Amount (Ksh) <span class="text-danger">*</span></label>
                             <input type="number" id="fineAmount" class="form-control" step="0.01" min="0" required>
                         </div>
                         <div class="mb-3">
@@ -1805,7 +1865,7 @@
                 <div class="modal-body">
                     <div id="paymentDetails"></div>
                     <div class="mt-3">
-                        <label for="paymentAmount" class="form-label">Payment Amount ($) <span class="text-danger">*</span></label>
+                        <label for="paymentAmount" class="form-label">Payment Amount (Ksh) <span class="text-danger">*</span></label>
                         <input type="number" id="paymentAmount" class="form-control" step="0.01" min="0" required>
                     </div>
                     <div class="mt-3">
@@ -1873,24 +1933,24 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="dailyFineRate" class="form-label">Daily Fine Rate ($)</label>
-                        <input type="number" id="dailyFineRate" class="form-control" step="0.01" min="0" value="0.50">
+                        <label for="dailyFineRate" class="form-label">Daily Fine Rate (Ksh)</label>
+                        <input type="number" id="dailyFineRate" class="form-control" step="1" min="0" value="5">
                     </div>
                     <div class="mb-3">
-                        <label for="maxFineAmount" class="form-label">Maximum Fine Amount ($)</label>
-                        <input type="number" id="maxFineAmount" class="form-control" step="0.01" min="0" value="10.00">
+                        <label for="maxFineAmount" class="form-label">Maximum Fine Amount (Ksh)</label>
+                        <input type="number" id="maxFineAmount" class="form-control" step="1" min="0" value="100">
                     </div>
                     <div class="mb-3">
                         <label for="gracePeriodDays" class="form-label">Grace Period (Days)</label>
                         <input type="number" id="gracePeriodDays" class="form-control" min="0" value="3">
                     </div>
                     <div class="mb-3">
-                        <label for="lostBookFine" class="form-label">Lost Book Fine ($)</label>
-                        <input type="number" id="lostBookFine" class="form-control" step="0.01" min="0" value="15.00">
+                        <label for="lostBookFine" class="form-label">Lost Book Fine (Ksh)</label>
+                        <input type="number" id="lostBookFine" class="form-control" step="1" min="0" value="300">
                     </div>
                     <div class="mb-3">
-                        <label for="damagedBookFine" class="form-label">Damaged Book Fine ($)</label>
-                        <input type="number" id="damagedBookFine" class="form-control" step="0.01" min="0" value="5.00">
+                        <label for="damagedBookFine" class="form-label">Damaged Book Fine (Ksh)</label>
+                        <input type="number" id="damagedBookFine" class="form-control" step="1" min="0" value="100">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -2145,6 +2205,46 @@
         }
       })();
 
+      /* Mobile sidebar: open/close via the topbar toggle, and close on
+         backdrop click, outside click, or Escape. */
+      (function(){
+        var sidebar = document.getElementById('sidebar');
+        var toggle = document.getElementById('sidebarToggle');
+        var backdrop = document.querySelector('.sidebar-backdrop');
+
+        function openSidebar(){
+          sidebar?.classList.add('show');
+          backdrop?.classList.add('show');
+        }
+        function closeSidebar(){
+          sidebar?.classList.remove('show');
+          backdrop?.classList.remove('show');
+        }
+
+        toggle?.addEventListener('click', function(e){
+          e.stopPropagation();
+          if (sidebar?.classList.contains('show')) closeSidebar();
+          else openSidebar();
+        });
+
+        backdrop?.addEventListener('click', closeSidebar);
+
+        document.addEventListener('click', function(e){
+          if (!sidebar || !sidebar.classList.contains('show')) return;
+          if (sidebar.contains(e.target) || (toggle && toggle.contains(e.target))) return;
+          closeSidebar();
+        });
+
+        document.addEventListener('keydown', function(e){
+          if (e.key === 'Escape') closeSidebar();
+        });
+
+        // Any nav item click closes it too (mobile: pick a page, sidebar tucks away)
+        document.querySelectorAll('.nav-links li[data-page], .nav-links a.nav-links-external').forEach(function(el){
+          el.addEventListener('click', closeSidebar);
+        });
+      })();
+
       /* Back to top (gold progress ring) — ported from index.html */
       document.addEventListener('DOMContentLoaded', () => {
         const backWrap = document.getElementById('backToTopWrap');
@@ -2197,7 +2297,7 @@
     </style>
     <script>
       (function () {
-        var LOGIN_URL = './login.html';
+        var LOGIN_URL = './Library system/login.html';
         var NO_ACCESS_URL = './no-access.html';
 
         // guardPage() (below) auto-wires #logoutBtn to just clear the local
@@ -2271,10 +2371,9 @@
     <script src="./js/reservations.js"></script>
     <script src="./js/class-library.js"></script>
     <script src="./js/replacement-cost-summary.js"></script>
-    <script src="copy-inventory.js"></script>
-<script src="term-report.js"></script>
     <script src="./js/book-requests.js"></script>
     <script src="./js/fines-management.js"></script>
+    <script src="./js/dashboard-widgets.js"></script>
     <script src="./js/book-condition.js"></script>
     <script src="./js/advanced-analytics.js"></script>
     <script src="./js/student-Cards.js"></script>

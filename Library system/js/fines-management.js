@@ -3,11 +3,11 @@ class FinesManager {
         this.db = firebase.database();
         this.fineId = null;
         this.fineSettings = {
-            dailyFineRate: 0.50,
-            maxFineAmount: 10.00,
+            dailyFineRate: 5,
+            maxFineAmount: 100,
             gracePeriodDays: 3,
-            lostBookFine: 15.00,
-            damagedBookFine: 5.00
+            lostBookFine: 300,
+            damagedBookFine: 100
         };
         this.init();
     }
@@ -62,11 +62,11 @@ class FinesManager {
 
     showFineSettingsModal() {
         // Populate form with current settings
-        document.getElementById('dailyFineRate').value = this.fineSettings.dailyFineRate || 0.50;
-        document.getElementById('maxFineAmount').value = this.fineSettings.maxFineAmount || 10.00;
+        document.getElementById('dailyFineRate').value = this.fineSettings.dailyFineRate || 5;
+        document.getElementById('maxFineAmount').value = this.fineSettings.maxFineAmount || 100;
         document.getElementById('gracePeriodDays').value = this.fineSettings.gracePeriodDays || 3;
-        document.getElementById('lostBookFine').value = this.fineSettings.lostBookFine || 15.00;
-        document.getElementById('damagedBookFine').value = this.fineSettings.damagedBookFine || 5.00;
+        document.getElementById('lostBookFine').value = this.fineSettings.lostBookFine || 300;
+        document.getElementById('damagedBookFine').value = this.fineSettings.damagedBookFine || 100;
 
         const modal = new bootstrap.Modal(document.getElementById('fineSettingsModal'));
         modal.show();
@@ -75,11 +75,11 @@ class FinesManager {
     async saveFineSettings() {
         try {
             this.fineSettings = {
-                dailyFineRate: parseFloat(document.getElementById('dailyFineRate').value) || 0.50,
-                maxFineAmount: parseFloat(document.getElementById('maxFineAmount').value) || 10.00,
+                dailyFineRate: parseFloat(document.getElementById('dailyFineRate').value) || 5,
+                maxFineAmount: parseFloat(document.getElementById('maxFineAmount').value) || 100,
                 gracePeriodDays: parseInt(document.getElementById('gracePeriodDays').value) || 3,
-                lostBookFine: parseFloat(document.getElementById('lostBookFine').value) || 15.00,
-                damagedBookFine: parseFloat(document.getElementById('damagedBookFine').value) || 5.00
+                lostBookFine: parseFloat(document.getElementById('lostBookFine').value) || 300,
+                damagedBookFine: parseFloat(document.getElementById('damagedBookFine').value) || 100
             };
 
             await this.db.ref('fineSettings').set(this.fineSettings);
@@ -251,8 +251,8 @@ class FinesManager {
 
             const today = new Date();
             const gracePeriod = this.fineSettings.gracePeriodDays || 3;
-            const dailyRate = this.fineSettings.dailyFineRate || 0.50;
-            const maxFine = this.fineSettings.maxFineAmount || 10.00;
+            const dailyRate = this.fineSettings.dailyFineRate || 5;
+            const maxFine = this.fineSettings.maxFineAmount || 100;
 
             // NOTE: 'overdue' is never actually written to issuance.status in
             // this database — app.js only computes it on the fly for display
@@ -441,9 +441,9 @@ class FinesManager {
                         <div>
                             <h5 class="card-title">${fine.studentName} (${fine.studentGrade})</h5>
                             <p class="card-text mb-1">
-                                <strong>Amount:</strong> $${fine.amount.toFixed(2)} | 
-                                <strong>Paid:</strong> $${fine.amountPaid.toFixed(2)} | 
-                                <strong>Outstanding:</strong> $${fine.amountOutstanding.toFixed(2)}
+                                <strong>Amount:</strong> Ksh ${fine.amount.toFixed(2)} | 
+                                <strong>Paid:</strong> Ksh ${fine.amountPaid.toFixed(2)} | 
+                                <strong>Outstanding:</strong> Ksh ${fine.amountOutstanding.toFixed(2)}
                             </p>
                             <p class="card-text mb-1">
                                 <strong>Reason:</strong> ${fine.reason} | 
@@ -507,8 +507,8 @@ class FinesManager {
                 });
             }
 
-            document.getElementById('totalOutstandingFines').textContent = `$${totalOutstanding.toFixed(2)}`;
-            document.getElementById('totalCollectedFines').textContent = `$${totalCollected.toFixed(2)}`;
+            document.getElementById('totalOutstandingFines').textContent = `Ksh ${totalOutstanding.toFixed(2)}`;
+            document.getElementById('totalCollectedFines').textContent = `Ksh ${totalCollected.toFixed(2)}`;
             document.getElementById('pendingFinesCount').textContent = pendingCount;
             document.getElementById('overdueFinesCount').textContent = overdueCount;
 
@@ -525,11 +525,11 @@ class FinesManager {
                 <div class="col-md-6">
                     <p><strong>Student:</strong> ${fine.studentName}</p>
                     <p><strong>Grade:</strong> ${fine.studentGrade}</p>
-                    <p><strong>Total Fine:</strong> $${fine.amount.toFixed(2)}</p>
+                    <p><strong>Total Fine:</strong> Ksh ${fine.amount.toFixed(2)}</p>
                 </div>
                 <div class="col-md-6">
-                    <p><strong>Amount Paid:</strong> $${fine.amountPaid.toFixed(2)}</p>
-                    <p><strong>Outstanding:</strong> $${fine.amountOutstanding.toFixed(2)}</p>
+                    <p><strong>Amount Paid:</strong> Ksh ${fine.amountPaid.toFixed(2)}</p>
+                    <p><strong>Outstanding:</strong> Ksh ${fine.amountOutstanding.toFixed(2)}</p>
                     <p><strong>Reason:</strong> ${fine.reason}</p>
                 </div>
             </div>
@@ -609,7 +609,7 @@ class FinesManager {
             await Swal.fire({
                 icon: 'success',
                 title: 'Payment Recorded',
-                text: `Payment of $${amount.toFixed(2)} recorded successfully`,
+                text: `Payment of Ksh ${amount.toFixed(2)} recorded successfully`,
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -629,7 +629,7 @@ class FinesManager {
         
         const detailsHtml = `
             <div class="alert alert-warning">
-                <strong>Warning:</strong> You are about to waive a fine of $${fine.amount.toFixed(2)} for ${fine.studentName}.
+                <strong>Warning:</strong> You are about to waive a fine of Ksh ${fine.amount.toFixed(2)} for ${fine.studentName}.
             </div>
             <div class="row">
                 <div class="col-md-6">
@@ -637,7 +637,7 @@ class FinesManager {
                     <p><strong>Grade:</strong> ${fine.studentGrade}</p>
                 </div>
                 <div class="col-md-6">
-                    <p><strong>Fine Amount:</strong> $${fine.amount.toFixed(2)}</p>
+                    <p><strong>Fine Amount:</strong> Ksh ${fine.amount.toFixed(2)}</p>
                     <p><strong>Reason:</strong> ${fine.reason}</p>
                 </div>
             </div>
@@ -742,7 +742,7 @@ class FinesManager {
         const paymentHistory = fine.payments ? Object.entries(fine.payments).map(([id, payment]) => `
             <tr>
                 <td>${new Date(payment.processedAt).toLocaleDateString()}</td>
-                <td>$${payment.amount.toFixed(2)}</td>
+                <td>Ksh ${payment.amount.toFixed(2)}</td>
                 <td>${payment.method}</td>
                 <td>${payment.reference || 'N/A'}</td>
                 <td>${payment.processedByName || 'Unknown'}</td>
@@ -759,9 +759,9 @@ class FinesManager {
                 </div>
                 <div class="col-md-6">
                     <h6>Fine Information</h6>
-                    <p><strong>Total Amount:</strong> $${fine.amount.toFixed(2)}</p>
-                    <p><strong>Amount Paid:</strong> $${fine.amountPaid.toFixed(2)}</p>
-                    <p><strong>Outstanding:</strong> $${fine.amountOutstanding.toFixed(2)}</p>
+                    <p><strong>Total Amount:</strong> Ksh ${fine.amount.toFixed(2)}</p>
+                    <p><strong>Amount Paid:</strong> Ksh ${fine.amountPaid.toFixed(2)}</p>
+                    <p><strong>Outstanding:</strong> Ksh ${fine.amountOutstanding.toFixed(2)}</p>
                     <p><strong>Status:</strong> ${fine.status}</p>
                 </div>
             </div>

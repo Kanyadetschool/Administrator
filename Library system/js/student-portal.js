@@ -1578,6 +1578,7 @@ async handleLogin(e) {
             }
 
             this.renderWishlistPanel();
+            this.renderReservationsPanel();
             this.applyBrowseFilters();
         } catch (error) {
             console.error('Error loading library catalog:', error);
@@ -1679,6 +1680,68 @@ async handleLogin(e) {
         `;
     }
 
+    // "My Reservations" — gives the student the same visibility into their
+    // hold-queue standing that the librarian's Reservations tab has, instead
+    // of that state only being readable one book at a time as a button label
+    // in the Browse results. Position is computed by re-reading each
+    // reservations/{bookId} queue and finding this student's place in it
+    // (push keys sort chronologically, so array index === queue position).
+    async renderReservationsPanel() {
+        const panel = document.getElementById('reservationsPanel');
+        if (!panel) return;
+
+        const reservations = this._browseReservations || {};
+        const bookIds = Object.keys(reservations);
+
+        if (bookIds.length === 0) {
+            panel.innerHTML = '';
+            return;
+        }
+
+        const bookById = new Map((this._browseBooks || []).map(b => [b.id, b]));
+
+        let rows;
+        try {
+            rows = await Promise.all(bookIds.map(async (bookId) => {
+                const book = bookById.get(bookId);
+                const title = book?.title || 'Unknown title';
+                let position = null;
+                try {
+                    const queueSnap = await this.db.ref(`reservations/${bookId}`).once('value');
+                    let idx = 0;
+                    let found = -1;
+                    queueSnap.forEach(child => {
+                        if (child.val().studentId === this.studentData.id) found = idx;
+                        idx++;
+                    });
+                    if (found >= 0) position = found + 1;
+                } catch (e) {
+                    // Leave position unknown rather than fail the whole panel.
+                }
+                return { bookId, title, position };
+            }));
+        } catch (error) {
+            console.error('Error loading reservation queue positions:', error);
+            return;
+        }
+
+        panel.innerHTML = `
+            <div class="wishlist-card reservations-card">
+                <div class="wishlist-title"><i class="bi bi-bookmark-star-fill me-1"></i>My Reservations</div>
+                <div class="wishlist-chips">
+                    ${rows.map(r => `
+                        <span class="wishlist-chip">
+                            ${this.escapeHtml(r.title)}${r.position ? ` <small class="text-muted">(#${r.position} in line)</small>` : ''}
+                            <button type="button" onclick="studentPortal.cancelMyReservation('${r.bookId}', '${(r.title || '').replace(/'/g, "\\'")}')" title="Cancel reservation">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
     async toggleWishlist(bookId, title, author) {
         try {
             const ref = this.db.ref(`wishlists/${this.studentData.id}/${bookId}`);
@@ -1740,6 +1803,7 @@ async handleLogin(e) {
 
             this._browseReservations[bookId] = newRef.key;
             this.showToast('success', `You're in the queue for "${title}" — we'll message you when it's back`);
+            this.renderReservationsPanel();
             this.applyBrowseFilters();
         } catch (error) {
             console.error('Error reserving book:', error);
@@ -1757,6 +1821,7 @@ async handleLogin(e) {
 
             delete this._browseReservations[bookId];
             this.showToast('success', `Removed your reservation for "${title}"`);
+            this.renderReservationsPanel();
             this.applyBrowseFilters();
         } catch (error) {
             console.error('Error cancelling reservation:', error);
