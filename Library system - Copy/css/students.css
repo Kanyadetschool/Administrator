@@ -1,0 +1,609 @@
+:root {
+            --navbar-height: 64px;
+            --primary-color: #4158d0;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.skeleton-title,
+.skeleton-text,
+.skeleton-progress,
+.skeleton-badge {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.book-cover-container {
+    position: relative;
+}
+
+
+
+
+
+
+
+
+
+
+/* Updated CSS to style SweetAlert2 popup */
+.student-info {
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    overflow: visible !important;
+}
+
+.student-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: visible !important;
+    background: #f8f9fa;
+    position: relative;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.student-image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.student-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.student-status {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #28a745;
+    color: white;
+    padding: 2px 6px;
+    font-size: 0.5rem;
+    border-radius: 10px;
+}
+
+.student-status.status-active {
+    color: rgb(255, 255, 255);
+}
+
+.student-status.status-inactive {
+    background: #dc3545;
+}
+
+.student-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-name {
+    font-weight: 600;
+}
+
+.student-grade {
+    color: #6c757d;
+}
+
+/* Hover card styling */
+.student-hover-card {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 20px;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.student-avatar:hover .student-hover-card {
+    display: block !important;
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(0) !important;
+    
+}
+
+.hover-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+
+}
+
+.hover-card-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #dee2e6;
+}
+
+.hover-card-info {
+    text-align: center;
+    width: 100%;
+}
+
+.hover-card-info h5 {
+    margin: 0 0 10px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.hover-card-info p {
+    margin: 3px 0;
+    font-size: 0.95rem;
+    color: #6c757d;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.hover-card-info p::before {
+    content: attr(data-label);
+    font-weight: 500;
+    color: #343a40;
+    flex: 1;
+}
+
+.hover-card-info p::after {
+    content: attr(data-value);
+    flex: 2;
+    text-align: left;
+}
+
+/* SweetAlert2 popup styling */
+.student-image-popup {
+    padding: 20px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.student-popup-image {
+    border-radius: 50% !important;
+    border: 3px solid #dee2e6 !important;
+    object-fit: cover !important;
+    max-width: 300px !important;
+    max-height: 300px !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+}
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #ebecef, #ffffff);
+            box-shadow: 30PX 5PX 30PX rgba(0, 0, 0, 0.1);
+        }
+
+        #dashboardContent {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .book-card {
+            border: none;
+            border-radius: 12px;
+            transition: transform 0.2s;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .status-active { color: #28a745; }
+        .status-overdue { color: #dc3545; }
+        .status-lost { color: #ffc107; }
+        .status-returned { color: #6c757d; }
+
+        .messages-container {
+            max-height: 60px;
+            overflow-y: auto;
+        }
+
+        /* Add to existing styles */
+        .message-item {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background-color: #f8f9fa;
+            border-left: 4px solid #4158d0;
+        }
+
+        .message-item.unread {
+            background-color: #fff8e1;
+            border-left-color: #ffc107;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-content {
+            color: #495057;
+        }
+
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .chat-thread {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+            max-width: 80%;
+        }
+
+        .chat-message.librarian {
+            margin-left: auto;
+            background-color: #e3f2fd;
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .chat-message.student {
+            background-color: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+
+        /* Student Dashboard Navbar */
+        .student-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--navbar-height);
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            z-index: 1000;
+            align-items: center;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            overflow-y: scroll;
+
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .nav-brand {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            margin-left: 2rem;
+        }
+
+        .nav-link {
+            background: none;
+            border: none;
+            color: #64748b;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+        }
+
+        .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .nav-link .badge {
+            font-size: 0.75rem;
+            padding: 0.25em 0.6em;
+            margin-left: 0.5rem;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .student-info:hover {
+            background-color: #f7fafc;
+        }
+
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #64748b;
+        }
+
+        .student-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .student-name {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .student-grade {
+            color: #64748b;
+        }
+
+        .nav-logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            background-color: #fee2e2;
+            color: #dc2626;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-logout-btn:hover {
+            background-color: #fecaca;
+        }
+
+        /* Update existing container styles to account for navbar */
+        #studentDashboard {
+            padding-top: var(--navbar-height);
+        }
+
+        /* View containers */
+        .view-container {
+            display: none;
+            min-height: calc(100vh - var(--navbar-height) - 2rem);
+            padding-top: 1rem;
+        }
+
+        .view-container.active {
+            display: block;
+        }
+
+        /* Add to existing styles */
+.file-preview {
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.file-preview i {
+    color: #6c757d;
+}
+
+.attachment-preview {
+    display: inline-block;
+    margin: 0.25rem;
+}
+
+#messagesContainer {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.messages-container:empty::after {
+    content: 'No messages';
+    display: block;
+    text-align: center;
+    color: #6c757d;
+    padding: 2rem;
+}
+        
+.book-cover-wrapper {
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.book-cover {
+    height: 200px;
+    width: 100%;
+    object-fit: contain;
+    transition: transform 0.2s ease-in-out;
+}
+
+.book-cover:hover {
+    transform: scale(1.05);
+}
+
+/* Book card styles */
+.book-card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.book-cover-container {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    background-color: #f8f9fa;
+    overflow: hidden;
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
+}
+
+.book-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.book-cover:hover {
+    transform: scale(1.05);
+}
+
+.status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 20px;
+}
+
+/* Responsive styles */
+        @media (max-width: 368px) {
+            .nav-brand {
+                display: none;
+            }
+
+            .student-details {
+                display: none;
+            }
+
+            .nav-logout-btn span {
+                display: none;
+            }
+
+            .nav-content {
+                padding: 0 0.5rem;
+            }
+
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+            
+            .messages-container {
+                max-height: 400px;
+            }
+        }
+
+        /* Table styles */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }

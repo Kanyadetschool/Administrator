@@ -1,0 +1,414 @@
+/* ============================================================
+   theme-sync.css — brings the Library System's palette in line
+   with the Advanced Admin Portal (index.html) and adds the same
+   light/dark toggle. Loaded AFTER styles.css and bookcard.css so
+   these overrides win the cascade without editing either file's
+   internals. Nothing here changes layout/structure — only color
+   variables, a few hardcoded surface colors that weren't already
+   var()-driven, and the toggle control itself.
+   ============================================================ */
+
+:root {
+    /* Re-pointed to the Advanced Admin Portal's exact palette */
+    --primary-color: #2980b9;
+    --secondary-color: #1a5276;
+    --gold: #f39c12;
+    --orange: #e67e22;
+    --border-color: rgba(41, 128, 185, 0.16);
+    --card-shadow: 0 12px 32px rgba(20, 43, 64, 0.08);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --transition: all .25s cubic-bezier(.4, 0, .2, 1);
+    --sidebar-width: 260px;
+
+    /* Aliases matching index.html's exact variable names, so its
+       sidebar/topbar chrome CSS can be ported here almost verbatim */
+    --blue: #2980b9; --blue-dk: #1a5276; --blue-lt: #5dade2; --blue-glow: rgba(41, 128, 185, .35);
+    --red: #e74c3c; --red-dk: #c0392b; --purple: #8e44ad; --green: #27ae60;
+    --brand-1: #0f4c81; --brand-2: #3f8fc5; --brand-3: #ffb84d;
+    --text: #0c1e33; --text2: #5a5342; --text3: #a89b7a;
+    --border: rgba(211, 164, 55, .2); --border-strong: rgba(211, 164, 55, .45);
+    --surface2: #fdfaf2; --surface3: #f8eed6;
+    --sidebar-bg: #faf6ea;
+}
+
+[data-theme="dark"] {
+    --background-color: #090f1a;
+    --text-color: #ddeeff;
+    --surface: #111d2e;
+    --surface-muted: #162438;
+    --panel-bg-light: #162438;
+    --light-bg: #0c1525;
+    --border-color: rgba(41, 128, 185, 0.22);
+    --primary-color: #5dade2;
+    --secondary-color: #2980b9;
+    --gold: #f39c12;
+    --orange: #e67e22;
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    --text: #ddeeff; --text2: #7aaec9; --text3: #4a7a9b;
+    --border: rgba(41, 128, 185, .18); --border-strong: rgba(41, 128, 185, .4);
+    --surface2: #162438; --surface3: #1c2e44;
+    --sidebar-bg: #0a1422;
+}
+
+/* ---- base surfaces (body/html set a literal `background`, not a
+   var(), in styles.css — override those directly per theme) ---- */
+html { background: var(--background-color); transition: background .3s; }
+body { transition: background .3s, color .3s; }
+
+[data-theme="light"] body {
+    background: radial-gradient(circle at 90% 0%, rgba(243, 156, 18, 0.16), transparent 28rem),
+        linear-gradient(135deg, #eef0f2 0%, #f4f0e6 45%, #fbecc3 100%);
+}
+[data-theme="dark"] body {
+    background: radial-gradient(circle at 90% 0%, rgba(41, 128, 185, 0.16), transparent 28rem),
+        linear-gradient(135deg, #090f1a 0%, #0c1525 100%);
+}
+[data-theme="dark"] body::before { opacity: .5; }
+
+/* ---- structural surfaces that were hardcoded to light colors
+   rather than var()-driven — enough coverage for a coherent dark
+   mode across cards, tables, forms, and modals ---- */
+[data-theme="dark"] .card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .student-card,
+[data-theme="dark"] .issuance-card,
+[data-theme="dark"] .lost-book-card,
+[data-theme="dark"] .activity-list,
+[data-theme="dark"] .messages-container,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .dropdown-menu,
+[data-theme="dark"] .list-group-item,
+[data-theme="dark"] .analytics-panel,
+[data-theme="dark"] .analytics-chart-frame,
+[data-theme="dark"] .low-stock-banner,
+[data-theme="dark"] .leaderboard-item,
+[data-theme="dark"] .low-stock-chip {
+    background: var(--surface) !important;
+    color: var(--text-color);
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .library-topbar {
+    background: rgba(17, 29, 46, 0.92) !important;
+    box-shadow: 0 1px 0 rgba(41, 128, 185, 0.18), 0 8px 22px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .sidebar {
+    background: linear-gradient(180deg, #0a1422, rgba(17, 29, 46, .9));
+    border-right: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] table,
+[data-theme="dark"] .table {
+    color: var(--text-color);
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-color);
+}
+[data-theme="dark"] thead,
+[data-theme="dark"] th {
+    background-color: var(--surface-muted) !important;
+    color: var(--text-color) !important;
+}
+[data-theme="dark"] .table > :not(caption) > * > * {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background-color: var(--surface-muted);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+[data-theme="dark"] .form-control::placeholder { color: var(--text-color); opacity: .5; }
+[data-theme="dark"] .input-group-text {
+    background-color: var(--surface-muted);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .analytics-title,
+[data-theme="dark"] .analytics-col-title,
+[data-theme="dark"] .leaderboard-rank + * {
+    color: var(--text-color);
+}
+[data-theme="dark"] .analytics-col-caption,
+[data-theme="dark"] .analytics-legend-value {
+    color: #7aaec9;
+}
+
+/* ---- Book index-card (bookcard.css) — its own paper/ink
+   palette, given a parallel dark "library at night" variant ---- */
+[data-theme="dark"] .book-card {
+    --ink: #ddeeff;
+    --ink-soft: #7aaec9;
+    --paper: #111d2e;
+    --paper-edge: rgba(41, 128, 185, 0.22);
+    --forest: #2ecc9a;
+    --forest-soft: rgba(46, 204, 154, 0.15);
+    --ochre: #f39c12;
+    --ochre-soft: rgba(243, 156, 18, 0.15);
+    --rust: #e74c3c;
+    --rust-soft: rgba(231, 76, 60, 0.15);
+}
+[data-theme="dark"] .book-stats { background: #0d1725; }
+[data-theme="dark"] .btn-ghost,
+[data-theme="dark"] .book-card .card-actions button { background: #0d1725; }
+[data-theme="dark"] .grid-item { background: var(--surface); border-color: var(--border-color); }
+
+/* ============================================================
+   Sidebar chrome — ported from the Advanced Admin Portal's
+   .sidebar-brand / .sidebar-section / .nav-item / .sidebar-footer
+   so the Library sidebar matches its structure, not just its
+   colors. Layout/width still comes from styles.css's .sidebar
+   rule (via --sidebar-width); this only restyles the brand block,
+   adds section labels, softens the active nav state to the same
+   tinted-pill look, and adds a footer identity/logout row.
+   ============================================================ */
+
+.sidebar-brand {
+    padding: 18px 16px 16px;
+    margin: -1.15rem -0.85rem 0.4rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(90deg, rgba(41, 128, 185, .12), rgba(243, 156, 18, .08));
+}
+.sidebar-brand .brand-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2), var(--brand-3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(20, 63, 110, .35);
+}
+.sidebar-brand .brand-text .b-name { font-size: 14px; font-weight: 900; letter-spacing: .01em; color: var(--text); line-height: 1.25; }
+.sidebar-brand .brand-text .b-role { font-size: 10px; color: var(--blue-lt); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+
+.sidebar-section { padding: 14px 0 2px; }
+.sidebar-section .s-label {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--text3);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 0 8px;
+    margin-bottom: 8px;
+}
+.sidebar-section .nav-links { margin-top: 0; flex: 0 0 auto; }
+
+/* Soften the nav-links active/hover treatment to the Admin Portal's
+   tinted-pill look instead of the solid gradient fill */
+.nav-links li {
+    border-radius: var(--radius-md);
+    font-size: 13px;
+}
+.nav-links li:hover {
+    background: rgba(41, 128, 185, .12) !important;
+    color: var(--text) !important;
+}
+.nav-links li:hover > i { color: var(--primary-color) !important; background: rgba(41, 128, 185, .14) !important; }
+.nav-links li.active {
+    background: linear-gradient(135deg, rgba(41, 128, 185, .25), rgba(41, 128, 185, .12)) !important;
+    color: var(--blue-lt) !important;
+    border-color: rgba(41, 128, 185, .32) !important;
+    box-shadow: 0 6px 18px rgba(41, 128, 185, .15) !important;
+}
+.nav-links li.active > i { color: var(--blue-lt) !important; background: rgba(41, 128, 185, .18) !important; }
+.nav-links li.active::before { display: none; }
+.nav-links a.nav-links-external {
+    display: flex;
+    align-items: center;
+    padding: 0.78rem 0.85rem;
+    border-radius: var(--radius-md);
+    color: var(--text2);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.nav-links a.nav-links-external:hover { background: rgba(41, 128, 185, .12); color: var(--text); }
+
+.sidebar-footer {
+    padding: 14px 12px;
+    margin: 0.4rem -0.85rem -1.4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+}
+.sidebar-footer .me-av {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--purple), #6c3483);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+}
+.sidebar-footer .me-info { min-width: 0; flex: 1; }
+.sidebar-footer .me-info .m-name { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-footer .me-info .m-role { font-size: 10px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-footer .logout-btn {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 15px;
+    flex-shrink: 0;
+    padding: 6px;
+}
+.sidebar-footer .logout-btn:hover { color: var(--red); }
+
+/* Base (non-hover/active) sidebar text/icon colors weren't
+   var()-driven — pin them to the same tokens index.html uses so
+   they actually shift with the palette/theme, not just on hover */
+.nav-links li,
+.sidebar-footer .m-role {
+    color: var(--text2) !important;
+}
+.nav-links li > i,
+.nav-links li > div > div > i {
+    color: var(--text2) !important;
+    background: rgba(41, 128, 185, .08) !important;
+}
+.nav-links a.nav-links-external { color: var(--text2); }
+.sidebar-brand .b-name,
+.sidebar-footer .m-name { color: var(--text) !important; }
+
+/* Scrollbar thumb was hardcoded to the old palette's blue */
+::-webkit-scrollbar-thumb { background: var(--border-strong); }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border-strong) !important; }
+
+/* On mobile the sidebar (z-index 1045) sat BELOW .main-content
+   (z-index 1052, raised earlier so modals nested in it could clear
+   the sidebar) — meaning an opened sidebar was actually rendered
+   underneath the page content and effectively invisible/unusable.
+   Only correct this at the same breakpoint the mobile sidebar
+   already uses, so the desktop layout (where they never overlap)
+   and the modal-escaping fix are untouched. */
+@media (max-width: 768px) {
+    .sidebar-backdrop { z-index: 1051; }
+    .sidebar { z-index: 1053; }
+}
+
+/* ---- Due This Week / Class Library Health — small additions on top of
+   the existing analytics-panel/leaderboard-item look already defined
+   inline in library.html's <head> ---- */
+.due-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.due-item .leaderboard-name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.4;
+}
+.due-item .due-remind-btn {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+.class-health-table th,
+.class-health-table td { font-size: 0.82rem; padding: 0.4rem 0.5rem; }
+[data-theme="dark"] .class-health-table { color: var(--text-color); }
+[data-theme="dark"] .class-health-table th { color: var(--text2); border-color: var(--border-color); }
+[data-theme="dark"] .class-health-table td { border-color: var(--border-color); }
+
+/* ---- back-to-top (ported from index.html) ---- */
+.back-to-top-wrap {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 1200;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, .78);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .16);
+    border: 1px solid rgba(243, 156, 18, .18);
+}
+[data-theme="dark"] .back-to-top-wrap { background: rgba(17, 29, 46, .82); }
+.back-to-top-ring { position: absolute; inset: 0; border-radius: 50%; transform: rotate(-90deg); }
+.back-to-top-ring circle { fill: none; stroke: rgba(243, 156, 18, .18); stroke-width: 5; }
+.back-to-top-ring .progress {
+    stroke: var(--gold);
+    stroke-linecap: round;
+    stroke-dasharray: 157.08;
+    stroke-dashoffset: 157.08;
+    transition: stroke-dashoffset .16s ease;
+}
+.back-to-top-btn {
+    position: relative;
+    z-index: 1;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--gold), var(--orange));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(243, 156, 18, .3);
+}
+.back-to-top-btn:hover { transform: translateY(-1px); }
+.back-to-top-btn svg { width: 18px; height: 18px; }
+.back-to-top-wrap.hidden { opacity: 0; pointer-events: none; transform: translateY(10px); }
+
+/* ---- theme toggle control (same look/behavior as index.html) ---- */
+.theme-toggle {
+    width: 52px;
+    height: 28px;
+    border-radius: 14px;
+    background: var(--surface-muted);
+    border: 1.5px solid var(--border-color);
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 3px;
+    flex-shrink: 0;
+}
+.theme-toggle::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
+}
+[data-theme="light"] .theme-toggle::after { transform: translateX(24px); }
+.theme-toggle .theme-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    transition: opacity .2s;
+}
+.theme-toggle .theme-icon.moon { left: 5px; opacity: 1; }
+.theme-toggle .theme-icon.sun { right: 5px; opacity: .4; }
+[data-theme="light"] .theme-toggle .theme-icon.moon { opacity: .4; }
+[data-theme="light"] .theme-toggle .theme-icon.sun { opacity: 1; }

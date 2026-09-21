@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library System  </title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./css/styles2.css">
+    <link rel="stylesheet" href="./css/bookcard.css">
+    <link rel="stylesheet" href="./css/swalOnly.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Monthly Statistics / Book Categories — scoped, aligned to the
+           design tokens in styles.css (does not touch global rules) */
+        .analytics-panel {
+            background: #FFFFFF;
+            border: 1px solid #E3E6ED;
+            border-radius: 16px;
+            box-shadow: 0 1px 2px rgba(18, 22, 31, 0.05);
+            overflow: hidden;
+        }
+        .analytics-panel-header {
+            padding: 22px 26px 18px;
+            border-bottom: 1px solid #EEF0F4;
+        }
+        .analytics-eyebrow {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #C99A3D;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .analytics-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: #1F2635;
+            margin: 0;
+        }
+        .analytics-panel-body {
+            display: flex;
+            align-items: stretch;
+        }
+        .analytics-col {
+            padding: 22px 26px 26px;
+        }
+        .analytics-col-wide { flex: 1 1 62%; }
+        .analytics-col-narrow { flex: 1 1 38%; }
+        .analytics-col-title {
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: #1F2635;
+            margin-bottom: 2px;
+        }
+        .analytics-col-caption {
+            font-size: 0.83rem;
+            color: #717889;
+            margin-bottom: 16px;
+        }
+        .analytics-chart-frame {
+            background: #FFFFFF;
+            border: 1px solid #EEF0F4;
+            border-radius: 12px;
+            padding: 16px 16px 8px;
+        }
+        .analytics-divider {
+            width: 1px;
+            background: #EEF0F4;
+            margin: 22px 0;
+            flex: 0 0 1px;
+        }
+        @media (max-width: 767px) {
+            .analytics-panel-body { flex-direction: column; }
+            .analytics-divider { display: none; }
+            .analytics-col { border-bottom: 1px solid #EEF0F4; }
+            .analytics-col:last-child { border-bottom: none; }
+        }
+    </style>
+    <!-- Firebase SDK CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+	 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.15/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 CSS and JS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+   
+    
+</head>
+<body>
+    <div class="container-fluid p-0">
+	 <div id="main_container" style="display:none;"></div> 
+
+        <nav class="sidebar" aria-label="Library navigation">
+            <div class="logo">
+                <img src="./" alt="">
+                <h2><i class="bi bi-book me-2"></i>TextBook Manager.🧑‍⚕️</h2>
+            </div>
+            <ul class="nav-links">
+                <li data-page="dashboard" class="active">
+                    <i class="bi bi-grid me-2"></i>Dashboard
+                </li>
+                <li data-page="books">
+                    <i class="bi bi-journal-text me-2"></i>Books 
+                </li>
+                <li data-page="students">
+                    <i class="bi bi-people me-2"></i>Students
+                </li>
+                <li data-page="issuance">
+                    <i class="bi bi-arrow-left-right me-2"></i>Issuance
+                </li>
+                <li data-page="reports">
+                    <i class="bi bi-graph-up me-2"></i>Reports
+                </li>
+                <!-- Replace the existing messages list item in nav-links -->
+                <li data-page="messages">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="bi bi-chat-dots me-2"></i>Messages
+                        </div>
+                        <span id="unreadCount" class="badge bg-danger rounded-pill"></span>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <!-- Library command bar -->
+            <header class="mb-4">
+                <nav class="navbar navbar-expand-lg library-topbar">
+                    <div class="container-fluid library-topbar-inner">
+                        <div class="topbar-context">
+                            <button id="sidebarToggle" class="topbar-icon-btn" aria-label="Toggle library navigation" title="Toggle navigation">
+                                <i class="bi bi-list"></i>
+                            </button>
+                            <div class="topbar-heading">
+                                <span class="topbar-kicker">Library workspace</span>
+                                <strong>Overview</strong>
+                            </div>
+                        </div>
+
+                        <button class="navbar-toggler topbar-icon-btn" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSearch" aria-label="Toggle search and account tools">
+                            <i class="bi bi-search"></i>
+                        </button>
+
+                        <div class="collapse navbar-collapse" id="navbarSearch">
+                            <div class="library-search">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Search books, students, or records..." aria-label="Search library records">
+                                </div>
+                                <button id="searchBtn" class="btn btn-primary"><i class="bi bi-arrow-return-left"></i><span>Search</span></button>
+                            </div>
+                            <div class="topbar-account">
+                                <div class="account-avatar"><i class="bi bi-person"></i></div>
+                                <div class="account-copy">
+                                    <span class="account-label">Signed in as</span>
+                                    <span id="userName" class="account-name">Admin</span>
+                                </div>
+                                <button id="logoutBtn" class="topbar-logout" title="Log out">
+                                    <i class="bi bi-box-arrow-right"></i><span class="text">Logout</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </header>
+
+            <!-- Pages -->
+            <div id="dashboard" class="page active">
+                <!-- Key library totals appear first for quick scanning. -->
+                <div class="stats-container dashboard-stats">
+                    <div class="stat-card clickable" data-page="students">
+                        <i class="bi bi-person-badge"></i>
+                        <div class="stat-info">
+                            <h3>Total Students</h3>
+                            <p id="totalStudents">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card clickable" data-page="issuance">
+                        <i class="bi bi-book-half"></i>
+                        <div class="stat-info">
+                            <h3>Books Issued</h3>
+                            <p id="booksIssued">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card clickable" data-page="issuance">
+                        <i class="bi bi-clock-history"></i>
+                        <div class="stat-info">
+                            <h3>Pending Returns</h3>
+                            <p id="pendingReturns">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card clickable warning-card" data-page="issuance" data-filter="lost">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <div class="stat-info">
+                            <h3>Lost Books</h3>
+                            <p id="booksLost">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card clickable" data-page="books">
+                        <i class="bi bi-journal-bookmark"></i>
+                        <div class="stat-info">
+                            <h3>Total Books</h3>
+                            <p id="totalBooks">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard actions and analytics -->
+<div class="dashboard-sections mt-4">
+    <!-- Quick Actions Section -->
+    <div class="quick-actions-section mb-4">
+        <h4 class="section-title"><i class="bi bi-lightning-charge"></i> Quick Actions</h4>
+        <div class="d-flex flex-wrap gap-3">
+            <button id="quickIssueBtn" class="btn btn-primary">
+                <i class="bi bi-book"></i> Quick Issue
+            </button>
+            <button id="quickReturnBtn" class="btn btn-success">
+                <i class="bi bi-arrow-return-left"></i> Quick Return
+            </button>
+            <button id="lostBooksBtn" class="btn btn-warning">
+                <i class="bi bi-exclamation-triangle"></i> Lost Books
+            </button>
+            <div class="btn-group">
+                <button id="bulkImportBtn" class="btn btn-info">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Books Import
+                </button>
+                <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" id="downloadBulkTemplate">
+                        <i class="bi bi-download"></i> Download Template
+                    </a></li>
+                </ul>
+            </div>
+            <button id="systemBackupBtn" class="btn btn-secondary">
+                <i class="bi bi-cloud-arrow-up"></i> Backup
+            </button>
+            <!-- Add this button inside the quick-actions-section -->
+            <button id="bulkIssuanceBtn" class="btn btn-info">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Bulk Issuance
+            </button>
+        </div>
+    </div>
+ >
+
+    <!-- Analytics Section -->
+    <div class="analytics-panel mb-4">
+        <div class="analytics-panel-header">
+            <div>
+                <span class="analytics-eyebrow">Library activity</span>
+                <h3 class="analytics-title">How the shelves are moving</h3>
+            </div>
+        </div>
+        <div class="analytics-panel-body">
+            <div class="analytics-col analytics-col-wide">
+                <h5 class="analytics-col-title">Monthly Statistics</h5>
+                <p class="analytics-col-caption">Issuances and returns, month by month</p>
+                <div class="analytics-chart-frame">
+                    <canvas id="monthlyStatsChart" height="300"></canvas>
+                </div>
+            </div>
+            <div class="analytics-divider" aria-hidden="true"></div>
+            <div class="analytics-col analytics-col-narrow">
+                <h5 class="analytics-col-title">Book Categories</h5>
+                <p class="analytics-col-caption">What's currently in circulation</p>
+                <div class="analytics-chart-frame analytics-chart-frame-pie">
+                    <canvas id="categoryPieChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities & Notifications -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Activities</h5>
+                    <button class="btn btn-sm btn-outline-primary" id="viewAllActivities">View All</button>
+                </div>
+                <div class="card-body">
+                    <div id="recentActivitiesList" class="activities-list"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Important Notifications</h5>
+                </div>
+                <div class="card-body">
+                    <div id="notificationsList" class="notifications-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                 <div class="recent-activity">
+                        <h3>Recent Activity</h3>
+                        <div id="activityList" class="activity-list"></div>
+                    </div>
+            </div>
+
+           <div id="books" class="page">
+    <div class="action-bar">
+        <div class="filters">
+            <select id="categoryFilter">
+                <option value="">All Categories</option>
+            </select>
+            <select id="availabilityFilter">
+                <option value="">All Availability</option>
+                <option value="available">Available</option>
+                <option value="issued">Issued</option>
+            </select>
+        </div>
+        <button id="addBookBtn" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Add Book
+        </button>
+        <button id="deleteOptionsBtn" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i>Delete Options
+        </button>
+    </div>
+    <div id="booksList" class="grid-list">
+        <!-- Books content will be dynamically added -->
+    </div>
+</div>
+<!-- Modal container for book operations -->
+<div id="bookModal" class="modal fade"></div>
+
+            <div id="students" class="page">
+                <!-- Replace empty div with this structured content -->
+                <div class="action-bar">
+                    <div class="filters">
+                        <select id="gradeFilter" class="form-select">
+                            <option value="">All Grades</option>
+                            <option value="Grade 1">Grade 1</option>
+                            <option value="Grade 2">Grade 2</option>
+                            <option value="Grade 3">Grade 3</option>
+                            <option value="Grade 4">Grade 4</option>
+                            <option value="Grade 5">Grade 5</option>
+                            <option value="Grade 6">Grade 6</option>
+                            <option value="Grade 7">Grade 7</option>
+                            <option value="Grade 8">Grade 8</option>
+                            <option value="Grade 9">Grade 9</option>
+                        </select>
+                        <select id="studentStatusFilter" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="hasBooks">Has Active Books</option>
+                            <option value="noBooks">No Active Books</option>
+                            <option value="overdue">Has Overdue Books</option>
+                        </select>
+                    </div>
+                    <button id="addStudentBtn" class="btn btn-primary">
+                        <i class="bi bi-person-plus me-1"></i>Add Student
+                    </button>
+                    <button id="bulkImportStudentsBtn" class="btn btn-info">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Import Students
+                    </button>
+                <button id="deleteStudentsCollectionBtn" class="btn btn-danger" onclick="studentManager.deleteAllStudents()"> delete students Collection</button>
+
+                </div>
+                <div id="studentsList" class="grid-list">
+                    <!-- Students content will be dynamically added -->
+                </div>
+            </div>
+
+    <div id="issuance" class="page">
+    <div class="action-bar d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="filters d-flex gap-2 flex-grow-1">
+            <select id="issuanceGradeFilter" class="form-select" style="max-width: 200px;">
+                <option value="">All Grades</option>
+                <option value="Grade 1">Grade 1</option>
+                <option value="Grade 2">Grade 2</option>
+                <option value="Grade 3">Grade 3</option>
+                <option value="Grade 4">Grade 4</option>
+                <option value="Grade 5">Grade 5</option>
+                <option value="Grade 6">Grade 6</option>
+                <option value="Grade 7">Grade 7</option>
+                <option value="Grade 8">Grade 8</option>
+                <option value="Grade 9">Grade 9</option>
+            </select>
+            <select id="issuanceStatusFilter" class="form-select" style="max-width: 200px;">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="returned">Returned</option>
+                <option value="overdue">Overdue</option>
+                <option value="lost">Lost</option>
+            </select>
+        </div>
+        <div class="d-flex gap-2">
+            <button id="newIssuanceBtn" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>New Issuance
+            </button>
+            <button id="deleteIssuanceOptionsBtn" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete issuances for a specific book or all records">
+                <i class="bi bi-trash me-1"></i>Delete Options
+            </button>
+        </div>
+    </div>
+    <div id="issuanceList" class="grid-list mt-3">
+        <!-- Issuance content will be dynamically added -->
+    </div>
+</div>
+
+
+            <div id="reports" class="page">
+                <div class="action-bar">
+                    <div class="filters">
+                        <select id="reportType">
+                            <option value="bookStatus">Book Status Report</option>
+                            <option value="issuanceHistory">Issuance History Report</option>
+                            <option value="overdueBooks">Overdue Books Report</option>
+                            <option value="studentActivity">Student Activity Report</option>
+                            <option value="lostBooks">Lost Books Report</option>
+                        </select>
+                        <input type="date" id="startDate">
+                        <input type="date" id="endDate">
+                    </div>
+                    <button id="generateReportBtn" class="btn btn-primary">
+                        <i class="bi bi-file-earmark-text me-1"></i>Generate Report
+                    </button>
+                    <button id="exportReportBtn" class="btn btn-secondary">
+                        <i class="bi bi-download me-1"></i>Export to CSV
+                    </button>
+                </div>
+                <div id="reportContent" class="mt-4">
+                    <div id="reportStats" class="stats-container mb-4"></div>
+                    <div id="reportTable" class="table-responsive"></div>
+                </div>
+            </div>
+
+            <div id="messages" class="page">
+    <div class="row h-100">
+        <div class="col-md-4 border-end h-100">
+            <div class="d-flex flex-column h-100">
+                <div class="messages-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="mb-0">Messages</h5>
+                        <button class="btn btn-primary btn-sm" onclick="messageManager.showNewMessageDialog()">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+                    <div class="message-actions">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-icon" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><button class="dropdown-item" onclick="messageManager.markAllAsRead()">
+                                    <i class="bi bi-check-all me-2"></i>Mark all as read
+                                </button></li>
+                                <li><button class="dropdown-item" onclick="messageManager.archiveSelected()">
+                                    <i class="bi bi-archive me-2"></i>Archive selected
+                                </button></li>
+                                <li><button class="dropdown-item" onclick="messageManager.toggleSelectionMode()">
+                                    <i class="bi bi-check-square me-2"></i>Select messages
+                                </button></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item" onclick="messageManager.showSettings()">
+                                    <i class="bi bi-gear me-2"></i>Settings
+                                </button></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- Add message search -->
+                <div class="message-search p-2 border-bottom">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-0">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-0" id="messageSearch" 
+                               placeholder="Search messages">
+                    </div>
+                </div>
+                <!-- Message filters -->
+                <div class="message-filters p-2 border-bottom d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary filter-btn active" data-filter="all">
+                        All
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning filter-btn" data-filter="pending">
+                        Pending
+                    </button>
+                    <button class="btn btn-sm btn-outline-success filter-btn" data-filter="resolved">
+                        Resolved
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary filter-btn" data-filter="archived">
+                        Archived
+                    </button>
+                </div>
+                <div id="messagesList" class="flex-grow-1 overflow-auto">
+                    <!-- Messages will be listed here -->
+                </div>
+            </div>
+        </div>
+        <!-- Message details panel -->
+        <div class="col-md-8 h-100">
+            <div id="messageDetails" class="d-flex flex-column h-100">
+                <div class="message-placeholder h-100 d-flex align-items-center justify-content-center">
+                    <div class="text-center text-muted">
+                        <i class="bi bi-chat-dots fs-1"></i>
+                        <p class="mt-2">Select a message to view details</p>
+                    </div>
+                </div>
+
+                <div id="messageContent" class="d-none h-100 d-flex flex-column">
+                    <div class="message-header p-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0" id="messageTitle"></h5>
+                            <span class="badge" id="messageStatus"></span>
+                        </div>
+                        <small class="text-muted" id="messageInfo"></small>
+                    </div>
+
+                    <div class="message-body flex-grow-1 p-3 overflow-auto">
+                        <div id="messageThread" class="d-flex flex-column gap-3">
+                            <!-- Chat messages will appear here -->
+                        </div>
+                    </div>
+
+                    <div class="message-footer p-3 border-top">
+                        <form id="replyForm" class="d-flex gap-2">
+                            <input type="text" class="form-control" id="replyInput" placeholder="Type your reply...">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        </main>
+    </div>
+
+
+    <!-- Modals -->
+    <div id="bookModal" class="modal">
+        <div class="modal-content">
+            <h3>Add/Edit Book</h3>
+            <form id="bookForm">
+                <input type="text" id="bookTitle" placeholder="Book Title" required>
+                <input type="text" id="bookAuthor" placeholder="Author" required>
+                <input type="text" id="bookISBN" placeholder="ISBN" required>
+                <select id="bookCategory" required>
+                    <option value="">Select Category</option>
+                </select>
+                <input type="number" id="bookQuantity" placeholder="Quantity" required>
+                <button type="submit" class="primary-btn">Save</button>
+                <button type="button" class="secondary-btn modal-close">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <h3>Add/Edit Student</h3>
+            <label for="grade">Grade</label>
+            <form id="studentForm">
+                 <select id="grade" required>
+                    <option value="">Select Grade</option>
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                </select>
+                
+                <label for="studentName">Student Name</label>
+                <input type="text" id="studentName" placeholder="Student Name" required>
+                <label for="assessmentNo">Assessment Number</label>
+                <input type="text" id="assessmentNo" placeholder="Assessment Number" required>
+                <label for="upi">UPI Number</label>
+                <input type="text" id="upi" placeholder="UPI Number" required>
+                <label for="phoneNumber">Phone Number</label>
+                <input type="tel" id="phoneNumber" placeholder="Phone Number">
+                <button type="submit" class="primary-btn">Save</button>
+                <button type="button" class="secondary-btn modal-close">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+   <div class="modal fade" id="issuanceModal" tabindex="-1" aria-labelledby="issuanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="issuanceModalLabel">New Book Issuance📕</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="issuanceForm">
+                    <div class="mb-3">
+                        <label for="issuanceGrade" class="form-label">Grade</label>
+                        <select id="issuanceGrade" class="form-select" required>
+                            <option value="">Select Grade</option>
+                            <option value="Grade 1">Grade 1</option>
+                            <option value="Grade 2">Grade 2</option>
+                            <option value="Grade 3">Grade 3</option>
+                            <option value="Grade 4">Grade 4</option>
+                            <option value="Grade 5">Grade 5</option>
+                            <option value="Grade 6">Grade 6</option>
+                            <option value="Grade 7">Grade 7</option>
+                            <option value="Grade 8">Grade 8</option>
+                            <option value="Grade 9">Grade 9</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="issuanceStudent" class="form-label">Student</label>
+                        <select id="issuanceStudent" class="form-select" required disabled>
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="issuanceBook" class="form-label">Book</label>
+                        <select id="issuanceBook" class="form-select" required>
+                            <option value="">Select Book</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="issueDate" class="form-label">Issue Date</label>
+                        <input type="date" id="issueDate" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="returnDate" class="form-label">Return Date</label>
+                        <input type="date" id="returnDate" class="form-control" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Issue Book</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Add before the sidebar-backdrop div -->
+   <!-- Add this modal to your HTML, preferably near other modals like lostBooksOverviewModal -->
+<div class="modal fade" id="lostBookModal" tabindex="-1" aria-labelledby="lostBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lostBookModalLabel">Record Book Recovery</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="lostBookForm">
+                    <div class="mb-3">
+                        <label class="form-label">Student: <span id="lostBookStudent"></span></label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Book: <span id="lostBookTitle"></span></label>
+                    </div>
+                    <div class="mb-3">Book No: <span id="lostBookIsbn"></span></div>
+                    <div class="mb-3">
+                    </div>
+                   
+                    <div class="mb-3">
+                        <label class="form-label">Issue Date: <span id="lostBookIssueDate"></span></label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lost Date:  <span id="lostBookReportedDate"></span></label>
+                    </div>
+                     <div class="mb-3">
+                        <label class="form-label">Expected Return Date: <span id="lostBookReturnDate"></span></label>
+                    </div>
+                  
+                    <div class="mb-3">
+                        <label for="recoveryMethod" class="form-label">Recovery Method</label>
+                        <select id="recoveryMethod" class="form-select" required>
+                            <option value="">Select Recovery Method</option>
+                            <option value="found">Found</option>
+                            <option value="replaced">Replaced</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recoveryNotes" class="form-label">Recovery Notes</label>
+                        <textarea id="recoveryNotes" class="form-control" rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Record Recovery</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Add before the sidebar-backdrop div -->
+   <!-- Lost Books Modal -->
+<div id="lostBooksOverviewModal" class="modal">
+    <div class="modal-content large-modal">
+        <div class="table-responsive">
+            <div class="modal-header">
+                <h3><i class="bi bi-exclamation-triangle text-warning"></i> Lost Books Overview</h3>
+                <button class="close-btn" onclick="document.getElementById('lostBooksOverviewModal').classList.remove('active')">&times;</button>
+            </div>
+            <div class="sticky-header"> 
+            <!-- Filter Controls -->
+            <div class="filter-controls mb-3">
+                <div class="row">
+                    <div class="col-md-4">
+                        <input type="text" 
+                               id="lostBooksSearch" 
+                               class="form-control" 
+                               placeholder="Search by student name, assessment no, grade, or book title...">
+                    </div>
+                    <div class="col-md-4">
+                        <select id="lostBooksFilter" class="form-control">
+                            <option value="all">All Records</option>
+                            <optgroup label="Sort by:">
+                                <option value="grade">Grade</option>
+                                <option value="student">Student Name</option>
+                                <option value="book">Book Title</option>
+                                <option value="issueDate">Issue Date (Recent First)</option>
+                                <option value="lostDate">Lost Date (Recent First)</option>
+                            </optgroup>
+                            <optgroup label="Filter by Status:">
+                                <option value="pending">Pending Recovery</option>
+                                <option value="recovered">Recovered</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="lostBooksTotalCount" class="text-muted mt-2 font-weight-bold">
+                            Total: 0 lost books
+                        </div>
+                    </div>
+                </div>
+            </div>
+</div>
+            <!-- Lost Books Table -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Grade</th>
+                            <th>Student Name</th>
+                            <th>Assessment No</th>
+                            <th>Book Title</th>
+                            <th>Book No.</th>
+                            <th>Issue Date</th>
+                            <th>Lost Date</th>
+                            <th>Recovery Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lostBooksTableBody">
+                        <tr>
+                            <td colspan="9" class="text-center">Click "Show Lost Books" to load data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+    <!-- Add before the closing body tag -->
+    <div class="modal fade" id="broadcastModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Message to Students</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="broadcastForm">
+                    <div class="mb-3">
+                        <label class="form-label">Recipients</label>
+                        <div class="d-flex gap-2 mb-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="selectAllStudents">
+                                Select All Students
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="selectByGrade">
+                                Select by Grade
+                            </button>
+                        </div>
+                        <div id="gradeSelection" class="d-none mb-2">
+                            <select class="form-select" id="gradeFilter">
+                                <option value="">Select Grade</option>
+                                <option value="Grade 1">Grade 1</option>
+                                <option value="Grade 2">Grade 2</option>
+                                <option value="Grade 3">Grade 3</option>
+                                <option value="Grade 4">Grade 4</option>
+                                <option value="Grade 5">Grade 5</option>
+                                <option value="Grade 6">Grade 6</option>
+                                <option value="Grade 7">Grade 7</option>
+                                <option value="Grade 8">Grade 8</option>
+                                <option value="Grade 9">Grade 9</option>
+                            </select>
+                        </div>
+                        <div id="studentsList" class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                            <!-- Students checkboxes will be added here -->
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="broadcastSubject" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" id="broadcastMessage" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Attachments (optional)</label>
+                        <input type="file" class="form-control" id="broadcastAttachments" multiple>
+                        <div id="attachmentsPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="sendBroadcast">
+                    <i class="bi bi-send me-1"></i>Send Message
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Quick Issue Modal -->
+<div class="modal fade" id="quickIssueModal" tabindex="-1" aria-labelledby="quickIssueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickIssueModalLabel">Quick Issue Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickIssueForm">
+                    <div class="mb-3">
+                        <label for="quickGrade" class="form-label">Grade</label>
+                        <select class="form-select" id="quickGrade" required>
+                            <option value="">Select Grade</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickStudent" class="form-label">Student</label>
+                        <select class="form-select" id="quickStudent" required disabled>
+                            <option value="">Select Student</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickBook" class="form-label">Book</label>
+                        <select class="form-select" id="quickBook" required>
+                            <option value="">Select Book</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmQuickIssue">Issue Book</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Quick Return Modal -->
+<div class="modal fade" id="quickReturnModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Return Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickReturnForm">
+                    <div class="mb-3">
+                        <label for="quickReturnGrade" class="form-label">Grade</label>
+                        <select class="form-select" id="quickReturnGrade" required>
+                            <option value="">Select Grade</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickReturnIssuance" class="form-label">Select Book to Return</label>
+                        <select class="form-select" id="quickReturnIssuance" required disabled>
+                            <option value="">Select Active Issuance</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmQuickReturn">Return Book</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Add before the closing body tag -->
+<div class="modal fade" id="bulkIssuanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Issuance Import</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Upload File (CSV or Excel)</label>
+                    <input type="file" class="form-control" id="bulkIssuanceFile" accept=".csv,.xlsx">
+                    <small class="text-muted">
+                        File should contain: StudentID, BookID, IssueDate, ReturnDate
+                    </small>
+                </div>
+                <div class="mb-3">
+                    <a href="#" id="downloadTemplate" class="text-primary">
+                        <i class="bi bi-download"></i> Download Template
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmBulkIssuance">
+                    <i class="bi bi-upload"></i> Process Import
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Add Lost Book Modal -->
+    <div class="modal fade" id="addLostBookModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Lost Book Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addLostBookForm">
+                        <div class="mb-3">
+                            <label for="lostBookStudentSelect" class="form-label">Student <span class="text-danger">*</span></label>
+                            <select id="lostBookStudentSelect" class="form-select" required>
+                                <option value="">Select Student</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lostBookBookSelect" class="form-label">Book <span class="text-danger">*</span></label>
+                            <select id="lostBookBookSelect" class="form-select" required>
+                                <option value="">Select Book</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lostBookISBN" class="form-label">ISBN</label>
+                            <input type="text" id="lostBookISBN" class="form-control" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lostBookIssueDate" class="form-label">Issue Date</label>
+                            <input type="date" id="lostBookIssueDate" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="lostBookDate" class="form-label">Lost Date <span class="text-danger">*</span></label>
+                            <input type="date" id="lostBookDate" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lostBookNotes" class="form-label">Notes</label>
+                            <textarea id="lostBookNotes" class="form-control" rows="3" placeholder="Enter any additional notes about the lost book"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="submitLostBookBtn">Add Lost Book</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this before the closing body tag -->
+    <div class="modal fade" id="globalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="globalModalConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Bulk Student Import Modal -->
+    <div class="modal fade" id="bulkStudentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bulk Student Import</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Upload Excel File</strong></label>
+                        <input type="file" class="form-control" id="bulkStudentFile" accept=".xlsx,.csv">
+                        <small class="text-muted d-block mt-2">
+                            <strong>Required Columns:</strong>
+                            <ul class="mb-0">
+                                <li>Name</li>
+                                <li>Grade (e.g., Grade 1-9)</li>
+                                <li>Assessment No</li>
+                                <li>UPI (optional)</li>
+                            </ul>
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <a href="#" id="downloadStudentTemplate" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-download"></i> Download Excel Template
+                        </a>
+                    </div>
+                    <div id="importPreview" class="mb-3" style="display:none;">
+                        <label class="form-label">Preview (First 5 rows)</label>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead id="previewHead"></thead>
+                                <tbody id="previewBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmStudentImport">
+                        <i class="bi bi-upload"></i> Import Students
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sidebar-backdrop"></div>
+    <script src="./js/firebaseConfig.js"></script>
+
+    <!-- ── Access gate ──────────────────────────────────────────────
+         Previously this page had no role/auth check at all (the old
+         block above just onAuthStateChanged+console.log'd, and it ran
+         BEFORE firebaseConfig.js even called initializeApp, so it was
+         dead code that would have thrown). This gate:
+           1. Requires a signed-in Firebase user (redirects to the
+              shared login page otherwise).
+           2. Requires users/{uid}.Advancedadmin === true OR
+              users/{uid}.Librarian === true on Firestore, matching the
+              boolean-flag convention login.html already uses for
+              Advancedadmin. Set Librarian: true on a teacher's user
+              doc to grant them access to this page.
+           3. Enforces the same 15-min session timeout as the rest of
+              the site via session-manager.js's guardPage(), and wires
+              the existing #logoutBtn to it automatically.
+         ADJUST LOGIN_URL / NO_ACCESS_URL below if this page's site
+         root differs from where login.html / no-access.html live.
+         NOTE: this is a UI-layer gate only. The real access control
+         has to live in your Realtime Database rules for students/
+         books/issuance/activities/messages — a client can always
+         bypass this script, so those rules are what actually matter. -->
+    <style>
+      body.auth-pending > *:not(script):not(style) { visibility: hidden; }
+    </style>
+    <script>
+      (function () {
+        var LOGIN_URL = './login.html';
+        var NO_ACCESS_URL = './no-access.html';
+
+        // guardPage() (below) auto-wires #logoutBtn to just clear the local
+        // 15-min session timer — it never calls firebase signOut(), so the
+        // underlying Firebase Auth session stayed live and login.html's
+        // onAuthStateChanged would silently sign the user right back in.
+        // This handler does the actual sign-out.
+        var logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', function () {
+            firebase.auth().signOut().finally(function () {
+              window.location.href = LOGIN_URL + '?redirect=' + encodeURIComponent(window.location.pathname);
+            });
+          });
+        }
+
+        document.body.classList.add('auth-pending');
+
+        firebase.auth().onAuthStateChanged(function (user) {
+          if (!user) {
+            window.location.replace(LOGIN_URL + '?redirect=' + encodeURIComponent(window.location.pathname));
+            return;
+          }
+          firebase.firestore().collection('users').doc(user.uid).get()
+            .then(function (snap) {
+              var data = (snap.exists && snap.data()) || {};
+              var authorized = data.Advancedadmin === true || data.Librarian === true;
+              if (!authorized) {
+                firebase.auth().signOut().finally(function () {
+                  window.location.replace(NO_ACCESS_URL);
+                });
+                return;
+              }
+              document.body.classList.remove('auth-pending');
+            })
+            .catch(function (err) {
+              console.error('Access check failed:', err);
+              window.location.replace(LOGIN_URL + '?reason=error');
+            });
+        });
+      })();
+    </script>
+    <script type="module">
+      import { guardPage } from './Library system/js/session-manager.js';
+      guardPage({ loginUrl: './Library system/login.html?reason=session-expired&redirect=' + encodeURIComponent(window.location.pathname) });
+    </script>
+    <!-- ── End access gate ─────────────────────────────────────────── -->
+
+    <script src="https://kanyadet-school-admin.web.app/js/GoogleAuthmain.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./js/validation.js"></script>
+    <script src="./js/auditLogger.js"></script>
+    <script src="./js/loading-manager.js"></script>
+    <script src="./js/advanced-filtering.js"></script>
+    <script src="./js/email-notifications.js"></script>
+    <script src="./js/functions.js"></script>
+    <script src="./js/bookCovers.js"></script>
+    <script type="module" src="./js/studentImages.js"></script>
+    <script src="./js/app.js"></script>
+    <script src="./js/message.js"></script>
+    <script src="./js/migrate-books.js"></script>
+    <script src="./js/studentBulkImport.js"></script>
+    <script src="./js/loading.js"></script>
+    <script src="./js/image-popup.js"></script>
+
+</body>
+</html>
