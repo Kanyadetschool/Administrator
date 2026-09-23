@@ -111,9 +111,6 @@ h1,h2,h3,p{margin:0}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .top h1{font-size:30px;font-weight:900;letter-spacing:-.01em}
 .top p{color:var(--muted);font-weight:700;margin-top:2px}
-.termProgress{display:flex;align-items:center;gap:8px}
-.termbar{display:inline-block;width:110px;height:6px;border-radius:4px;background:var(--band);overflow:hidden}
-.termbar i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .top-r{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .search{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:9px 16px;box-shadow:var(--shadow);min-width:200px}
 .search input{border:0;background:transparent;outline:none;width:100%;font-weight:700}
@@ -201,9 +198,7 @@ h1,h2,h3,p{margin:0}
 .ro .cell.empty:hover{border-color:var(--line);color:var(--muted)}
 .cell.dim{opacity:.3}
 .cell.done{opacity:.6}
-.cell.live{box-shadow:0 0 0 3px var(--accent);animation:liveGlow 2.4s ease-in-out infinite}
-@keyframes liveGlow{0%,100%{box-shadow:0 0 0 3px var(--accent)}50%{box-shadow:0 0 0 5px var(--accent)}}
-@media (prefers-reduced-motion: reduce){.cell.live{animation:none}}
+.cell.live{box-shadow:0 0 0 3px var(--accent)}
 .pill.state.now{background:var(--accent);color:var(--accent-fg)}
 .cell.clash{box-shadow:inset 0 0 0 2px var(--warn)}
 .pill.alert{color:var(--warn)}
@@ -229,9 +224,6 @@ h1,h2,h3,p{margin:0}
 .bar{height:8px;border-radius:99px;background:var(--band);overflow:hidden;margin-top:5px}
 .bar i{display:block;height:100%;border-radius:99px;background:var(--ink,var(--accent));opacity:.75}
 .wk{width:100%;text-align:left;border:0;background:transparent;padding:6px;margin:-6px;border-radius:16px}
-.wkrow{display:flex;align-items:center;gap:6px}
-.wkrow .wk{flex:1;min-width:0}
-.wkrow .iconbtn{flex:none;width:30px;height:30px;font-size:14px}
 .wk:hover,.wk[aria-current="true"]{background:var(--band)}
 .tag{border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:900;background:var(--tint);color:var(--ink);white-space:nowrap}
 .muted{color:var(--muted);font-weight:700}
@@ -349,14 +341,12 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
 .heatLegend{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--muted);align-items:center;flex-wrap:wrap}
 .swatch{width:13px;height:13px;display:inline-block;vertical-align:middle;border-radius:4px;margin-right:5px}
 .histBars{display:flex;align-items:flex-end;gap:10px;height:150px;padding:8px 0 0}
-.histBars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;min-width:0;border:0;background:transparent;padding:0;font:inherit;color:inherit;border-radius:8px}
-.histBars .col i{width:100%;max-width:36px;border-radius:8px 8px 0 0;background:var(--band);display:block;transition:background .15s}
+.histBars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;min-width:0}
+.histBars .col i{width:100%;max-width:36px;border-radius:8px 8px 0 0;background:var(--band);display:block}
 .histBars .col i.cur{background:var(--accent)}
-.histBars .col:hover i:not(.cur){background:var(--accent-soft)}
 .histBars .col small{font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap}
 .histBars .col b{font-size:11.5px;font-weight:900}
 .an-hint{font-size:12px;color:var(--muted);margin-top:2px}
-.linklike{background:none;border:0;padding:0;font:inherit;font-weight:800;color:var(--accent-ink);text-decoration:underline;cursor:pointer}
 .examTitleRow{display:block;margin:0 0 14px}
 .examTitleRow input{width:100%;border:2px dashed var(--line);background:transparent;border-radius:14px;padding:9px 14px;font-weight:800;font-size:14px;color:var(--text);letter-spacing:.2px}
 .examTitleRow input::placeholder{color:var(--muted);font-weight:700}
@@ -418,16 +408,14 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
       <div>
         <h1 id="greet">Good morning!</h1>
         <p id="subgreet"></p>
-        <p id="termProgress" class="termProgress" hidden></p>
       </div>
       <div class="top-r">
         <span class="sync" id="sync"><i></i><span>Connecting</span></span>
         <label class="search">
           <span aria-hidden="true">🔍</span>
-          <input id="q" type="search" placeholder="Search exams (press /)" aria-label="Search a subject or invigilator">
+          <input id="q" type="search" placeholder="Search exams" aria-label="Search a subject or invigilator">
         </label>
         <button class="sync" id="focusChip" type="button" hidden></button>
-        <button class="iconbtn" id="notifyBtn" type="button" aria-pressed="false" title="Get a notification when an exam starts">🔕</button>
         <div class="user" id="userChip" hidden>
           <div class="ua" id="uAv"></div>
           <div class="un"><b id="uName"></b><small id="uRole"></small></div>
@@ -454,17 +442,16 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
           <div class="card-h">
             <h2 id="ttTitle">Examination timetable</h2>
             <div class="weeknav">
-              <button class="iconbtn" id="prevWeek" aria-label="Previous week" aria-keyshortcuts="ArrowLeft">‹</button>
+              <button class="iconbtn" id="prevWeek" aria-label="Previous week">‹</button>
               <span class="lbl" id="weekLbl" aria-live="polite"></span>
-              <button class="iconbtn" id="nextWeek" aria-label="Next week" aria-keyshortcuts="ArrowRight">›</button>
-              <button class="btn sm" id="thisWeek" aria-keyshortcuts="t">This week</button>
+              <button class="iconbtn" id="nextWeek" aria-label="Next week">›</button>
+              <button class="btn sm" id="thisWeek">This week</button>
               <button class="btn sm" id="manageBtn" type="button">🏗️ Manage</button>
               <button class="btn sm" id="batchBtn" type="button">➕ Add several</button>
             </div>
           </div>
           <div class="seg" id="sections" role="group" aria-label="Section"></div>
           <div id="emptyNote"></div>
-          <div id="findElsewhere"></div>
           <div class="tt-scroll"><div class="tt-grid" id="grid"></div></div>
         </section>
 
@@ -474,16 +461,7 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
             <div class="list" id="teacherList"></div>
           </section>
           <section class="card" id="planning" aria-labelledby="pTitle">
-            <div class="card-h">
-              <h2 id="pTitle">Other exam weeks</h2>
-              <div class="weeknav">
-                <button class="iconbtn" id="weeksPrev" aria-label="Show earlier weeks">‹</button>
-                <span class="lbl" id="weekListLbl" aria-live="polite"></span>
-                <button class="iconbtn" id="weeksNext" aria-label="Show later weeks">›</button>
-                <button class="btn sm" id="weekListToday" hidden>Back to this week</button>
-              </div>
-              <button class="btn sm" id="copyNext">Copy to next week</button>
-            </div>
+            <div class="card-h"><h2 id="pTitle">Other exam weeks</h2><button class="btn sm" id="copyNext">Copy to next week</button></div>
             <div class="list" id="weekList"></div>
           </section>
         </div>
@@ -774,7 +752,6 @@ const DEFAULT_DAYS = WEEKDAY_KEYS.slice(0,5).map((k,i) => ({key:k, label:DAYS[i]
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const $ = s => document.querySelector(s);
-const BASE_TITLE = document.title;
 const pad = n => String(n).padStart(2,'0');
 const iso = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const parseIso = s => { const p = s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); };
@@ -831,9 +808,8 @@ const S = {
   slots: DEFAULT_SLOTS.map(s => ({...s, brk:false})),
   weeks: {},
   roster: [], subjects: [], learners: null, learnerRoster: {}, learnersPending: false, peers: {}, gaps: [],
-  sel: null, calMonth: null, weekAnchor: null, query: '', focusTeacher: null,
-  anView: 'workload', printDayOnly: null, examTitles: {},   // keyed by section — each timetable's own title
-  notify: false
+  sel: null, calMonth: null, query: '', focusTeacher: null,
+  anView: 'workload', printDayOnly: null, examTitles: {}   // keyed by section — each timetable's own title
 };
 const examTitleOf = section => (S.examTitles && S.examTitles[section]) || '';
 const examTitleCur = () => examTitleOf(S.section);
@@ -1265,29 +1241,8 @@ function renderHeader(){
       : 'Next exam: '+nx.lesson.subject+' '+(rd==='Today'?'today':rd==='Tomorrow'?'tomorrow':'on '+rd)+' at '+fmtTime(S.slots[nx.slot].start)+(rd==='Today' ? ', in '+fmtDur(nx.startAt - S.now) : '')+'.';
   }
   $('#subgreet').textContent = dl+'. '+line;
-  document.title = (nx && nx.live ? '\ud83d\udd34 LIVE \u00b7 ' : '') + BASE_TITLE;
 }
 
-function termProgress(){
-  let total = 0, done = 0;
-  Object.keys(S.weeks).forEach(k => {
-    const wk = S.weeks[k], mon = parseIso(k);
-    (wk||[]).forEach((day,d) => (day||[]).forEach((l,si) => {
-      if (!l || !S.slots[si] || S.slots[si].brk) return;
-      total++;
-      if (slotState(addDays(mon,d), S.slots[si]) === 'done') done++;
-    }));
-  });
-  return {total, done};
-}
-function renderTermProgress(){
-  const el = $('#termProgress'); if (!el) return;
-  const {total, done} = termProgress();
-  if (!total){ el.hidden = true; return; }
-  const pct = Math.round(done/total*100);
-  el.hidden = false;
-  el.innerHTML = 'Term progress: '+done+' of '+total+' exams done ('+pct+'%)<span class="termbar" aria-hidden="true"><i style="width:'+pct+'%"></i></span>';
-}
 function renderStats(){
   const wk = getWeek(iso(S.sel)), filled = countLessons(wk), total = activeDayOffsets().length*lessonSlotIdxs().length;
   const teachers = {}, subjects = {};
@@ -1344,14 +1299,13 @@ function renderGrid(){
       if (les){
         const hit = (!q || (les.subject+' '+les.teacher+' '+les.note).toLowerCase().includes(q)) && (!S.focusTeacher || normName(les.teacher) === S.focusTeacher.key);
         const st = slotState(addDays(S.sel, di), s);
-        const left = st==='live' ? fmtDur(slotWindow(addDays(S.sel,di), s).endAt - S.now) : '';
         const cl = clashes(di, si, les.teacher, oth), rc = roomClashes(di, si, les.note, oth);
         const clTxt = cl.length ? 'Also in '+Array.from(new Set(cl.map(o => o.section))).join(', ') : '';
         const rcTxt = rc.length ? 'Room also used by '+Array.from(new Set(rc.map(o => o.section))).join(', ') : '';
-        h += '<button class="cell c'+hue(les.subject)+(hit?'':' dim')+((cl.length||rc.length)?' clash':'')+(st==='done'?' done':st==='live'?' live':'')+'" data-d="'+di+'" data-s="'+si+'" aria-label="'+when+': '+esc(les.subject)+(les.teacher?' with '+esc(les.teacher):(st==='done'?'':'. No invigilator assigned'))+(clTxt?'. Invigilator clash. '+esc(clTxt):'')+(rcTxt?'. '+esc(rcTxt):'')+(st==='done'?'. Finished':st==='live'?'. In progress now, '+left+' left':'')+(S.canEdit?'. Edit exam':'')+'">'+
+        h += '<button class="cell c'+hue(les.subject)+(hit?'':' dim')+((cl.length||rc.length)?' clash':'')+(st==='done'?' done':st==='live'?' live':'')+'" data-d="'+di+'" data-s="'+si+'" aria-label="'+when+': '+esc(les.subject)+(les.teacher?' with '+esc(les.teacher):(st==='done'?'':'. No invigilator assigned'))+(clTxt?'. Invigilator clash. '+esc(clTxt):'')+(rcTxt?'. '+esc(rcTxt):'')+(st==='done'?'. Finished':st==='live'?'. In progress now':'')+(S.canEdit?'. Edit exam':'')+'">'+
           '<span class="sub">'+esc(les.subject)+'</span>'+
           (les.teacher?'<span class="who">'+esc(les.teacher)+'</span>':'')+
-          (les.note?'<span class="pill">'+esc(les.note)+'</span>':'')+(st==='done'?'<span class="pill state">\u2713 Done</span>':st==='live'?'<span class="pill state now">\u25CF Now \u00b7 '+esc(left)+' left</span>':'')+
+          (les.note?'<span class="pill">'+esc(les.note)+'</span>':'')+(st==='done'?'<span class="pill state">\u2713 Done</span>':st==='live'?'<span class="pill state now">\u25CF Now</span>':'')+
           (!les.teacher && st!=='done'?'<span class="pill alert">⚠ No invigilator</span>':'')+
           (clTxt?'<span class="pill alert">⚠ '+esc(clTxt)+'</span>':'')+
           (rcTxt?'<span class="pill alert">⚠ '+esc(rcTxt)+'</span>':'')+'</button>';
@@ -1381,26 +1335,6 @@ function renderGrid(){
   $('#batchBtn').hidden = !S.canEdit;
 }
 
-function findAcrossWeeks(q, limit){
-  const key = iso(S.sel), out = [];
-  Object.keys(S.weeks).forEach(k => {
-    if (k === key) return;
-    const wk = S.weeks[k];
-    (wk||[]).forEach((day,d) => (day||[]).forEach((l,si) => {
-      if (l && (l.subject+' '+(l.teacher||'')+' '+(l.note||'')).toLowerCase().includes(q)) out.push({key:k, d, si, lesson:l});
-    }));
-  });
-  out.sort((a,b) => a.key.localeCompare(b.key));
-  return out.slice(0, limit);
-}
-function renderFindElsewhere(){
-  const box = $('#findElsewhere'); if (!box) return;
-  const q = S.query.trim().toLowerCase();
-  const hits = q ? findAcrossWeeks(q, 6) : [];
-  if (!hits.length){ box.innerHTML = ''; return; }
-  box.innerHTML = '<p class="an-hint">Also found in other weeks: '+hits.map(h =>
-    '<button type="button" class="linklike" data-week="'+h.key+'">'+esc(h.lesson.subject)+' \u2014 '+weekLabel(parseIso(h.key),false)+' ('+(DAYS_LONG[h.d]||'')+')</button>').join(', ')+'</p>';
-}
 function renderTeachers(){
   const key = iso(S.sel), wk = getWeek(key), map = {}, oth = others(key);
   wk.forEach((day,d) => day.forEach((l,si) => {
@@ -1436,20 +1370,16 @@ function toggleFocusTeacher(name){
 }
 
 function renderWeeks(){
-  const anchor = S.weekAnchor || baseMonday(), curKey = iso(baseMonday()), total = activeDayOffsets().length*lessonSlotIdxs().length; let h = '';
+  const base = baseMonday(), total = activeDayOffsets().length*lessonSlotIdxs().length; let h = '';
   for (let i=0; i<4; i++){
-    const m = addDays(anchor,7*i), k = iso(m), n = countLessons(getWeek(k)), past = m < parseIso(curKey);
-    const status = k===curKey ? 'This week' : (n>0 ? 'Planned' : (past ? 'Past, empty' : 'Empty')), c = k===curKey ? 0 : (n>0 ? 2 : 3);
-    h += '<div class="wkrow"><button class="wk" data-week="'+k+'" aria-current="'+(k===iso(S.sel))+'"><div class="row" style="--tint:var(--t'+c+');--ink:var(--i'+c+')">'+
+    const m = addDays(base,7*i), k = iso(m), n = countLessons(getWeek(k));
+    const status = i===0 ? 'This week' : (n>0 ? 'Planned' : 'Empty'), c = i===0 ? 0 : (n>0 ? 2 : 3);
+    h += '<div><button class="wk" data-week="'+k+'" aria-current="'+(k===iso(S.sel))+'"><div class="row" style="--tint:var(--t'+c+');--ink:var(--i'+c+')">'+
       '<div class="grow"><div class="name"><span>'+weekLabel(m,false)+'</span><span class="tag">'+status+'</span></div>'+
       '<div class="meta">'+n+' of '+total+' slots filled</div>'+
-      '<div class="bar" aria-hidden="true"><i style="width:'+Math.round(n/total*100)+'%"></i></div></div></div></button>'+
-      (S.canEdit && k!==iso(S.sel) ? '<button type="button" class="iconbtn" data-copyto="'+k+'" title="Copy this week\'s timetable into '+weekLabel(m,false)+'" aria-label="Copy current week\'s timetable into '+weekLabel(m,false)+'">📋</button>' : '')+
-      '</div>';
+      '<div class="bar" aria-hidden="true"><i style="width:'+Math.round(n/total*100)+'%"></i></div></div></div></button></div>';
   }
   $('#weekList').innerHTML = h;
-  $('#weekListLbl').textContent = weekLabel(anchor,false)+' – '+weekLabel(addDays(anchor,21),false);
-  $('#weekListToday').hidden = !S.weekAnchor;
 }
 
 function renderCal(){
@@ -1539,11 +1469,11 @@ function renderHistoryChart(){
   const curKey = iso(baseMonday());
   const bars = rows.map(r => {
     const h = Math.max(r.filled ? 4 : 0, Math.round(r.filled/max*100));
-    return '<button type="button" class="col" data-week="'+r.k+'" aria-label="Open '+weekLabel(r.m,true)+', '+r.filled+' of '+r.total+' slots filled'+(r.k===curKey?' (this week)':'')+'"><b>'+r.filled+'</b><i class="'+(r.k===curKey?'cur':'')+'" style="height:'+h+'%"></i><small>'+weekLabel(r.m,false)+'</small></button>';
+    return '<div class="col"><b>'+r.filled+'</b><i class="'+(r.k===curKey?'cur':'')+'" style="height:'+h+'%"></i><small>'+weekLabel(r.m,false)+'</small></div>';
   }).join('');
   const last = rows[rows.length-1].filled, prev = rows.length>1 ? rows[rows.length-2].filled : last, diff = last-prev;
   const cmp = diff === 0 ? 'the same number of exams as last week.' : (diff>0 ? diff+' more exam'+(diff===1?'':'s')+' than last week.' : Math.abs(diff)+' fewer exam'+(Math.abs(diff)===1?'':'s')+' than last week.');
-  return '<div class="histBars">'+bars+'</div><p class="an-hint">This week has '+cmp+' Bars show exams scheduled per week (of up to '+rows[0].total+' slots) — tap a bar to open that week.</p>';
+  return '<div class="histBars">'+bars+'</div><p class="an-hint">This week has '+cmp+' Bars show exams scheduled per week (of up to '+rows[0].total+' slots).</p>';
 }
 function renderAnalytics(){
   const box = $('#anBody'); if (!box) return;
@@ -1574,7 +1504,7 @@ function renderUser(){
 function render(){
   S.now = now0();
   applyStage(); rebuildHues();
-  renderHeader(); renderStats(); renderSections(); renderInsights(); renderGrid(); renderFindElsewhere(); renderTeachers(); renderWeeks(); renderCal(); renderUpcoming(); renderUser(); renderFocusChip(); renderTermProgress();
+  renderHeader(); renderStats(); renderSections(); renderInsights(); renderGrid(); renderTeachers(); renderWeeks(); renderCal(); renderUpcoming(); renderUser(); renderFocusChip();
   renderAnalytics(); renderDayPrintSelect();
 }
 
@@ -2043,8 +1973,6 @@ async function onAuth(user){
 
 async function boot(){
   renderPortals();
-  S.notify = !!lsGet('kanyadetTTNotify', false) && typeof Notification !== 'undefined' && Notification.permission === 'granted';
-  updateNotifyBtn();
   S.structuresRaw = lsGet(kStructuresLocal(), {});
   S.examTitles = lsGet(kExamTitlesLocal(), {});
   $('#examTitleInput').value = examTitleCur();
@@ -2249,7 +2177,6 @@ document.addEventListener('click', e => {
     render(); return;
   }
   if (t.dataset.week){ S.sel = parseIso(t.dataset.week); S.calMonth = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); render(); return; }
-  if (t.dataset.copyto !== undefined){ if (guard()) copyWeek(iso(S.sel), t.dataset.copyto); return; }
   if (t.dataset.date){
     const d = parseIso(t.dataset.date); S.sel = mondayOf(d);
     if (d.getMonth() !== S.calMonth.getMonth()) S.calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
@@ -2264,51 +2191,6 @@ $('#thisWeek').addEventListener('click', () => goWeek(baseMonday()));
 $('#prevMonth').addEventListener('click', () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth()-1, 1); renderCal(); });
 $('#nextMonth').addEventListener('click', () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth()+1, 1); renderCal(); });
 $('#copyNext').addEventListener('click', () => { if (guard()) copyWeek(iso(S.sel), iso(addDays(S.sel,7))); });
-$('#weeksPrev').addEventListener('click', () => { S.weekAnchor = addDays(S.weekAnchor || baseMonday(), -28); renderWeeks(); });
-$('#weeksNext').addEventListener('click', () => { S.weekAnchor = addDays(S.weekAnchor || baseMonday(), 28); renderWeeks(); });
-$('#weekListToday').addEventListener('click', () => { S.weekAnchor = null; renderWeeks(); });
-
-/* ---------- Live exam notifications (opt-in, this device only) ---------- */
-let notifiedLive = new Set();
-function updateNotifyBtn(){
-  const b = $('#notifyBtn'); if (!b) return;
-  b.textContent = S.notify ? '🔔' : '🔕';
-  b.setAttribute('aria-pressed', String(S.notify));
-  b.title = S.notify ? 'Exam start notifications on — tap to turn off' : 'Get a notification when an exam starts';
-}
-function checkLiveNotifications(){
-  if (!S.notify || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-  const wkKey = iso(baseMonday()), wk = S.weeks[wkKey]; if (!wk) return;
-  const dow = (S.now.getDay()+6)%7;
-  if (!activeDayOffsets().includes(dow)) return;
-  S.slots.forEach((sl,si) => {
-    if (sl.brk) return;
-    const les = wk[dow] && wk[dow][si]; if (!les) return;
-    const id = wkKey+'-'+dow+'-'+si;
-    if (slotState(S.now, sl) === 'live' && !notifiedLive.has(id)){
-      notifiedLive.add(id);
-      try { new Notification('Exam starting now — '+les.subject, {body:(les.teacher?'Invigilator: '+les.teacher+'. ':'')+'Ends '+fmtTime(sl.end)+'.', tag:id}); } catch(e){}
-    }
-  });
-}
-$('#notifyBtn').addEventListener('click', async () => {
-  if (S.notify){ S.notify = false; lsSet('kanyadetTTNotify', false); updateNotifyBtn(); toast('Exam notifications turned off'); return; }
-  if (typeof Notification === 'undefined'){ toast('Notifications are not supported in this browser.'); return; }
-  const perm = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
-  if (perm !== 'granted'){ toast('Notifications were not allowed.'); return; }
-  S.notify = true; lsSet('kanyadetTTNotify', true); updateNotifyBtn(); toast('You will be notified when an exam starts.'); checkLiveNotifications();
-});
-
-/* ---------- Keyboard shortcuts: ← → change week, T = this week, / focuses search ---------- */
-document.addEventListener('keydown', e => {
-  if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
-  const tag = (document.activeElement && document.activeElement.tagName) || '';
-  if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || document.querySelector('dialog[open]')) return;
-  if (e.key === 'ArrowLeft'){ goWeek(addDays(S.sel,-7)); return; }
-  if (e.key === 'ArrowRight'){ goWeek(addDays(S.sel,7)); return; }
-  if (e.key === 't' || e.key === 'T'){ goWeek(baseMonday()); return; }
-  if (e.key === '/'){ e.preventDefault(); $('#q').focus(); return; }
-});
 
 /* ---------- Add several exams at once: one line each, "Tue 2 | Maths | Md. Janet | PP1" ---------- */
 let batchReplace = false;
@@ -3020,7 +2902,7 @@ async function autoAssignInvigilators(){
 }
 $('#autoFillBtn').addEventListener('click', autoAssignInvigilators);
 $('#printBtn').addEventListener('click', () => { try { window.print(); } catch(e){ toast('Printing is not available here'); } });
-$('#q').addEventListener('input', e => { S.query = e.target.value; renderGrid(); renderFindElsewhere(); });
+$('#q').addEventListener('input', e => { S.query = e.target.value; renderGrid(); });
 
 let examTitleTimer;
 $('#examTitleInput').addEventListener('input', e => {
@@ -3072,7 +2954,6 @@ const timeSig = () => {
 };
 function tick(){
   S.now = now0();
-  checkLiveNotifications();
   const cur = iso(baseMonday());
   if (cur !== lastAuto){                       // a new working week has begun (or the weekend started)
     if (iso(S.sel) === lastAuto){ S.sel = parseIso(cur); S.calMonth = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
