@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Junior School Timetable Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#FDF4EF; --bg-a:#FFF3EE; --bg-b:#FBEFF6; --bg-c:#F1EBFB;
+  --card:#FFFFFF; --side:#E9E0F8; --side-2:#F4EEFC;
+  --text:#2F2647; --muted:#6F6588; --line:#EADFF2;
+  --accent:#7B5CD1; --accent-fg:#FFFFFF; --accent-soft:#EFE8FC; --accent-ink:#5B3FB0;
+  --band:#F0E9FC; --focus:#5B3FB0; --ok:#2C7544; --warn:#8A5A0B;
+  --shadow:0 8px 24px rgba(125,95,190,.13), inset 0 1px 0 rgba(255,255,255,.8);
+  --t0:#EAE2FB; --i0:#5B3FB0; --t1:#FDE2EA; --i1:#B23A62; --t2:#DDF3E2; --i2:#2C7544;
+  --t3:#FFF0C4; --i3:#7F5D0E; --t4:#E6F4CF; --i4:#4A6A14; --t5:#DCEBFC; --i5:#2A62A8;
+  --t6:#D6F2EF; --i6:#1F7A72; --t7:#FFE6D5; --i7:#9A4A20; --t8:#F3E1F6; --i8:#8B3E9E;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1B1728; --bg-a:#1B1728; --bg-b:#211A33; --bg-c:#1A1626;
+    --card:#272138; --side:#2E2745; --side-2:#372F52;
+    --text:#F0EBFF; --muted:#B5AAD3; --line:#3A3252;
+    --accent:#A48BF0; --accent-fg:#1B1230; --accent-soft:#3A2F5C; --accent-ink:#CDBFFF;
+    --band:#332B4E; --focus:#CDBFFF; --ok:#A9E4BB; --warn:#FFD98A;
+    --shadow:0 8px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+    --t0:#3A2F5C; --i0:#CDBFFF; --t1:#4D2D3E; --i1:#FFB8CE; --t2:#274233; --i2:#A9E4BB;
+    --t3:#4B4022; --i3:#FFD98A; --t4:#354322; --i4:#C7E98F; --t5:#27405F; --i5:#A9CFFF;
+    --t6:#1F4340; --i6:#96E3DA; --t7:#4D3324; --i7:#FFC6A3; --t8:#452C4E; --i8:#EBB5F5;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1B1728; --bg-a:#1B1728; --bg-b:#211A33; --bg-c:#1A1626;
+  --card:#272138; --side:#2E2745; --side-2:#372F52;
+  --text:#F0EBFF; --muted:#B5AAD3; --line:#3A3252;
+  --accent:#A48BF0; --accent-fg:#1B1230; --accent-soft:#3A2F5C; --accent-ink:#CDBFFF;
+  --band:#332B4E; --focus:#CDBFFF; --ok:#A9E4BB; --warn:#FFD98A;
+  --shadow:0 8px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+  --t0:#3A2F5C; --i0:#CDBFFF; --t1:#4D2D3E; --i1:#FFB8CE; --t2:#274233; --i2:#A9E4BB;
+  --t3:#4B4022; --i3:#FFD98A; --t4:#354322; --i4:#C7E98F; --t5:#27405F; --i5:#A9CFFF;
+  --t6:#1F4340; --i6:#96E3DA; --t7:#4D3324; --i7:#FFC6A3; --t8:#452C4E; --i8:#EBB5F5;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:calc(16px + env(safe-area-inset-top,0px));scroll-behavior:smooth}
+body{
+  margin:0; min-height:100vh; color:var(--text); background-color:var(--bg);
+  background-image:linear-gradient(135deg,var(--bg-a),var(--bg-b) 55%,var(--bg-c));
+  font-family:"Nunito",ui-rounded,"SF Pro Rounded","Segoe UI",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.45; font-weight:600;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:12px}
+h1,h2,h3,p{margin:0}
+[hidden]{display:none !important}
+
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);gap:20px;padding:16px;max-width:1500px;margin:0 auto}
+
+/* Sidebar */
+.side{
+  position:sticky; top:16px; align-self:start; min-height:calc(100vh - 32px);
+  background:linear-gradient(180deg,var(--side),var(--side-2));
+  border-radius:32px; padding:22px 16px 16px; display:flex; flex-direction:column; gap:16px; box-shadow:var(--shadow);
+}
+.profile{text-align:center}
+.avatar{
+  width:104px;height:104px;margin:0 auto 10px;border-radius:32px;display:grid;place-items:center;font-size:52px;
+  background:linear-gradient(160deg,#FFE9F1,#E4DBFA); box-shadow:0 8px 18px rgba(125,95,190,.25), inset 0 2px 0 rgba(255,255,255,.8);
+}
+.profile h2{font-size:19px;font-weight:900}
+.profile p{color:var(--muted);font-size:13px;font-weight:700}
+.nav{display:flex;flex-direction:column;gap:3px}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:16px;text-decoration:none;color:var(--text);font-weight:800;font-size:15px}
+.nav a span{font-size:18px;width:24px;text-align:center}
+.nav a:hover{background:var(--band)}
+.nav a.on{background:var(--accent);color:var(--accent-fg);box-shadow:0 6px 14px rgba(123,92,209,.35)}
+.portals h3{font-size:12.5px;font-weight:900;color:var(--muted);padding:0 14px 4px}
+.portals a{display:flex;align-items:center;gap:10px;padding:7px 14px;border-radius:14px;text-decoration:none;color:var(--text);font-weight:700;font-size:13.5px}
+.portals a:hover{background:var(--band)}
+.tip{margin-top:auto;background:var(--card);border-radius:22px;padding:14px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow)}
+.tip b{font-size:26px}
+.tip p{font-size:12.5px;color:var(--muted);font-weight:700}
+
+/* Main */
+.main{min-width:0;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.top h1{font-size:30px;font-weight:900;letter-spacing:-.01em}
+.top p{color:var(--muted);font-weight:700;margin-top:2px}
+.top-r{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:9px 16px;box-shadow:var(--shadow);min-width:200px}
+.search input{border:0;background:transparent;outline:none;width:100%;font-weight:700}
+.search input::placeholder{color:var(--muted)}
+.search:focus-within{outline:3px solid var(--focus);outline-offset:2px}
+.user{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:999px;padding:5px 6px 5px 6px;box-shadow:var(--shadow)}
+.user .ua{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:var(--t0);color:var(--i0);overflow:hidden}
+.user .ua img{width:100%;height:100%;object-fit:cover}
+.user .un{line-height:1.15;padding-right:2px}
+.user .un b{display:block;font-size:13px;font-weight:900}
+.user .un small{color:var(--muted);font-size:11.5px;font-weight:800}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:900;padding:5px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.sync.live i{background:#3DBA6B}
+.sync.off i{background:#E0A030}
+.notice{background:var(--t3);color:var(--i3);border-radius:18px;padding:10px 16px;font-weight:800}
+
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.stat{border-radius:24px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow)}
+.stat .ic{width:60px;height:60px;border-radius:18px;display:grid;place-items:center;font-size:30px;background:rgba(255,255,255,.65);flex:none}
+.stat .lb{font-weight:800;font-size:13px;color:var(--muted)}
+.stat .v{font-size:32px;font-weight:900;line-height:1.05}
+.stat .sb{font-size:12px;font-weight:800}
+.s0{background:linear-gradient(150deg,var(--t0),var(--card))} .s0 .sb{color:var(--i0)}
+.s1{background:linear-gradient(150deg,var(--t1),var(--card))} .s1 .sb{color:var(--i1)}
+.s2{background:linear-gradient(150deg,var(--t2),var(--card))} .s2 .sb{color:var(--i2)}
+.s3{background:linear-gradient(150deg,var(--t3),var(--card))} .s3 .sb{color:var(--i3)}
+:root[data-theme="dark"] .stat .ic{background:rgba(255,255,255,.08)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .stat .ic{background:rgba(255,255,255,.08)}}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.left,.right{display:flex;flex-direction:column;gap:18px;min-width:0}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.card{background:var(--card);border-radius:26px;padding:20px;box-shadow:var(--shadow);min-width:0}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.card-h h2{font-size:18px;font-weight:900}
+.card-h .sub{color:var(--muted);font-size:12.5px;font-weight:700}
+
+.btn{border:0;border-radius:999px;padding:8px 16px;font-weight:800;background:var(--accent-soft);color:var(--accent-ink)}
+.btn:hover{filter:brightness(.97)}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn.ghost{background:transparent;border:2px solid var(--line)}
+.btn.sm{padding:6px 12px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:default}
+.iconbtn{width:34px;height:34px;border-radius:50%;border:0;background:var(--accent-soft);color:var(--accent-ink);font-weight:900;font-size:16px;display:grid;place-items:center}
+
+/* Timetable */
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.seg button{border:2px solid var(--line);background:transparent;border-radius:999px;padding:5px 14px;font-weight:800;font-size:12.5px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.weeknav{display:flex;align-items:center;gap:8px}
+.weeknav .lbl{font-weight:900;min-width:150px;text-align:center}
+.tt-scroll{overflow-x:auto;padding:0 4px 6px;margin:0 -4px}
+.tt-grid{display:grid;grid-template-columns:80px repeat(5,minmax(0,1fr));gap:8px;min-width:600px}
+.dh{text-align:center;font-weight:800;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px}
+.dh b{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px;color:var(--text)}
+.dh.today b{background:var(--accent);color:var(--accent-fg)}
+.tl{border:0;background:var(--band);border-radius:18px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--accent-ink);font-size:12.5px;font-weight:800;width:100%}
+.tl b{font-size:14px}
+.tl span{color:var(--muted)}
+.tl:hover{filter:brightness(.96)}
+.tlwrap{position:relative}
+.tl-x{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:0;background:var(--card);color:var(--i1);font-size:11px;font-weight:900;box-shadow:var(--shadow);display:grid;place-items:center;line-height:1;z-index:1}
+.tl-x:hover{background:var(--i1);color:#fff}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:-2px 0 12px}
+.seg-wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.seg-wrap .seg{margin-bottom:0}
+.sec-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line)}
+.sec-row:last-child{border-bottom:0}
+.sec-row .grow small{color:var(--muted);font-weight:800;font-size:11.5px;margin-left:6px}
+.cell{
+  border:0;border-radius:20px;min-height:100px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  text-align:center;background:var(--tint,var(--band));color:var(--ink,var(--accent-ink));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6);transition:transform .15s, opacity .2s;
+}
+.cell:hover{transform:translateY(-2px)}
+.ro .cell,.ro .tl{cursor:default}
+.ro .cell:hover{transform:none}
+.cell .sub{font-size:16px;font-weight:900;line-height:1.15}
+.cell .who{font-size:12.5px;font-weight:700;opacity:.85}
+.pill{background:rgba(255,255,255,.7);border-radius:999px;padding:1px 9px;font-size:11.5px;font-weight:900}
+:root[data-theme="dark"] .pill{background:rgba(255,255,255,.14)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill{background:rgba(255,255,255,.14)}}
+.cell.empty{background:transparent;border:2px dashed var(--line);color:var(--muted);box-shadow:none;font-size:22px;font-weight:800}
+.cell.empty:hover{border-color:var(--accent);color:var(--accent-ink)}
+.ro .cell.empty:hover{border-color:var(--line);color:var(--muted)}
+.cell.dim{opacity:.3}
+.c0{--tint:var(--t0);--ink:var(--i0)} .c1{--tint:var(--t1);--ink:var(--i1)} .c2{--tint:var(--t2);--ink:var(--i2)}
+.c3{--tint:var(--t3);--ink:var(--i3)} .c4{--tint:var(--t4);--ink:var(--i4)} .c5{--tint:var(--t5);--ink:var(--i5)}
+.c6{--tint:var(--t6);--ink:var(--i6)} .c7{--tint:var(--t7);--ink:var(--i7)} .c8{--tint:var(--t8);--ink:var(--i8)}
+.empty-note{background:var(--band);border-radius:18px;padding:12px 14px;margin-bottom:14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-weight:700}
+.print-only{display:none}
+
+/* Lists */
+.list{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;align-items:center;gap:12px}
+.av{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;font-weight:900;font-size:16px;background:var(--tint);color:var(--ink);flex:none;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+.grow{flex:1;min-width:0}
+.name{font-weight:800;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.name small{color:var(--muted);font-weight:800;font-size:12.5px;white-space:nowrap}
+.meta{color:var(--muted);font-size:12px;font-weight:700}
+.bar{height:8px;border-radius:99px;background:var(--band);overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--ink,var(--accent));opacity:.75}
+.wk{width:100%;text-align:left;border:0;background:transparent;padding:6px;margin:-6px;border-radius:16px}
+.wk:hover,.wk[aria-current="true"]{background:var(--band)}
+.tag{border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:900;background:var(--tint);color:var(--ink);white-space:nowrap}
+.muted{color:var(--muted);font-weight:700}
+
+/* Calendar */
+.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-h h2{font-size:16px;font-weight:900}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);row-gap:2px;text-align:center}
+.cal .w{font-size:11.5px;color:var(--muted);font-weight:800;padding:4px 0}
+.cal button{border:0;background:transparent;padding:0;height:34px;font-weight:800;font-size:13px;position:relative;border-radius:0}
+.cal button.wknd{color:var(--i1)}
+.cal button.other{opacity:.4}
+.cal button.inweek{background:var(--band)}
+.cal button.ws{border-radius:14px 0 0 14px}
+.cal button.we{border-radius:0 14px 14px 0}
+.cal button.today span{background:var(--accent);color:var(--accent-fg)}
+.cal button span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;margin:0 auto}
+.cal button.has::after{content:"";position:absolute;bottom:1px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--accent)}
+.cal button.today.has::after{background:var(--accent-ink)}
+.pink{background:linear-gradient(160deg,var(--t1),var(--card) 70%)}
+.promo{background:linear-gradient(150deg,var(--t0),var(--side));display:flex;gap:12px;align-items:center;justify-content:space-between}
+.promo h3{font-size:17px;font-weight:900}
+.promo p{color:var(--muted);font-weight:700;margin:4px 0 10px}
+.promo .big{font-size:58px;line-height:1}
+
+/* Dialogs, gate, toast */
+dialog{border:0;border-radius:26px;padding:0;background:var(--card);color:var(--text);width:min(420px,calc(100vw - 32px));box-shadow:0 20px 60px rgba(40,20,90,.35)}
+dialog::backdrop{background:rgba(40,25,70,.45)}
+.dlg{padding:22px;display:flex;flex-direction:column;gap:14px}
+.dlg h2{font-size:20px;font-weight:900}
+.dlg label{display:flex;flex-direction:column;gap:5px;font-weight:800;font-size:13px}
+.dlg input{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:10px 12px;font-weight:700}
+.dlg input:focus{outline:none;border-color:var(--accent)}
+.dlg .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dlg .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px}
+.err{color:var(--i1);font-weight:800;min-height:1.2em;font-size:12.5px}
+.gate{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:var(--bg);background-image:linear-gradient(135deg,var(--bg-a),var(--bg-b) 55%,var(--bg-c))}
+.gate-card{width:min(400px,100%);text-align:center;display:flex;flex-direction:column;gap:12px;padding:28px}
+.gate-card .avatar{width:84px;height:84px;font-size:42px;border-radius:26px;margin-bottom:0}
+.gate-card h2{font-size:22px;font-weight:900}
+.gate-card form{display:flex;flex-direction:column;gap:10px}
+.gate-card input{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:10px 14px;font-weight:700}
+.gate-card input:focus{outline:none;border-color:var(--accent)}
+.or{color:var(--muted);font-weight:800;font-size:12.5px}
+#toast{
+  position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;pointer-events:none;max-width:calc(100vw - 32px);text-align:center;
+  background:var(--accent);color:var(--accent-fg);padding:10px 18px;border-radius:22px;font-weight:800;box-shadow:0 10px 24px rgba(60,30,130,.35);
+  transition:opacity .2s, transform .2s;z-index:60
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:1100px){
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .right{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr);padding:12px}
+  .side{position:static;min-height:0;flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px;border-radius:26px;gap:10px}
+  .profile{display:flex;align-items:center;gap:12px;text-align:left}
+  .avatar{width:56px;height:56px;font-size:30px;border-radius:18px;margin:0}
+  .nav{flex-direction:row;overflow-x:auto;width:100%;gap:6px;padding-bottom:2px}
+  .nav a{padding:8px 12px;font-size:13.5px;white-space:nowrap}
+  .tip,.portals{display:none}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pair{grid-template-columns:minmax(0,1fr)}
+  .top h1{font-size:25px}
+  .search{min-width:0;width:100%}
+}
+@media (max-width:480px){
+  .stat{flex-direction:column;align-items:flex-start;gap:8px}
+  .stat .v{font-size:28px}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .cell,#toast{transition:none}
+  .cell:hover{transform:none}
+}
+
+@page{size:A4 landscape;margin:12mm}
+@media print{
+  body{background:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .side,.top,.stats,.right,.pair,.weeknav,.empty-note,.seg,.notice,.gate,.toolbar,.tl-x,#manageSections{display:none !important}
+  .app{display:block;padding:0}
+  .cols{display:block}
+  .card{box-shadow:none;padding:0;background:#fff}
+  .print-only{display:block;text-align:center;margin-bottom:10px;color:#2F2647}
+  .print-only h2{font-size:20px;font-weight:900}
+  .print-only p{font-size:14px;font-weight:700}
+  .card-h{display:none}
+  .tt-scroll{overflow:visible}
+  .tt-grid{min-width:0}
+  .cell.dim{opacity:1}
+  .cell.empty{border-color:#cbbfe0}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side">
+    <div class="profile">
+      <div class="avatar" aria-hidden="true">🏫</div>
+      <div><h2>Junior School</h2><p>Timetable planner ✨</p></div>
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#top" class="on"><span aria-hidden="true">🏠</span>Dashboard</a>
+      <a href="#timetable"><span aria-hidden="true">🗓️</span>Timetable</a>
+      <a href="#calendar"><span aria-hidden="true">📅</span>Calendar</a>
+      <a href="#teachers"><span aria-hidden="true">👩‍🏫</span>Teachers</a>
+      <a href="#planning"><span aria-hidden="true">🌱</span>Future weeks</a>
+    </nav>
+    <div class="portals" id="portals"></div>
+    <div class="tip">
+      <b aria-hidden="true">🪴</b>
+      <p id="tipText">Tap any lesson to change the subject or teacher.</p>
+    </div>
+  </aside>
+
+  <main class="main" id="top">
+    <header class="top">
+      <div>
+        <h1 id="greet">Good morning!</h1>
+        <p id="subgreet"></p>
+      </div>
+      <div class="top-r">
+        <span class="sync" id="sync"><i></i><span>Connecting</span></span>
+        <label class="search">
+          <span aria-hidden="true">🔍</span>
+          <input id="q" type="search" placeholder="Search lessons" aria-label="Search a subject or teacher">
+        </label>
+        <div class="user" id="userChip" hidden>
+          <div class="ua" id="uAv"></div>
+          <div class="un"><b id="uName"></b><small id="uRole"></small></div>
+          <button class="btn sm" id="signOut">Sign out</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="notice" id="notice" hidden></div>
+    <section class="stats" id="stats" aria-label="This week at a glance"></section>
+
+    <div class="cols">
+      <div class="left">
+        <section class="card" id="timetable" aria-labelledby="ttTitle">
+          <div class="print-only">
+            <h2>Kanyadet Primary &amp; Junior School</h2>
+            <p id="printWeek"></p>
+          </div>
+          <div class="card-h">
+            <h2 id="ttTitle">Weekly timetable</h2>
+            <div class="weeknav">
+              <button class="iconbtn" id="manageSections" aria-label="Manage timetables" title="Create, rename or delete a timetable">🗂️</button>
+              <button class="iconbtn" id="prevWeek" aria-label="Previous week">‹</button>
+              <span class="lbl" id="weekLbl" aria-live="polite"></span>
+              <button class="iconbtn" id="nextWeek" aria-label="Next week">›</button>
+              <button class="btn sm" id="thisWeek">This week</button>
+            </div>
+          </div>
+          <div class="seg" id="sections" role="group" aria-label="Section"></div>
+          <div class="toolbar" id="toolbar">
+            <button class="btn sm ghost" id="addPeriod" type="button">+ Add period</button>
+            <button class="btn sm ghost" id="clearWeek" type="button">Clear week</button>
+          </div>
+          <div id="emptyNote"></div>
+          <div class="tt-scroll"><div class="tt-grid" id="grid"></div></div>
+        </section>
+
+        <div class="pair">
+          <section class="card" id="teachers" aria-labelledby="tTitle">
+            <div class="card-h"><h2 id="tTitle">Teachers</h2><span class="sub">This week</span></div>
+            <div class="list" id="teacherList"></div>
+          </section>
+          <section class="card" id="planning" aria-labelledby="pTitle">
+            <div class="card-h"><h2 id="pTitle">Future weeks</h2><button class="btn sm" id="copyNext">Copy to next week</button></div>
+            <div class="list" id="weekList"></div>
+          </section>
+        </div>
+      </div>
+
+      <div class="right">
+        <section class="card" id="calendar" aria-labelledby="cTitle">
+          <div class="cal-h">
+            <button class="iconbtn" id="prevMonth" aria-label="Previous month">‹</button>
+            <h2 id="cTitle"></h2>
+            <button class="iconbtn" id="nextMonth" aria-label="Next month">›</button>
+          </div>
+          <div class="cal" id="cal"></div>
+        </section>
+
+        <section class="card pink" id="upcoming" aria-labelledby="uTitle">
+          <div class="card-h"><h2 id="uTitle">Coming up</h2></div>
+          <div class="list" id="upList"></div>
+        </section>
+
+        <section class="card promo">
+          <div>
+            <h3>Ready for the staffroom board?</h3>
+            <p>Print this week's timetable, or save it as a PDF.</p>
+            <button class="btn primary" id="printBtn">Print timetable</button>
+          </div>
+          <div class="big" aria-hidden="true">🖨️</div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="gate" id="gate" hidden>
+  <div class="card gate-card">
+    <div class="avatar" aria-hidden="true">🏫</div>
+    <h2>Sign in to the timetable</h2>
+    <p class="muted">Use your school staff account.</p>
+    <button class="btn primary" id="gGoogle" type="button">Continue with Google</button>
+    <div class="or">or use email</div>
+    <form id="gForm" novalidate>
+      <input type="email" id="gEmail" placeholder="Email" autocomplete="username" aria-label="Email">
+      <input type="password" id="gPass" placeholder="Password" autocomplete="current-password" aria-label="Password">
+      <button class="btn primary" type="submit">Sign in</button>
+    </form>
+    <div class="err" id="gErr" role="alert"></div>
+  </div>
+</div>
+
+<dialog id="lessonDlg" aria-labelledby="lTitle">
+  <form class="dlg" id="lessonForm" novalidate>
+    <h2 id="lTitle">Lesson</h2>
+    <label>Subject
+      <input id="fSubject" list="subjectList" autocomplete="off" placeholder="e.g. Maths">
+    </label>
+    <label>Teacher
+      <input id="fTeacher" list="teacherOpts" autocomplete="off" placeholder="e.g. Md. Janet">
+    </label>
+    <label>Paper or note (optional)
+      <input id="fNote" autocomplete="off" placeholder="e.g. PP1">
+    </label>
+    <datalist id="subjectList"></datalist>
+    <datalist id="teacherOpts"></datalist>
+    <p class="muted" id="lMeta"></p>
+    <div class="err" id="lErr" role="alert"></div>
+    <div class="acts">
+      <button type="button" class="btn ghost" id="lClear">Clear lesson</button>
+      <button type="button" class="btn" id="lCancel">Cancel</button>
+      <button type="submit" class="btn primary">Save lesson</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="slotDlg" aria-labelledby="sTitle">
+  <form class="dlg" id="slotForm" novalidate>
+    <h2 id="sTitle">Lesson time</h2>
+    <p class="muted" id="sNote"></p>
+    <div class="two">
+      <label>Starts <input type="time" id="sStart"></label>
+      <label>Ends <input type="time" id="sEnd"></label>
+    </div>
+    <div class="err" id="sErr" role="alert"></div>
+    <div class="acts">
+      <button type="button" class="btn" id="sCancel">Cancel</button>
+      <button type="submit" class="btn primary">Save time</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="sectionsDlg" aria-labelledby="secTitle">
+  <div class="dlg">
+    <h2 id="secTitle">Timetables</h2>
+    <p class="muted">Create a brand new timetable from scratch, or rename and delete one you already have.</p>
+    <div class="list" id="sectionList"></div>
+    <form id="secAddForm" novalidate>
+      <label>New timetable name
+        <input id="secNewName" autocomplete="off" placeholder="e.g. Grade 7A">
+      </label>
+      <div class="err" id="secErr" role="alert"></div>
+      <div class="acts">
+        <button type="button" class="btn" id="secClose">Close</button>
+        <button type="submit" class="btn primary">Create timetable</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<dialog id="confirmDlg" aria-labelledby="cfTitle">
+  <div class="dlg">
+    <h2 id="cfTitle">Are you sure?</h2>
+    <p id="cfMsg" class="muted"></p>
+    <div class="acts">
+      <button type="button" class="btn" id="cfNo">Cancel</button>
+      <button type="button" class="btn primary" id="cfYes">Replace</button>
+    </div>
+  </div>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+/* =====================================================================
+   Junior School Timetable Planner  (kanyadet-school-admin)
+
+   Shared with the rest of the school suite:
+   - Firebase Auth session (same project, same origin = already signed in)
+   - Firestore  users/{uid}            staff roster + the Advancedadmin flag
+   - Firestore  librarySubjects        subject suggestions
+   - RTDB       timetableTimes/{section}   period times (same node the Teachers
+                                            Portal and Command Center edit)
+   - RTDB       artifacts/{appId}/students learner headcount (Grades 7-9)
+   New node written by this page:
+   - RTDB       timetableWeeks/{section}/{mondayISO}/d{0-4}/s{slot}
+
+   Paste the same firebaseConfig values your other tools use into CONFIG.firebase.
+   ===================================================================== */
+const CONFIG = {
+  firebase: {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "kanyadet-school-admin.firebaseapp.com",
+    databaseURL: "https://kanyadet-school-admin-default-rtdb.firebaseio.com",
+    projectId: "kanyadet-school-admin",
+    appId: "PASTE_YOUR_APP_ID"
+  },
+  SDK: "10.12.2",
+  APP_ID: "default-app-id",
+  PATHS: {
+    times: "timetableTimes",
+    weeks: "timetableWeeks",
+    students: "artifacts/default-app-id/students",
+    users: "users",
+    subjects: "librarySubjects"
+  },
+  JUNIOR_GRADES: [7, 8, 9],
+  DEFAULT_SECTION: "Junior School",
+  SITE: "https://kanyadetschool.github.io/",
+  LINKS: [
+    ["📊", "Results portal", "results/"],
+    ["👩‍🏫", "Teachers portal", "teachers-portal.html"],
+    ["👪", "Parents portal", "parents-portal.html"],
+    ["📚", "Library", "library-admin.html"],
+    ["🍲", "Lunch", "lunch.html"]
+  ]
+};
+const P = CONFIG.PATHS;
+
+/* ---------- Helpers ---------- */
+const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+const DAYS_LONG = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2,'0');
+const iso = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseIso = s => { const p = s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); };
+const addDays = (d,n) => new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const mondayOf = d => addDays(d,-((d.getDay()+6)%7));
+const fmtTime = t => { const p = t.split(':').map(Number); return (p[0]%12||12)+':'+pad(p[1])+' '+(p[0]>=12?'PM':'AM'); };
+const toMin = t => { const p = t.split(':').map(Number); return p[0]*60+p[1]; };
+const fromMin = m => pad(Math.floor(m/60))+':'+pad(m%60);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https?:\/\//i.test(String(u||'')) ? String(u) : '';
+function weekLabel(mon, withYear){
+  const fri = addDays(mon,4), y = withYear ? ' '+fri.getFullYear() : '';
+  if (mon.getMonth() === fri.getMonth()) return mon.getDate()+'–'+fri.getDate()+' '+MS[mon.getMonth()]+y;
+  return mon.getDate()+' '+MS[mon.getMonth()]+' – '+fri.getDate()+' '+MS[fri.getMonth()]+y;
+}
+const HUES = {'maths':0,'mathematics':0,'english':1,'kiswahili':2,'social studies':3,'agriculture':4,'pretech':5,'pre-technical studies':5,'int. science':6,'integrated science':6,'cre':7,'creative arts':8};
+function hue(name){
+  const k = String(name).trim().toLowerCase();
+  if (Object.prototype.hasOwnProperty.call(HUES,k)) return HUES[k];
+  let h = 0; for (let i=0;i<k.length;i++) h = (h*31+k.charCodeAt(i))%9;
+  return h;
+}
+const normName = n => String(n||'').toLowerCase().replace(/^(mr|mrs|ms|md|miss|dr|madam|sir)\.?\s+/,'').replace(/\s+/g,' ').trim();
+const initialOf = n => (normName(n).charAt(0) || '?').toUpperCase();
+
+/* ---------- Sample timetable (handwritten sheet, week starting Tue 22 Sep 2026) ---------- */
+const SEED = {
+  monday: '2026-09-21',
+  starts: ['08:00','13:00','14:50'],
+  ends:   ['09:40','14:40','16:30'],
+  days: [
+    [null,null,null],
+    [null,['Kiswahili','Md. Beryl','PP2'],['English','Mr. Owuor','PP1']],
+    [['Maths','Md. Janet'],['Social Studies','Md. Vivian'],['Agriculture','Mr. Steve']],
+    [['Pretech','Mr. Owuor'],['English','Mr. Steve','PP2'],['Kiswahili','Md. Beryl']],
+    [['Int. Science','Md. Janet'],['CRE','Md. Beryl'],['Creative Arts','Md. Vivian']]
+  ]
+};
+const DEFAULT_SLOTS = SEED.starts.map((s,i) => ({start:s, end:SEED.ends[i]}));
+
+/* ---------- State ---------- */
+const now0 = () => new Date();
+const S = {
+  now: now0(),
+  mode: 'connecting',         // connecting | live | offline
+  user: null, canEdit: true, role: '',
+  section: CONFIG.DEFAULT_SECTION, sections: [CONFIG.DEFAULT_SECTION],
+  slots: DEFAULT_SLOTS.map(s => ({...s})),
+  timesShape: 'none', timesStyle: null, timesRaw: {},
+  weeks: {},
+  roster: [], subjects: [], learners: null,
+  sel: null, calMonth: null, query: ''
+};
+const baseMonday = () => { const m = mondayOf(S.now), d = S.now.getDay(); return (d===0||d===6) ? addDays(m,7) : m; };
+S.sel = baseMonday();
+S.calMonth = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1);
+
+const blankWeek = () => Array.from({length:5}, () => Array.from({length:S.slots.length}, () => null));
+const getWeek = key => S.weeks[key] || blankWeek();
+const countLessons = wk => wk.reduce((n,day) => n + (day||[]).filter(Boolean).length, 0);
+const lessonFromRaw = o => o && o.subject ? {subject:String(o.subject), teacher:String(o.teacher||''), teacherUid:String(o.teacherUid||''), note:String(o.note||''), by:String(o.updatedBy||'')} : null;
+
+function weeksFromVal(val){
+  const out = {};
+  Object.keys(val||{}).forEach(k => {
+    const wk = blankWeekN(Math.max(S.slots.length, 1));
+    const src = val[k] || {};
+    for (let d=0; d<5; d++){
+      const row = src['d'+d] || {};
+      Object.keys(row).forEach(sk => {
+        const si = +String(sk).replace(/^s/,'');
+        if (!Number.isInteger(si) || si < 0) return;
+        while (wk[d].length <= si) wk[d].push(null);
+        wk[d][si] = lessonFromRaw(row[sk]);
+      });
+    }
+    out[k] = wk;
+  });
+  return out;
+}
+const blankWeekN = n => Array.from({length:5}, () => Array.from({length:n}, () => null));
+function weekToRaw(wk, by){
+  const raw = {};
+  wk.forEach((day,d) => (day||[]).forEach((l,s) => {
+    if (!l) return;
+    (raw['d'+d] = raw['d'+d] || {})['s'+s] = {subject:l.subject, teacher:l.teacher||'', teacherUid:l.teacherUid||'', note:l.note||'', updatedBy:by||'', updatedAt:fb ? fb.D.serverTimestamp() : Date.now()};
+  }));
+  return raw;
+}
+
+/* ---------- Period times (timetableTimes/{section}) ---------- */
+const RANGE = /(\d{1,2})([:.])(\d{2})(?:\s*([ap]\.?m\.?))?(\s*(?:-|–|—|to)\s*)(\d{1,2})[:.](\d{2})(?:\s*([ap]\.?m\.?))?/i;
+const POINT = /^\s*(\d{1,2})[:.](\d{2})\s*([ap]\.?m\.?)?\s*$/i;
+const apOf = s => s ? (/^p/i.test(s) ? 'pm' : 'am') : null;
+const conv = (h,ap) => (ap==='pm' && h<12) ? h+12 : (ap==='am' && h===12) ? 0 : h;
+function parseRange(str){
+  const m = String(str).match(RANGE); if (!m) return null;
+  const h1 = +m[1], m1 = +m[3], h2 = +m[6], m2 = +m[7], a1 = apOf(m[4]), a2 = apOf(m[8]);
+  let s, e;
+  if (a1 || a2){
+    e = conv(h2, a2 || a1); s = conv(h1, a1 || a2);
+    if (!a1 && s*60+m1 >= e*60+m2) s = conv(h1,'am');
+  } else {
+    s = h1 < 7 ? h1+12 : h1; e = h2 < 7 ? h2+12 : h2;
+  }
+  return { start: pad(s)+':'+pad(m1), end: pad(e)+':'+pad(m2),
+    style: { colon:m[2], sep:m[5], ap:!!(m[4]||m[8]), apSpace:/\d\s[ap]/i.test(String(str)), upper:/[AP]/.test((String(str).match(/[ap]\.?m/i)||[''])[0]), pad:/^0\d/.test(m[1]) } };
+}
+function fmtStyle(t, st){
+  const p = t.split(':').map(Number); let h = p[0], suffix = '';
+  if (st.ap){ const ap = h>=12 ? 'pm' : 'am'; h = h%12||12; suffix = (st.apSpace?' ':'') + (st.upper ? ap.toUpperCase() : ap); }
+  return (st.pad ? pad(h) : String(h)) + st.colon + pad(p[1]) + suffix;
+}
+function parseTimes(raw){
+  if (raw == null) return { shape:'none', slots:[], style:null };
+  let arr = Array.isArray(raw) ? raw.slice() : (typeof raw === 'object' ? Object.keys(raw).sort((a,b)=>a-b).map(k => raw[k]) : []);
+  arr = arr.filter(v => typeof v === 'string' && v.trim());
+  if (!arr.length) return { shape:'other', slots:[], style:null };
+  const ranges = arr.map(parseRange);
+  if (ranges.every(Boolean)) return { shape:'ranges', slots:ranges.map(r => ({start:r.start,end:r.end})), style:ranges[0].style };
+  const pts = arr.map(v => { const m = String(v).match(POINT); return m ? conv(+m[1], apOf(m[3])) * 60 + +m[2] : null; });
+  if (pts.every(v => v !== null)){
+    const slots = pts.map((v,i) => ({start:fromMin(v), end:fromMin(i < pts.length-1 ? pts[i+1] : v+40)}));
+    return { shape:'points', slots, style:null };
+  }
+  return { shape:'other', slots:[], style:null };
+}
+const DEFAULT_STYLE = { colon:':', sep:' - ', ap:true, apSpace:true, upper:true, pad:false };
+
+/* ---------- Local persistence (offline mode and instant paint) ---------- */
+const lsGet = (k,fallback) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; } };
+const lsSet = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+const kLocal = () => 'tt_v1_local_'+S.section;
+const kCache = () => 'tt_v1_cache_'+S.section;
+function persistLocal(){ lsSet(kLocal(), {weeks:S.weeks, slots:S.slots}); }
+
+function seedLocalWeeks(){
+  const wk = blankWeekN(DEFAULT_SLOTS.length);
+  SEED.days.forEach((day,d) => day.forEach((l,s) => { if (l) wk[d][s] = {subject:l[0], teacher:l[1], teacherUid:'', note:l[2]||'', by:''}; }));
+  return { [SEED.monday]: wk };
+}
+
+/* ---------- Firebase ---------- */
+let fb = null, unsubWeeks = null;
+async function initFirebase(){
+  const c = CONFIG.firebase;
+  if (/^PASTE/i.test(c.apiKey)) return null;
+  const b = `https://www.gstatic.com/firebasejs/${CONFIG.SDK}/`;
+  const [A,Au,D,F] = await Promise.all([import(b+'firebase-app.js'), import(b+'firebase-auth.js'), import(b+'firebase-database.js'), import(b+'firebase-firestore.js')]);
+  const app = A.getApps().length ? A.getApp() : A.initializeApp(c);
+  fb = { app, A, Au, D, F, auth:Au.getAuth(app), db:D.getDatabase(app), fs:F.getFirestore(app) };
+  window._fb = fb;
+  return fb;
+}
+
+/* ---------- UI: status, toast, confirm ---------- */
+let toastTimer;
+function toast(msg, ms){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms || 2400);
+}
+function setSync(kind, text){ const el = $('#sync'); el.className = 'sync '+kind; el.lastElementChild.textContent = text; }
+function setNotice(text){ const n = $('#notice'); n.hidden = !text; n.textContent = text || ''; }
+function confirmBox(title, msg, ok){
+  return new Promise(res => {
+    const dlg = $('#confirmDlg');
+    $('#cfTitle').textContent = title; $('#cfMsg').textContent = msg; $('#cfYes').textContent = ok || 'Confirm';
+    $('#cfYes').onclick = () => { res(true); dlg.close(); };
+    $('#cfNo').onclick = () => { res(false); dlg.close(); };
+    dlg.addEventListener('close', () => res(false), {once:true});
+    dlg.showModal();
+  });
+}
+function guard(){
+  if (S.canEdit) return true;
+  toast('Only Advanced Admins can edit the timetable.');
+  return false;
+}
+
+/* ---------- Roster helpers ---------- */
+function teacherInfo(name){
+  const k = normName(name);
+  return S.roster.find(t => normName(t.name) === k) || null;
+}
+function avatarHtml(name, photo){
+  const url = safeUrl(photo);
+  return url ? '<img src="'+esc(url)+'" alt="" referrerpolicy="no-referrer">' : esc(initialOf(name));
+}
+
+/* ---------- Upcoming lessons ---------- */
+function upcoming(limit){
+  const out = [], start = new Date(S.now.getFullYear(),S.now.getMonth(),S.now.getDate());
+  for (let i=0; i<42 && out.length<limit; i++){
+    const day = addDays(start,i), dow = (day.getDay()+6)%7;
+    if (dow > 4) continue;
+    const wk = S.weeks[iso(mondayOf(day))]; if (!wk) continue;
+    S.slots.forEach((sl,si) => {
+      const les = wk[dow] && wk[dow][si]; if (!les) return;
+      const e = sl.end.split(':').map(Number);
+      const endAt = new Date(day.getFullYear(),day.getMonth(),day.getDate(),e[0],e[1]);
+      if (endAt > S.now) out.push({day, dow, slot:si, lesson:les});
+    });
+  }
+  return out.slice(0, limit);
+}
+function relDay(day){
+  const t = iso(new Date(S.now.getFullYear(),S.now.getMonth(),S.now.getDate())), k = iso(day);
+  if (k === t) return 'Today';
+  if (k === iso(addDays(parseIso(t),1))) return 'Tomorrow';
+  return DAYS[(day.getDay()+6)%7]+' '+day.getDate()+' '+MS[day.getMonth()];
+}
+
+/* ---------- Render ---------- */
+function renderHeader(){
+  const h = S.now.getHours();
+  const g = h<12 ? 'Good morning' : h<17 ? 'Good afternoon' : 'Good evening';
+  const em = h<12 ? '☀️' : h<17 ? '🌤️' : '🌙';
+  $('#greet').textContent = g+'! '+em;
+  const dl = DAYS_LONG[(S.now.getDay()+6)%7]+', '+S.now.getDate()+' '+MONTHS[S.now.getMonth()]+' '+S.now.getFullYear();
+  const nx = upcoming(1)[0]; let line;
+  if (!nx) line = 'No lessons planned yet.';
+  else {
+    const rd = relDay(nx.day);
+    line = 'Next lesson: '+nx.lesson.subject+' '+(rd==='Today'?'today':rd==='Tomorrow'?'tomorrow':'on '+rd)+' at '+fmtTime(S.slots[nx.slot].start)+'.';
+  }
+  $('#subgreet').textContent = dl+'. '+line;
+}
+
+function renderStats(){
+  const wk = getWeek(iso(S.sel)), filled = countLessons(wk), total = 5*S.slots.length;
+  const teachers = {}, subjects = {};
+  wk.forEach(day => day.forEach(l => { if (l){ if (l.teacher) teachers[normName(l.teacher)] = 1; subjects[l.subject.toLowerCase()] = 1; } }));
+  const fourth = S.learners
+    ? {c:3, ic:'🧒', lb:'Learners', v:S.learners.total, sb:'in Grades '+CONFIG.JUNIOR_GRADES[0]+'–'+CONFIG.JUNIOR_GRADES[CONFIG.JUNIOR_GRADES.length-1]}
+    : {c:3, ic:'📚', lb:'Subjects', v:Object.keys(subjects).length, sb:'on this timetable'};
+  const cards = [
+    {c:0, ic:'📘', lb:'Lessons this week', v:filled, sb:'of '+total+' slots filled'},
+    {c:1, ic:'🕒', lb:'Open slots', v:total-filled, sb:'still free'},
+    {c:2, ic:'👩‍🏫', lb:'Teachers', v:Object.keys(teachers).length, sb:'teaching this week'},
+    fourth
+  ];
+  $('#stats').innerHTML = cards.map(c =>
+    '<div class="stat s'+c.c+'"><div class="ic" aria-hidden="true">'+c.ic+'</div><div><div class="lb">'+c.lb+'</div><div class="v">'+c.v+'</div><div class="sb">'+c.sb+'</div></div></div>').join('');
+}
+
+function renderSections(){
+  const box = $('#sections');
+  if (S.sections.length < 2){ box.innerHTML = ''; box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = S.sections.map(s => '<button type="button" data-section="'+esc(s)+'" aria-pressed="'+(s===S.section)+'">'+esc(s)+'</button>').join('');
+}
+
+function renderGrid(){
+  const key = iso(S.sel), wk = getWeek(key), q = S.query.trim().toLowerCase(), todayKey = iso(S.now);
+  $('#weekLbl').textContent = weekLabel(S.sel, true);
+  $('#printWeek').textContent = S.section+' timetable, '+weekLabel(S.sel, true);
+  document.body.classList.toggle('ro', !S.canEdit);
+  let h = '<div></div>';
+  for (let i=0; i<5; i++){
+    const day = addDays(S.sel,i);
+    h += '<div class="dh'+(iso(day)===todayKey?' today':'')+'"><span>'+DAYS[i]+'</span><b>'+day.getDate()+'</b></div>';
+  }
+  S.slots.forEach((s,si) => {
+    h += '<div class="tlwrap"><button class="tl" data-slot="'+si+'" aria-label="'+(S.canEdit?'Change lesson time, currently ':'Lesson time ')+fmtTime(s.start)+' to '+fmtTime(s.end)+'"><b>'+fmtTime(s.start)+'</b><span>'+fmtTime(s.end)+'</span></button>'+
+      (S.canEdit ? '<button class="tl-x" data-delslot="'+si+'" aria-label="Remove this period" title="Remove period">✕</button>' : '')+'</div>';
+    for (let di=0; di<5; di++){
+      const les = wk[di] && wk[di][si], when = DAYS_LONG[di]+', '+fmtTime(s.start);
+      if (les){
+        const hit = !q || (les.subject+' '+les.teacher+' '+les.note).toLowerCase().includes(q);
+        h += '<button class="cell c'+hue(les.subject)+(hit?'':' dim')+'" data-d="'+di+'" data-s="'+si+'" aria-label="'+when+': '+esc(les.subject)+(les.teacher?' with '+esc(les.teacher):'')+(S.canEdit?'. Edit lesson':'')+'">'+
+          '<span class="sub">'+esc(les.subject)+'</span>'+
+          (les.teacher?'<span class="who">'+esc(les.teacher)+'</span>':'')+
+          (les.note?'<span class="pill">'+esc(les.note)+'</span>':'')+'</button>';
+      } else {
+        h += '<button class="cell empty'+(q?' dim':'')+'" data-d="'+di+'" data-s="'+si+'" aria-label="'+when+': empty'+(S.canEdit?'. Add a lesson':'')+'"><span aria-hidden="true">'+(S.canEdit?'+':'')+'</span></button>';
+      }
+    }
+  });
+  $('#grid').innerHTML = h;
+
+  let note = '';
+  if (countLessons(wk) === 0){
+    const prevKey = iso(addDays(S.sel,-7));
+    const hasPrev = S.weeks[prevKey] && countLessons(S.weeks[prevKey]) > 0;
+    const canSeed = S.canEdit && key === SEED.monday && /junior/i.test(S.section);
+    if (canSeed){
+      note = '<div class="empty-note"><span>This week has no lessons yet. Load the timetable that starts Tuesday 22 September?</span><button class="btn primary sm" id="loadSeed">Load 22–25 Sep timetable</button></div>';
+    } else {
+      note = '<div class="empty-note"><span>This week has no lessons yet. '+
+        (S.canEdit ? (hasPrev ? 'Copy last week to start, or tap a slot to add one.' : 'Tap a slot to add the first lesson.') : 'Check back once it has been planned.')+'</span>'+
+        (S.canEdit && hasPrev ? '<button class="btn primary sm" id="copyPrev">Copy last week</button>' : '')+'</div>';
+    }
+  }
+  $('#emptyNote').innerHTML = note;
+  $('#copyNext').hidden = !S.canEdit;
+  $('#toolbar').hidden = !S.canEdit;
+}
+
+function renderTeachers(){
+  const wk = getWeek(iso(S.sel)), map = {};
+  wk.forEach(day => day.forEach(l => {
+    if (!l || !l.teacher) return;
+    const k = normName(l.teacher), t = map[k] || (map[k] = {name:l.teacher, n:0, subs:{}});
+    t.n++; t.subs[l.subject] = 1;
+  }));
+  const list = Object.keys(map).map(k => map[k]).sort((a,b) => b.n-a.n || a.name.localeCompare(b.name));
+  if (!list.length){ $('#teacherList').innerHTML = '<p class="muted">No teachers yet. Add a lesson to see who is teaching.</p>'; return; }
+  const max = list[0].n, order = [0,1,2,3,5,6,7,8,4];
+  $('#teacherList').innerHTML = list.map((t,idx) => {
+    const c = order[idx % order.length], info = teacherInfo(t.name);
+    return '<div class="row" style="--tint:var(--t'+c+');--ink:var(--i'+c+')"><div class="av" aria-hidden="true">'+avatarHtml(t.name, info && info.photo)+'</div>'+
+      '<div class="grow"><div class="name"><span>'+esc(t.name)+'</span><small>'+t.n+(t.n===1?' lesson':' lessons')+'</small></div>'+
+      '<div class="meta">'+esc(Object.keys(t.subs).join(', '))+'</div>'+
+      '<div class="bar" aria-hidden="true"><i style="width:'+Math.round(t.n/max*100)+'%"></i></div></div></div>';
+  }).join('');
+}
+
+function renderWeeks(){
+  const base = baseMonday(), total = 5*S.slots.length; let h = '';
+  for (let i=0; i<4; i++){
+    const m = addDays(base,7*i), k = iso(m), n = countLessons(getWeek(k));
+    const status = i===0 ? 'This week' : (n>0 ? 'Planned' : 'Empty'), c = i===0 ? 0 : (n>0 ? 2 : 3);
+    h += '<div><button class="wk" data-week="'+k+'" aria-current="'+(k===iso(S.sel))+'"><div class="row" style="--tint:var(--t'+c+');--ink:var(--i'+c+')">'+
+      '<div class="grow"><div class="name"><span>'+weekLabel(m,false)+'</span><span class="tag">'+status+'</span></div>'+
+      '<div class="meta">'+n+' of '+total+' slots filled</div>'+
+      '<div class="bar" aria-hidden="true"><i style="width:'+Math.round(n/total*100)+'%"></i></div></div></div></button></div>';
+  }
+  $('#weekList').innerHTML = h;
+}
+
+function renderCal(){
+  const y = S.calMonth.getFullYear(), m = S.calMonth.getMonth();
+  $('#cTitle').textContent = MONTHS[m]+' '+y;
+  const first = new Date(y,m,1), lead = (first.getDay()+6)%7, gs = addDays(first,-lead);
+  const selKey = iso(S.sel), todayKey = iso(S.now);
+  let h = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => '<div class="w">'+d+'</div>').join('');
+  for (let i=0; i<42; i++){
+    const d = addDays(gs,i), dow = (d.getDay()+6)%7, wkKey = iso(mondayOf(d)), cls = [];
+    if (dow >= 5) cls.push('wknd');
+    if (d.getMonth() !== m) cls.push('other');
+    if (wkKey === selKey){ cls.push('inweek'); if (dow===0) cls.push('ws'); if (dow===6) cls.push('we'); }
+    if (iso(d) === todayKey) cls.push('today');
+    const wk = S.weeks[wkKey];
+    if (dow < 5 && wk && wk[dow] && wk[dow].some(Boolean)) cls.push('has');
+    h += '<button class="'+cls.join(' ')+'" data-date="'+iso(d)+'" aria-label="'+d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear()+(cls.includes('has')?', has lessons':'')+'"><span>'+d.getDate()+'</span></button>';
+  }
+  $('#cal').innerHTML = h;
+}
+
+function renderUpcoming(){
+  const list = upcoming(4);
+  if (!list.length){ $('#upList').innerHTML = '<p class="muted">No lessons planned in the next six weeks.</p>'; return; }
+  $('#upList').innerHTML = list.map(u => {
+    const c = hue(u.lesson.subject);
+    return '<div class="row" style="--tint:var(--t'+c+');--ink:var(--i'+c+')"><div class="av" aria-hidden="true">'+esc(u.lesson.subject.charAt(0).toUpperCase())+'</div>'+
+      '<div class="grow"><div class="name"><span>'+esc(u.lesson.subject)+(u.lesson.note?' '+esc(u.lesson.note):'')+'</span></div>'+
+      '<div class="meta">'+relDay(u.day)+' at '+fmtTime(S.slots[u.slot].start)+(u.lesson.teacher?' with '+esc(u.lesson.teacher):'')+'</div></div></div>';
+  }).join('');
+}
+
+function renderPortals(){
+  $('#portals').innerHTML = '<h3>Linked portals</h3>' + CONFIG.LINKS.map(l =>
+    '<a href="'+esc(CONFIG.SITE+l[2])+'" target="_blank" rel="noopener"><span aria-hidden="true">'+l[0]+'</span>'+esc(l[1])+'</a>').join('');
+}
+
+function renderUser(){
+  const chip = $('#userChip');
+  if (!S.user){ chip.hidden = true; return; }
+  chip.hidden = false;
+  const info = S.user.profile || {};
+  $('#uName').textContent = info.name || S.user.email || 'Staff';
+  $('#uRole').textContent = S.role;
+  $('#uAv').innerHTML = avatarHtml(info.name || S.user.email, info.photo);
+}
+
+function render(){
+  renderHeader(); renderStats(); renderSections(); renderGrid(); renderTeachers(); renderWeeks(); renderCal(); renderUpcoming(); renderUser();
+}
+
+/* ---------- Data access: one Store, two backends ---------- */
+const who = () => (S.user && (S.user.email || S.user.uid)) || '';
+const cellPath = (key,d,s) => P.weeks+'/'+S.section+'/'+key+'/d'+d+'/s'+s;
+
+async function setLesson(key, d, s, lesson){
+  if (S.mode === 'live'){
+    const {D} = fb, r = D.ref(fb.db, cellPath(key,d,s));
+    if (lesson) await D.set(r, {subject:lesson.subject, teacher:lesson.teacher, teacherUid:lesson.teacherUid||'', note:lesson.note, updatedBy:who(), updatedAt:D.serverTimestamp()});
+    else await D.remove(r);
+    return; // the onValue listener re-renders
+  }
+  if (!S.weeks[key]) S.weeks[key] = blankWeek();
+  S.weeks[key][d][s] = lesson; persistLocal(); render();
+}
+async function writeWeek(key, wk){
+  if (S.mode === 'live'){
+    const {D} = fb, r = D.ref(fb.db, P.weeks+'/'+S.section+'/'+key), raw = weekToRaw(wk, who());
+    if (Object.keys(raw).length) await D.set(r, raw); else await D.remove(r);
+    return;
+  }
+  S.weeks[key] = JSON.parse(JSON.stringify(wk)); persistLocal(); render();
+}
+function slotsToStrs(slots){
+  const st = S.timesStyle || DEFAULT_STYLE;
+  return slots.map(x => fmtStyle(x.start,st)+st.sep+fmtStyle(x.end,st));
+}
+async function saveSlot(si, start, end){
+  const next = S.slots.map((x,i) => i===si ? {start, end} : x);
+  if (S.mode === 'live' && (S.timesShape === 'ranges' || S.timesShape === 'none')){
+    await fb.D.set(fb.D.ref(fb.db, P.times+'/'+S.section), slotsToStrs(next));
+    return 'synced';
+  }
+  S.slots = next; persistLocal(); render();
+  return S.mode === 'live' ? 'local' : 'offline';
+}
+async function addPeriod(){
+  if (!guard()) return;
+  const last = S.slots[S.slots.length-1];
+  const start = last ? last.end : '08:00';
+  const end = fromMin(Math.min(toMin(start)+40, 23*60+59));
+  const next = [...S.slots, {start, end}];
+  if (S.mode === 'live' && (S.timesShape === 'ranges' || S.timesShape === 'none')){
+    try { await fb.D.set(fb.D.ref(fb.db, P.times+'/'+S.section), slotsToStrs(next)); toast('Period added'); }
+    catch(err){ toast('Could not add period: '+(err && err.message || err), 5000); }
+    return;
+  }
+  S.slots = next; persistLocal(); render();
+  toast(S.mode === 'live' ? 'Period added on this device only' : 'Period added');
+}
+async function removeSlot(si){
+  if (!guard()) return;
+  if (S.slots.length <= 1){ toast('Keep at least one period.'); return; }
+  const sl = S.slots[si];
+  const ok = await confirmBox('Remove this period?', fmtTime(sl.start)+' – '+fmtTime(sl.end)+' will be removed, along with any lessons in it, from every week.', 'Remove');
+  if (!ok) return;
+  const nextSlots = S.slots.filter((_,i) => i !== si);
+  const reindexed = {};
+  Object.keys(S.weeks).forEach(k => {
+    reindexed[k] = S.weeks[k].map(day => { const d = (day||[]).slice(); d.splice(si,1); return d; });
+  });
+  if (S.mode === 'live' && (S.timesShape === 'ranges' || S.timesShape === 'none')){
+    try {
+      await fb.D.set(fb.D.ref(fb.db, P.times+'/'+S.section), slotsToStrs(nextSlots));
+      await Promise.all(Object.keys(reindexed).map(k => writeWeek(k, reindexed[k])));
+      toast('Period removed');
+    } catch(err){ toast('Could not remove period: '+(err && err.message || err), 5000); }
+    return;
+  }
+  S.slots = nextSlots; S.weeks = reindexed; persistLocal(); render();
+  toast(S.mode === 'live' ? 'Period removed on this device only' : 'Period removed');
+}
+
+/* ---------- Live wiring ---------- */
+function applyTimes(){
+  const parsed = parseTimes(S.timesRaw[S.section]);
+  S.timesShape = parsed.shape; S.timesStyle = parsed.style;
+  if (parsed.slots.length) S.slots = parsed.slots;
+  else {
+    const local = lsGet(kLocal(), null);
+    S.slots = (local && local.slots && local.slots.length) ? local.slots : DEFAULT_SLOTS.map(s => ({...s}));
+  }
+}
+function subscribeWeeks(){
+  if (unsubWeeks){ try { unsubWeeks(); } catch(e){} unsubWeeks = null; }
+  const cached = lsGet(kCache(), null);
+  if (cached) S.weeks = cached; else S.weeks = {};
+  const {D} = fb;
+  unsubWeeks = D.onValue(D.ref(fb.db, P.weeks+'/'+S.section), snap => {
+    S.weeks = weeksFromVal(snap.val());
+    lsSet(kCache(), S.weeks);
+    setSync('live', 'Live, synced with school database');
+    render();
+  }, err => { setSync('off', 'Can\'t read timetable'); toast('Could not read the timetable: '+(err && err.message || err), 5000); });
+}
+function subscribeTimes(){
+  const {D} = fb;
+  D.onValue(D.ref(fb.db, P.times), snap => {
+    S.timesRaw = snap.val() || {};
+    const keys = Object.keys(S.timesRaw);
+    S.sections = keys.length ? keys : [CONFIG.DEFAULT_SECTION];
+    if (!S.sections.includes(S.section)){
+      const j = S.sections.find(k => /junior/i.test(k));
+      const changed = j || S.sections[0];
+      if (changed !== S.section){ S.section = changed; applyTimes(); subscribeWeeks(); }
+    }
+    applyTimes(); render();
+  }, err => { console.warn('timetableTimes', err); });
+}
+function defaultTimesStrs(){ return slotsToStrs(DEFAULT_SLOTS); }
+async function createSection(name){
+  if (S.mode === 'live'){
+    const {D} = fb;
+    await D.set(D.ref(fb.db, P.times+'/'+name), defaultTimesStrs());
+    S.section = name; applyTimes(); subscribeWeeks(); render();
+    return;
+  }
+  S.sections = Array.from(new Set([...S.sections, name]));
+  S.section = name; S.slots = DEFAULT_SLOTS.map(s => ({...s})); S.weeks = {};
+  persistLocal(); render();
+}
+async function deleteSection(name){
+  if (S.mode === 'live'){
+    const {D} = fb;
+    await D.remove(D.ref(fb.db, P.times+'/'+name));
+    await D.remove(D.ref(fb.db, P.weeks+'/'+name));
+    return; // subscribeTimes picks up the shrunk key list and switches away if needed
+  }
+  S.sections = S.sections.filter(s => s !== name);
+  try { localStorage.removeItem('tt_v1_local_'+name); localStorage.removeItem('tt_v1_cache_'+name); } catch(e){}
+  if (S.section === name){
+    S.section = S.sections[0] || CONFIG.DEFAULT_SECTION;
+    const local = lsGet(kLocal(), null);
+    S.weeks = local && local.weeks ? local.weeks : {};
+    S.slots = local && local.slots && local.slots.length ? local.slots : DEFAULT_SLOTS.map(s => ({...s}));
+  }
+  render();
+}
+async function renameSection(oldName, newName){
+  const wasCurrent = S.section === oldName;
+  if (S.mode === 'live'){
+    const {D} = fb;
+    if (wasCurrent) S.section = newName;
+    const [timesSnap, weeksSnap] = await Promise.all([
+      D.get(D.ref(fb.db, P.times+'/'+oldName)),
+      D.get(D.ref(fb.db, P.weeks+'/'+oldName))
+    ]);
+    const timesVal = timesSnap.val(), weeksVal = weeksSnap.val();
+    await D.set(D.ref(fb.db, P.times+'/'+newName), timesVal != null ? timesVal : defaultTimesStrs());
+    if (weeksVal != null) await D.set(D.ref(fb.db, P.weeks+'/'+newName), weeksVal);
+    await D.remove(D.ref(fb.db, P.times+'/'+oldName));
+    await D.remove(D.ref(fb.db, P.weeks+'/'+oldName));
+    if (wasCurrent){ applyTimes(); subscribeWeeks(); }
+    return;
+  }
+  const idx = S.sections.indexOf(oldName);
+  if (idx >= 0) S.sections[idx] = newName;
+  const local = lsGet('tt_v1_local_'+oldName, null), cache = lsGet('tt_v1_cache_'+oldName, null);
+  if (local) lsSet('tt_v1_local_'+newName, local);
+  if (cache) lsSet('tt_v1_cache_'+newName, cache);
+  try { localStorage.removeItem('tt_v1_local_'+oldName); localStorage.removeItem('tt_v1_cache_'+oldName); } catch(e){}
+  if (wasCurrent) S.section = newName;
+  render();
+}
+function renderSectionsDlg(){
+  $('#sectionList').innerHTML = S.sections.map(s =>
+    '<div class="sec-row"><div class="grow">'+esc(s)+(s===S.section?'<small>Current</small>':'')+'</div>'+
+    '<button type="button" class="btn sm ghost" data-rename="'+esc(s)+'">Rename</button>'+
+    (S.sections.length>1 ? '<button type="button" class="btn sm ghost" data-delsec="'+esc(s)+'">Delete</button>' : '')+
+    '</div>').join('');
+}
+
+async function loadRoster(){
+  try {
+    const {F} = fb, snap = await F.getDocs(F.collection(fb.fs, P.users));
+    S.roster = snap.docs.map(d => { const x = d.data() || {};
+      return {uid:d.id, name:String(x.name||x.displayName||x.fullName||'').trim(), subject:String(x.subject||'').trim(), photo:x.photo||x.photoURL||x.photoUrl||''}; }).filter(t => t.name);
+    const names = S.roster.map(t => t.name).sort((a,b) => a.localeCompare(b));
+    $('#teacherOpts').innerHTML = names.map(n => '<option value="'+esc(n)+'">').join('');
+  } catch(e){ console.warn('users', e); }
+}
+async function loadSubjects(){
+  try {
+    const {F} = fb, snap = await F.getDocs(F.collection(fb.fs, P.subjects));
+    const set = new Set(); snap.docs.forEach(d => { const x = d.data() || {}; const n = String(x.name||x.subject||x.title||x.label||'').trim(); if (n) set.add(n); });
+    S.subjects = Array.from(set).sort((a,b) => a.localeCompare(b));
+  } catch(e){ console.warn('librarySubjects', e); }
+}
+async function loadLearners(){
+  const ck = 'tt_v1_learners', c = lsGet(ck, null);
+  if (c && Date.now() - c.t < 12*3600*1000){ S.learners = c.v; return; }
+  try {
+    const {D} = fb, snap = await D.get(D.ref(fb.db, P.students)), val = snap.val();
+    if (!val) return;
+    const counts = {}; CONFIG.JUNIOR_GRADES.forEach(g => counts[g] = 0);
+    Object.keys(val).forEach(k => { const r = val[k] || {}; const m = String(r.grade ?? r.Grade ?? '').match(/\d+/); const g = m ? +m[0] : null; if (g !== null && Object.prototype.hasOwnProperty.call(counts,g)) counts[g]++; });
+    const total = Object.values(counts).reduce((a,b) => a+b, 0);
+    if (!total) return;
+    S.learners = {counts, total}; lsSet(ck, {t:Date.now(), v:S.learners});
+  } catch(e){ console.warn('students', e); }
+}
+
+async function onAuth(user){
+  if (!user){ S.user = null; S.canEdit = false; $('#gate').hidden = false; renderUser(); setSync('off','Signed out'); return; }
+  try {
+    const {F} = fb, snap = await F.getDoc(F.doc(fb.fs, P.users, user.uid));
+    if (!snap.exists()){
+      $('#gErr').textContent = 'This page is for school staff. Your account is not registered as staff.';
+      await fb.Au.signOut(fb.auth); return;
+    }
+    const prof = snap.data() || {};
+    S.user = {uid:user.uid, email:user.email||'', profile:{name:String(prof.name||prof.displayName||user.displayName||'').trim(), photo:prof.photo||prof.photoURL||user.photoURL||''}};
+    S.canEdit = prof.Advancedadmin === true;
+    S.role = S.canEdit ? 'Advanced Admin' : 'Teacher, view only';
+  } catch(e){
+    $('#gErr').textContent = 'Could not check your staff profile: '+(e && e.message || e);
+    await fb.Au.signOut(fb.auth); return;
+  }
+  $('#gate').hidden = true; $('#gErr').textContent = '';
+  S.mode = 'live'; setNotice('');
+  $('#tipText').textContent = S.canEdit ? 'Tap any lesson to change it. Changes reach every device straight away.' : 'You can view the timetable. Ask an Advanced Admin to change lessons.';
+  setSync('off','Syncing');
+  subscribeTimes(); subscribeWeeks();
+  loadRoster().then(render); loadSubjects(); loadLearners().then(render);
+  render();
+}
+
+async function boot(){
+  renderPortals();
+  // Instant paint from this device while Firebase loads
+  const local = lsGet(kLocal(), null);
+  if (local && local.weeks){ S.weeks = local.weeks; if (local.slots && local.slots.length) S.slots = local.slots; }
+  else { S.weeks = seedLocalWeeks(); }
+  render();
+  try { await initFirebase(); } catch(e){ console.warn('Firebase failed to load', e); fb = null; }
+  if (!fb){
+    S.mode = 'offline'; S.canEdit = true; S.role = 'This device only';
+    setSync('off','Offline, saved on this device');
+    setNotice(/^PASTE/i.test(CONFIG.firebase.apiKey)
+      ? 'Not connected to the school database yet. Paste your firebaseConfig into CONFIG at the top of this file. Until then, changes are saved on this device only.'
+      : 'Could not load Firebase. Check your connection. Changes are saved on this device only.');
+    $('#tipText').textContent = 'Tap any lesson to change it. Changes are saved on this device only.';
+    render(); return;
+  }
+  S.weeks = {}; render();
+  fb.Au.onAuthStateChanged(fb.auth, onAuth);
+}
+
+/* ---------- Lesson dialog ---------- */
+let editing = null;
+function fillSubjects(){
+  const set = new Set(S.subjects);
+  Object.values(S.weeks).forEach(wk => wk.forEach(day => (day||[]).forEach(l => { if (l) set.add(l.subject); })));
+  $('#subjectList').innerHTML = Array.from(set).sort((a,b) => a.localeCompare(b)).map(s => '<option value="'+esc(s)+'">').join('');
+  if (S.mode !== 'live'){
+    const t = new Set(); Object.values(S.weeks).forEach(wk => wk.forEach(day => (day||[]).forEach(l => { if (l && l.teacher) t.add(l.teacher); })));
+    $('#teacherOpts').innerHTML = Array.from(t).sort().map(s => '<option value="'+esc(s)+'">').join('');
+  }
+}
+function openLesson(d, s){
+  editing = {d, s};
+  const les = (getWeek(iso(S.sel))[d] || [])[s] || null, sl = S.slots[s];
+  $('#lTitle').textContent = DAYS_LONG[d]+', '+fmtTime(sl.start)+' to '+fmtTime(sl.end);
+  $('#fSubject').value = les ? les.subject : ''; $('#fTeacher').value = les ? les.teacher : ''; $('#fNote').value = les ? les.note : '';
+  $('#lClear').hidden = !les; $('#lErr').textContent = '';
+  $('#lMeta').textContent = les && les.by ? 'Last edited by '+les.by : '';
+  fillSubjects();
+  $('#lessonDlg').showModal(); $('#fSubject').focus();
+}
+$('#fTeacher').addEventListener('change', () => {
+  const info = teacherInfo($('#fTeacher').value);
+  if (info && info.subject && !$('#fSubject').value.trim()) $('#fSubject').value = info.subject;
+});
+$('#lessonForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const sub = $('#fSubject').value.trim(), teacher = $('#fTeacher').value.trim();
+  if (!sub){ $('#lErr').textContent = 'Enter a subject, or choose Clear lesson to empty this slot.'; $('#fSubject').focus(); return; }
+  const info = teacherInfo(teacher);
+  try {
+    await setLesson(iso(S.sel), editing.d, editing.s, {subject:sub, teacher, teacherUid:info ? info.uid : '', note:$('#fNote').value.trim()});
+    $('#lessonDlg').close(); toast('Lesson saved');
+  } catch(err){ $('#lErr').textContent = 'Could not save: '+(err && err.message || err); }
+});
+$('#lClear').addEventListener('click', async () => {
+  try { await setLesson(iso(S.sel), editing.d, editing.s, null); $('#lessonDlg').close(); toast('Lesson cleared'); }
+  catch(err){ $('#lErr').textContent = 'Could not clear: '+(err && err.message || err); }
+});
+$('#lCancel').addEventListener('click', () => $('#lessonDlg').close());
+
+/* ---------- Period time dialog ---------- */
+let editingSlot = null;
+function openSlot(s){
+  editingSlot = s; const sl = S.slots[s];
+  $('#sStart').value = sl.start; $('#sEnd').value = sl.end; $('#sErr').textContent = '';
+  $('#sNote').textContent = S.mode !== 'live' ? 'Saved on this device only.'
+    : (S.timesShape === 'other' || S.timesShape === 'points')
+      ? 'The times for this section are stored in a format this page does not update, so this change is saved on this device only.'
+      : 'This updates the period times for every week, and the Teachers Portal timetable too.';
+  $('#slotDlg').showModal(); $('#sStart').focus();
+}
+$('#slotForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const a = $('#sStart').value, b = $('#sEnd').value;
+  if (!a || !b){ $('#sErr').textContent = 'Enter a start and an end time.'; return; }
+  if (toMin(a) >= toMin(b)){ $('#sErr').textContent = 'The lesson must end after it starts.'; return; }
+  try {
+    const r = await saveSlot(editingSlot, a, b);
+    $('#slotDlg').close(); toast(r === 'synced' ? 'Time saved for everyone' : 'Time saved on this device');
+  } catch(err){ $('#sErr').textContent = 'Could not save: '+(err && err.message || err); }
+});
+$('#sCancel').addEventListener('click', () => $('#slotDlg').close());
+
+/* ---------- Copy / seed weeks ---------- */
+async function copyWeek(fromKey, toKey){
+  const from = S.weeks[fromKey];
+  if (!from || !countLessons(from)){ toast('Nothing to copy from that week'); return; }
+  const existing = S.weeks[toKey] ? countLessons(S.weeks[toKey]) : 0;
+  if (existing > 0 && !(await confirmBox('Replace lessons?', 'That week already has '+existing+' lessons. Copying will replace them.', 'Replace'))) return;
+  try { await writeWeek(toKey, from); toast('Copied to '+weekLabel(parseIso(toKey), false)); }
+  catch(err){ toast('Could not copy: '+(err && err.message || err), 5000); }
+}
+async function loadSeed(){
+  const wk = blankWeekN(S.slots.length); let placed = 0, missed = [];
+  SEED.days.forEach((day,d) => day.forEach((l,i) => {
+    if (!l) return;
+    const si = S.slots.findIndex(s => s.start === SEED.starts[i]);
+    if (si < 0){ missed.push(fmtTime(SEED.starts[i])); return; }
+    wk[d][si] = {subject:l[0], teacher:l[1], teacherUid:(teacherInfo(l[1])||{}).uid || '', note:l[2]||'', by:''}; placed++;
+  }));
+  if (missed.length){
+    toast('No period starts at '+Array.from(new Set(missed)).join(' or ')+'. Set the period times first, then load again.', 6500);
+    if (!placed) return;
+  }
+  try { await writeWeek(SEED.monday, wk); toast('Timetable loaded'); }
+  catch(err){ toast('Could not load: '+(err && err.message || err), 5000); }
+}
+
+/* ---------- Events ---------- */
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, a'); if (!t) return;
+  if (t.classList.contains('cell')){ if (guard()) openLesson(+t.dataset.d, +t.dataset.s); return; }
+  if (t.classList.contains('tl-x')){ removeSlot(+t.dataset.delslot); return; }
+  if (t.classList.contains('tl')){ if (guard()) openSlot(+t.dataset.slot); return; }
+  if (t.id === 'copyPrev'){ copyWeek(iso(addDays(S.sel,-7)), iso(S.sel)); return; }
+  if (t.id === 'loadSeed'){ loadSeed(); return; }
+  if (t.dataset.section){
+    S.section = t.dataset.section; applyTimes();
+    if (S.mode === 'live') subscribeWeeks(); else { const l = lsGet(kLocal(), null); S.weeks = l && l.weeks ? l.weeks : {}; }
+    render(); return;
+  }
+  if (t.dataset.week){ S.sel = parseIso(t.dataset.week); S.calMonth = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); render(); return; }
+  if (t.dataset.date){
+    const d = parseIso(t.dataset.date); S.sel = mondayOf(d);
+    if (d.getMonth() !== S.calMonth.getMonth()) S.calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+    render(); return;
+  }
+  if (t.closest('.nav')){ document.querySelectorAll('.nav a').forEach(a => a.classList.remove('on')); t.classList.add('on'); }
+});
+const goWeek = m => { S.sel = m; S.calMonth = new Date(m.getFullYear(), m.getMonth(), 1); render(); };
+$('#prevWeek').addEventListener('click', () => goWeek(addDays(S.sel,-7)));
+$('#nextWeek').addEventListener('click', () => goWeek(addDays(S.sel,7)));
+$('#thisWeek').addEventListener('click', () => goWeek(baseMonday()));
+$('#prevMonth').addEventListener('click', () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth()-1, 1); renderCal(); });
+$('#nextMonth').addEventListener('click', () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth()+1, 1); renderCal(); });
+$('#copyNext').addEventListener('click', () => { if (guard()) copyWeek(iso(S.sel), iso(addDays(S.sel,7))); });
+$('#printBtn').addEventListener('click', () => { try { window.print(); } catch(e){ toast('Printing is not available here'); } });
+$('#q').addEventListener('input', e => { S.query = e.target.value; renderGrid(); });
+$('#addPeriod').addEventListener('click', () => addPeriod());
+$('#clearWeek').addEventListener('click', async () => {
+  if (!guard()) return;
+  const wk = getWeek(iso(S.sel));
+  if (!countLessons(wk)){ toast('This week is already empty.'); return; }
+  const ok = await confirmBox('Clear this week?', 'Every lesson in '+weekLabel(S.sel,false)+' will be removed.', 'Clear');
+  if (!ok) return;
+  try { await writeWeek(iso(S.sel), blankWeekN(S.slots.length)); toast('Week cleared'); }
+  catch(err){ toast('Could not clear: '+(err && err.message || err), 5000); }
+});
+
+/* ---------- Manage timetables (sections) ---------- */
+$('#manageSections').addEventListener('click', () => {
+  $('#secErr').textContent = ''; $('#secNewName').value = '';
+  renderSectionsDlg(); $('#sectionsDlg').showModal();
+});
+$('#secClose').addEventListener('click', () => $('#sectionsDlg').close());
+$('#secAddForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!guard()) return;
+  const name = $('#secNewName').value.trim();
+  if (!name){ $('#secErr').textContent = 'Enter a name for the new timetable.'; return; }
+  if (S.sections.some(s => s.toLowerCase() === name.toLowerCase())){ $('#secErr').textContent = 'A timetable with that name already exists.'; return; }
+  try { await createSection(name); $('#secNewName').value = ''; $('#secErr').textContent = ''; renderSectionsDlg(); toast('Timetable created'); }
+  catch(err){ $('#secErr').textContent = 'Could not create: '+(err && err.message || err); }
+});
+$('#sectionList').addEventListener('click', async e => {
+  const rb = e.target.closest('[data-rename]');
+  if (rb){
+    if (!guard()) return;
+    const oldName = rb.dataset.rename;
+    const name = (prompt('Rename "'+oldName+'" to:', oldName) || '').trim();
+    if (!name || name === oldName) return;
+    if (S.sections.some(s => s.toLowerCase() === name.toLowerCase() && s !== oldName)){ toast('A timetable with that name already exists.'); return; }
+    try { await renameSection(oldName, name); renderSectionsDlg(); toast('Renamed'); }
+    catch(err){ toast('Could not rename: '+(err && err.message || err), 5000); }
+    return;
+  }
+  const db = e.target.closest('[data-delsec]');
+  if (db){
+    if (!guard()) return;
+    const name = db.dataset.delsec;
+    if (S.sections.length <= 1){ toast('Keep at least one timetable.'); return; }
+    const ok = await confirmBox('Delete this timetable?', 'This removes "'+name+'" and every lesson in it, for everyone. This cannot be undone.', 'Delete');
+    if (!ok) return;
+    try { await deleteSection(name); renderSectionsDlg(); toast('Timetable deleted'); }
+    catch(err){ toast('Could not delete: '+(err && err.message || err), 5000); }
+  }
+});
+
+/* Sign in / out */
+$('#signOut').addEventListener('click', () => { if (fb) fb.Au.signOut(fb.auth); });
+$('#gGoogle').addEventListener('click', async () => {
+  $('#gErr').textContent = '';
+  try { await fb.Au.signInWithPopup(fb.auth, new fb.Au.GoogleAuthProvider()); }
+  catch(err){ $('#gErr').textContent = 'Google sign-in failed: '+(err && err.message || err); }
+});
+$('#gForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('#gErr').textContent = '';
+  const em = $('#gEmail').value.trim(), pw = $('#gPass').value;
+  if (!em || !pw){ $('#gErr').textContent = 'Enter your email and password.'; return; }
+  try { await fb.Au.signInWithEmailAndPassword(fb.auth, em, pw); }
+  catch(err){ $('#gErr').textContent = 'Sign-in failed: '+(err && err.message || err); }
+});
+
+setInterval(() => { S.now = now0(); renderHeader(); renderUpcoming(); }, 60000);
+boot();
+</script>
+</body>
+</html>

@@ -7,8 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{
   box-sizing:border-box;
@@ -73,7 +71,7 @@ body{
   font-family:"Nunito",ui-rounded,"SF Pro Rounded","Segoe UI",system-ui,-apple-system,sans-serif;
   font-size:14px; line-height:1.45; font-weight:600;
 }
-button,input,select,textarea{font:inherit;color:inherit}
+button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:12px}
 h1,h2,h3,p{margin:0}
@@ -122,8 +120,7 @@ h1,h2,h3,p{margin:0}
 .user .un{line-height:1.15;padding-right:2px}
 .user .un b{display:block;font-size:13px;font-weight:900}
 .user .un small{color:var(--muted);font-size:11.5px;font-weight:800}
-.sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:900;padding:5px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);border:0}
-#focusChip{color:var(--accent-ink);background:var(--accent-soft)}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:900;padding:5px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow)}
 .sync i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
 .sync.live i{background:#3DBA6B}
 .sync.off i{background:#E0A030}
@@ -132,8 +129,7 @@ h1,h2,h3,p{margin:0}
 #insights{display:flex;flex-direction:column;gap:10px}
 #insights:empty{display:none}
 .warn{color:var(--warn);font-weight:800}
-.warn.blocked{color:var(--i1)}
-#lWarn{font-size:12.5px;white-space:pre-line}
+#lWarn{font-size:12.5px}
 
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
 .stat{border-radius:24px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow)}
@@ -197,9 +193,6 @@ h1,h2,h3,p{margin:0}
 .cell.empty:hover{border-color:var(--accent);color:var(--accent-ink)}
 .ro .cell.empty:hover{border-color:var(--line);color:var(--muted)}
 .cell.dim{opacity:.3}
-.cell.done{opacity:.6}
-.cell.live{box-shadow:0 0 0 3px var(--accent)}
-.pill.state.now{background:var(--accent);color:var(--accent-fg)}
 .cell.clash{box-shadow:inset 0 0 0 2px var(--warn)}
 .pill.alert{color:var(--warn)}
 .c0{--tint:var(--t0);--ink:var(--i0)} .c1{--tint:var(--t1);--ink:var(--i1)} .c2{--tint:var(--t2);--ink:var(--i2)}
@@ -210,17 +203,13 @@ h1,h2,h3,p{margin:0}
 
 /* Lists */
 .list{display:flex;flex-direction:column;gap:14px}
-.row{display:flex;align-items:center;gap:8px}
-.rowMain{display:flex;align-items:center;gap:12px;flex:1;min-width:0;border:0;background:transparent;padding:4px;margin:-4px;border-radius:14px;text-align:left}
-.rowMain:hover{background:var(--band)}
-.row.sel .rowMain{background:var(--band)}
+.row{display:flex;align-items:center;gap:12px}
 .av{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;font-weight:900;font-size:16px;background:var(--tint);color:var(--ink);flex:none;overflow:hidden}
 .av img{width:100%;height:100%;object-fit:cover}
 .grow{flex:1;min-width:0}
 .name{font-weight:800;font-size:14px;display:flex;justify-content:space-between;gap:8px}
 .name small{color:var(--muted);font-weight:800;font-size:12.5px;white-space:nowrap}
 .meta{color:var(--muted);font-size:12px;font-weight:700}
-.meta.blocked{color:var(--i1);font-weight:800}
 .bar{height:8px;border-radius:99px;background:var(--band);overflow:hidden;margin-top:5px}
 .bar i{display:block;height:100%;border-radius:99px;background:var(--ink,var(--accent));opacity:.75}
 .wk{width:100%;text-align:left;border:0;background:transparent;padding:6px;margin:-6px;border-radius:16px}
@@ -255,8 +244,8 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
 .dlg{padding:22px;display:flex;flex-direction:column;gap:14px}
 .dlg h2{font-size:20px;font-weight:900}
 .dlg label{display:flex;flex-direction:column;gap:5px;font-weight:800;font-size:13px}
-.dlg input,.dlg textarea{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:10px 12px;font-weight:700}
-.dlg input:focus,.dlg textarea:focus{outline:none;border-color:var(--accent)}
+.dlg input{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:10px 12px;font-weight:700}
+.dlg input:focus{outline:none;border-color:var(--accent)}
 .dlg .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .dlg .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px}
 .err{color:var(--i1);font-weight:800;min-height:1.2em;font-size:12.5px}
@@ -274,7 +263,6 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
   transition:opacity .2s, transform .2s;z-index:60
 }
 #toast.show{opacity:1;transform:translate(-50%,0)}
-#toast button{margin-left:8px;border:2px solid rgba(255,255,255,.6);background:transparent;color:inherit;border-radius:999px;padding:3px 10px;font-weight:900;font-size:12px}
 
 @media (max-width:1100px){
   .cols{grid-template-columns:minmax(0,1fr)}
@@ -309,50 +297,6 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
 .stNew{display:flex;gap:8px;margin-top:10px}
 .stNew input{flex:1;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:8px 12px;font-weight:700}
 
-/* Add several exams, suggested invigilators, share card */
-.dlg textarea{resize:vertical;min-height:110px;line-height:1.4}
-#batchDlg{width:min(560px,calc(100vw - 32px))}
-#bPreview{gap:8px;max-height:30vh;overflow-y:auto}
-#bPreview:empty{display:none}
-.bRow{background:var(--band);border-radius:14px;padding:8px 12px;font-size:13px;font-weight:700}
-.bRow.bad{background:var(--t1);color:var(--i1)}
-.bRow.skip{opacity:.65}
-.btn.tog{align-self:flex-start}
-.btn.tog[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
-.suggest{display:flex;flex-direction:column;gap:6px;margin-top:-6px}
-.suggest .lb{font-size:12px;font-weight:800;color:var(--muted)}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:2px solid var(--line);background:transparent;border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:800;text-align:left}
-.chip:hover{border-color:var(--accent)}
-.chip small{color:var(--muted);font-weight:700;margin-left:6px}
-.chip.match{background:var(--accent-soft);border-color:transparent;color:var(--accent-ink)}
-.btns{display:flex;gap:8px;flex-wrap:wrap}
-
-/* Analytics: workload bars, coverage heatmap, history bars */
-.chartRow{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.chartRow .lb{width:150px;flex:none;font-weight:800;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chartRow .track{flex:1;height:14px;border-radius:99px;background:var(--band);overflow:hidden}
-.chartRow .track i{display:block;height:100%;border-radius:99px}
-.chartRow .val{width:28px;text-align:right;font-weight:900;font-size:13px;flex:none}
-.heatGrid{display:grid;gap:5px;align-items:center}
-.heatCell{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:900;min-height:26px}
-.heatCell.full{background:var(--accent);color:var(--accent-fg)}
-.heatCell.empty{background:var(--band);color:var(--muted);border:1px solid var(--line)}
-.heatLegend{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--muted);align-items:center;flex-wrap:wrap}
-.swatch{width:13px;height:13px;display:inline-block;vertical-align:middle;border-radius:4px;margin-right:5px}
-.histBars{display:flex;align-items:flex-end;gap:10px;height:150px;padding:8px 0 0}
-.histBars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;min-width:0}
-.histBars .col i{width:100%;max-width:36px;border-radius:8px 8px 0 0;background:var(--band);display:block}
-.histBars .col i.cur{background:var(--accent)}
-.histBars .col small{font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap}
-.histBars .col b{font-size:11.5px;font-weight:900}
-.an-hint{font-size:12px;color:var(--muted);margin-top:2px}
-.examTitleRow{display:block;margin:0 0 14px}
-.examTitleRow input{width:100%;border:2px dashed var(--line);background:transparent;border-radius:14px;padding:9px 14px;font-weight:800;font-size:14px;color:var(--text);letter-spacing:.2px}
-.examTitleRow input::placeholder{color:var(--muted);font-weight:700}
-.examTitleRow input:focus{outline:none;border-style:solid;border-color:var(--accent)}
-.examTitleRow input:disabled{opacity:.6}
-
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto}
   .cell,#toast{transition:none}
@@ -362,7 +306,7 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
 @page{size:A4 landscape;margin:12mm}
 @media print{
   body{background:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .side,.top,.stats,.right,.pair,.weeknav,.empty-note,.seg,.notice,.gate,#analytics,.examTitleRow{display:none !important}
+  .side,.top,.stats,.right,.pair,.weeknav,.empty-note,.seg,.notice,.gate{display:none !important}
   .app{display:block;padding:0}
   .cols{display:block}
   .card{box-shadow:none;padding:0;background:#fff}
@@ -372,9 +316,7 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
   .card-h{display:none}
   .tt-scroll{overflow:visible}
   .tt-grid{min-width:0}
-  .cell.dim,.cell.done{opacity:1}
-  .cell.live{box-shadow:none}
-  .pill.state{display:none}
+  .cell.dim{opacity:1}
   .cell.clash{box-shadow:none}
   .pill.alert{display:none}
   .cell.empty{border-color:#cbbfe0}
@@ -394,7 +336,6 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
       <a href="#calendar"><span aria-hidden="true">📅</span>Calendar</a>
       <a href="#teachers"><span aria-hidden="true">👩‍🏫</span>Invigilators</a>
       <a href="#planning"><span aria-hidden="true">🌱</span>Other exam weeks</a>
-      <a href="#analytics"><span aria-hidden="true">📊</span>Analytics</a>
     </nav>
     <div class="portals" id="portals"></div>
     <div class="tip">
@@ -415,7 +356,6 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
           <span aria-hidden="true">🔍</span>
           <input id="q" type="search" placeholder="Search exams" aria-label="Search a subject or invigilator">
         </label>
-        <button class="sync" id="focusChip" type="button" hidden></button>
         <div class="user" id="userChip" hidden>
           <div class="ua" id="uAv"></div>
           <div class="un"><b id="uName"></b><small id="uRole"></small></div>
@@ -433,12 +373,8 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
         <section class="card" id="timetable" aria-labelledby="ttTitle">
           <div class="print-only">
             <h2>Kanyadet Primary &amp; Junior School</h2>
-            <p id="printExamTitle"></p>
             <p id="printWeek"></p>
           </div>
-          <label class="examTitleRow">
-            <input id="examTitleInput" type="text" placeholder="Add this timetable's exam title — e.g. END TERM 2 EXAMINATION 2026" maxlength="120" aria-label="Exam title for this timetable, shown on its printed sheet and PDFs">
-          </label>
           <div class="card-h">
             <h2 id="ttTitle">Examination timetable</h2>
             <div class="weeknav">
@@ -447,7 +383,6 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
               <button class="iconbtn" id="nextWeek" aria-label="Next week">›</button>
               <button class="btn sm" id="thisWeek">This week</button>
               <button class="btn sm" id="manageBtn" type="button">🏗️ Manage</button>
-              <button class="btn sm" id="batchBtn" type="button">➕ Add several</button>
             </div>
           </div>
           <div class="seg" id="sections" role="group" aria-label="Section"></div>
@@ -465,24 +400,6 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
             <div class="list" id="weekList"></div>
           </section>
         </div>
-
-        <section class="card" id="analytics" aria-labelledby="anTitle">
-          <div class="card-h"><h2 id="anTitle">Analytics</h2><span class="sub">This week</span></div>
-          <div class="seg" id="anTabs" role="group" aria-label="Analytics view">
-            <button type="button" data-an="workload" aria-pressed="true">👩‍🏫 Invigilator workload</button>
-            <button type="button" data-an="coverage" aria-pressed="false">🗓️ Slot coverage</button>
-            <button type="button" data-an="history" aria-pressed="false">📈 Week history</button>
-          </div>
-          <div id="anBody"></div>
-          <div class="btns" style="margin-top:16px;align-items:center">
-            <button class="btn" id="anPdfBtn" type="button">📊 Export analytics PDF</button>
-            <button class="btn" id="cardsBtn" type="button">🎫 Exam cards for learners</button>
-            <button class="btn ghost" id="autoFillBtn" type="button">✨ Auto-assign invigilators</button>
-            <label style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:12.5px;color:var(--muted);cursor:pointer">
-              <input type="checkbox" id="afLevelPref" checked style="width:auto;margin:0"> Prefer invigilators who teach this level
-            </label>
-          </div>
-        </section>
       </div>
 
       <div class="right">
@@ -504,33 +421,9 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
           <div>
             <h3>Ready to print the exam timetable?</h3>
             <p>Print this week's examination timetable, or save it as a PDF.</p>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn primary" id="printBtn">Print exam timetable</button>
-              <button class="btn" id="pdfBtn" type="button">Download PDF</button>
-            </div>
+            <button class="btn primary" id="printBtn">Print exam timetable</button>
           </div>
           <div class="big" aria-hidden="true">🖨️</div>
-        </section>
-
-        <section class="card" id="share" aria-labelledby="shTitle">
-          <div class="card-h"><h2 id="shTitle">Share the timetable</h2></div>
-          <p class="muted" style="margin-bottom:12px">Send this week's exams to staff or parents, or add them to a phone calendar.</p>
-          <div class="btns">
-            <button class="btn primary" id="waBtn" type="button">💬 WhatsApp</button>
-            <button class="btn" id="copyTextBtn" type="button">📋 Copy text</button>
-            <button class="btn" id="icsBtn" type="button">📅 Calendar, this week</button>
-            <button class="btn ghost" id="icsAllBtn" type="button">📅 All weeks</button>
-            <button class="btn ghost" id="dutyPdfBtn" type="button">🖨️ Duty roster PDF</button>
-          </div>
-        </section>
-
-        <section class="card" id="dayPrint" aria-labelledby="dpTitle">
-          <div class="card-h"><h2 id="dpTitle">Print one exam day</h2></div>
-          <p class="muted" style="margin-bottom:12px">A single day's exams on their own page — handy for the invigilator on duty that day.</p>
-          <div class="btns">
-            <select id="dpDay" aria-label="Choose a day to print"></select>
-            <button class="btn primary" id="dpPrintBtn" type="button">🖨️ Print this day</button>
-          </div>
         </section>
       </div>
     </div>
@@ -539,7 +432,10 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
 
 <div class="gate" id="gate" hidden>
   <div class="card gate-card">
-    <div class="avatar" aria-hidden="true">🏫</div>
+    <div class="avatar" aria-hidden="true">
+      <!-- 🏫 -->
+      <img src="./images/logo.png" class="avatar"  alt="logo">
+    </div>
     <h2>Sign in to the examination timetable</h2>
     <p class="muted">Use your school staff account.</p>
     <button class="btn primary" id="gGoogle" type="button">Continue with Google</button>
@@ -562,10 +458,6 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
     <label>Invigilator
       <input id="fTeacher" list="teacherOpts" autocomplete="off" placeholder="e.g. Md. Janet">
     </label>
-    <div class="suggest" id="tSuggest" hidden>
-      <span class="lb">Suggested invigilators, free at this time</span>
-      <div class="chips" id="tChips"></div>
-    </div>
     <label>Paper or note (optional)
       <input id="fNote" autocomplete="off" placeholder="e.g. PP1, Room 4">
     </label>
@@ -577,39 +469,7 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
     <div class="acts">
       <button type="button" class="btn ghost" id="lClear">Clear exam</button>
       <button type="button" class="btn" id="lCancel">Cancel</button>
-      <button type="submit" class="btn primary" id="lSave">Save exam</button>
-    </div>
-  </form>
-</dialog>
-
-<dialog id="batchDlg" aria-labelledby="bTitle">
-  <form class="dlg" id="batchForm" novalidate style="max-height:85vh;overflow-y:auto">
-    <h2 id="bTitle">Add several exams</h2>
-    <p class="muted" id="bHelp"></p>
-    <label>One exam per line
-      <textarea id="bText" rows="6" spellcheck="false" autocomplete="off" placeholder="Tue 2 | Kiswahili | Md. Beryl | PP2&#10;Tue 3 | English | Mr. Owuor | PP1&#10;Wed 1 | Maths | Md. Janet"></textarea>
-    </label>
-    <p class="muted">Each line is: day and period, subject, invigilator, paper or note. Only the day, period and subject are needed. You can paste rows from a spreadsheet.</p>
-    <div class="list" id="bPreview" aria-live="polite"></div>
-    <button type="button" class="btn ghost sm tog" id="bReplace" aria-pressed="false">Replace exams already in those slots</button>
-    <div class="err" id="bErr" role="alert"></div>
-    <div class="acts">
-      <button type="button" class="btn" id="bCancel">Cancel</button>
-      <button type="submit" class="btn primary" id="bGo">Add exams</button>
-    </div>
-  </form>
-</dialog>
-
-<dialog id="cardsDlg" aria-labelledby="ccTitle">
-  <form class="dlg" id="cardsForm" novalidate>
-    <h2 id="ccTitle">Exam cards for learners</h2>
-    <p class="muted" id="ccHelp">One slip per learner for <b id="ccSection"></b>, listing this week's exam schedule.</p>
-    <p class="muted" id="ccRosterNote"></p>
-    <label>Number of cards to print <input type="number" id="ccCount" min="1" max="500" step="1"></label>
-    <div class="err" id="ccErr" role="alert"></div>
-    <div class="acts">
-      <button type="button" class="btn" id="ccCancel">Cancel</button>
-      <button type="submit" class="btn primary" id="ccGo">Generate PDF</button>
+      <button type="submit" class="btn primary">Save exam</button>
     </div>
   </form>
 </dialog>
@@ -699,8 +559,8 @@ import * as SITE_CFG from './js/config.js';   // optional extras (STAGES); a mis
    - Subject suggestions
    - Learner headcount, per grade (each learner counted once, in their latest grade)
 
-   One page serves every grade in the school, each with its own examination timetable.
-   Each timetable stores the grade(s) it covers in its own structure doc, and everything
+   One page serves every stage of the school (Lower Primary, Upper Primary, Junior).
+   Each timetable stores the grades it covers in its own structure doc, and everything
    else follows from the data: tabs, headcounts, colours, gaps, and invigilator clashes
    across timetables.
    ===================================================================== */
@@ -726,22 +586,15 @@ const CONFIG = {
   ]
 };
 const P = CONFIG.PATHS;
-const EXAM_TITLES_PATH = 'examTimetableTitles';   // one exam title PER timetable (section), e.g. {"Grade 9":"END TERM 2 EXAMINATION 2026"} — each timetable keeps its own
 
 /* School stages. Each timetable saves the grades it covers, so this table is only a starting
-   point: it suggests a grade for a timetable that has none saved yet, and picks a colour (no hue
-   = the page's base purple). Every grade gets its own timetable — that's what the school actually
-   runs (one examination timetable per class, not one shared sheet per stage) — but grades within
-   the same stage still share an icon/colour family for quick visual grouping. Override entirely by
-   exporting STAGES from js/config.js. */
-const STAGE_FAMILIES = [
-  {grades:[1,2,3], icon:'🌱', hue:14},
-  {grades:[4,5,6], icon:'🌿', hue:168},
-  {grades:[7,8,9], icon:'🎓', hue:null}
-];
-const STAGES = (Array.isArray(SITE_CFG.STAGES) && SITE_CFG.STAGES.length ? SITE_CFG.STAGES :
-  STAGE_FAMILIES.flatMap(f => f.grades.map(g => ({name:'Grade '+g, grades:[g], icon:f.icon, hue:f.hue})))
-).map(x => ({name:String(x.name), grades:(x.grades || []).map(Number).filter(g => g > 0), icon:x.icon || '', hue:x.hue == null ? null : +x.hue}));
+   point: it names stages, suggests grades for a timetable that has none saved yet, and picks a
+   colour (no hue = the page's base purple). Override it by exporting STAGES from js/config.js. */
+const STAGES = (Array.isArray(SITE_CFG.STAGES) && SITE_CFG.STAGES.length ? SITE_CFG.STAGES : [
+  {name:'Lower Primary', grades:[1,2,3], icon:'🌱', hue:14},
+  {name:'Upper Primary', grades:[4,5,6], icon:'🌿', hue:168},
+  {name:'Junior School', grades:[7,8,9], icon:'🎓', hue:null}
+]).map(x => ({name:String(x.name), grades:(x.grades || []).map(Number).filter(g => g > 0), icon:x.icon || '', hue:x.hue == null ? null : +x.hue}));
 
 /* ---------- Helpers ---------- */
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -782,7 +635,7 @@ const initialOf = n => (normName(n).charAt(0) || '?').toUpperCase();
 /* ---------- Sample timetable (handwritten sheet, week starting Tue 22 Sep 2026) ---------- */
 const SEED = {
   monday: '2026-09-21',
-  grades: [9],                // the sheet this sample came from — Grade 9's own timetable, not a combined stage sheet
+  grades: [7,8,9],            // the sheet this sample came from
   starts: ['08:00','13:00','14:50'],
   ends:   ['09:40','14:40','16:30'],
   days: [
@@ -807,12 +660,9 @@ const S = {
   structureMode: false, structuresRaw: {},
   slots: DEFAULT_SLOTS.map(s => ({...s, brk:false})),
   weeks: {},
-  roster: [], subjects: [], learners: null, learnerRoster: {}, learnersPending: false, peers: {}, gaps: [],
-  sel: null, calMonth: null, query: '', focusTeacher: null,
-  anView: 'workload', printDayOnly: null, examTitles: {}   // keyed by section — each timetable's own title
+  roster: [], subjects: [], learners: null, learnersPending: false, peers: {}, gaps: [],
+  sel: null, calMonth: null, query: ''
 };
-const examTitleOf = section => (S.examTitles && S.examTitles[section]) || '';
-const examTitleCur = () => examTitleOf(S.section);
 const baseMonday = () => { const m = mondayOf(S.now), d = S.now.getDay(); return (d===0||d===6) ? addDays(m,7) : m; };
 S.sel = baseMonday();
 S.calMonth = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1);
@@ -889,7 +739,6 @@ function gradeOptions(){
 }
 const seedFits = sec => gradesOf(sec).some(g => SEED.grades.includes(g));   // the sample sheet belongs to one stage only
 const learnersFor = gs => S.learners ? gs.reduce((n,g) => n + (S.learners.counts[g] || 0), 0) : 0;
-const rosterFor = gs => S.learnerRoster ? gs.reduce((arr,g) => arr.concat(S.learnerRoster[g] || []), []) : [];
 const periodsToSlots = periods => periods.map(p => {
   const r = parseRange(String((p && p.time) || ''));
   return r ? {start:r.start, end:r.end, brk:!!(p && p.brk)} : {start:'08:00', end:'08:40', brk:!!(p && p.brk)};
@@ -924,58 +773,6 @@ function others(weekKey){                       // every exam in the other timet
 function clashes(d, si, teacher, oth){          // same invigilator, same day, overlapping time, another timetable
   const sl = S.slots[si], k = normName(teacher); if (!k || !sl) return [];
   return oth.filter(o => o.d === d && normName(o.lesson.teacher) === k && overlaps(o, sl));
-}
-
-/* Workload and duplicate checks. LOAD is where a warning starts: exams for one invigilator on one day, and in one week (all timetables together). */
-const LOAD = {day:3, week:6};
-function weekCells(key, skip, pending){         // this timetable's exams that week as 'd:s' -> exam; `pending` exams count too, `skip` is left out
-  const cells = new Map();
-  getWeek(key).forEach((day,d) => (day||[]).forEach((l,s) => { if (l) cells.set(d+':'+s, l); }));
-  (pending||[]).forEach(p => cells.set(p.d+':'+p.s, p.l));
-  if (skip) cells.delete(skip.d+':'+skip.s);
-  return cells;
-}
-function teacherLoads(key, skip, pending){      // per invigilator: exams that week, in total and per day, across every timetable
-  const map = new Map(), add = (name, d) => {
-    const k = normName(name); if (!k) return;
-    let e = map.get(k); if (!e){ e = {name, week:0, day:{}}; map.set(k, e); }
-    e.week++; e.day[d] = (e.day[d] || 0) + 1;
-  };
-  weekCells(key, skip, pending).forEach((l,k) => add(l.teacher, +k.split(':')[0]));
-  others(key).forEach(o => add(o.lesson.teacher, o.d));
-  return map;
-}
-/* Room clash: only when the note names a room ("Room 4", "Hall", "Lab 2", ...), so plain paper labels (PP1) never trigger it */
-const ROOM_RE = /\b(room|rm|hall|lab|laboratory|library|class(?:room)?|block)\.?\s*[\w-]*/i;
-const roomOf = note => { const m = String(note||'').match(ROOM_RE); return m ? m[0].trim().toLowerCase().replace(/\s+/g,' ') : ''; };
-function roomClashes(d, si, note, oth){          // other timetables' exams in the same room, same day, overlapping time
-  const r = roomOf(note); if (!r) return [];
-  const sl = S.slots[si]; if (!sl) return [];
-  return oth.filter(o => o.d === d && overlaps(o, sl) && roomOf(o.lesson.note) === r);
-}
-function checkLesson(d, si, les, oth, pending){ // everything worth a warning for one exam
-  const t = normName(les.teacher), key = iso(S.sel), out = {clash:[], room:[], dayN:0, weekN:0, dups:[]};
-  if (t){
-    out.clash = clashes(d, si, les.teacher, oth);
-    const e = teacherLoads(key, {d, s:si}, pending).get(t);
-    if (e){ out.weekN = e.week; out.dayN = e.day[d] || 0; }
-  }
-  out.room = roomClashes(d, si, les.note, oth);
-  const sub = String(les.subject||'').trim().toLowerCase(), note = String(les.note||'').trim().toLowerCase();
-  if (sub) weekCells(key, {d, s:si}, pending).forEach((l,k) => {
-    if (l.subject.trim().toLowerCase() === sub && (l.note||'').trim().toLowerCase() === note){ const p = k.split(':').map(Number); out.dups.push({d:p[0], s:p[1]}); }
-  });
-  return out;
-}
-function warnLines(les, d, r){
-  const out = [], t = les.teacher, heavy = [];
-  if (r.clash.length) out.push('⚠️ '+t+' is also invigilating '+r.clash.map(o => o.lesson.subject+' in '+o.section+', '+fmtTime(o.start)+' to '+fmtTime(o.end)).join(' and ')+'.');
-  if (r.room.length) out.push('⚠️ That room is also used for '+r.room.map(o => o.lesson.subject+' in '+o.section+', '+fmtTime(o.start)+' to '+fmtTime(o.end)).join(' and ')+' at that time.');
-  if (t && r.dayN+1 >= LOAD.day) heavy.push((r.dayN+1)+' exams on '+DAYS_LONG[d]);
-  if (t && r.weekN+1 >= LOAD.week) heavy.push((r.weekN+1)+' exams this week');
-  if (heavy.length) out.push('⚠️ '+t+' would have '+heavy.join(' and ')+'.');
-  if (r.dups.length) out.push('⚠️ '+les.subject+(les.note ? ' '+les.note : '')+' is already set on '+r.dups.slice(0,2).map(x => DAYS[x.d]+(S.slots[x.s] ? ' '+fmtTime(S.slots[x.s].start) : '')).join(' and ')+' this week.');
-  return out;
 }
 
 /* Subject colours for the open timetable: known subjects keep theirs; any other subject starts from its
@@ -1050,42 +847,14 @@ function applyStage(){
   document.title = S.section+' Examination Timetable';
 }
 
-/* Banner: grades with no timetable, and this week's clashes, unassigned invigilators, heavy loads and repeated papers */
+/* Banner: grades with no timetable, and invigilator clashes with other timetables */
 function renderInsights(){
   S.gaps = coverageGaps();
-  const key = iso(S.sel), oth = others(key), offs = activeDayOffsets(), missing = []; let n = 0;
-  let rn = 0;
-  getWeek(key).forEach((day,d) => (day||[]).forEach((l,si) => {
-    if (!l) return;
-    if (clashes(d, si, l.teacher, oth).length) n++;
-    if (roomClashes(d, si, l.note, oth).length) rn++;
-    const sl = S.slots[si];
-    if (!l.teacher && sl && !sl.brk && offs.includes(d) && slotState(addDays(S.sel,d), sl) !== 'done') missing.push({d, si});
-  }));
+  const key = iso(S.sel), oth = others(key); let n = 0;
+  getWeek(key).forEach((day,d) => (day||[]).forEach((l,si) => { if (l && clashes(d, si, l.teacher, oth).length) n++; }));
   let h = S.gaps.map((g,i) => '<div class="notice act"><span>'+esc(g.text)+'</span>'+
     (S.canEdit ? '<button class="btn primary sm" type="button" data-create="'+i+'">Create '+esc(g.name)+' timetable</button>' : '')+'</div>').join('');
-  const combined = S.sections.filter(s => gradesOf(s).length > 1);
-  if (combined.length) h += combined.map(s => { const gr = gradesOf(s);
-    return '<div class="notice act"><span>"'+esc(s)+'" still covers '+gr.length+' grades combined ('+esc(gradeLabel(gr))+'), not one timetable per class.</span>'+
-      (S.canEdit ? '<button class="btn primary sm" type="button" data-split="'+esc(s)+'">Split into '+gr.length+' timetables</button>' : '')+'</div>'; }).join('');
   if (n) h += '<div class="notice act"><span>⚠️ '+n+(n === 1 ? ' invigilator clash' : ' invigilator clashes')+' with other timetables this week. Clashing exams are outlined.</span></div>';
-  if (rn) h += '<div class="notice act"><span>⚠️ '+rn+(rn === 1 ? ' room clash' : ' room clashes')+' with other timetables this week.</span></div>';
-  if (missing.length) h += '<div class="notice act"><span>⚠️ '+missing.length+(missing.length === 1 ? ' exam has' : ' exams have')+' no invigilator yet.</span>'+
-    (S.canEdit ? '<button class="btn primary sm" type="button" data-assign="'+missing[0].d+':'+missing[0].si+'">Assign '+(missing.length === 1 ? 'it' : 'the first')+'</button>' : '')+'</div>';
-  const mine = new Set(), heavy = [], seen = {}, dups = [];
-  weekCells(key).forEach(l => {
-    if (l.teacher) mine.add(normName(l.teacher));
-    const k = (l.subject+'|'+(l.note||'')).trim().toLowerCase(); seen[k] = (seen[k] || 0) + 1;
-    if (seen[k] === 2) dups.push(l.subject+(l.note ? ' '+l.note : ''));
-  });
-  teacherLoads(key).forEach((e,k) => {
-    if (!mine.has(k)) return;
-    const dd = Object.keys(e.day).find(x => e.day[x] >= LOAD.day);
-    if (dd !== undefined) heavy.push(e.name+' has '+e.day[dd]+' exams on '+DAYS_LONG[dd]);
-    else if (e.week >= LOAD.week) heavy.push(e.name+' has '+e.week+' exams this week');
-  });
-  if (heavy.length) h += '<div class="notice"><span>⚠️ Heavy invigilation: '+esc(heavy.slice(0,3).join('; '))+(heavy.length > 3 ? '; and '+(heavy.length-3)+' more' : '')+'. Consider sharing the load.</span></div>';
-  if (dups.length) h += '<div class="notice"><span>⚠️ '+esc(dups.slice(0,3).join(', '))+(dups.length === 1 ? ' is' : ' are')+' set more than once this week. If they are different papers, add PP1 or PP2 in the note.</span></div>';
   $('#insights').innerHTML = h;
 }
 
@@ -1118,7 +887,6 @@ const lsSet = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } cat
 const kLocal = () => 'tt_v1_local_'+S.section;
 const kCache = () => 'tt_v1_cache_'+S.section;
 const kStructuresLocal = () => 'tt_v1_structures_local';
-const kExamTitlesLocal = () => 'tt_v1_examTitles_local';
 function persistLocal(){ lsSet(kLocal(), {weeks:S.weeks, slots:S.slots}); }
 
 function seedLocalWeeks(){
@@ -1142,11 +910,8 @@ async function initFirebase(){
 
 /* ---------- UI: status, toast, confirm ---------- */
 let toastTimer;
-function toast(msg, ms, action){                 // action: {label, fn} adds a button inside the toast (used for Undo)
-  const t = $('#toast');
-  t.innerHTML = esc(msg) + (action ? ' <button type="button" id="toastAction">'+esc(action.label)+'</button>' : '');
-  if (action) $('#toastAction').onclick = () => { t.classList.remove('show'); action.fn(); };
-  t.classList.add('show');
+function toast(msg, ms){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms || 2400);
 }
 function setSync(kind, text){ const el = $('#sync'); el.className = 'sync '+kind; el.lastElementChild.textContent = text; }
@@ -1172,35 +937,12 @@ function teacherInfo(name){
   const k = normName(name);
   return S.roster.find(t => normName(t.name) === k) || null;
 }
-function waNormalizePhone(raw){                 // same rule the Results portal uses to build wa.me links: local 07xx/01xx -> 2547xx/2541xx
-  if (!raw) return '';
-  let p = String(raw).replace(/[^\d+]/g,'');
-  if (p.startsWith('+')) p = p.slice(1);
-  if (p.startsWith('0')) p = '254'+p.slice(1);
-  else if (p.length === 9 && /^[17]/.test(p)) p = '254'+p;
-  return p;
-}
 function avatarHtml(name, photo){
   const url = safeUrl(photo);
   return url ? '<img src="'+esc(url)+'" alt="" referrerpolicy="no-referrer">' : esc(initialOf(name));
 }
 
 /* ---------- Upcoming exams ---------- */
-function slotWindow(day, sl){
-  const a = sl.start.split(':').map(Number), e = sl.end.split(':').map(Number);
-  return { startAt:new Date(day.getFullYear(),day.getMonth(),day.getDate(),a[0],a[1]), endAt:new Date(day.getFullYear(),day.getMonth(),day.getDate(),e[0],e[1]) };
-}
-/* 'done' once the period has ended, 'live' while it is running, 'todo' before it starts */
-function slotState(day, sl){
-  const w = slotWindow(day, sl);
-  return S.now >= w.endAt ? 'done' : S.now >= w.startAt ? 'live' : 'todo';
-}
-function fmtDur(ms){
-  const m = Math.max(1, Math.round(ms/60000));
-  if (m < 60) return m+' min';
-  const h = Math.floor(m/60), r = m%60;
-  return h+' h'+(r ? ' '+r+' min' : '');
-}
 function upcoming(limit){
   const out = [], start = new Date(S.now.getFullYear(),S.now.getMonth(),S.now.getDate()), offsets = activeDayOffsets();
   for (let i=0; i<42 && out.length<limit; i++){
@@ -1210,12 +952,11 @@ function upcoming(limit){
     S.slots.forEach((sl,si) => {
       if (sl.brk) return;
       const les = wk[dow] && wk[dow][si]; if (!les) return;
-      const st = slotState(day, sl); if (st === 'done') return;      // finished exams never appear here
-      const w = slotWindow(day, sl);
-      out.push({day, dow, slot:si, lesson:les, live:st === 'live', startAt:w.startAt, endAt:w.endAt});
+      const e = sl.end.split(':').map(Number);
+      const endAt = new Date(day.getFullYear(),day.getMonth(),day.getDate(),e[0],e[1]);
+      if (endAt > S.now) out.push({day, dow, slot:si, lesson:les});
     });
   }
-  out.sort((a,b) => a.startAt - b.startAt);
   return out.slice(0, limit);
 }
 function relDay(day){
@@ -1233,12 +974,10 @@ function renderHeader(){
   $('#greet').textContent = g+'! '+em;
   const dl = DAYS_LONG[(S.now.getDay()+6)%7]+', '+S.now.getDate()+' '+MONTHS[S.now.getMonth()]+' '+S.now.getFullYear();
   const nx = upcoming(1)[0]; let line;
-  if (!nx) line = 'No more exams planned.';
+  if (!nx) line = 'No exams planned yet.';
   else {
     const rd = relDay(nx.day);
-    line = nx.live
-      ? 'In progress: '+nx.lesson.subject+', ends at '+fmtTime(S.slots[nx.slot].end)+' ('+fmtDur(nx.endAt - S.now)+' left).'
-      : 'Next exam: '+nx.lesson.subject+' '+(rd==='Today'?'today':rd==='Tomorrow'?'tomorrow':'on '+rd)+' at '+fmtTime(S.slots[nx.slot].start)+(rd==='Today' ? ', in '+fmtDur(nx.startAt - S.now) : '')+'.';
+    line = 'Next exam: '+nx.lesson.subject+' '+(rd==='Today'?'today':rd==='Tomorrow'?'tomorrow':'on '+rd)+' at '+fmtTime(S.slots[nx.slot].start)+'.';
   }
   $('#subgreet').textContent = dl+'. '+line;
 }
@@ -1266,25 +1005,19 @@ function renderSections(){
   if (S.sections.length < 2){ box.innerHTML = ''; box.hidden = true; return; }
   box.hidden = false;
   box.innerHTML = S.sections.map(s => { const g = gradesOf(s);
-    const gl = gradeLabel(g);
-    return '<button type="button" data-section="'+esc(s)+'" aria-pressed="'+(s===S.section)+'">'+esc(s)+(gl && gl !== s ? ' <small>'+esc(gl)+'</small>' : '')+'</button>'; }).join('');
+    return '<button type="button" data-section="'+esc(s)+'" aria-pressed="'+(s===S.section)+'">'+esc(s)+(g.length ? ' <small>'+esc(gradeLabel(g))+'</small>' : '')+'</button>'; }).join('');
 }
 
 function renderGrid(){
   const key = iso(S.sel), wk = getWeek(key), q = S.query.trim().toLowerCase(), todayKey = iso(S.now), oth = others(key);
-  const pdays = S.printDayOnly ? S.days.filter(d => d.key === S.printDayOnly) : S.days;
   $('#weekLbl').textContent = weekLabel(S.sel, true);
   const gl = gradeLabel(gradesOf(S.section));
-  $('#printWeek').textContent = S.section+(gl && gl !== S.section ? ' ('+gl+')' : '')+' examination timetable, '+weekLabel(S.sel, true)+
-    (S.printDayOnly ? ' — '+(DAYS_LONG[WEEKDAY_OFFSET[S.printDayOnly]] || S.printDayOnly) : '');
+  $('#printWeek').textContent = S.section+(gl ? ' ('+gl+')' : '')+' examination timetable, '+weekLabel(S.sel, true);
   document.body.classList.toggle('ro', !S.canEdit);
-  $('#examTitleInput').disabled = !S.canEdit;
-  const etInp = $('#examTitleInput'); if (etInp && document.activeElement !== etInp) etInp.value = examTitleCur();
-  $('#printExamTitle').textContent = examTitleCur();
   const grid = $('#grid');
-  grid.style.gridTemplateColumns = '80px repeat('+Math.max(pdays.length,1)+',minmax(0,1fr))';
+  grid.style.gridTemplateColumns = '80px repeat('+Math.max(S.days.length,1)+',minmax(0,1fr))';
   let h = '<div></div>';
-  pdays.forEach(day => {
+  S.days.forEach(day => {
     const off = WEEKDAY_OFFSET[day.key], d = addDays(S.sel,off);
     h += '<div class="dh'+(iso(d)===todayKey?' today':'')+'"><span>'+esc(day.label)+'</span><b>'+d.getDate()+'</b></div>';
   });
@@ -1294,21 +1027,16 @@ function renderGrid(){
       h += '<div class="cell" style="grid-column:2 / -1;min-height:44px;background:var(--band)" aria-hidden="true"><span class="sub">Break</span></div>';
       return;
     }
-    pdays.forEach(day => {
+    S.days.forEach(day => {
       const di = WEEKDAY_OFFSET[day.key], les = wk[di] && wk[di][si], when = (DAYS_LONG[di]||day.label)+', '+fmtTime(s.start);
       if (les){
-        const hit = (!q || (les.subject+' '+les.teacher+' '+les.note).toLowerCase().includes(q)) && (!S.focusTeacher || normName(les.teacher) === S.focusTeacher.key);
-        const st = slotState(addDays(S.sel, di), s);
-        const cl = clashes(di, si, les.teacher, oth), rc = roomClashes(di, si, les.note, oth);
-        const clTxt = cl.length ? 'Also in '+Array.from(new Set(cl.map(o => o.section))).join(', ') : '';
-        const rcTxt = rc.length ? 'Room also used by '+Array.from(new Set(rc.map(o => o.section))).join(', ') : '';
-        h += '<button class="cell c'+hue(les.subject)+(hit?'':' dim')+((cl.length||rc.length)?' clash':'')+(st==='done'?' done':st==='live'?' live':'')+'" data-d="'+di+'" data-s="'+si+'" aria-label="'+when+': '+esc(les.subject)+(les.teacher?' with '+esc(les.teacher):(st==='done'?'':'. No invigilator assigned'))+(clTxt?'. Invigilator clash. '+esc(clTxt):'')+(rcTxt?'. '+esc(rcTxt):'')+(st==='done'?'. Finished':st==='live'?'. In progress now':'')+(S.canEdit?'. Edit exam':'')+'">'+
+        const hit = !q || (les.subject+' '+les.teacher+' '+les.note).toLowerCase().includes(q);
+        const cl = clashes(di, si, les.teacher, oth), clTxt = cl.length ? 'Also in '+Array.from(new Set(cl.map(o => o.section))).join(', ') : '';
+        h += '<button class="cell c'+hue(les.subject)+(hit?'':' dim')+(cl.length?' clash':'')+'" data-d="'+di+'" data-s="'+si+'" aria-label="'+when+': '+esc(les.subject)+(les.teacher?' with '+esc(les.teacher):'')+(clTxt?'. Invigilator clash. '+esc(clTxt):'')+(S.canEdit?'. Edit exam':'')+'">'+
           '<span class="sub">'+esc(les.subject)+'</span>'+
           (les.teacher?'<span class="who">'+esc(les.teacher)+'</span>':'')+
-          (les.note?'<span class="pill">'+esc(les.note)+'</span>':'')+(st==='done'?'<span class="pill state">\u2713 Done</span>':st==='live'?'<span class="pill state now">\u25CF Now</span>':'')+
-          (!les.teacher && st!=='done'?'<span class="pill alert">⚠ No invigilator</span>':'')+
-          (clTxt?'<span class="pill alert">⚠ '+esc(clTxt)+'</span>':'')+
-          (rcTxt?'<span class="pill alert">⚠ '+esc(rcTxt)+'</span>':'')+'</button>';
+          (les.note?'<span class="pill">'+esc(les.note)+'</span>':'')+
+          (clTxt?'<span class="pill alert">⚠ '+esc(clTxt)+'</span>':'')+'</button>';
       } else {
         h += '<button class="cell empty'+(q?' dim':'')+'" data-d="'+di+'" data-s="'+si+'" aria-label="'+when+': empty'+(S.canEdit?'. Add an exam':'')+'"><span aria-hidden="true">'+(S.canEdit?'+':'')+'</span></button>';
       }
@@ -1332,7 +1060,6 @@ function renderGrid(){
   $('#emptyNote').innerHTML = note;
   $('#copyNext').hidden = !S.canEdit;
   $('#manageBtn').hidden = !S.canEdit;
-  $('#batchBtn').hidden = !S.canEdit;
 }
 
 function renderTeachers(){
@@ -1346,27 +1073,13 @@ function renderTeachers(){
   if (!list.length){ $('#teacherList').innerHTML = '<p class="muted">No invigilators yet. Add an exam to see who is invigilating.</p>'; return; }
   const max = list[0].n, order = [0,1,2,3,5,6,7,8,4];
   $('#teacherList').innerHTML = list.map((t,idx) => {
-    const c = order[idx % order.length], info = teacherInfo(t.name), k = normName(t.name), sel = S.focusTeacher && S.focusTeacher.key === k;
-    return '<div class="row'+(sel?' sel':'')+'" style="--tint:var(--t'+c+');--ink:var(--i'+c+')">'+
-      '<button type="button" class="rowMain" data-teacher-filter="'+esc(t.name)+'" aria-pressed="'+!!sel+'" aria-label="'+(sel?'Clear filter, showing only ':'Show only ')+esc(t.name)+'\'s exams">'+
-      '<div class="av" aria-hidden="true">'+avatarHtml(t.name, info && info.photo)+'</div>'+
+    const c = order[idx % order.length], info = teacherInfo(t.name);
+    return '<div class="row" style="--tint:var(--t'+c+');--ink:var(--i'+c+')"><div class="av" aria-hidden="true">'+avatarHtml(t.name, info && info.photo)+'</div>'+
       '<div class="grow"><div class="name"><span>'+esc(t.name)+'</span><small>'+t.n+(t.n===1?' exam':' exams')+'</small></div>'+
       '<div class="meta">'+esc(Object.keys(t.subs).join(', '))+'</div>'+
-      (info && info.phone ? '<div class="meta">'+esc(info.phone)+'</div>' : '')+
       (t.elsewhere ? '<div class="meta'+(t.clash?' warn':'')+'">'+(t.clash?'⚠ ':'')+'Also '+t.elsewhere+(t.elsewhere===1?' exam':' exams')+' in other timetables'+(t.clash?', overlapping':'')+'</div>' : '')+
-      '<div class="bar" aria-hidden="true"><i style="width:'+Math.round(t.n/max*100)+'%"></i></div></div></button>'+
-      '<button type="button" class="iconbtn" data-teacher-wa="'+esc(t.name)+'" aria-label="Share '+esc(t.name)+'\'s exams on WhatsApp" title="Share on WhatsApp">💬</button></div>';
+      '<div class="bar" aria-hidden="true"><i style="width:'+Math.round(t.n/max*100)+'%"></i></div></div></div>';
   }).join('');
-}
-function renderFocusChip(){
-  const chip = $('#focusChip');
-  chip.hidden = !S.focusTeacher;
-  if (S.focusTeacher) chip.textContent = '👁 '+S.focusTeacher.name+'  ✕';
-}
-function toggleFocusTeacher(name){
-  const k = normName(name);
-  S.focusTeacher = (S.focusTeacher && S.focusTeacher.key === k) ? null : {key:k, name:String(name).trim()};
-  render();
 }
 
 function renderWeeks(){
@@ -1403,87 +1116,13 @@ function renderCal(){
 
 function renderUpcoming(){
   const list = upcoming(4);
-  if (!list.length){ $('#upList').innerHTML = '<p class="muted">Nothing left to come up in the next six weeks.</p>'; return; }
+  if (!list.length){ $('#upList').innerHTML = '<p class="muted">No exams planned in the next six weeks.</p>'; return; }
   $('#upList').innerHTML = list.map(u => {
     const c = hue(u.lesson.subject);
     return '<div class="row" style="--tint:var(--t'+c+');--ink:var(--i'+c+')"><div class="av" aria-hidden="true">'+esc(u.lesson.subject.charAt(0).toUpperCase())+'</div>'+
-      '<div class="grow"><div class="name"><span>'+esc(u.lesson.subject)+(u.lesson.note?' '+esc(u.lesson.note):'')+'</span>'+(u.live?'<small>\u25CF Now</small>':'')+'</div>'+
-      '<div class="meta">'+(u.live
-        ? 'Now, ends '+fmtTime(S.slots[u.slot].end)+' ('+fmtDur(u.endAt - S.now)+' left)'
-        : relDay(u.day)+' at '+fmtTime(S.slots[u.slot].start)+(relDay(u.day)==='Today' ? ' (in '+fmtDur(u.startAt - S.now)+')' : ''))+
-      (u.lesson.teacher?' with '+esc(u.lesson.teacher):'')+'</div></div></div>';
+      '<div class="grow"><div class="name"><span>'+esc(u.lesson.subject)+(u.lesson.note?' '+esc(u.lesson.note):'')+'</span></div>'+
+      '<div class="meta">'+relDay(u.day)+' at '+fmtTime(S.slots[u.slot].start)+(u.lesson.teacher?' with '+esc(u.lesson.teacher):'')+'</div></div></div>';
   }).join('');
-}
-
-/* ---------- Analytics: workload, coverage, week-over-week history ---------- */
-const ROW_ORDER = [0,1,2,3,5,6,7,8,4];
-function workloadRows(key){
-  const wk = getWeek(key || iso(S.sel)), map = {};
-  wk.forEach(day => day.forEach(l => {
-    if (!l || !l.teacher) return;
-    const k = normName(l.teacher), t = map[k] || (map[k] = {name:l.teacher, n:0});
-    t.n++;
-  }));
-  return Object.keys(map).map(k => map[k]).sort((a,b) => b.n-a.n || a.name.localeCompare(b.name));
-}
-function renderWorkloadChart(){
-  const rows = workloadRows();
-  if (!rows.length) return '<p class="muted">No invigilators assigned yet this week — add exams with an invigilator to see the workload chart.</p>';
-  const max = rows[0].n;
-  return rows.map((t,i) => {
-    const c = ROW_ORDER[i % ROW_ORDER.length];
-    return '<div class="chartRow"><span class="lb" title="'+esc(t.name)+'">'+esc(t.name)+'</span>'+
-      '<span class="track"><i style="width:'+Math.max(6,Math.round(t.n/max*100))+'%;background:var(--i'+c+')"></i></span>'+
-      '<span class="val">'+t.n+'</span></div>';
-  }).join('') + '<p class="an-hint">Exams invigilated this week, '+weekLabel(S.sel,true)+'.'+(LOAD.week ? ' Heavy load starts at '+LOAD.week+' exams in a week.' : '')+'</p>';
-}
-function renderCoverageChart(){
-  const key = iso(S.sel), wk = getWeek(key), slots = lessonSlotIdxs();
-  if (!slots.length || !S.days.length) return '<p class="muted">No exam periods set up yet.</p>';
-  let filled = 0, total = 0;
-  let h = '<div class="heatGrid" style="grid-template-columns:64px repeat('+S.days.length+',1fr)">';
-  h += '<div></div>' + S.days.map(d => '<div style="text-align:center;font-weight:800;font-size:12px;color:var(--muted)">'+esc(d.label)+'</div>').join('');
-  slots.forEach(si => {
-    h += '<div style="font-size:11px;font-weight:800;color:var(--muted);display:flex;align-items:center">'+fmtTime(S.slots[si].start)+'</div>';
-    S.days.forEach(day => {
-      const di = WEEKDAY_OFFSET[day.key], les = wk[di] && wk[di][si];
-      total++; if (les) filled++;
-      h += '<div class="heatCell '+(les?'full':'empty')+'" title="'+esc(day.label)+' '+fmtTime(S.slots[si].start)+(les?': '+esc(les.subject):': empty slot')+'">'+(les?'✓':'')+'</div>';
-    });
-  });
-  h += '</div>';
-  const pct = total ? Math.round(filled/total*100) : 0;
-  h += '<div class="heatLegend"><span><i class="swatch" style="background:var(--accent)"></i>Filled</span><span><i class="swatch" style="background:var(--band);border:1px solid var(--line)"></i>Empty</span><span><b>'+filled+' of '+total+'</b> slots filled ('+pct+'%) this week</span></div>';
-  return h;
-}
-function historyWeeks(n){
-  const base = baseMonday(), total = activeDayOffsets().length*lessonSlotIdxs().length, out = [];
-  for (let i=n-1; i>=0; i--){
-    const m = addDays(base,-7*i), k = iso(m), filled = countLessons(getWeek(k));
-    out.push({k, m, filled, total});
-  }
-  return out;
-}
-function renderHistoryChart(){
-  const rows = historyWeeks(8), max = Math.max(1, rows[0].total, ...rows.map(r => r.filled));
-  const curKey = iso(baseMonday());
-  const bars = rows.map(r => {
-    const h = Math.max(r.filled ? 4 : 0, Math.round(r.filled/max*100));
-    return '<div class="col"><b>'+r.filled+'</b><i class="'+(r.k===curKey?'cur':'')+'" style="height:'+h+'%"></i><small>'+weekLabel(r.m,false)+'</small></div>';
-  }).join('');
-  const last = rows[rows.length-1].filled, prev = rows.length>1 ? rows[rows.length-2].filled : last, diff = last-prev;
-  const cmp = diff === 0 ? 'the same number of exams as last week.' : (diff>0 ? diff+' more exam'+(diff===1?'':'s')+' than last week.' : Math.abs(diff)+' fewer exam'+(Math.abs(diff)===1?'':'s')+' than last week.');
-  return '<div class="histBars">'+bars+'</div><p class="an-hint">This week has '+cmp+' Bars show exams scheduled per week (of up to '+rows[0].total+' slots).</p>';
-}
-function renderAnalytics(){
-  const box = $('#anBody'); if (!box) return;
-  box.innerHTML = S.anView === 'coverage' ? renderCoverageChart() : S.anView === 'history' ? renderHistoryChart() : renderWorkloadChart();
-  $('#anTabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.an === S.anView)));
-}
-function renderDayPrintSelect(){
-  const sel = $('#dpDay'), cur = sel.value;
-  sel.innerHTML = S.days.map(d => '<option value="'+esc(d.key)+'">'+esc(DAYS_LONG[WEEKDAY_OFFSET[d.key]] || d.label)+'</option>').join('');
-  if (S.days.some(d => d.key === cur)) sel.value = cur;
 }
 
 function renderPortals(){
@@ -1502,10 +1141,8 @@ function renderUser(){
 }
 
 function render(){
-  S.now = now0();
   applyStage(); rebuildHues();
-  renderHeader(); renderStats(); renderSections(); renderInsights(); renderGrid(); renderTeachers(); renderWeeks(); renderCal(); renderUpcoming(); renderUser(); renderFocusChip();
-  renderAnalytics(); renderDayPrintSelect();
+  renderHeader(); renderStats(); renderSections(); renderInsights(); renderGrid(); renderTeachers(); renderWeeks(); renderCal(); renderUpcoming(); renderUser();
 }
 
 /* ---------- Data access: one Store, two backends ---------- */
@@ -1530,17 +1167,6 @@ async function writeWeek(key, wk){
   }
   S.weeks[key] = JSON.parse(JSON.stringify(wk)); persistLocal(); render();
 }
-async function writeCells(key, cells){         // several exams at once: [{d, s, lesson}], one atomic write when live
-  if (S.mode === 'live'){
-    const {D} = fb, upd = {};
-    cells.forEach(c => { upd['d'+c.d+'/s'+c.s] = {subject:c.lesson.subject, teacher:c.lesson.teacher, teacherUid:c.lesson.teacherUid||'', note:c.lesson.note, updatedBy:who(), updatedAt:D.serverTimestamp()}; });
-    await D.update(D.ref(fb.db, P.weeks+'/'+S.section+'/'+key), upd);
-    return; // the onValue listener re-renders
-  }
-  if (!S.weeks[key]) S.weeks[key] = blankWeek();
-  cells.forEach(c => { S.weeks[key][c.d][c.s] = c.lesson; });
-  persistLocal(); render();
-}
 async function saveSlot(si, start, end){
   S.slots = S.slots.map((x,i) => i===si ? {...x, start, end} : x);
   await saveCurrentStructure();
@@ -1555,7 +1181,6 @@ async function saveSlot(si, start, end){
    with no structure yet just shows sensible Mon-Fri / 3-period defaults locally until
    the first edit saves its structure for real. */
 function applyStructureOrTimes(){
-  const etInp = $('#examTitleInput'); if (etInp && document.activeElement !== etInp) etInp.value = examTitleCur();
   const struct = S.structuresRaw && S.structuresRaw[S.section];
   const days = struct && Array.isArray(struct.days) ? struct.days
     .filter(d => Array.isArray(d) && d[0] && Object.prototype.hasOwnProperty.call(WEEKDAY_OFFSET, String(d[0]).toLowerCase()))
@@ -1605,21 +1230,6 @@ function subscribeStructures(){
     }
     applyStructureOrTimes(); render();
   }, err => { console.warn('exam timetable structure', err); });
-}
-function subscribeExamTitle(){
-  const {D} = fb;
-  D.onValue(D.ref(fb.db, EXAM_TITLES_PATH), snap => {
-    S.examTitles = snap.val() || {};
-    const inp = $('#examTitleInput'); if (inp && document.activeElement !== inp) inp.value = examTitleCur();
-    renderGrid();
-  }, err => console.warn('exam title', err));
-}
-async function saveExamTitle(title){
-  S.examTitles = S.examTitles || {};
-  S.examTitles[S.section] = title;
-  if (S.mode === 'live'){ try { await fb.D.set(fb.D.ref(fb.db, EXAM_TITLES_PATH+'/'+S.section), title); } catch(e){ toast('Could not save the exam title.'); } }
-  else lsSet(kExamTitlesLocal(), S.examTitles);
-  renderGrid();
 }
 
 /* ---------- Full structure editing: sections, days, periods ---------- */
@@ -1718,13 +1328,10 @@ async function deleteSection(name){
     const {D} = fb;
     await D.remove(D.ref(fb.db, P.structure+'/'+name));
     await D.remove(D.ref(fb.db, P.weeks+'/'+name));
-    await D.remove(D.ref(fb.db, EXAM_TITLES_PATH+'/'+name));
   } else {
     lsSet('tt_v1_local_'+name, null);
   }
   delete S.structuresRaw[name];
-  if (S.examTitles) delete S.examTitles[name];
-  lsSet(kExamTitlesLocal(), S.examTitles || {});
   recomputeSections();
   if (!S.sections.includes(S.section)){
     S.section = S.sections[0]; applyStructureOrTimes();
@@ -1753,23 +1360,6 @@ async function createTimetable(name, grades){
     if (S.mode === 'live') subscribeWeeks(); else { S.weeks = {}; persistLocal(); }
     render(); toast('Created '+name+'. Days and periods copied from the previous timetable.', 4200);
   } catch(err){ toast('Could not create: '+(err && err.message || err), 5000); }
-}
-async function splitSection(name){              // one legacy multi-grade timetable -> one new empty timetable per grade, same days/periods
-  const grades = gradesOf(name);
-  if (grades.length < 2) return;
-  const st = S.structuresRaw && S.structuresRaw[name];
-  const days = (st && Array.isArray(st.days) && st.days.length) ? st.days : currentDaysArr();
-  const periods = (st && Array.isArray(st.periods) && st.periods.length) ? st.periods : currentPeriodsArr();
-  const made = [], skipped = [];
-  for (const g of grades){
-    const gname = 'Grade '+g;
-    if (S.sections.some(s => s.toLowerCase() === gname.toLowerCase())){ skipped.push(gname); continue; }
-    try { await saveStructure(gname, { days, periods, grades:[g] }); made.push(gname); }
-    catch(err){ toast('Could not create '+gname+': '+(err && err.message || err), 5000); }
-  }
-  if (made.length) toast(made.length+' new timetable'+(made.length===1?'':'s')+' created: '+made.join(', ')+
-    (skipped.length ? '. Already existed: '+skipped.join(', ')+'.' : '.')+' "'+name+'" is still here — copy over or re-enter each grade\'s exams, then delete it from Manage once you\'re done.', 8000);
-  else toast('A timetable already exists for every grade in "'+name+'" — nothing to split.');
 }
 function renderStructDlg(){
   $('#stSectionName').textContent = S.section;
@@ -1853,22 +1443,10 @@ $('#structDlg').addEventListener('change', e => {
   else if (t.dataset.periodBrk) commitPeriodBrk(+t.dataset.periodBrk, t.checked);
 });
 async function loadRoster(){
-  /* Same "genuine teacher account" rule the Results portal uses everywhere it lists teachers
-     (add-teacher panel, grade assignments, exam reminders): Advanced Admins and role:"admin"
-     accounts are excluded, and each teacher's subjects come from assignedSubjects (per grade)
-     when set, falling back to the older single "subject" field. */
   try {
     const {F} = fb, snap = await F.getDocs(F.collection(fb.fs, P.users));
-    S.roster = snap.docs.map(d => {
-      const x = d.data() || {};
-      if (x.Advancedadmin === true) return null;
-      if (String(x.role||'').trim().toLowerCase() === 'admin') return null;
-      const asg = x.assignedSubjects || {}, subs = new Set();
-      Object.keys(asg).forEach(g => (Array.isArray(asg[g]) ? asg[g] : []).forEach(s => { if (s) subs.add(s); }));
-      const subject = subs.size ? Array.from(subs).join(', ') : String(x.subject||'').trim();
-      const grades = Object.keys(asg).map(Number).filter(g => Number.isInteger(g) && g > 0);
-      return {uid:d.id, name:String(x.name||x.displayName||x.fullName||'').trim(), subject, grades, photo:x.photo||x.photoURL||x.photoUrl||'', phone:String(x.phoneNumber||x.phone||'').trim()};
-    }).filter(t => t && t.name);
+    S.roster = snap.docs.map(d => { const x = d.data() || {};
+      return {uid:d.id, name:String(x.name||x.displayName||x.fullName||'').trim(), subject:String(x.subject||'').trim(), photo:x.photo||x.photoURL||x.photoUrl||''}; }).filter(t => t.name);
     const names = S.roster.map(t => t.name).sort((a,b) => a.localeCompare(b));
     $('#teacherOpts').innerHTML = names.map(n => '<option value="'+esc(n)+'">').join('');
   } catch(e){ console.warn('users', e); }
@@ -1884,20 +1462,10 @@ async function loadSubjects(){
    times: count each once, in the most recent grade they appear in. Assessment No is the true
    identifier (then UPI); placeholder values like "N/A" or "0" are ignored. */
 const PLACEHOLDER_ID = /^(n\/?a|none|null|undefined|-+|0+)$/i;
-const ID_FIELD_TESTS = [/^assess(ment)?[\s_]*(no|num|number)?\.?$/i, /^upi$/i];
-const NAME_FIELD_TESTS = [/^(learner|student|pupil)[\s_]*(full)?[\s_]*name$/i, /^full[\s_]*name$/i, /^name$/i];
-const ASSESS_NO_TESTS = [/^assess(ment)?[\s_]*(no|num|number)?\.?$/i];
-const UPI_TESTS = [/^upi$/i, /^u\.?l\.?i\.?(\s*(no|number))?\.?$/i];
-function fieldOf(r, tests){
-  for (let i=0; i<tests.length; i++){
-    const k = Object.keys(r).find(x => tests[i].test(String(x).trim())), v = k ? String(r[k]).trim() : '';
-    if (v && !PLACEHOLDER_ID.test(v)) return v;
-  }
-  return '';
-}
 function learnerId(r){
-  for (let i=0; i<ID_FIELD_TESTS.length; i++){
-    const k = Object.keys(r).find(x => ID_FIELD_TESTS[i].test(String(x).trim())), v = k ? String(r[k]).trim() : '';
+  const tests = [/^assess(ment)?[\s_]*(no|num|number)?\.?$/i, /^upi$/i];
+  for (let i=0; i<tests.length; i++){
+    const k = Object.keys(r).find(x => tests[i].test(x)), v = k ? String(r[k]).trim() : '';
     if (v && !PLACEHOLDER_ID.test(v)) return i+':'+v.toLowerCase();
   }
   return '';
@@ -1907,8 +1475,8 @@ function sittingKey(head){       // 'Grade 9-2026-B1-Mid Term 2' -> sortable: ye
   return y*1e6 + (c ? (c[1].toUpperCase().charCodeAt(0)-64)*1e4 + (+c[2])*100 : 0) + t;
 }
 async function loadLearners(){
-  const ck = 'tt_v3_learners', c = lsGet(ck, null);
-  if (c && Date.now() - c.t < 12*3600*1000){ S.learners = c.v.learners || c.v; S.learnerRoster = c.v.roster || {}; return; }
+  const ck = 'tt_v2_learners', c = lsGet(ck, null);
+  if (c && Date.now() - c.t < 12*3600*1000){ S.learners = c.v; return; }
   try {
     const {D} = fb, snap = await D.get(D.ref(fb.db, P.students)), val = snap.val();
     if (!val) return;
@@ -1919,20 +1487,12 @@ async function loadLearners(){
       const m = head.match(/\d+/), g = m ? +m[0] : 0;
       if (g < 1 || g > 12) return;
       const id = learnerId(r) || ('row:'+(anon++)), sk = sittingKey(head), cur = latest.get(id);
-      if (!cur || sk > cur.sk || (sk === cur.sk && g > cur.g)){
-        latest.set(id, {g, sk, name: fieldOf(r, NAME_FIELD_TESTS), assessNo: fieldOf(r, ASSESS_NO_TESTS), upi: fieldOf(r, UPI_TESTS)});
-      }
+      if (!cur || sk > cur.sk || (sk === cur.sk && g > cur.g)) latest.set(id, {g, sk});
     });
-    const counts = {}, roster = {};
-    latest.forEach(v => {
-      counts[v.g] = (counts[v.g] || 0) + 1;
-      (roster[v.g] = roster[v.g] || []).push({name:v.name, assessNo:v.assessNo, upi:v.upi});
-    });
-    Object.keys(roster).forEach(g => roster[g].sort((a,b) => (a.name||'').localeCompare(b.name||'')));
+    const counts = {}; latest.forEach(v => { counts[v.g] = (counts[v.g] || 0) + 1; });
     const total = Object.values(counts).reduce((a,b) => a+b, 0);
     if (!total) return;
-    S.learners = {counts, total}; S.learnerRoster = roster;
-    lsSet(ck, {t:Date.now(), v:{learners:S.learners, roster}});
+    S.learners = {counts, total}; lsSet(ck, {t:Date.now(), v:S.learners});
   } catch(e){ console.warn('students', e); }
 }
 
@@ -1956,7 +1516,7 @@ async function onAuth(user){
   S.mode = 'live'; setNotice('');
   $('#tipText').textContent = S.canEdit ? 'Tap any exam slot to change it. Changes reach every device straight away.' : 'You can view the examination timetable. Ask an Advanced Admin to change it.';
   setSync('off','Syncing');
-  subscribeStructures(); subscribeWeeks(); subscribeExamTitle();
+  subscribeStructures(); subscribeWeeks();
   loadRoster().then(render); loadSubjects();
   S.learnersPending = true; loadLearners().then(() => { S.learnersPending = false; render(); });
   render();
@@ -1965,8 +1525,6 @@ async function onAuth(user){
 async function boot(){
   renderPortals();
   S.structuresRaw = lsGet(kStructuresLocal(), {});
-  S.examTitles = lsGet(kExamTitlesLocal(), {});
-  $('#examTitleInput').value = examTitleCur();
   recomputeSections();
   applyStructureOrTimes();
   // Instant paint from this device while Firebase loads
@@ -2015,84 +1573,29 @@ function openLesson(d, s){
   fillSubjects(); showClash();
   $('#lessonDlg').showModal(); $('#fSubject').focus();
 }
-function showClash(){                           // clash, workload and duplicate warnings for the exam being edited
-  const el = $('#lWarn'), les = {subject:$('#fSubject').value.trim(), teacher:$('#fTeacher').value.trim(), note:$('#fNote').value.trim()};
-  const r = editing && (les.subject || les.teacher) ? checkLesson(editing.d, editing.s, les, others(iso(S.sel))) : null;
-  const lines = r ? warnLines(les, editing.d, r) : [];
-  const blocked = !!(r && r.clash.length);        // a teacher can't be in two exams at once — this one is a hard stop, not just a warning
-  el.hidden = !lines.length;
-  el.classList.toggle('blocked', blocked);
-  el.textContent = lines.length ? lines.join('\n')+(blocked ? '\nChange the invigilator or the time before saving.' : '\nYou can still save.') : '';
-  $('#lSave').disabled = blocked;
-  renderSuggest();
+function showClash(){
+  const t = $('#fTeacher').value.trim(), el = $('#lWarn');
+  const c = (editing && t) ? clashes(editing.d, editing.s, t, others(iso(S.sel))) : [];
+  el.hidden = !c.length;
+  el.textContent = c.length ? '⚠️ '+t+' is also invigilating '+c.map(o => o.lesson.subject+' in '+o.section+', '+fmtTime(o.start)+' to '+fmtTime(o.end)).join(' and ')+'. You can still save.' : '';
 }
 $('#fTeacher').addEventListener('input', showClash);
-$('#fSubject').addEventListener('input', showClash);
-$('#fNote').addEventListener('input', showClash);
-
-/* Suggested invigilators: everyone on the staff roster or already on a timetable, minus anyone busy in another
-   timetable at this time, ranked by: teaches this subject, has done it before, then lightest load that day and week. */
-const sameSubject = (a,b) => { a = String(a||'').trim().toLowerCase(); b = String(b||'').trim().toLowerCase(); return !!a && !!b && (a === b || (a.length > 2 && b.length > 2 && (a.includes(b) || b.includes(a)))); };
-function teacherPool(){
-  const pool = new Map(), put = (name, subject, seen) => {
-    const k = normName(name); if (!k) return;
-    let e = pool.get(k); if (!e){ e = {name:String(name).trim(), subject:'', seen:new Set()}; pool.set(k, e); }
-    if (subject && !e.subject) e.subject = subject;
-    if (seen) e.seen.add(String(seen).trim().toLowerCase());
-  };
-  S.roster.forEach(t => put(t.name, t.subject));
-  S.sections.forEach(sec => Object.values(weeksOf(sec)).forEach(wk => wk.forEach(day => (day||[]).forEach(l => { if (l && l.teacher) put(l.teacher, '', l.subject); }))));
-  return pool;
-}
-let suggestList = [];
-function renderSuggest(){
-  const box = $('#tSuggest');
-  if (!editing || !S.canEdit){ box.hidden = true; suggestList = []; return; }
-  const key = iso(S.sel), d = editing.d, si = editing.s, sub = $('#fSubject').value.trim(), cur = normName($('#fTeacher').value);
-  const oth = others(key), loads = teacherLoads(key, {d, s:si}), list = [];
-  teacherPool().forEach((p,k) => {
-    if (k === cur || clashes(d, si, p.name, oth).length) return;       // already chosen, or busy in another timetable at that time
-    const ld = loads.get(k) || {week:0, day:{}}, dayN = ld.day[d] || 0;
-    const teaches = sameSubject(p.subject, sub), before = !teaches && Array.from(p.seen).some(x => sameSubject(x, sub));
-    list.push({name:p.name, subject:p.subject, teaches, before, week:ld.week, score:(teaches ? 3 : 0) + (before ? 2 : 0) - ld.week*0.5 - dayN*1.5});
-  });
-  list.sort((a,b) => b.score - a.score || a.week - b.week || a.name.localeCompare(b.name));
-  suggestList = list.slice(0, 6);
-  box.hidden = !suggestList.length;
-  $('#tChips').innerHTML = suggestList.map((s,i) => '<button type="button" class="chip'+(s.teaches ? ' match' : '')+'" data-suggest="'+i+'">'+esc(s.name)+
-    '<small>'+esc([s.teaches ? 'teaches '+s.subject : s.before ? 'has done it' : '', s.week ? s.week+(s.week === 1 ? ' exam' : ' exams')+' this week' : 'free this week'].filter(Boolean).join(' · '))+'</small></button>').join('');
-}
-function pickSuggested(i){
-  const s = suggestList[i]; if (!s) return;
-  const f = $('#fTeacher'); f.value = s.name;
-  f.dispatchEvent(new Event('input')); f.dispatchEvent(new Event('change')); f.focus();
-}
 $('#fTeacher').addEventListener('change', () => {
   const info = teacherInfo($('#fTeacher').value);
   if (info && info.subject && !$('#fSubject').value.trim()) $('#fSubject').value = info.subject;
 });
-function undoToast(msg, key, d, si, prev, ms){
-  toast(msg, ms || 6000, {label:'Undo', fn: () => setLesson(key, d, si, prev).then(() => toast('Undone')).catch(err => toast('Could not undo: '+(err && err.message || err), 5000))});
-}
 $('#lessonForm').addEventListener('submit', async e => {
   e.preventDefault();
   const sub = $('#fSubject').value.trim(), teacher = $('#fTeacher').value.trim();
   if (!sub){ $('#lErr').textContent = 'Enter a subject, or choose Clear exam to empty this slot.'; $('#fSubject').focus(); return; }
-  const key = iso(S.sel), d = editing.d, si = editing.s;
-  const lesson0 = {subject:sub, teacher, note:$('#fNote').value.trim()};
-  if (checkLesson(d, si, lesson0, others(key)).clash.length){                 // final guard — never save over a real double-booking
-    $('#lErr').textContent = teacher+' is already invigilating another exam at that time. Change the invigilator or the time.';
-    return;
-  }
-  const info = teacherInfo(teacher), prev = (getWeek(key)[d] || [])[si] || null;
-  const lesson = {...lesson0, teacherUid:info ? info.uid : ''};
+  const info = teacherInfo(teacher), key = iso(S.sel), d = editing.d, si = editing.s;
+  const lesson = {subject:sub, teacher, teacherUid:info ? info.uid : '', note:$('#fNote').value.trim()};
   $('#lessonDlg').close();                       // close straight away; the grid updates as the save lands
-  try { await setLesson(key, d, si, lesson); undoToast('Exam saved', key, d, si, prev); }
+  try { await setLesson(key, d, si, lesson); toast('Exam saved'); }
   catch(err){ toast('Could not save: '+(err && err.message || err), 5000); }
 });
 $('#lClear').addEventListener('click', async () => {
-  const key = iso(S.sel), d = editing.d, si = editing.s, prev = (getWeek(key)[d] || [])[si] || null;
-  try { await setLesson(key, d, si, null); $('#lessonDlg').close(); undoToast('Exam cleared', key, d, si, prev); }
+  try { await setLesson(iso(S.sel), editing.d, editing.s, null); $('#lessonDlg').close(); toast('Exam cleared'); }
   catch(err){ $('#lErr').textContent = 'Could not clear: '+(err && err.message || err); }
 });
 $('#lCancel').addEventListener('click', () => $('#lessonDlg').close());
@@ -2150,18 +1653,7 @@ document.addEventListener('click', e => {
   if (t.classList.contains('tl')){ if (guard()) openSlot(+t.dataset.slot); return; }
   if (t.id === 'copyPrev'){ copyWeek(iso(addDays(S.sel,-7)), iso(S.sel)); return; }
   if (t.id === 'loadSeed'){ loadSeed(); return; }
-  if (t.dataset.suggest !== undefined){ pickSuggested(+t.dataset.suggest); return; }
-  if (t.dataset.teacherFilter !== undefined){ toggleFocusTeacher(t.dataset.teacherFilter); return; }
-  if (t.dataset.teacherWa !== undefined){
-    const key = iso(S.sel), text = shareTextForTeacher(key, getWeek(key), t.dataset.teacherWa);
-    if (!text){ toast('No exams for '+t.dataset.teacherWa+' this week.'); return; }
-    const phone = waNormalizePhone((teacherInfo(t.dataset.teacherWa) || {}).phone);
-    window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(text), '_blank', 'noopener'); return;
-  }
-  if (t.id === 'focusChip'){ S.focusTeacher = null; render(); return; }
-  if (t.dataset.assign !== undefined){ const p = t.dataset.assign.split(':').map(Number); if (guard()){ openLesson(p[0], p[1]); $('#fTeacher').focus(); } return; }
   if (t.dataset.create !== undefined){ const g = S.gaps[+t.dataset.create]; if (g && guard()) createTimetable(g.name, g.grades); return; }
-  if (t.dataset.split !== undefined){ if (guard()) splitSection(t.dataset.split); return; }
   if (t.dataset.section){
     S.section = t.dataset.section; applyStructureOrTimes();
     if (S.mode === 'live') subscribeWeeks(); else { const l = lsGet(kLocal(), null); S.weeks = l && l.weeks ? l.weeks : {}; }
@@ -2182,738 +1674,8 @@ $('#thisWeek').addEventListener('click', () => goWeek(baseMonday()));
 $('#prevMonth').addEventListener('click', () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth()-1, 1); renderCal(); });
 $('#nextMonth').addEventListener('click', () => { S.calMonth = new Date(S.calMonth.getFullYear(), S.calMonth.getMonth()+1, 1); renderCal(); });
 $('#copyNext').addEventListener('click', () => { if (guard()) copyWeek(iso(S.sel), iso(addDays(S.sel,7))); });
-
-/* ---------- Add several exams at once: one line each, "Tue 2 | Maths | Md. Janet | PP1" ---------- */
-let batchReplace = false;
-const dayIndexOf = tok => WEEKDAY_KEYS.indexOf(String(tok||'').trim().toLowerCase().slice(0,3));
-function slotIndexOf(tok){                      // a period number (1 = first exam period) or a start time like 8:00
-  const idx = lessonSlotIdxs(), t = String(tok||'').trim();
-  if (/^\d{1,2}$/.test(t)){ const n = +t; return n >= 1 && n <= idx.length ? idx[n-1] : -1; }
-  const m = t.match(/^(\d{1,2})[:.](\d{2})$/); if (!m) return -1;
-  const h = +m[1], want = [h, h < 7 ? h+12 : h].map(x => pad(x)+':'+m[2]), hit = idx.find(i => want.includes(S.slots[i].start));
-  return hit === undefined ? -1 : hit;
-}
-function parseBatch(text, replace){
-  const key = iso(S.sel), wk = getWeek(key), active = activeDayOffsets(), rows = [], used = new Map();
-  String(text||'').split(/\r?\n/).forEach((raw,n) => {
-    const line = raw.trim(); if (!line) return;
-    const f = line.split(/\t|\|/).map(x => x.trim()), m = f[0].match(/^([A-Za-z]{3,9})\s*[,:]?\s*(\d{1,2}(?:[:.]\d{2})?)$/);
-    const r = {n:n+1, d:-1, si:-1, les:null, err:'', warn:[], taken:null, skip:false, blocked:false};
-    rows.push(r);
-    if (!m){ r.err = 'Start with the day and period, like "Tue 2 | Maths | Md. Janet".'; return; }
-    r.d = dayIndexOf(m[1]); r.si = slotIndexOf(m[2]);
-    if (r.d < 0){ r.err = '"'+m[1]+'" is not a day.'; return; }
-    if (!active.includes(r.d)){ r.err = DAYS_LONG[r.d]+' is not on this timetable.'; return; }
-    if (r.si < 0){ r.err = 'No exam period matches "'+m[2]+'".'; return; }
-    if (!f[1]){ r.err = 'Add a subject after the day and period.'; return; }
-    const k = r.d+':'+r.si;
-    if (used.has(k)){ r.err = 'That slot is already used on line '+used.get(k)+'.'; return; }
-    used.set(k, r.n);
-    r.les = {subject:f[1], teacher:f[2]||'', teacherUid:f[2] ? (teacherInfo(f[2])||{}).uid || '' : '', note:f.slice(3).join(' ').trim(), by:''};
-    r.taken = (wk[r.d] && wk[r.d][r.si]) || null;
-    r.skip = !!r.taken && !replace;
-  });
-  const pending = rows.filter(r => r.les && !r.skip).map(r => ({d:r.d, s:r.si, l:r.les})), oth = others(key);
-  rows.forEach(r => {
-    if (!r.les || r.skip) return;
-    const chk = checkLesson(r.d, r.si, r.les, oth, pending);
-    r.warn = warnLines(r.les, r.d, chk);
-    r.blocked = chk.clash.length > 0;   // a teacher can't be in two exams at once — never write this line, only warn about the rest
-  });
-  return rows;
-}
-function renderBatch(){
-  const rows = parseBatch($('#bText').value, batchReplace);
-  $('#bPreview').innerHTML = rows.map(r => r.err
-    ? '<div class="bRow bad"><b>Line '+r.n+':</b> '+esc(r.err)+'</div>'
-    : '<div class="bRow'+(r.skip ? ' skip' : r.blocked ? ' bad' : '')+'"><b>'+esc(DAYS[r.d]+' '+fmtTime(S.slots[r.si].start))+'</b> '+esc(r.les.subject+(r.les.note ? ' '+r.les.note : ''))+' <span class="muted">'+esc(r.les.teacher || 'no invigilator yet')+'</span>'+
-      (r.skip ? '<div class="meta warn">This slot already has '+esc(r.taken.subject)+', so it is skipped.</div>' : r.taken ? '<div class="meta">Replaces '+esc(r.taken.subject)+'.</div>' : '')+
-      (r.blocked ? '<div class="meta blocked">⛔ '+esc(r.warn[0].replace(/^⚠️\s*/,''))+' This line will not be added.</div>' : '')+
-      (r.blocked ? r.warn.slice(1) : r.warn).map(w => '<div class="meta warn">'+esc(w)+'</div>').join('')+'</div>').join('');
-  const ok = rows.filter(r => r.les && !r.skip && !r.blocked).length, go = $('#bGo');
-  go.disabled = !ok; go.textContent = ok ? 'Add '+ok+(ok === 1 ? ' exam' : ' exams') : 'Add exams';
-  return rows;
-}
-function openBatch(){
-  batchReplace = false; $('#bReplace').setAttribute('aria-pressed','false');
-  $('#bText').value = ''; $('#bErr').textContent = '';
-  $('#bHelp').textContent = S.section+', '+weekLabel(S.sel, true)+'. Periods: '+lessonSlotIdxs().map((si,i) => (i+1)+' = '+fmtTime(S.slots[si].start)).join(', ')+'.';
-  renderBatch();
-  $('#batchDlg').showModal(); $('#bText').focus();
-}
-$('#batchBtn').addEventListener('click', () => { if (guard()) openBatch(); });
-$('#bText').addEventListener('input', renderBatch);
-$('#bReplace').addEventListener('click', () => { batchReplace = !batchReplace; $('#bReplace').setAttribute('aria-pressed', String(batchReplace)); renderBatch(); });
-$('#bCancel').addEventListener('click', () => $('#batchDlg').close());
-$('#batchForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const all = renderBatch(), rows = all.filter(r => r.les && !r.skip && !r.blocked), left = all.length - rows.length;
-  if (!rows.length){ $('#bErr').textContent = 'Nothing to add yet. Fix the lines marked above.'; return; }
-  const key = iso(S.sel), wkNow = getWeek(key);
-  const prevCells = rows.map(r => ({d:r.d, s:r.si, lesson:(wkNow[r.d] || [])[r.si] || null}));
-  $('#batchDlg').close();
-  try {
-    await writeCells(key, rows.map(r => ({d:r.d, s:r.si, lesson:r.les})));
-    toast(rows.length+(rows.length === 1 ? ' exam' : ' exams')+' added'+(left ? '. '+left+(left === 1 ? ' line was' : ' lines were')+' left out.' : ''), 6000,
-      {label:'Undo', fn: () => writeCells(key, prevCells).then(() => toast('Undone')).catch(err => toast('Could not undo: '+(err && err.message || err), 5000))});
-  } catch(err){ toast('Could not add: '+(err && err.message || err), 5000); }
-});
-
-/* ---------- Share as text (WhatsApp friendly) ---------- */
-function shareText(key, wk){
-  const gl = gradeLabel(gradesOf(S.section));
-  const lines = ['*Kanyadet Primary & Junior School*', '*'+S.section+(gl && gl !== S.section ? ' ('+gl+')' : '')+' examination timetable*', weekLabel(S.sel, true)];
-  S.days.forEach(day => {
-    const di = WEEKDAY_OFFSET[day.key], rows = [];
-    S.slots.forEach((sl,si) => {
-      const l = wk[di] && wk[di][si]; if (!l || sl.brk) return;
-      rows.push(fmtTime(sl.start)+' – '+fmtTime(sl.end)+': '+l.subject+(l.note ? ' '+l.note : '')+' ('+(l.teacher || 'invigilator to be confirmed')+')');
-    });
-    if (!rows.length) return;
-    const dt = addDays(S.sel, di);
-    lines.push('', '*'+DAYS_LONG[di]+' '+dt.getDate()+' '+MS[dt.getMonth()]+'*');
-    rows.forEach(r => lines.push(r));
-  });
-  return lines.join('\n');
-}
-function shareTextForTeacher(key, wk, teacherName){
-  const gl = gradeLabel(gradesOf(S.section)), k = normName(teacherName), lines = [];
-  S.days.forEach(day => {
-    const di = WEEKDAY_OFFSET[day.key], rows = [];
-    S.slots.forEach((sl,si) => {
-      const l = wk[di] && wk[di][si]; if (!l || sl.brk || normName(l.teacher) !== k) return;
-      rows.push(fmtTime(sl.start)+' – '+fmtTime(sl.end)+': '+l.subject+(l.note ? ' '+l.note : ''));
-    });
-    if (!rows.length) return;
-    const dt = addDays(S.sel, di);
-    lines.push('', '*'+DAYS_LONG[di]+' '+dt.getDate()+' '+MS[dt.getMonth()]+'*'); rows.forEach(r => lines.push(r));
-  });
-  if (!lines.length) return '';
-  return ['*Kanyadet Primary & Junior School*', '*'+teacherName+' — invigilation, '+S.section+(gl && gl !== S.section ? ' ('+gl+')' : '')+'*', weekLabel(S.sel, true)].concat(lines).join('\n');
-}
-async function copyText(text){
-  try { await navigator.clipboard.writeText(text); return true; } catch(e){}
-  try {
-    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly','');
-    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.select();
-    const ok = document.execCommand('copy'); ta.remove(); return ok;
-  } catch(e){ return false; }
-}
-function shareGuard(){
-  const key = iso(S.sel), wk = getWeek(key);
-  if (!countLessons(wk)){ toast('This week has no exams yet, so there is nothing to share.'); return null; }
-  return {key, wk};
-}
-$('#copyTextBtn').addEventListener('click', async () => {
-  const s = shareGuard(); if (!s) return;
-  toast(await copyText(shareText(s.key, s.wk)) ? 'Timetable copied. Paste it into WhatsApp or a message.' : 'Could not copy. Please try again.', 3200);
-});
-$('#waBtn').addEventListener('click', () => {
-  const s = shareGuard(); if (!s) return;
-  window.open('https://wa.me/?text='+encodeURIComponent(shareText(s.key, s.wk)), '_blank', 'noopener');
-});
-
-/* ---------- Calendar file (.ics): times are "floating", so 8:00 stays 8:00 on every phone; each exam gets a 30 minute reminder ---------- */
-const slugOf = s => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'timetable';
-const icsEsc = s => String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
-function icsFold(line){                         // lines are limited to 75 bytes; continuation lines start with a space
-  const enc = new TextEncoder(); let out = '', cur = '', bytes = 0;
-  for (const ch of line){
-    const n = enc.encode(ch).length;
-    if (bytes + n > 75){ out += cur+'\r\n'; cur = ' '; bytes = 1; }
-    cur += ch; bytes += n;
-  }
-  return out+cur;
-}
-const icsStamp = d => d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+'T'+pad(d.getUTCHours())+pad(d.getUTCMinutes())+pad(d.getUTCSeconds())+'Z';
-const icsLocal = (day, t) => day.getFullYear()+pad(day.getMonth()+1)+pad(day.getDate())+'T'+t.replace(':','')+'00';
-function buildIcs(keys){
-  const gl = gradeLabel(gradesOf(S.section)), stamp = icsStamp(new Date()), slug = slugOf(S.section);
-  const L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Kanyadet School//Exam Timetable//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',
-    'X-WR-CALNAME:'+icsEsc(S.section+' examinations'),'X-WR-TIMEZONE:Africa/Nairobi'];
-  keys.forEach(key => {
-    const wk = getWeek(key), mon = parseIso(key);
-    S.days.forEach(day => {
-      const di = WEEKDAY_OFFSET[day.key], date = addDays(mon, di);
-      S.slots.forEach((sl,si) => {
-        const l = wk[di] && wk[di][si]; if (!l || sl.brk) return;
-        L.push('BEGIN:VEVENT', 'UID:'+key+'-d'+di+'-s'+si+'-'+slug+'@kanyadetschool.github.io', 'DTSTAMP:'+stamp,
-          'DTSTART:'+icsLocal(date, sl.start), 'DTEND:'+icsLocal(date, sl.end),
-          'SUMMARY:'+icsEsc(l.subject+(l.note ? ' '+l.note : '')+' exam'+(gl && gl !== S.section ? ' ('+gl+')' : '')),
-          'DESCRIPTION:'+icsEsc(S.section+'\nInvigilator: '+(l.teacher || 'to be confirmed')),
-          'LOCATION:'+icsEsc('Kanyadet Primary & Junior School'),
-          'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(l.subject+' exam starts in 30 minutes'),'TRIGGER:-PT30M','END:VALARM','END:VEVENT');
-      });
-    });
-  });
-  L.push('END:VCALENDAR');
-  return L.map(icsFold).join('\r\n')+'\r\n';
-}
-function downloadFile(name, text, type){
-  const url = URL.createObjectURL(new Blob([text], {type}));
-  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-function exportIcs(keys){
-  keys = keys.filter(k => countLessons(getWeek(k)));
-  if (!keys.length){ toast('There are no exams to add to a calendar yet.'); return; }
-  const span = keys.length === 1 ? keys[0] : keys[0]+'-to-'+keys[keys.length-1];
-  downloadFile('exam-timetable-'+slugOf(S.section)+'-'+span+'.ics', buildIcs(keys), 'text/calendar;charset=utf-8');
-  toast('Calendar file downloaded. Open it to add the exams to your calendar.', 3600);
-}
-$('#icsBtn').addEventListener('click', () => exportIcs([iso(S.sel)]));
-$('#icsAllBtn').addEventListener('click', () => exportIcs(Object.keys(S.weeks).sort()));
-/* ---------- PDF export (same look as the Results report) ---------- */
-/* PDF-EXPORT-START */
-const PDF_BLUE = [41,128,185];
-const PDF_TINT = [[234,226,251],[253,226,234],[221,243,226],[255,240,196],[230,244,207],[220,235,252],[214,242,239],[255,230,213],[243,225,246]];
-const PDF_INK  = [[91,63,176],[178,58,98],[44,117,68],[127,93,14],[74,106,20],[42,98,168],[31,122,114],[154,74,32],[139,62,158]];
-const PDF_LOGO = '../images/logo.png', PDF_MARK = '../images/kenya_ministry_education.png';
-
-function pdfLoadImg(src){
-  return new Promise(res => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
-}
-function pdfToPng(img, white){
-  if (!img) return null;
-  try {
-    const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
-    const x = c.getContext('2d'); x.drawImage(img, 0, 0);
-    if (white){
-      const id = x.getImageData(0, 0, c.width, c.height), d = id.data;
-      for (let i = 0; i < d.length; i += 4){ if (d[i+3] > 0){ d[i] = d[i+1] = d[i+2] = 255; } }
-      x.putImageData(id, 0, 0);
-    }
-    return { url: c.toDataURL('image/png'), ratio: c.width / c.height };
-  } catch(e){ return null; }
-}
-async function pdfAssets(){
-  const [logo, mark] = await Promise.all([pdfLoadImg(PDF_LOGO), pdfLoadImg(PDF_MARK)]);
-  return { logo: pdfToPng(logo, true), mark: pdfToPng(mark, false) };
-}
-
-async function buildPdf(key, wk){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
-  const A = await pdfAssets();
-  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-  const gl = gradeLabel(gradesOf(S.section)), week = weekLabel(S.sel, true);
-  const printed = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-
-  /* Faint ministry watermark, laid over the finished page (as in Results.html) */
-  const drawMark = () => {
-    if (!A.mark) return;
-    try {
-      const m = 80, r = A.mark.ratio, w = r >= 1 ? m : m*r, h = r >= 1 ? m/r : m;
-      doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity:0.08 }));
-      doc.addImage(A.mark.url, 'PNG', (W-w)/2, (H-h)/2, w, h);
-      doc.restoreGraphicsState();
-    } catch(e){}
-  };
-  /* Blue header band with logo, school name and week details, at the top of every page */
-  const drawChrome = () => {
-    doc.setFillColor(...PDF_BLUE); doc.rect(0, 0, W, 20, 'F');
-    let tx = 14;
-    if (A.logo){
-      try { const lh = 15, lw = lh*A.logo.ratio; doc.addImage(A.logo.url, 'PNG', 14, 2.5, lw, lh); tx = 14 + lw + 5; } catch(e){}
-    }
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(16);
-    doc.text('KANYADET PRI & JUNIOR SCHOOL', tx, 10);
-    doc.setFontSize(12); doc.text('P O BOX 45 - 40139, AKALA, KENYA', tx, 16);
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text('Date: ' + printed, W-14, 8, { align:'right' });
-    doc.text(S.section + (gl && gl !== S.section ? ' | ' + gl : ''), W-14, 13, { align:'right' });
-    doc.text('Exam week: ' + week, W-14, 18, { align:'right' });
-  };
-  const drawTitle = (text, sub) => {
-    doc.setTextColor(...PDF_BLUE); doc.setFont('helvetica','bold'); doc.setFontSize(13);
-    doc.text(text, W/2, 30, { align:'center' });
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.5); doc.line(10, 32.5, W-10, 32.5);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90);
-    doc.text(sub, W/2, 38, { align:'center' });
-  };
-  const drawFooter = (pageNo, total) => {
-    const y = H - 15;
-    doc.setFillColor(245,245,245); doc.rect(0, y-5, W, 20, 'F');
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.3); doc.line(0, y-5, W, y-5);
-    doc.setTextColor(60,60,60); doc.setFontSize(8);
-    doc.setFont('helvetica','bold'); doc.text('Prepared by:', 14, y);
-    doc.setFont('helvetica','normal'); doc.text('Automated Online School System', 14, y+4);
-    doc.setFontSize(7); doc.text('Ict Dept - Digital Signature \u00A9' + new Date().getFullYear(), 14, y+8);
-    doc.setFontSize(9); doc.text('Page ' + pageNo + ' of ' + total, W/2, y+2, { align:'center' });
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text('Verified by:', W-14, y, { align:'right' });
-    doc.setFont('helvetica','normal'); doc.text('_________________', W-14, y+4, { align:'right' });
-    doc.setFontSize(7); doc.text('Signature & Stamp', W-14, y+8, { align:'right' });
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.2); doc.rect(W-85, y-3, 28, 10);
-    doc.setFontSize(6); doc.setTextColor(150,150,150);
-    doc.text('OFFICIAL', W-71, y+2, { align:'center' }); doc.text('STAMP', W-71, y+5, { align:'center' });
-  };
-
-  /* ---- Page 1: the timetable grid ---- */
-  const days = S.days.map(day => { const off = WEEKDAY_OFFSET[day.key]; return { di:off, name:DAYS_LONG[off] || day.label, date:addDays(S.sel, off) }; });
-  const timeW = 30, dayW = (W - 20 - timeW) / Math.max(days.length, 1);
-  const rowH = Math.max(18, Math.min(38, (H - 43 - 25 - 12) / Math.max(S.slots.length, 1)));
-  const head = [['TIME'].concat(days.map(d => d.name.toUpperCase() + '\n' + d.date.getDate() + ' ' + MS[d.date.getMonth()]))];
-  const body = S.slots.map((s, si) => {
-    const time = { content: fmtTime(s.start) + '\n' + fmtTime(s.end), styles: s.brk ? { minCellHeight:12 } : {} };
-    if (s.brk) return [time, { content:'BREAK', colSpan:days.length, styles:{ fillColor:[236,240,245], textColor:[110,110,110], fontStyle:'bold', minCellHeight:12 } }];
-    return [time].concat(days.map(d => {
-      const les = wk[d.di] && wk[d.di][si];
-      return les ? { content:'', les } : { content:'\u2014', styles:{ textColor:[190,190,190] } };
-    }));
-  });
-  const colStyles = { 0:{ cellWidth:timeW } };
-  days.forEach((_, i) => { colStyles[i+1] = { cellWidth:dayW }; });
-
-  const chromed = new Set();
-  const paint = title => { drawChrome(); drawTitle(title, S.section + (gl && gl !== S.section ? ' (' + gl + ')' : '') + '  |  ' + week); chromed.add(doc.internal.getCurrentPageInfo().pageNumber); };
-  const overflow = () => { const p = doc.internal.getCurrentPageInfo().pageNumber; if (!chromed.has(p)){ drawChrome(); chromed.add(p); } };
-  paint((examTitleCur() || 'EXAMINATION TIMETABLE').toUpperCase());
-  doc.autoTable({
-    head, body, startY:43, theme:'grid',
-    margin:{ top:25, right:10, bottom:25, left:10 },
-    styles:{ fontSize:9, cellPadding:2, lineColor:[210,218,228], lineWidth:0.3, halign:'center', valign:'middle', textColor:[60,60,60] },
-    headStyles:{ fillColor:PDF_BLUE, textColor:[255,255,255], fontStyle:'bold', fontSize:9, minCellHeight:12 },
-    bodyStyles:{ minCellHeight:rowH },
-    columnStyles: colStyles,
-    didParseCell: d => {
-      if (d.row.section !== 'body') return;
-      if (d.column.index === 0){ d.cell.styles.fillColor = [234,242,250]; d.cell.styles.textColor = PDF_BLUE; d.cell.styles.fontStyle = 'bold'; d.cell.styles.fontSize = 9.5; }
-      const les = d.cell.raw && d.cell.raw.les;
-      if (les) d.cell.styles.fillColor = PDF_TINT[hue(les.subject)];
-    },
-    didDrawCell: d => {
-      const les = d.row.section === 'body' && d.cell.raw && d.cell.raw.les;
-      if (!les) return;
-      const ink = PDF_INK[hue(les.subject)], cx = d.cell.x + d.cell.width/2, maxW = d.cell.width - 4;
-      doc.setFont('helvetica','bold'); doc.setFontSize(11);
-      const subj = doc.splitTextToSize(les.subject, maxW).slice(0, 2);
-      doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
-      const who = les.teacher ? doc.splitTextToSize(les.teacher, maxW).slice(0, 1) : [];
-      const total = subj.length*4.8 + who.length*4.2 + (les.note ? 6.5 : 0);
-      let y = d.cell.y + (d.cell.height - total)/2 + 3.4;
-      doc.setTextColor(...ink); doc.setFont('helvetica','bold'); doc.setFontSize(11);
-      subj.forEach(line => { doc.text(line, cx, y, { align:'center' }); y += 4.8; });
-      doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
-      who.forEach(line => { doc.text(line, cx, y - 0.4, { align:'center' }); y += 4.2; });
-      if (les.note){
-        doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
-        const tw = doc.getTextWidth(les.note) + 6;
-        doc.setFillColor(255,255,255); doc.roundedRect(cx - tw/2, y - 2.4, tw, 5, 2.5, 2.5, 'F');
-        doc.text(les.note, cx, y + 1.1, { align:'center' });
-      }
-    },
-    didDrawPage: overflow
-  });
-
-  /* ---- Last page: who invigilates what ---- */
-  const duty = {};
-  days.forEach(d => S.slots.forEach((s, si) => {
-    const l = !s.brk && wk[d.di] && wk[d.di][si];
-    if (!l || !l.teacher) return;
-    const k = normName(l.teacher), t = duty[k] || (duty[k] = { name:l.teacher, items:[] });
-    t.items.push(DAYS[d.di] + ' ' + d.date.getDate() + ' ' + MS[d.date.getMonth()] + ',  ' + fmtTime(s.start) + ' - ' + fmtTime(s.end) + '   ' + l.subject + (l.note ? ' (' + l.note + ')' : ''));
-  }));
-  const rows = Object.keys(duty).map(k => duty[k]).sort((a, b) => a.name.localeCompare(b.name))
-    .map(t => [t.name, String(t.items.length), t.items.join('\n')]);
-  if (rows.length){
-    doc.addPage();
-    paint('INVIGILATION ROSTER');
-    doc.autoTable({
-      head:[['INVIGILATOR', 'EXAMS', 'DUTIES THIS WEEK']], body:rows, startY:43, theme:'grid',
-      margin:{ top:25, right:10, bottom:25, left:10 },
-      styles:{ fontSize:9, cellPadding:2.5, lineColor:[210,218,228], lineWidth:0.3, valign:'middle', textColor:[60,60,60] },
-      headStyles:{ fillColor:PDF_BLUE, textColor:[255,255,255], fontStyle:'bold', halign:'center' },
-      alternateRowStyles:{ fillColor:[245,248,252] },
-      columnStyles:{ 0:{ cellWidth:60, fontStyle:'bold' }, 1:{ cellWidth:22, halign:'center' }, 2:{ cellWidth:'auto' } },
-      didDrawPage: overflow
-    });
-  }
-
-  const total = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
-  doc.save((S.section + ' Exam Timetable ' + week).replace(/[^\w\-]+/g, '_') + '.pdf');
-}
-/* PDF-EXPORT-END */
-
-async function exportPdf(){
-  if (!(window.jspdf && window.jspdf.jsPDF)){ toast('The PDF tools did not load. Check your connection and try again.'); return; }
-  const key = iso(S.sel), wk = getWeek(key);
-  if (!countLessons(wk)){ toast('This week has no exams yet, so there is nothing to export.'); return; }
-  const btn = $('#pdfBtn'), label = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Building PDF\u2026';
-  try { await buildPdf(key, wk); toast('PDF downloaded'); }
-  catch(e){ console.error('[PDF Export]', e); toast('Could not build the PDF. Please try again.'); }
-  finally { btn.disabled = false; btn.textContent = label; }
-}
-
-$('#pdfBtn').addEventListener('click', exportPdf);
-
-/* ---------- Duty roster PDF: one page per invigilator, for printing and handing out individually ---------- */
-async function buildDutyPdf(key, wk){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  const A = await pdfAssets();
-  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-  const gl = gradeLabel(gradesOf(S.section)), week = weekLabel(S.sel, true);
-  const printed = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-  const drawMark = () => {
-    if (!A.mark) return;
-    try {
-      const m = 70, r = A.mark.ratio, w = r >= 1 ? m : m*r, h = r >= 1 ? m/r : m;
-      doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity:0.08 }));
-      doc.addImage(A.mark.url, 'PNG', (W-w)/2, (H-h)/2, w, h);
-      doc.restoreGraphicsState();
-    } catch(e){}
-  };
-  const drawChrome = name => {
-    doc.setFillColor(...PDF_BLUE); doc.rect(0, 0, W, 20, 'F');
-    let tx = 14;
-    if (A.logo){ try { const lh = 15, lw = lh*A.logo.ratio; doc.addImage(A.logo.url, 'PNG', 14, 2.5, lw, lh); tx = 14 + lw + 5; } catch(e){} }
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
-    doc.text('KANYADET PRI & JUNIOR SCHOOL', tx, 10);
-    doc.setFontSize(11); doc.text('P O BOX 45 - 40139, AKALA, KENYA', tx, 16);
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text('Date: ' + printed, W-14, 8, { align:'right' });
-    doc.text(S.section + (gl && gl !== S.section ? ' | ' + gl : ''), W-14, 13, { align:'right' });
-    doc.text('Exam week: ' + week, W-14, 18, { align:'right' });
-    doc.setTextColor(...PDF_BLUE); doc.setFont('helvetica','bold'); doc.setFontSize(14);
-    doc.text('INVIGILATION DUTY — ' + name.toUpperCase(), W/2, 30, { align:'center' });
-    if (examTitleCur()){ doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,90,90); doc.text(examTitleCur(), W/2, 35, { align:'center' }); }
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.5); doc.line(10, 37, W-10, 37);
-  };
-  const drawFooter = (pageNo, total) => {
-    const y = H - 15;
-    doc.setFillColor(245,245,245); doc.rect(0, y-5, W, 20, 'F');
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.3); doc.line(0, y-5, W, y-5);
-    doc.setTextColor(60,60,60); doc.setFontSize(8);
-    doc.setFont('helvetica','bold'); doc.text('Prepared by:', 14, y);
-    doc.setFont('helvetica','normal'); doc.text('Automated Online School System', 14, y+4);
-    doc.setFontSize(9); doc.text('Page ' + pageNo + ' of ' + total, W/2, y+2, { align:'center' });
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text('Signature:', W-14, y, { align:'right' });
-    doc.setFont('helvetica','normal'); doc.text('_________________', W-14, y+4, { align:'right' });
-  };
-  const duty = {};
-  S.days.forEach(day => {
-    const di = WEEKDAY_OFFSET[day.key], date = addDays(S.sel, di);
-    S.slots.forEach((sl,si) => {
-      const l = !sl.brk && wk[di] && wk[di][si]; if (!l || !l.teacher) return;
-      const k = normName(l.teacher), t = duty[k] || (duty[k] = {name:l.teacher, rows:[]});
-      t.rows.push([DAYS_LONG[di]+' '+date.getDate()+' '+MS[date.getMonth()], fmtTime(sl.start)+' - '+fmtTime(sl.end), l.subject, l.note||'']);
-    });
-  });
-  const names = Object.keys(duty).sort((a,b) => duty[a].name.localeCompare(duty[b].name));
-  if (!names.length) return false;
-  names.forEach((k,idx) => {
-    const t = duty[k];
-    if (idx) doc.addPage();
-    drawChrome(t.name);
-    doc.autoTable({
-      head:[['DAY','TIME','SUBJECT','NOTE']], body:t.rows, startY:40, theme:'grid',
-      margin:{top:25,right:14,bottom:25,left:14},
-      styles:{fontSize:10,cellPadding:3,lineColor:[210,218,228],lineWidth:0.3,valign:'middle',textColor:[60,60,60]},
-      headStyles:{fillColor:PDF_BLUE,textColor:[255,255,255],fontStyle:'bold',halign:'center'},
-      alternateRowStyles:{fillColor:[245,248,252]}
-    });
-  });
-  const total = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
-  doc.save((S.section + ' Invigilation Duty ' + week).replace(/[^\w\-]+/g, '_') + '.pdf');
-  return true;
-}
-async function exportDutyPdf(){
-  if (!(window.jspdf && window.jspdf.jsPDF)){ toast('The PDF tools did not load. Check your connection and try again.'); return; }
-  const key = iso(S.sel), wk = getWeek(key);
-  if (!countLessons(wk)){ toast('This week has no exams yet, so there is nothing to export.'); return; }
-  const btn = $('#dutyPdfBtn'), label = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Building PDF…';
-  try { const ok = await buildDutyPdf(key, wk); toast(ok ? 'Duty roster downloaded' : 'No invigilators assigned yet.'); }
-  catch(e){ console.error('[Duty PDF Export]', e); toast('Could not build the PDF. Please try again.'); }
-  finally { btn.disabled = false; btn.textContent = label; }
-}
-$('#dutyPdfBtn').addEventListener('click', exportDutyPdf);
-
-/* ---------- Analytics PDF: workload, coverage and week-history summary ---------- */
-async function buildAnalyticsPdf(key, wk){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  const A = await pdfAssets();
-  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-  const gl = gradeLabel(gradesOf(S.section)), week = weekLabel(S.sel, true);
-  const printed = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-  const drawMark = () => {
-    if (!A.mark) return;
-    try {
-      const m = 70, r = A.mark.ratio, w = r >= 1 ? m : m*r, h = r >= 1 ? m/r : m;
-      doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity:0.08 }));
-      doc.addImage(A.mark.url, 'PNG', (W-w)/2, (H-h)/2, w, h);
-      doc.restoreGraphicsState();
-    } catch(e){}
-  };
-  const drawChrome = () => {
-    doc.setFillColor(...PDF_BLUE); doc.rect(0, 0, W, 20, 'F');
-    let tx = 14;
-    if (A.logo){ try { const lh = 15, lw = lh*A.logo.ratio; doc.addImage(A.logo.url, 'PNG', 14, 2.5, lw, lh); tx = 14 + lw + 5; } catch(e){} }
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
-    doc.text('KANYADET PRI & JUNIOR SCHOOL', tx, 10);
-    doc.setFontSize(11); doc.text('P O BOX 45 - 40139, AKALA, KENYA', tx, 16);
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text('Date: ' + printed, W-14, 8, { align:'right' });
-    doc.text(S.section + (gl && gl !== S.section ? ' | ' + gl : ''), W-14, 13, { align:'right' });
-    doc.text('Exam week: ' + week, W-14, 18, { align:'right' });
-    doc.setTextColor(...PDF_BLUE); doc.setFont('helvetica','bold'); doc.setFontSize(14);
-    doc.text('EXAMINATION ANALYTICS', W/2, 30, { align:'center' });
-    if (examTitleCur()){ doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,90,90); doc.text(examTitleCur(), W/2, 35, { align:'center' }); }
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.5); doc.line(10, 37, W-10, 37);
-  };
-  const drawFooter = (pageNo, total) => {
-    const y = H - 15;
-    doc.setFillColor(245,245,245); doc.rect(0, y-5, W, 20, 'F');
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.3); doc.line(0, y-5, W, y-5);
-    doc.setTextColor(60,60,60); doc.setFontSize(8);
-    doc.setFont('helvetica','bold'); doc.text('Prepared by:', 14, y);
-    doc.setFont('helvetica','normal'); doc.text('Automated Online School System', 14, y+4);
-    doc.setFontSize(9); doc.text('Page ' + pageNo + ' of ' + total, W/2, y+2, { align:'center' });
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text('Signature:', W-14, y, { align:'right' });
-    doc.setFont('helvetica','normal'); doc.text('_________________', W-14, y+4, { align:'right' });
-  };
-  const sectionTitle = (text, y) => { doc.setFont('helvetica','bold'); doc.setFontSize(11.5); doc.setTextColor(...PDF_BLUE); doc.text(text, 14, y); };
-  drawChrome();
-  let y = 45;
-
-  /* Invigilator workload */
-  sectionTitle('Invigilator workload', y); y += 4;
-  const rows = workloadRows(key);
-  if (rows.length){
-    const maxN = rows[0].n;
-    doc.autoTable({
-      startY:y, head:[['Invigilator','Exams this week','Load']], body: rows.map(r => [r.name, String(r.n), '']),
-      theme:'grid', margin:{left:14,right:14}, styles:{fontSize:9,cellPadding:2.6,valign:'middle'},
-      headStyles:{fillColor:PDF_BLUE,textColor:[255,255,255],fontStyle:'bold'},
-      columnStyles:{2:{cellWidth:60}},
-      didDrawCell: d => {
-        if (d.row.section !== 'body' || d.column.index !== 2) return;
-        const n = rows[d.row.index].n, bw = (d.cell.width-4) * (n/maxN);
-        doc.setFillColor(230,236,247); doc.rect(d.cell.x+2, d.cell.y+d.cell.height/2-1.6, d.cell.width-4, 3.2, 'F');
-        doc.setFillColor(...PDF_BLUE); doc.rect(d.cell.x+2, d.cell.y+d.cell.height/2-1.6, Math.max(2,bw), 3.2, 'F');
-      }
-    });
-    y = doc.lastAutoTable.finalY + 8;
-  } else {
-    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(120,120,120);
-    doc.text('No invigilators assigned yet this week.', 14, y+5); y += 14;
-  }
-
-  /* Slot coverage */
-  if (y > H - 70){ doc.addPage(); drawChrome(); y = 45; }
-  sectionTitle('Slot / period coverage', y); y += 4;
-  const slots = lessonSlotIdxs();
-  let filled = 0, total = 0;
-  const covBody = slots.map(si => {
-    const row = [fmtTime(S.slots[si].start)];
-    S.days.forEach(day => { const di = WEEKDAY_OFFSET[day.key], les = wk[di] && wk[di][si]; total++; if (les) filled++; row.push(les ? '\u2713' : '\u2014'); });
-    return row;
-  });
-  doc.autoTable({
-    startY:y, head:[['Period'].concat(S.days.map(d => d.label))], body:covBody, theme:'grid',
-    margin:{left:14,right:14}, styles:{fontSize:9,cellPadding:2.6,halign:'center',valign:'middle'},
-    headStyles:{fillColor:PDF_BLUE,textColor:[255,255,255],fontStyle:'bold'},
-    didParseCell: d => {
-      if (d.row.section !== 'body' || d.column.index === 0) return;
-      const on = d.cell.raw === '\u2713';
-      d.cell.styles.fillColor = on ? [221,243,226] : [246,246,246];
-      d.cell.styles.textColor = on ? [44,117,68] : [175,175,175];
-    }
-  });
-  y = doc.lastAutoTable.finalY + 6;
-  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(90,90,90);
-  doc.text(filled+' of '+total+' slots filled ('+(total?Math.round(filled/total*100):0)+'%) this week.', 14, y); y += 12;
-
-  /* Week-over-week history */
-  if (y > H - 70){ doc.addPage(); drawChrome(); y = 45; }
-  sectionTitle('Week-over-week history', y); y += 4;
-  const hist = historyWeeks(8);
-  doc.autoTable({
-    startY:y, head:[['Week','Exams scheduled','Fill rate']],
-    body: hist.map(r => [weekLabel(r.m,true)+(r.k===key?'  (this week)':''), r.filled+' of '+r.total, (r.total?Math.round(r.filled/r.total*100):0)+'%']),
-    theme:'grid', margin:{left:14,right:14}, styles:{fontSize:9,cellPadding:2.6},
-    headStyles:{fillColor:PDF_BLUE,textColor:[255,255,255],fontStyle:'bold'},
-    didParseCell: d => { if (d.row.section==='body' && hist[d.row.index].k===key) d.cell.styles.fillColor = [234,242,250]; }
-  });
-
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++){ doc.setPage(i); drawMark(); drawFooter(i, totalPages); }
-  doc.save((S.section + ' Exam Analytics ' + week).replace(/[^\w\-]+/g, '_') + '.pdf');
-  return true;
-}
-async function exportAnalyticsPdf(){
-  if (!(window.jspdf && window.jspdf.jsPDF)){ toast('The PDF tools did not load. Check your connection and try again.'); return; }
-  const key = iso(S.sel), wk = getWeek(key);
-  const btn = $('#anPdfBtn'), label = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Building PDF…';
-  try { await buildAnalyticsPdf(key, wk); toast('Analytics PDF downloaded'); }
-  catch(e){ console.error('[Analytics PDF]', e); toast('Could not build the PDF. Please try again.'); }
-  finally { btn.disabled = false; btn.textContent = label; }
-}
-$('#anPdfBtn').addEventListener('click', exportAnalyticsPdf);
-
-/* ---------- Exam cards for learners: one printable slip per learner, blank name/adm no. ---------- */
-async function buildLearnerCardsPdf(count, roster){
-  roster = roster || [];
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  const gl = gradeLabel(gradesOf(S.section)), week = weekLabel(S.sel, true);
-  const key = iso(S.sel), wk = getWeek(key), exams = [];
-  S.days.forEach(day => {
-    const di = WEEKDAY_OFFSET[day.key];
-    S.slots.forEach((sl,si) => { if (sl.brk) return; const l = wk[di] && wk[di][si]; if (l) exams.push({day:day.label, dayIdx:di, start:sl.start, end:sl.end, subject:l.subject, note:l.note||''}); });
-  });
-  if (!exams.length) return false;
-  exams.sort((a,b) => a.dayIdx - b.dayIdx || toMin(a.start) - toMin(b.start));
-  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-  const margin = 10, gap = 6, cols = 2, rows = 4, perPage = cols*rows;
-  const cardW = (W - 2*margin - (cols-1)*gap)/cols, cardH = (H - 2*margin - (rows-1)*gap)/rows;
-  const n = Math.max(1, Math.min(500, count|0 || 1));
-  for (let i = 0; i < n; i++){
-    const onPage = i % perPage;
-    if (i > 0 && onPage === 0) doc.addPage();
-    const col = onPage % cols, row = Math.floor(onPage/cols);
-    const x = margin + col*(cardW+gap), y = margin + row*(cardH+gap);
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.4); doc.roundedRect(x, y, cardW, cardH, 2, 2);
-    doc.setFillColor(...PDF_BLUE); doc.rect(x, y, cardW, 9, 'F');
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
-    doc.text('KANYADET PRI & JUNIOR SCHOOL', x+cardW/2, y+3.8, { align:'center' });
-    doc.setFontSize(7); doc.setFont('helvetica','normal');
-    doc.text('EXAMINATION CARD — '+S.section.toUpperCase()+(gl && gl !== S.section ? ' ('+gl+')' : ''), x+cardW/2, y+7.2, { align:'center' });
-    let ty = y + 12.5;
-    if (examTitleCur()){
-      doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...PDF_BLUE);
-      doc.text(doc.splitTextToSize(examTitleCur().toUpperCase(), cardW-6)[0], x+cardW/2, ty, { align:'center' });
-      ty += 4.8;
-    }
-    doc.setTextColor(60,60,60); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
-    const rec = roster[i] || null;
-    const cardField = (label, val) => {
-      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(60,60,60);
-      doc.text(label, x+3, ty);
-      if (val){ doc.setFont('helvetica','bold'); doc.setTextColor(30,30,30); doc.text(doc.splitTextToSize(val, cardW-29)[0], x+26, ty); }
-      else { doc.setDrawColor(180,180,180); doc.setLineWidth(0.2); doc.line(x+26, ty+0.6, x+cardW-3, ty+0.6); }
-    };
-    cardField('Name:', rec ? rec.name : '');
-    ty += 5.3;
-    cardField('Assessment No:', rec ? rec.assessNo : '');
-    ty += 5.3;
-    cardField('UPI / ULI No:', rec ? rec.upi : '');
-    ty += 6;
-    doc.setFont('helvetica','bold'); doc.setFontSize(7.2); doc.setTextColor(...PDF_BLUE);
-    doc.text(week, x+3, ty);
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.25); doc.line(x+3, ty+1.6, x+cardW-3, ty+1.6);
-    ty += 5.6;
-    doc.setFont('helvetica','normal'); doc.setFontSize(6.6); doc.setTextColor(60,60,60);
-    const maxLines = Math.max(1, Math.floor((y+cardH-4-ty)/4.2));
-    exams.slice(0, maxLines).forEach(ex => {
-      doc.setFont('helvetica','bold'); doc.text(ex.day.slice(0,3)+' '+fmtTime(ex.start), x+3, ty);
-      const label = ex.subject+(ex.note ? ' ('+ex.note+')' : ''), short = doc.splitTextToSize(label, cardW-27)[0];
-      doc.setFont('helvetica','normal'); doc.text(short, x+25, ty);
-      ty += 4.2;
-    });
-    doc.setFontSize(6); doc.setTextColor(160,160,160);
-    doc.text('#'+String(i+1).padStart(3,'0'), x+cardW-3, y+cardH-2, { align:'right' });
-  }
-  doc.save((S.section + ' Exam Cards ' + week).replace(/[^\w\-]+/g, '_') + '.pdf');
-  return true;
-}
-let cardsRoster = [];
-$('#cardsBtn').addEventListener('click', () => {
-  const wk = getWeek(iso(S.sel));
-  if (!countLessons(wk)){ toast('This week has no exams yet, so there is nothing to put on a card.'); return; }
-  $('#ccErr').textContent = '';
-  $('#ccSection').textContent = S.section;
-  cardsRoster = rosterFor(gradesOf(S.section));
-  const lr = cardsRoster.length || learnersFor(gradesOf(S.section));
-  $('#ccCount').value = lr || 40;
-  $('#ccRosterNote').textContent = cardsRoster.length
-    ? cardsRoster.length+' learner'+(cardsRoster.length===1?'':'s')+' on record — each card is pre-filled with their name, assessment number and UPI where available. Extra cards beyond that are left blank to fill in by hand.'
-    : 'No learner records found for this grade yet — cards print blank, for each learner to fill in by hand.';
-  $('#cardsDlg').showModal();
-});
-$('#ccCancel').addEventListener('click', () => $('#cardsDlg').close());
-$('#cardsForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const n = parseInt($('#ccCount').value, 10);
-  if (!n || n < 1){ $('#ccErr').textContent = 'Enter how many cards to print.'; return; }
-  if (!(window.jspdf && window.jspdf.jsPDF)){ $('#ccErr').textContent = 'The PDF tools did not load. Check your connection and try again.'; return; }
-  const btn = $('#ccGo'), label = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Building…';
-  try {
-    const ok = await buildLearnerCardsPdf(n, cardsRoster);
-    if (ok){ $('#cardsDlg').close(); toast('Exam cards downloaded'); }
-    else { $('#ccErr').textContent = 'This week has no exams yet.'; }
-  } catch(err){ console.error('[Exam cards]', err); $('#ccErr').textContent = 'Could not build the PDF. Please try again.'; }
-  finally { btn.disabled = false; btn.textContent = label; }
-});
-
-/* ---------- Conflict-free auto-suggest: fill exams that are missing an invigilator ---------- */
-function bestInvigilatorFor(d, si, oth, loads, exclude, sectionGrades, preferLevel){
-  const candidates = new Map();
-  (S.roster||[]).forEach(t => { if (t.name) candidates.set(normName(t.name), t); });
-  loads.forEach(e => { const k = normName(e.name); if (!candidates.has(k)) candidates.set(k, {name:e.name, grades:[]}); });
-  let best = null, bestScore = Infinity;
-  candidates.forEach((t,k) => {
-    if (!k || (exclude && exclude.has(k))) return;
-    if (clashes(d, si, t.name, oth).length) return;                 // never suggest a clash
-    const e = loads.get(k), dayN = e ? (e.day[d]||0) : 0, weekN = e ? e.week : 0;
-    if (dayN >= LOAD.day || weekN >= LOAD.week) return;            // don't push anyone into a heavy load
-    const teachesLevel = sectionGrades.length && Array.isArray(t.grades) && t.grades.some(g => sectionGrades.includes(g));
-    const levelPenalty = (preferLevel && sectionGrades.length && !teachesLevel) ? 1000 : 0;   // prefer this level, but fall back to anyone conflict-free if nobody at that level is available
-    const score = levelPenalty + weekN*10 + dayN;
-    if (score < bestScore){ bestScore = score; best = t.name; }
-  });
-  return best;
-}
-async function autoAssignInvigilators(){
-  if (!guard()) return;
-  const key = iso(S.sel), wk = getWeek(key), oth = others(key), loads = teacherLoads(key);
-  const sectionGrades = gradesOf(S.section), preferLevel = $('#afLevelPref').checked;
-  const targets = []; wk.forEach((day,d) => day.forEach((l,s) => { if (l && !l.teacher) targets.push({d,s,l}); }));
-  if (!targets.length){ toast('Every exam already has an invigilator.'); return; }
-  const pickedToday = {}, cells = [];
-  targets.forEach(({d,s,l}) => {
-    const exclude = pickedToday[d] || new Set();
-    const name = bestInvigilatorFor(d, s, oth, loads, exclude, sectionGrades, preferLevel);
-    if (!name) return;
-    cells.push({d, s, lesson:{...l, teacher:name}});
-    if (!pickedToday[d]) pickedToday[d] = new Set();
-    pickedToday[d].add(normName(name));
-    const e = loads.get(normName(name)) || {name, week:0, day:{}};
-    e.week++; e.day[d] = (e.day[d]||0) + 1; loads.set(normName(name), e);
-  });
-  if (!cells.length){ toast('No conflict-free invigilator was found. Add more names to the staff list and try again.'); return; }
-  await writeCells(key, cells);
-  toast('Assigned '+cells.length+' invigilator'+(cells.length===1?'':'s')+(cells.length<targets.length ? '; '+(targets.length-cells.length)+' left unassigned (no conflict-free option).' : '.'));
-}
-$('#autoFillBtn').addEventListener('click', autoAssignInvigilators);
 $('#printBtn').addEventListener('click', () => { try { window.print(); } catch(e){ toast('Printing is not available here'); } });
 $('#q').addEventListener('input', e => { S.query = e.target.value; renderGrid(); });
-
-let examTitleTimer;
-$('#examTitleInput').addEventListener('input', e => {
-  S.examTitles = S.examTitles || {}; S.examTitles[S.section] = e.target.value;
-  clearTimeout(examTitleTimer);
-  examTitleTimer = setTimeout(() => saveExamTitle(e.target.value.trim()), 700);
-});
-$('#examTitleInput').addEventListener('blur', () => { clearTimeout(examTitleTimer); saveExamTitle($('#examTitleInput').value.trim()); });
-
-$('#anTabs').addEventListener('click', e => {
-  const b = e.target.closest('button[data-an]'); if (!b) return;
-  S.anView = b.dataset.an; renderAnalytics();
-});
-$('#dpPrintBtn').addEventListener('click', () => {
-  const wk = getWeek(iso(S.sel));
-  if (!countLessons(wk)){ toast('This week has no exams yet, so there is nothing to print.'); return; }
-  S.printDayOnly = $('#dpDay').value; renderGrid();
-  setTimeout(() => { try { window.print(); } catch(e){ toast('Printing is not available here'); } }, 60);
-});
-window.addEventListener('afterprint', () => { if (S.printDayOnly){ S.printDayOnly = null; renderGrid(); } });
 
 /* Click outside a dialog to close it (only when the press and the click both land on the backdrop) */
 document.querySelectorAll('dialog').forEach(dlg => {
@@ -2937,34 +1699,7 @@ $('#gForm').addEventListener('submit', async e => {
   catch(err){ $('#gErr').textContent = 'Sign-in failed: '+(err && err.message || err); }
 });
 
-/* ---------- Live clock: keeps "now", "tomorrow", done/live states and the current week correct ---------- */
-let lastAuto = iso(baseMonday()), lastSig = '', tickTimer = 0;
-const timeSig = () => {
-  const m = S.now.getHours()*60 + S.now.getMinutes();
-  return iso(S.now)+'|'+S.slots.map(sl => m >= toMin(sl.end) ? 2 : m >= toMin(sl.start) ? 1 : 0).join('');
-};
-function tick(){
-  S.now = now0();
-  const cur = iso(baseMonday());
-  if (cur !== lastAuto){                       // a new working week has begun (or the weekend started)
-    if (iso(S.sel) === lastAuto){ S.sel = parseIso(cur); S.calMonth = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
-    lastAuto = cur; render(); lastSig = timeSig(); return;
-  }
-  const sig = timeSig();
-  if (sig !== lastSig){                        // midnight, or a period just started / ended
-    lastSig = sig; renderHeader(); renderGrid(); renderCal(); renderUpcoming();
-  } else { renderHeader(); renderUpcoming(); } // countdowns only
-}
-function scheduleTick(){
-  clearTimeout(tickTimer);
-  tickTimer = setTimeout(() => { tick(); scheduleTick(); }, 60000 - (Date.now() % 60000) + 250);   // on the minute
-}
-const wakeClock = () => { if (document.visibilityState === 'hidden') return; tick(); scheduleTick(); };
-document.addEventListener('visibilitychange', wakeClock);   // tab / phone brought back to the front
-window.addEventListener('focus', wakeClock);
-window.addEventListener('pageshow', wakeClock);
-window.addEventListener('online', wakeClock);
-scheduleTick();
+setInterval(() => { S.now = now0(); renderHeader(); renderUpcoming(); }, 60000);
 boot();
 </script>
 </body>

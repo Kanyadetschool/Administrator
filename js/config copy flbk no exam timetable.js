@@ -41,8 +41,6 @@ export const PATHS = {
   TIMETABLE_TIMES_PATH: 'timetableTimes', // timetableTimes/{section} = [time strings, index-aligned to TT_SECTIONS periods] — legacy override, still mirrored by teachers.html for the Admin Command Center's Timetable screen
   TIMETABLE_STRUCTURE_PATH: 'timetableStructure', // timetableStructure/{section} = { days:[[key,label],...], periods:[{time,brk},...] } — full grid shape override set from teachers.html's "🏗️ Structure" editor
   CLASS_TT_PATH:'classTimetables', // classTimetables/{section}/{grade} = { name, days: {...} } — full grid shape override set from teachers.html's "🏗️ Structure" editor
-  EXAM_STRUCTURE_PATH: 'examTimetableStructure', // examTimetableStructure/{section} = { days:[[key,label],...], periods:[{time,brk},...] } — the Examination Timetable Planner's own grid shape (separate from CLASS_TT_PATH / TIMETABLE_STRUCTURE_PATH, which are the class timetable)
-  EXAM_WEEKS_PATH: 'examTimetableWeeks', // examTimetableWeeks/{section}/{mondayISO}/d{0-6}/s{slot} = {subject,teacher,teacherUid,note,updatedBy,updatedAt} — one exam sitting per cell, written by the Examination Timetable Planner
 };
 
 // Compulsory session length used by session-manager.js's SessionManager/guardPage.
