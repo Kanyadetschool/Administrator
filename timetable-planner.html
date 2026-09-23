@@ -2272,9 +2272,12 @@ $('#weekListToday').addEventListener('click', () => { S.weekAnchor = null; rende
 let notifiedLive = new Set();
 function updateNotifyBtn(){
   const b = $('#notifyBtn'); if (!b) return;
+  const blocked = typeof Notification !== 'undefined' && Notification.permission === 'denied';
   b.textContent = S.notify ? '🔔' : '🔕';
   b.setAttribute('aria-pressed', String(S.notify));
-  b.title = S.notify ? 'Exam start notifications on — tap to turn off' : 'Get a notification when an exam starts';
+  b.title = S.notify ? 'Exam start notifications on — tap to turn off'
+    : blocked ? 'Notifications are blocked for this site — tap for how to allow them'
+    : 'Get a notification when an exam starts';
 }
 function checkLiveNotifications(){
   if (!S.notify || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
@@ -2294,6 +2297,7 @@ function checkLiveNotifications(){
 $('#notifyBtn').addEventListener('click', async () => {
   if (S.notify){ S.notify = false; lsSet('kanyadetTTNotify', false); updateNotifyBtn(); toast('Exam notifications turned off'); return; }
   if (typeof Notification === 'undefined'){ toast('Notifications are not supported in this browser.'); return; }
+  if (Notification.permission === 'denied'){ toast('Notifications are blocked for this site. Open the site info icon next to the address bar, set Notifications to Allow, then tap this bell again.', 7000); return; }
   const perm = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
   if (perm !== 'granted'){ toast('Notifications were not allowed.'); return; }
   S.notify = true; lsSet('kanyadetTTNotify', true); updateNotifyBtn(); toast('You will be notified when an exam starts.'); checkLiveNotifications();
