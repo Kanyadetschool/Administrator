@@ -842,6 +842,7 @@ a{color:inherit;text-decoration:none;}
       <div class="nav-item" data-view="gradebook" data-title="Gradebook" data-crumb="Recent scores for your classes"><span class="nav-icon">📝</span>Gradebook</div>
       <div class="nav-item" data-view="insights" data-title="At-Risk Insights" data-crumb="Students falling behind on scores or attendance"><span class="nav-icon">🚨</span>At-Risk Insights</div>
       <div class="nav-item" data-view="timetable" data-title="Timetable" data-crumb="Weekly lesson schedule"><span class="nav-icon">🗓️</span>Timetable</div>
+      <div class="nav-item" data-view="exam-timetable" data-title="Exam Timetable" data-crumb="Examination schedules &amp; invigilation duties"><span class="nav-icon">⏱️</span>Exam Timetable<span class="nav-badge" style="background:#7b5cd1;color:#fff;">Planner</span></div>
       <div class="nav-item" data-view="calendar" data-title="School Calendar" data-crumb="Term dates, exams &amp; events"><span class="nav-icon">📅</span>Calendar<span class="nav-badge" id="badge-cal" style="display:none;">0</span></div>
 
       <div class="s-label" style="margin-top:14px;">Connect</div>
@@ -3287,6 +3288,7 @@ VR3['timetable'] = async function(area){
           ${Object.keys(TT_SECTIONS).map(k=>`<option value="${k}">${esc3(TT_SECTIONS[k].label)}</option>`).join('')}
         </select>
         <select class="f-select" id="tt-teacher" style="width:180px;"></select>
+        <a href="./timetable-planner.html" target="_blank" class="btn btn-outline btn-sm" style="display:inline-flex;align-items:center;gap:4px;border-color:#7b5cd1;color:#7b5cd1;font-weight:700;">⏱️ Exam Timetable Planner ↗</a>
         ${admin ? `<button class="btn btn-outline btn-sm" id="tt-add-teacher-btn">+ Add Teacher</button>
                    <button class="btn btn-outline btn-sm" id="tt-delete-teacher-btn">🗑️ Delete Teacher</button>
                    <button class="btn btn-outline btn-sm" id="tt-import-btn">📥 Import HTML</button>
@@ -4573,6 +4575,28 @@ VR3['timetable'] = async function(area){
 };
 
 /* ══════════════════════════════════════════
+   EXAM TIMETABLE PLANNER
+══════════════════════════════════════════ */
+VR3['exam-timetable'] = async function(area){
+  area.innerHTML = `
+    <div class="sec-hdr">
+      <div>
+        <h2>Exam Timetable Planner</h2>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;">Examination schedules, invigilator duty roster, learner exam cards &amp; PDF duty sheets.</div>
+      </div>
+      <div class="actions-row">
+        <a class="btn btn-blue btn-sm" href="./timetable-planner.html" target="_blank" style="background:#7b5cd1;color:#fff;display:inline-flex;align-items:center;gap:6px;">⏱️ Open Fullscreen Planner ↗</a>
+        <button class="btn btn-outline btn-sm" type="button" onclick="window._navTo && window._navTo('timetable')">🗓️ Weekly Lesson Timetable</button>
+        <button class="btn btn-outline btn-sm" type="button" onclick="const f=document.getElementById('teacherExamFrame'); if(f) f.src=f.src;">🔄 Reload</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;border-radius:18px;margin-top:10px;">
+      <iframe id="teacherExamFrame" src="./timetable-planner.html" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Examination Timetable Planner"></iframe>
+    </div>
+  `;
+};
+
+/* ══════════════════════════════════════════
    ANNOUNCEMENTS
 ══════════════════════════════════════════ */
 VR3['announcements'] = async function(area){
@@ -5571,18 +5595,18 @@ VR4['portals'] = async function(area){
       </div>
     </div>
     <div class="link-grid" style="margin-top:14px;">
-              <a class="link-card" href="https://kanyadet-school-portal.web.app/login.html" target="_blank"><div class="lc-icon">📄</div><div class="lc-title">Home Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/index.html" target="_blank"><div class="lc-icon">⚙️</div><div class="lc-title">Admin Command Center</div><div class="lc-desc">School-wide dashboard, roster, and analytics (admin access required).</div></a>
+              <a class="link-card" href="./timetable-planner.html" target="_blank"><div class="lc-icon">⏱️</div><div class="lc-title">Exam Timetable Planner</div><div class="lc-desc">Examination timetables, invigilator duty roster, learner exam cards & PDF duty rosters.</div></a>
+              <a class="link-card" href="./index.html" target="_blank"><div class="lc-icon">⚙️</div><div class="lc-title">Admin Command Center</div><div class="lc-desc">School-wide dashboard, roster, and analytics (admin access required).</div></a>
               <a class="link-card" href="https://kanyadet-school-parents.web.app/" target="_blank"><div class="lc-icon">👨‍👩‍👧‍👦</div><div class="lc-title">Parents Portal</div><div class="lc-desc">Access to student information and communication with teachers.</div></a>
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Individual-student-portal.html" target="_blank"><div class="lc-icon">🏫</div><div class="lc-title">Student Portal</div><div class="lc-desc">Access to student information and communication with teachers.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch/lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch/food.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Food budget Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
-              <a class="link-card" href="https://kanyadet-school-portal.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
+              <a class="link-card" href="./lunch/lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
+              <a class="link-card" href="./lunch/food.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Food budget Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
+              <a class="link-card" href="./Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
+              <a class="link-card" href="./Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
+              <a class="link-card" href="./Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
+              <a class="link-card" href="./teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
               <a class="link-card" href="https://kanyadet-school-portal.web.app/Home.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Resources</div><div class="lc-desc">Get advanced learning resources instantly  </div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Library</div><div class="lc-desc">Get advanced learning resources instantly  </div></a>
+              <a class="link-card" href="./Library system/library.html" target="_blank"><div class="lc-icon">📚</div><div class="lc-title">Library</div><div class="lc-desc">Book catalog, loans, and reservations admin.</div></a>
     </div>`;
 };
 
@@ -6012,7 +6036,7 @@ if(window._fcmReadyPromise){
    GLOBAL SEARCH / COMMAND PALETTE (Ctrl+K)
 ══════════════════════════════════════════ */
 function cmdkNavIcon(id){
-  const map = { dashboard:'📊', profile:'👤', classes:'🏷️', attendance:'✅', gradebook:'📝', insights:'🚨', timetable:'🗓️', calendar:'📅', messages:'💬', parentmsg:'✉️', announcements:'📢', resources:'📚', leave:'🌴', welfare:'🤝', portals:'🔗', settings:'⚙️' };
+  const map = { dashboard:'📊', profile:'👤', classes:'🏷️', attendance:'✅', gradebook:'📝', insights:'🚨', timetable:'🗓️', 'exam-timetable':'⏱️', calendar:'📅', messages:'💬', parentmsg:'✉️', announcements:'📢', resources:'📚', leave:'🌴', welfare:'🤝', portals:'🔗', settings:'⚙️' };
   return map[id] || '•';
 }
 let cmdkFlatItems = [];

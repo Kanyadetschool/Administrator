@@ -597,7 +597,7 @@
       <div class="sidebar-section">
         <div class="s-label">Navigation</div>
         <div class="nav-item active" data-view="dashboard"><span class="nav-icon">📊</span>Dashboard <span class="nav-badge" id="nav-pending">0</span></div>
-        <div class="nav-item" data-view="Timetable">  <a href="./timetable-planner.html" target="_blank" >  <span class="nav-icon">📊</span>Timetable Planner </a> <span class="nav-badge" id="nav-pending">1</span> </div>
+        <div class="nav-item" data-view="timetable"><span class="nav-icon">⏱️</span>Exam Timetable <span class="nav-badge" style="background:#7b5cd1;color:#fff;">Planner</span></div>
         <div class="nav-item" data-view="students"><span class="nav-icon">🎓</span>Students <span class="nav-badge" id="nav-students">—</span></div>
         <div class="nav-item" data-view="admissions"><span class="nav-icon">📝</span>Admissions <span class="nav-badge orange" id="nav-admissions">0</span></div>
         <div class="nav-item" data-view="teachers"><span class="nav-icon">👩‍🏫</span>Teachers <span class="nav-badge" id="nav-teachers">—</span></div>
@@ -768,6 +768,7 @@
               <div class="quick-tile" data-goto="messages" data-action="new-ann"><div class="qt-icon">📢</div><div class="qt-label">Notice</div><div class="qt-desc">Broadcast update</div></div>
               <div class="quick-tile" data-href="/Results/Results-portal.html"><div class="qt-icon">📋</div><div class="qt-label">Results Portal</div><div class="qt-desc">Grades & reports</div></div>
               <div class="quick-tile" data-goto="welfare"><div class="qt-icon">🍽️</div><div class="qt-label">Welfare</div><div class="qt-desc">Lunch contributions</div></div>
+              <div class="quick-tile" data-goto="timetable"><div class="qt-icon">⏱️</div><div class="qt-label">Exam Timetable</div><div class="qt-desc">Schedules & invigilators</div></div>
             </div>
           </div>
 
@@ -1537,6 +1538,24 @@
           </div>
         </section>
 
+        <!-- EXAM TIMETABLE PLANNER -->
+        <section class="view" id="timetable">
+          <div class="sec-hdr">
+            <div>
+              <h2>Examination Timetable Planner</h2>
+              <div class="sec-sub">Examination schedules, invigilator duty roster, learner exam cards &amp; PDF duty sheets.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="./timetable-planner.html" target="_blank" style="background:#7b5cd1;color:#fff;display:inline-flex;align-items:center;gap:6px;">⏱️ Open Fullscreen Planner ↗</a>
+              <a class="btn btn-outline btn-sm" href="./teachers.html" target="_blank">👩‍🏫 Teachers Portal ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="const f=document.getElementById('examPlannerFrame'); if(f) f.src=f.src;">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="examPlannerFrame" src="./timetable-planner.html" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Examination Timetable Planner"></iframe>
+          </div>
+        </section>
+
         <section class="view" id="portals">
           <div class="sec-hdr">
             <div>
@@ -1555,7 +1574,7 @@
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, resources, and messaging workspace.</div></a>
+              <a class="link-card" href="./teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, attendance, gradebook & messaging workspace.</div></a>
               <a class="link-card" href="./Report-Cards/Admin-Individual-student-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Admin Student Progress</div><div class="lc-desc">View detailed student progress across all classes.</div></a>
               <a class="link-card" href="./updater.html" target="_blank"><div class="lc-icon">🛠️</div><div class="lc-title">Bulk Updater</div><div class="lc-desc">Bulk-edit student records across the database in one pass.</div></a>
               <a class="link-card" href="./cleaner.html" target="_blank"><div class="lc-icon">🧹</div><div class="lc-title">Cleaner Updater</div><div class="lc-desc">Find and clean up duplicate or malformed student records.</div></a>
@@ -1565,7 +1584,7 @@
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#fines" target="_blank"><div class="lc-icon">💰</div><div class="lc-title">Library Fines</div><div class="lc-desc">Outstanding fines, payments and waivers.</div></a>
               <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#bookCondition" target="_blank"><div class="lc-icon">🔍</div><div class="lc-title">Book Condition</div><div class="lc-desc">Condition grading, damaged/retired stock and replacement costs.</div></a>
               <a class="link-card" href="https://kanyadet-school-portal.web.app/student-portal.html" target="_blank"><div class="lc-icon">📗</div><div class="lc-title">Textbook Portal</div><div class="lc-desc">Textbook issuance and return tracking (verify link before use).</div></a>
-              <a class="link-card" href="https://kanyadetschool.github.io/" target="_blank"><div class="lc-icon">🗓️</div><div class="lc-title">Timetable</div><div class="lc-desc">School-wide timetable index (verify link before use).</div></a>
+              <a class="link-card" href="./timetable-planner.html" target="_blank"><div class="lc-icon">⏱️</div><div class="lc-title">Exam Timetable Planner</div><div class="lc-desc">Examination timetables, invigilator allocations, learner exam cards & PDF duty rosters.</div></a>
 
             </div>
           </div>
@@ -1701,6 +1720,7 @@
       messages: ['Announcements', 'School-wide broadcasts'],
       feedback: ['Feedback', 'Teacher reports & parent inquiries'],
       calendar: ['Calendar', 'Term dates, exams & school events'],
+      timetable: ['Exam Timetable Planner', 'Examination schedules, invigilators & exam cards'],
       portals: ['Linked Portals', 'Jump to specialized tools']
     };
 
@@ -6597,7 +6617,7 @@
       return groups;
     }
     function navIconFor(id){
-      const map = { dashboard:'📊', students:'🎓', teachers:'👩‍🏫', attendance:'🧾', results:'📝', welfare:'🍽️', settings:'⚙️', audit:'🛡️', messages:'📢', calendar:'🗓️', portals:'🔗' };
+      const map = { dashboard:'📊', timetable:'⏱️', students:'🎓', teachers:'👩‍🏫', attendance:'🧾', results:'📝', welfare:'🍽️', settings:'⚙️', audit:'🛡️', messages:'📢', calendar:'🗓️', portals:'🔗' };
       return map[id] || '•';
     }
     function cmdkRender(){

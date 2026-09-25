@@ -421,6 +421,8 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
         <p id="termProgress" class="termProgress" hidden></p>
       </div>
       <div class="top-r">
+        <a href="./index.html" class="btn ghost sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Go to Admin Command Center">⚙️ Admin Center</a>
+        <a href="./teachers.html" class="btn ghost sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Go to Teachers Portal">👩‍🏫 Teachers</a>
         <span class="sync" id="sync"><i></i><span>Connecting</span></span>
         <label class="search">
           <span aria-hidden="true">🔍</span>
@@ -740,11 +742,12 @@ const CONFIG = {
   },
   SITE: "https://kanyadetschool.github.io/",
   LINKS: [
-    ["📊", "Results portal", "results/"],
-    ["👩‍🏫", "Teachers portal", "teachers-portal.html"],
-    ["👪", "Parents portal", "parents-portal.html"],
-    ["📚", "Library", "library-admin.html"],
-    ["🍲", "Lunch", "lunch.html"]
+    ["⚙️", "Admin Command Center", "./index.html"],
+    ["👩‍🏫", "Teachers Portal", "./teachers.html"],
+    ["📋", "Results Portal", "./Results-portal.html"],
+    ["📚", "Library System", "./Library system/library.html"],
+    ["🍽️", "Welfare / Lunch", "./lunch/lunch.html"],
+    ["👨‍👩‍👧‍👦", "Parents Portal", "https://kanyadet-school-parents.web.app/"]
   ]
 };
 const P = CONFIG.PATHS;
@@ -1557,8 +1560,12 @@ function renderDayPrintSelect(){
 }
 
 function renderPortals(){
-  $('#portals').innerHTML = '<h3>Linked portals</h3>' + CONFIG.LINKS.map(l =>
-    '<a href="'+esc(CONFIG.SITE+l[2])+'" target="_blank" rel="noopener"><span aria-hidden="true">'+l[0]+'</span>'+esc(l[1])+'</a>').join('');
+  $('#portals').innerHTML = '<h3>Linked portals</h3>' + CONFIG.LINKS.map(l => {
+    const isAbs = l[2].startsWith('http') || l[2].startsWith('/');
+    const isRel = l[2].startsWith('./') || l[2].startsWith('../');
+    const href = (isAbs || isRel) ? l[2] : (CONFIG.SITE + l[2]);
+    return '<a href="'+esc(href)+'" target="_blank" rel="noopener"><span aria-hidden="true">'+l[0]+'</span>'+esc(l[1])+'</a>';
+  }).join('');
 }
 
 function renderUser(){
