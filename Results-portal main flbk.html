@@ -17742,15 +17742,6 @@ async function loadQuickEntry(){
   }));
   _removedSubjects.forEach(s => subjSet.delete(s));
   _qeSubjects = [...subjSet].sort();
-  // A regular subject teacher (not an Advanced Admin, not this grade's Class
-  // Teacher) should only see the subject column(s) they're actually assigned
-  // for this grade — not every subject in the class with the rest locked out.
-  // Filtering _qeSubjects itself (rather than just hiding cells later) keeps
-  // every downstream consumer — headers, DataTables column count, the mobile
-  // subject bar/jump buttons, missing-score badges — automatically in sync.
-  if(!isAdvancedAdmin && !_isClassTeacherOfGrade(pendingGrade)){
-    _qeSubjects = _qeSubjects.filter(s => _teacherCanEnterSubject(pendingGrade, s));
-  }
   _qeStudents = finalStudents;
 
   // ── Pull in any scores already submitted to the database for this exam ────

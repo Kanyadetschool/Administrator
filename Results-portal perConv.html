@@ -16254,6 +16254,14 @@ let _qeDirtyCells = new Set();  // 'studentKey||subject' cells the user has type
 let _qePendingCells = new Set(); // subset of cells changed since the LAST successful save — this is
                                   // what actually gets written (as a multi-path update) next autosave,
                                   // so the write only ever touches cells this device actually changed.
+let _qeSubjectRawMode  = {}; // subject -> bool — when true, the score box for that subject column
+                              // accepts a RAW score (0–max) instead of a direct percentage; the raw
+                              // value is converted to a percentage (raw ÷ max × 100) at submit time,
+                              // so everything already stored/consumed elsewhere in the app still only
+                              // ever sees percentages, exactly like before this feature existed.
+let _qeSubjectMaxScore = {}; // subject -> number — the max score the teacher marked that subject out
+                              // of, used as the divisor for the raw→percentage conversion above.
+                              // Defaults to 100 (i.e. a no-op conversion) until the teacher sets one.
 
 // Encodes a piece of a Firebase RTDB path segment (student key / subject name)
 // so it can never collide with '.', '#', '$', '[', ']', or '/', all of which
@@ -17742,15 +17750,6 @@ async function loadQuickEntry(){
   }));
   _removedSubjects.forEach(s => subjSet.delete(s));
   _qeSubjects = [...subjSet].sort();
-  // A regular subject teacher (not an Advanced Admin, not this grade's Class
-  // Teacher) should only see the subject column(s) they're actually assigned
-  // for this grade — not every subject in the class with the rest locked out.
-  // Filtering _qeSubjects itself (rather than just hiding cells later) keeps
-  // every downstream consumer — headers, DataTables column count, the mobile
-  // subject bar/jump buttons, missing-score badges — automatically in sync.
-  if(!isAdvancedAdmin && !_isClassTeacherOfGrade(pendingGrade)){
-    _qeSubjects = _qeSubjects.filter(s => _teacherCanEnterSubject(pendingGrade, s));
-  }
   _qeStudents = finalStudents;
 
   // ── Pull in any scores already submitted to the database for this exam ────
@@ -18140,9 +18139,24 @@ function renderQuickEntryTable(draftScores, locked){
     // whoever can enter this subject can see at a glance how many of THEIR
     // cells are still blank, without hunting across the whole sheet.
     const missBadge = `<span class="qe-miss-badge" data-subj="${_qeEsc(s)}" title="Scores still missing for this subject" style="display:none;margin-left:4px;padding:1px 6px;border-radius:9px;background:rgba(231,76,60,.15);color:var(--red);font-size:10px;font-weight:700;white-space:nowrap"></span>`;
+    // Raw-score entry toggle for this subject column — when ticked, the score
+    // boxes below accept a raw mark (0–max) instead of a direct percentage;
+    // the max-score box sets the divisor. Disabled once the sheet is locked,
+    // same as the score boxes themselves. Only meaningful for a subject this
+    // teacher can actually enter, so it's suppressed for a locked-out column.
+    const sForAttr = s.replace(/'/g,"\\'");
+    const rawOn = !!_qeSubjectRawMode[s];
+    const rawMaxVal = _qeSubjectMaxScore[s] || 100;
+    const rawDisabledAttr = locked ? 'disabled' : '';
+    const rawControls = mine ? `<div style="display:flex;align-items:center;gap:3px;margin-top:3px;font-size:9px;font-weight:600;color:var(--text3)" onclick="event.stopPropagation()">
+      <label style="display:flex;align-items:center;gap:2px;cursor:${locked?'default':'pointer'};white-space:nowrap" title="Enter raw scores for ${_qeEsc(s)} and let the system convert them to a percentage using the max score">
+        <input type="checkbox" ${rawOn?'checked':''} ${rawDisabledAttr} onchange="_qeToggleRawMode('${sForAttr}', this.checked)" style="margin:0;cursor:${locked?'default':'pointer'}">Raw
+      </label>
+      <input type="number" min="1" step="1" value="${rawMaxVal}" ${rawDisabledAttr} ${rawOn?'':'disabled'} data-rawmax-for="${_qeEsc(s)}" oninput="_qeSetSubjectMax('${sForAttr}', this.value)" title="Max score ${_qeEsc(s)} is marked out of" style="width:36px;padding:1px 3px;border:1px solid var(--border-strong);border-radius:4px;background:var(--surface2);color:var(--text);font-size:9px">
+    </div>` : '';
     return canEditSubjects
-      ? `<th style="${thStyle}">${nameSpan}${missBadge}<span${lockTitle}>${lockNote}</span> <button onclick="event.stopPropagation();_qeRemoveSubjectFromSheet('${s.replace(/'/g,"\\'")}')" title="Remove this subject from the sheet" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:11px;padding:0 0 0 2px">✕</button></th>`
-      : `<th style="${thStyle}">${nameSpan}${missBadge}<span${lockTitle}>${lockNote}</span></th>`;
+      ? `<th style="${thStyle}">${nameSpan}${missBadge}<span${lockTitle}>${lockNote}</span> <button onclick="event.stopPropagation();_qeRemoveSubjectFromSheet('${s.replace(/'/g,"\\'")}')" title="Remove this subject from the sheet" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:11px;padding:0 0 0 2px">✕</button>${rawControls}</th>`
+      : `<th style="${thStyle}">${nameSpan}${missBadge}<span${lockTitle}>${lockNote}</span>${rawControls}</th>`;
   }).join('')}${canRemoveStudents?'<th style="width:44px"></th>':''}`;
   tbody.innerHTML = _qeStudents.map((r,i)=>{
     const key = _qeStudentKey(r);
@@ -18169,7 +18183,15 @@ function renderQuickEntryTable(draftScores, locked){
         if(!canEnterSubject(s)){
           return `<td><input type="number" value="${val}" data-student="${key}" data-subject="${s}" disabled readonly title="🔒 You're not assigned ${s} for ${gradeForPerms}" style="width:70px;padding:4px 6px;border:1.5px solid var(--red);border-radius:6px;background:rgba(231,76,60,.08);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.7;cursor:not-allowed"></td>`;
         }
-        return `<td><input type="number" min="0" max="100" step="0.1" value="${val}" data-student="${key}" data-subject="${s}" oninput="_qeOnScoreInput(this)" style="width:70px;padding:4px 6px;border:1.5px solid var(--green);border-radius:6px;background:rgba(39,174,96,.07);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px"></td>`;
+        // Raw-score mode for this subject: the box accepts 0–max (the mark out
+        // of whatever the teacher set) instead of a direct 0–100 percentage —
+        // _qeValidateScoreInput and the submit-time conversion both key off
+        // the same _qeSubjectRawMode/_qeSubjectMaxScore state, so this input's
+        // bounds/placeholder are just a reflection of it, not a separate rule.
+        const subjRawOn  = !!_qeSubjectRawMode[s];
+        const subjRawMax = _qeSubjectMaxScore[s] || 100;
+        const rawTitle = subjRawOn ? ` title="Raw score, out of ${subjRawMax} — converted to a percentage on submit"` : '';
+        return `<td><input type="number" min="0" max="${subjRawMax}" step="0.1" value="${val}" data-student="${key}" data-subject="${s}"${rawTitle} oninput="_qeOnScoreInput(this)" style="width:70px;padding:4px 6px;border:1.5px solid ${subjRawOn?'var(--orange)':'var(--green)'};border-radius:6px;background:${subjRawOn?'rgba(255,159,10,.07)':'rgba(39,174,96,.07)'};color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px"></td>`;
       }).join('')}
       ${canRemoveStudents ? `<td><button class="btn btn-red btn-sm" style="padding:2px 8px;font-size:11px" onclick="_qeRemoveStudentRow('${key}')" title="Remove from this sheet">🗑️</button></td>` : ''}
     </tr>`;
@@ -18942,13 +18964,56 @@ function _qeValidateScoreInput(inputEl){
   if(firstDot !== -1) cleaned = cleaned.slice(0,firstDot+1) + cleaned.slice(firstDot+1).replace(/\./g,'');
   if(cleaned !== raw) inputEl.value = cleaned;
 
+  // A subject in raw-score mode is bounded by ITS max score, not the usual
+  // 0–100 — everything else about validation (cleaning, red-flagging) stays
+  // identical.
+  const subj = inputEl.getAttribute('data-subject');
+  const maxAllowed = (subj && _qeSubjectRawMode[subj]) ? (_qeSubjectMaxScore[subj] || 100) : 100;
+
   const v = parseFloat(cleaned);
-  const invalid = cleaned !== '' && (isNaN(v) || v < 0 || v > 100);
+  const invalid = cleaned !== '' && (isNaN(v) || v < 0 || v > maxAllowed);
   inputEl.style.borderColor = invalid ? 'var(--red)' : '';
   inputEl.style.background  = invalid ? 'rgba(220,53,69,0.1)' : '';
-  inputEl.title = invalid ? '⚠️ Score must be between 0 and 100' : '';
+  inputEl.title = invalid ? `⚠️ Score must be between 0 and ${maxAllowed}` : '';
   inputEl.classList.toggle('qe-invalid-score', invalid);
 }
+
+/** Toggles raw-score entry for one subject column — flips the shared state,
+ *  re-stamps every box in that column with the new min/max/title/color so
+ *  the UI matches immediately (no re-render needed), and re-validates
+ *  anything already typed against the new bounds. Turning it OFF snaps the
+ *  max-score box back to disabled but leaves its last value in place, in
+ *  case the teacher flips it back on for the same subject. */
+function _qeToggleRawMode(subj, enabled){
+  _qeSubjectRawMode[subj] = !!enabled;
+  if(enabled && !_qeSubjectMaxScore[subj]) _qeSubjectMaxScore[subj] = 100;
+  const max = _qeSubjectMaxScore[subj] || 100;
+  const maxBox = document.querySelector(`#qe-thead-row input[data-rawmax-for="${CSS.escape(subj)}"]`);
+  if(maxBox) maxBox.disabled = !enabled;
+  document.querySelectorAll(`#qe-tbody input[data-subject="${CSS.escape(subj)}"]`).forEach(inp=>{
+    inp.max = enabled ? max : 100;
+    inp.style.borderColor = enabled ? 'var(--orange)' : 'var(--green)';
+    inp.style.background  = enabled ? 'rgba(255,159,10,.07)' : 'rgba(39,174,96,.07)';
+    inp.title = enabled ? `Raw score, out of ${max} — converted to a percentage on submit` : '';
+    _qeValidateScoreInput(inp);
+  });
+}
+window._qeToggleRawMode = _qeToggleRawMode;
+
+/** Updates the max-score-out-of for one subject's raw-score conversion and
+ *  re-stamps/re-validates that column's boxes, same as above. */
+function _qeSetSubjectMax(subj, val){
+  const n = parseFloat(val);
+  const max = (!isNaN(n) && n > 0) ? n : 100;
+  _qeSubjectMaxScore[subj] = max;
+  if(!_qeSubjectRawMode[subj]) return; // box is disabled until raw mode is on; nothing to re-stamp
+  document.querySelectorAll(`#qe-tbody input[data-subject="${CSS.escape(subj)}"]`).forEach(inp=>{
+    inp.max = max;
+    inp.title = `Raw score, out of ${max} — converted to a percentage on submit`;
+    _qeValidateScoreInput(inp);
+  });
+}
+window._qeSetSubjectMax = _qeSetSubjectMax;
 
 /** Debounced autosave — fires ~1.2s after the user stops typing. Marks the
  *  edited cell as both "dirty" (protected from incoming live updates until
@@ -19363,12 +19428,14 @@ async function submitQuickEntry(){
   const studentsWithScores = Object.keys(scores).filter(k => scores[k] && Object.keys(scores[k]).length);
   if(!studentsWithScores.length){ notify('No scores entered yet.','warn'); return; }
 
-  // ── Validate range before writing ─────────────────────────────────────────
+  // ── Validate range before writing — a subject in raw-score mode is bounded
+  // by its own max score instead of 0–100. ───────────────────────────────────
   let invalidCount=0;
   Object.values(scores).forEach(subjMap=>{
     Object.keys(subjMap).forEach(s=>{
       const v=parseFloat(subjMap[s]);
-      if(isNaN(v)||v<0||v>100){ invalidCount++; delete subjMap[s]; }
+      const maxAllowed = _qeSubjectRawMode[s] ? (_qeSubjectMaxScore[s]||100) : 100;
+      if(isNaN(v)||v<0||v>maxAllowed){ invalidCount++; delete subjMap[s]; }
     });
   });
 
@@ -19406,7 +19473,19 @@ async function submitQuickEntry(){
     if(!subjMap || !Object.keys(subjMap).length) continue;
 
     const parsed = {};
-    Object.keys(subjMap).forEach(s=>{ const v=parseFloat(subjMap[s]); if(!isNaN(v)) parsed[s]=v; });
+    Object.keys(subjMap).forEach(s=>{
+      let v=parseFloat(subjMap[s]);
+      if(isNaN(v)) return;
+      // Raw-score subject: what's on screen is a mark out of _qeSubjectMaxScore[s],
+      // not a percentage — convert it now, at the moment of writing to the
+      // database, so every other reader of this field (grading, averages,
+      // analytics, ...) keeps seeing a plain 0–100 percentage exactly as before.
+      if(_qeSubjectRawMode[s]){
+        const max = _qeSubjectMaxScore[s] || 100;
+        v = max > 0 ? Math.round((v / max) * 1000) / 10 : 0; // one decimal place
+      }
+      parsed[s]=v;
+    });
     if(!Object.keys(parsed).length) continue;
 
     // Does a record already exist for this exact student + exam?
