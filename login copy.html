@@ -107,42 +107,6 @@
     .portal-link:hover .portal-arrow,.portal-link:focus-visible .portal-arrow{opacity:1;transform:none;color:var(--c)}
     @media(max-width:360px){.portal-grid{grid-template-columns:1fr}}
     @media(hover:none){.portal-arrow{display:none}}
-    /* ── Email button + modal ── */
-    .auth-btn-email{background:var(--surface2);color:var(--text);border:1.5px solid var(--border-strong,var(--border))}
-    .auth-btn-email:hover{transform:translateY(-2px);border-color:var(--blue-lt);box-shadow:0 10px 24px -10px var(--blue-glow)}
-    .em-overlay{position:fixed;inset:0;z-index:2100;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,20,38,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s linear .25s}
-    .em-overlay.open{opacity:1;visibility:visible;transition:opacity .25s ease}
-    .em-sheet{position:relative;width:100%;max-width:400px;max-height:calc(100dvh - 32px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:26px;padding:2rem 1.7rem 1.4rem;box-shadow:0 40px 100px rgba(6,18,36,.45);transform:translateY(18px) scale(.96);opacity:0;transition:transform .32s cubic-bezier(.2,.9,.3,1.15),opacity .25s ease}
-    .em-overlay.open .em-sheet{transform:none;opacity:1}
-    .em-grip{display:none;width:42px;height:4px;border-radius:4px;background:var(--border-strong,var(--border));margin:-.9rem auto 1rem}
-    .em-close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);display:grid;place-items:center;cursor:pointer;transition:var(--transition)}
-    .em-close:hover{background:var(--surface3);color:var(--text);transform:rotate(90deg)}
-    .em-head{text-align:center;margin-bottom:1.2rem}
-    .em-badge{width:54px;height:54px;margin:0 auto .9rem;border-radius:17px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue-dk));box-shadow:0 10px 26px var(--blue-glow)}
-    .em-head h2{font-size:1.3rem;font-weight:900;letter-spacing:-.01em;color:var(--text)}
-    .em-head p{font-size:.8rem;color:var(--text2);font-weight:500;margin-top:.25rem}
-    .em-input{position:relative}
-    .em-input input{padding-left:2.5rem;padding-right:2.6rem}
-    .em-lead{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;transition:color .15s}
-    .em-input:focus-within .em-lead{color:var(--blue-lt)}
-    .em-eye{position:absolute;right:.35rem;top:50%;transform:translateY(-50%);width:34px;height:34px;border:none;background:none;border-radius:10px;color:var(--text3);display:grid;place-items:center;cursor:pointer}
-    .em-eye:hover{color:var(--text);background:var(--surface3)}
-    .em-eye .eye-off{display:none}
-    .em-eye[aria-pressed="true"] .eye-on{display:none}
-    .em-eye[aria-pressed="true"] .eye-off{display:block}
-    .em-field input{font-size:16px}
-    .em-back{display:block;width:100%;margin-top:.2rem;padding:.6rem;border:none;background:none;font-family:inherit;font-size:.78rem;font-weight:700;color:var(--text2);cursor:pointer;border-radius:10px;transition:var(--transition)}
-    .em-back:hover{color:var(--blue-lt);background:var(--surface2)}
-    .em-sheet.shake{animation:emShake .4s}
-    @keyframes emShake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
-    body.em-lock{overflow:hidden}
-    @media(max-width:520px){
-      .em-overlay{align-items:flex-end;padding:0}
-      .em-sheet{max-width:none;max-height:92dvh;border-radius:26px 26px 0 0;padding:1.6rem 1.3rem calc(1.2rem + env(safe-area-inset-bottom));transform:translateY(100%);opacity:1;transition:transform .35s cubic-bezier(.2,.9,.3,1)}
-      .em-overlay.open .em-sheet{transform:none}
-      .em-grip{display:block}
-    }
-    @media(prefers-reduced-motion:reduce){.em-overlay,.em-sheet{transition:none}.em-sheet.shake{animation:none}}
     .boot-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
     @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -252,14 +216,19 @@
         <p style="text-align:center;font-size:12px;color:var(--text2);margin-top:8px">Verifying access…</p>
       </div>
       <div id="auth-form">
+        <div class="auth-field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" autocomplete="username" />
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" autocomplete="current-password" />
+        </div>
+        <button class="auth-btn auth-btn-primary" id="btn-email-login">Sign In</button>
+        <div class="auth-divider">or</div>
         <button class="auth-btn auth-btn-google" id="btn-google-login">
           <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
           Continue with Google
-        </button>
-        <div class="auth-divider">or</div>
-        <button class="auth-btn auth-btn-email" id="btn-open-email" type="button" aria-haspopup="dialog" aria-controls="email-modal">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg>
-          Continue with Email
         </button>
         <div class="auth-links">
           <div class="auth-links-title">Other portals</div>
@@ -288,44 +257,6 @@
         </div>
       </div>
     </div>
-    </div>
-  </div>
-
-  <!-- ── Email sign-in modal ── -->
-  <div class="em-overlay" id="email-modal" role="dialog" aria-modal="true" aria-labelledby="em-title" aria-hidden="true">
-    <div class="em-sheet" id="em-sheet">
-      <span class="em-grip" aria-hidden="true"></span>
-      <button class="em-close" id="em-close" type="button" aria-label="Close">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
-      <div class="em-head">
-        <div class="em-badge"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg></div>
-        <h2 id="em-title">Sign in with email</h2>
-        <p>Enter your admin credentials to continue.</p>
-      </div>
-      <div class="auth-err" id="email-err" role="alert"></div>
-      <form id="email-form" autocomplete="on" onsubmit="event.preventDefault()">
-        <div class="auth-field em-field">
-          <label for="login-email">Email</label>
-          <div class="em-input">
-            <svg class="em-lead" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg>
-            <input type="email" id="login-email" autocomplete="username" placeholder="you@example.com" inputmode="email" autocapitalize="none" spellcheck="false" />
-          </div>
-        </div>
-        <div class="auth-field em-field">
-          <label for="login-password">Password</label>
-          <div class="em-input">
-            <svg class="em-lead" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-            <input type="password" id="login-password" autocomplete="current-password" placeholder="Your password" />
-            <button class="em-eye" id="em-eye" type="button" aria-label="Show password" aria-pressed="false">
-              <svg class="eye-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg class="eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22"/></svg>
-            </button>
-          </div>
-        </div>
-        <button class="auth-btn auth-btn-primary" id="btn-email-login" type="button">Sign In</button>
-      </form>
-      <button class="em-back" id="em-back" type="button">← Back to other options</button>
     </div>
   </div>
 
@@ -382,12 +313,8 @@
       const el = $('auth-err');
       el.textContent = msg;
       el.style.display = msg ? 'block' : 'none';
-      const em = $('email-err');
-      em.textContent = msg;
-      em.style.display = msg ? 'block' : 'none';
     }
     function setAuthLoading(on){
-      if(on) closeEmailModal(true);
       $('auth-loading').style.display = on ? 'block' : 'none';
       $('auth-form').style.display = on ? 'none' : 'block';
     }
@@ -458,61 +385,16 @@
     });
     oneTap.init();
 
-    /* ── Email modal ── */
-    let emLastFocus = null;
-    function openEmailModal(){
-      const m = $('email-modal');
-      emLastFocus = document.activeElement;
-      m.classList.add('open'); m.setAttribute('aria-hidden','false');
-      document.body.classList.add('em-lock');
-      setTimeout(() => ($('login-email').value ? $('login-password') : $('login-email')).focus(), 120);
-    }
-    function closeEmailModal(silent){
-      const m = $('email-modal');
-      if(!m.classList.contains('open')) return;
-      m.classList.remove('open'); m.setAttribute('aria-hidden','true');
-      document.body.classList.remove('em-lock');
-      if(!silent && emLastFocus) emLastFocus.focus();
-    }
-    $('btn-open-email').addEventListener('click', () => { showAuthErr(''); openEmailModal(); });
-    $('em-close').addEventListener('click', () => closeEmailModal());
-    $('em-back').addEventListener('click', () => closeEmailModal());
-    $('email-modal').addEventListener('mousedown', e => { if(e.target === e.currentTarget) closeEmailModal(); });
-    document.addEventListener('keydown', e => {
-      const m = $('email-modal');
-      if(!m.classList.contains('open')) return;
-      if(e.key === 'Escape'){ closeEmailModal(); return; }
-      if(e.key === 'Tab'){
-        const f = [...m.querySelectorAll('button,input')].filter(x => x.offsetParent !== null);
-        const first = f[0], last = f[f.length-1];
-        if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
-        else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
-      }
-    });
-    $('em-eye').addEventListener('click', () => {
-      const pw = $('login-password'), b = $('em-eye');
-      const show = pw.type === 'password';
-      pw.type = show ? 'text' : 'password';
-      b.setAttribute('aria-pressed', show); b.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-      pw.focus();
-    });
-    $('login-email').addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); $('login-password').focus(); } });
-    function emailFail(){
-      openEmailModal();
-      const sh = $('em-sheet'); sh.classList.remove('shake'); void sh.offsetWidth; sh.classList.add('shake');
-    }
-
     $('btn-email-login').addEventListener('click', async () => {
       const email = $('login-email').value.trim();
       const password = $('login-password').value;
-      if(!email || !password){ showAuthErr('Enter email and password.'); emailFail(); return; }
+      if(!email || !password){ showAuthErr('Enter email and password.'); return; }
       setAuthLoading(true); showAuthErr('');
       try{
         await signInWithEmailAndPassword(auth, email, password);
       }catch(err){
         setAuthLoading(false);
         showAuthErr(err.message?.replace('Firebase: ','') || 'Sign-in failed.');
-        emailFail();
       }
     });
     $('login-password').addEventListener('keydown', e => { if(e.key==='Enter') $('btn-email-login').click(); });

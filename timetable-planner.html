@@ -79,13 +79,23 @@ button{cursor:pointer}
 h1,h2,h3,p{margin:0}
 [hidden]{display:none !important}
 
-.app{display:grid;grid-template-columns:250px minmax(0,1fr);gap:20px;padding:16px;max-width:1500px;margin:0 auto}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);gap:20px;padding:16px;max-width:1500px;margin:0 auto;transition:grid-template-columns .22s ease}
 
 /* Sidebar */
 .side{
   position:sticky; top:16px; align-self:start; min-height:calc(100vh - 32px);
   background:linear-gradient(180deg,var(--side),var(--side-2));
   border-radius:32px; padding:22px 16px 16px; display:flex; flex-direction:column; gap:16px; box-shadow:var(--shadow);
+  min-width:0; overflow:hidden; transition:opacity .18s ease, padding .18s ease;
+}
+.sideToggle{display:none}
+@media (min-width:901px){
+  .sideToggle{
+    display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px;
+    border-radius:999px; background:var(--card); box-shadow:var(--shadow); border:0; font-size:16px; flex:none;
+  }
+  .app.side-collapsed{grid-template-columns:0 minmax(0,1fr)}
+  .app.side-collapsed .side{padding:0; opacity:0; pointer-events:none}
 }
 .profile{text-align:center}
 .avatar{
@@ -313,6 +323,9 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
 .stRow .grow{flex:1;min-width:110px}
 .stRow input[type="time"]{border:2px solid var(--line);background:var(--card);border-radius:10px;padding:6px 8px;font-weight:700;width:110px}
 .stRow select{border:2px solid var(--line);background:var(--card);border-radius:10px;padding:6px 8px;font-weight:700}
+#weekJumpRow{flex-wrap:wrap}
+#weekJump{border:2px solid var(--line);background:var(--card);border-radius:10px;padding:6px 8px;font-weight:700;min-width:0;flex:1 1 200px}
+#weekJump:disabled{opacity:.6}
 .stBrk{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
 .stNew{display:flex;gap:8px;margin-top:10px}
 .stNew input{flex:1;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:8px 12px;font-weight:700}
@@ -320,6 +333,9 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
 /* Add several exams, suggested invigilators, share card */
 .dlg textarea{resize:vertical;min-height:110px;line-height:1.4}
 #batchDlg{width:min(560px,calc(100vw - 32px))}
+#autoDlg{width:min(560px,calc(100vw - 32px))}
+.achip{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:5px 10px;font-weight:700;font-size:.9em}
+.achip input{margin:0}
 #bPreview{gap:8px;max-height:30vh;overflow-y:auto}
 #bPreview:empty{display:none}
 .bRow{background:var(--band);border-radius:14px;padding:8px 12px;font-size:13px;font-weight:700}
@@ -421,6 +437,7 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
         <p id="termProgress" class="termProgress" hidden></p>
       </div>
       <div class="top-r">
+        <button class="sideToggle" id="sideToggle" type="button" aria-label="Toggle sidebar" aria-pressed="false" title="Toggle sidebar">☰</button>
         <a href="./index.html" class="btn ghost sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Go to Admin Command Center">⚙️ Admin Center</a>
         <a href="./teachers.html" class="btn ghost sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;" title="Go to Teachers Portal">👩‍🏫 Teachers</a>
         <span class="sync" id="sync"><i></i><span>Connecting</span></span>
@@ -462,6 +479,7 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
               <button class="btn sm" id="thisWeek" aria-keyshortcuts="t">This week</button>
               <button class="btn sm" id="manageBtn" type="button">🏗️ Manage</button>
               <button class="btn sm" id="batchBtn" type="button">➕ Add several</button>
+              <button class="btn sm" id="autoBtn" type="button">🪄 Auto-fill</button>
             </div>
           </div>
           <div class="seg" id="sections" role="group" aria-label="Section"></div>
@@ -486,6 +504,10 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
               </div>
               <button class="btn sm" id="copyNext">Copy to next week</button>
             </div>
+            <div class="weeknav" id="weekJumpRow" style="margin-bottom:8px">
+              <label for="weekJump" class="sub" style="font-weight:700">Jump to any past timetable</label>
+              <select id="weekJump" aria-label="Jump directly to any planned week, in any grade"></select>
+            </div>
             <div class="list" id="weekList"></div>
           </section>
         </div>
@@ -503,7 +525,7 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
             <button class="btn" id="cardsBtn" type="button">🎫 Exam cards for learners</button>
             <button class="btn ghost" id="autoFillBtn" type="button">✨ Auto-assign invigilators</button>
             <label style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:12.5px;color:var(--muted);cursor:pointer">
-              <input type="checkbox" id="afLevelPref" checked style="width:auto;margin:0"> Prefer invigilators who teach this level
+              <input type="checkbox" id="afLevelPref" checked style="width:auto;margin:0"> Require invigilators authorized for this level
             </label>
           </div>
         </section>
@@ -620,6 +642,28 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
     <div class="acts">
       <button type="button" class="btn" id="bCancel">Cancel</button>
       <button type="submit" class="btn primary" id="bGo">Add exams</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="autoDlg" aria-labelledby="aTitle">
+  <form class="dlg" id="autoForm" novalidate style="max-height:85vh;overflow-y:auto">
+    <h2 id="aTitle">Auto-fill this week</h2>
+    <p class="muted" id="aHelp"></p>
+    <p class="muted" id="aSrc"></p>
+    <fieldset id="aSubjects" style="border:0;padding:0;margin:0 0 8px;display:flex;flex-wrap:wrap;gap:6px 14px"></fieldset>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 8px">
+      <input id="aCustomSubject" list="subjectList" autocomplete="off" placeholder="Add a subject (e.g. Pretech, PP1 Maths)" style="flex:1;min-width:160px">
+      <button type="button" class="btn ghost sm" id="aCustomAdd">+ Add</button>
+    </div>
+    <button type="button" class="btn ghost sm tog" id="aReplace" aria-pressed="false">Replace exams already filled</button>
+    <button type="button" class="btn ghost sm tog" id="aInvig" aria-pressed="true">Suggest invigilators automatically</button>
+    <div class="list" id="aPreview" aria-live="polite"></div>
+    <div class="err" id="aErr" role="alert"></div>
+    <div class="acts">
+      <button type="button" class="btn" id="aCancel">Cancel</button>
+      <button type="button" class="btn ghost sm" id="aShuffle">🔀 Shuffle again</button>
+      <button type="submit" class="btn primary" id="aGo">Generate timetable</button>
     </div>
   </form>
 </dialog>
@@ -833,7 +877,7 @@ const S = {
   structureMode: false, structuresRaw: {},
   slots: DEFAULT_SLOTS.map(s => ({...s, brk:false})),
   weeks: {},
-  roster: [], subjects: [], learners: null, learnerRoster: {}, learnersPending: false, peers: {}, gaps: [],
+  roster: [], subjects: [], gradeSubjects: {}, gradeSubjectsResults: {}, learners: null, learnerRoster: {}, learnersPending: false, peers: {}, gaps: [],
   sel: null, calMonth: null, weekAnchor: null, query: '', focusTeacher: null,
   anView: 'workload', printDayOnly: null, examTitles: {},   // keyed by section — each timetable's own title
   notify: false
@@ -981,11 +1025,17 @@ function roomClashes(d, si, note, oth){          // other timetables' exams in t
   return oth.filter(o => o.d === d && overlaps(o, sl) && roomOf(o.lesson.note) === r);
 }
 function checkLesson(d, si, les, oth, pending){ // everything worth a warning for one exam
-  const t = normName(les.teacher), key = iso(S.sel), out = {clash:[], room:[], dayN:0, weekN:0, dups:[]};
+  const t = normName(les.teacher), key = iso(S.sel), out = {clash:[], room:[], dayN:0, weekN:0, dups:[], ownSubject:false, levelMismatch:false};
   if (t){
     out.clash = clashes(d, si, les.teacher, oth);
     const e = teacherLoads(key, {d, s:si}, pending).get(t);
     if (e){ out.weekN = e.week; out.dayN = e.day[d] || 0; }
+    const info = teacherInfo(les.teacher);
+    if (info){
+      out.ownSubject = !!(les.subject && sameSubject(info.subject, les.subject));
+      const secGrades = gradesOf(S.section);
+      out.levelMismatch = !!(secGrades.length && Array.isArray(info.grades) && info.grades.length && !secGrades.some(g => info.grades.includes(g)));
+    }
   }
   out.room = roomClashes(d, si, les.note, oth);
   const sub = String(les.subject||'').trim().toLowerCase(), note = String(les.note||'').trim().toLowerCase();
@@ -997,6 +1047,8 @@ function checkLesson(d, si, les, oth, pending){ // everything worth a warning fo
 function warnLines(les, d, r){
   const out = [], t = les.teacher, heavy = [];
   if (r.clash.length) out.push('⚠️ '+t+' is also invigilating '+r.clash.map(o => o.lesson.subject+' in '+o.section+', '+fmtTime(o.start)+' to '+fmtTime(o.end)).join(' and ')+'.');
+  if (r.ownSubject) out.push('⚠️ '+t+' teaches '+les.subject+' — pick another invigilator to avoid a conflict of interest.');
+  if (r.levelMismatch) out.push('⚠️ '+t+' isn\u2019t recorded as teaching at this level — check they\u2019re authorized before saving.');
   if (r.room.length) out.push('⚠️ That room is also used for '+r.room.map(o => o.lesson.subject+' in '+o.section+', '+fmtTime(o.start)+' to '+fmtTime(o.end)).join(' and ')+' at that time.');
   if (t && r.dayN+1 >= LOAD.day) heavy.push((r.dayN+1)+' exams on '+DAYS_LONG[d]);
   if (t && r.weekN+1 >= LOAD.week) heavy.push((r.weekN+1)+' exams this week');
@@ -1382,6 +1434,7 @@ function renderGrid(){
   $('#copyNext').hidden = !S.canEdit;
   $('#manageBtn').hidden = !S.canEdit;
   $('#batchBtn').hidden = !S.canEdit;
+  $('#autoBtn').hidden = !S.canEdit;
 }
 
 function findAcrossWeeks(q, limit){
@@ -1453,6 +1506,44 @@ function renderWeeks(){
   $('#weekList').innerHTML = h;
   $('#weekListLbl').textContent = weekLabel(anchor,false)+' – '+weekLabel(addDays(anchor,21),false);
   $('#weekListToday').hidden = !S.weekAnchor;
+  renderWeekJump();
+}
+
+/* Direct jump list: every planned week across every grade/section, not just the one on
+   screen — so moving between past timetables never means paging through empty weeks. */
+function renderWeekJump(){
+  const sel = $('#weekJump'); if (!sel) return;
+  const planned = [];
+  S.sections.forEach(sec => {
+    const weeks = weeksOf(sec);
+    Object.keys(weeks).forEach(k => {
+      const n = countLessons(weeks[k]);
+      if (n > 0) planned.push({sec, key:k, mon:parseIso(k), n});
+    });
+  });
+  planned.sort((a,b) => b.mon - a.mon || a.sec.localeCompare(b.sec));
+  const curVal = S.section+'|'+iso(S.sel);
+  if (!planned.length){
+    sel.innerHTML = '<option value="">No planned weeks yet</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  sel.innerHTML = '<option value="" disabled'+(planned.some(w => w.sec+'|'+w.key===curVal) ? '' : ' selected')+'>Choose a week…</option>'+
+    planned.map(w => {
+      const v = w.sec+'|'+w.key;
+      return '<option value="'+esc(v)+'"'+(v===curVal ? ' selected' : '')+'>'+
+        esc(w.sec)+' — '+weekLabel(w.mon,true)+' ('+w.n+(w.n===1?' exam':' exams')+')</option>';
+    }).join('');
+}
+function jumpToWeek(sec, key){
+  const d = parseIso(key);
+  if (sec !== S.section){
+    S.section = sec; applyStructureOrTimes();
+    if (S.mode === 'live') subscribeWeeks(); else { const l = lsGet('tt_v1_local_'+sec, null); S.weeks = l && l.weeks ? l.weeks : {}; }
+  }
+  S.sel = d; S.calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  render();
 }
 
 function renderCal(){
@@ -1936,24 +2027,54 @@ async function loadRoster(){
      when set, falling back to the older single "subject" field. */
   try {
     const {F} = fb, snap = await F.getDocs(F.collection(fb.fs, P.users));
+    const gradeSubjects = {};
     S.roster = snap.docs.map(d => {
       const x = d.data() || {};
       if (x.Advancedadmin === true) return null;
       if (String(x.role||'').trim().toLowerCase() === 'admin') return null;
       const asg = x.assignedSubjects || {}, subs = new Set();
-      Object.keys(asg).forEach(g => (Array.isArray(asg[g]) ? asg[g] : []).forEach(s => { if (s) subs.add(s); }));
+      Object.keys(asg).forEach(g => (Array.isArray(asg[g]) ? asg[g] : []).forEach(s => {
+        if (!s) return;
+        subs.add(s);
+        const gn = +g; if (Number.isInteger(gn) && gn > 0) (gradeSubjects[gn] || (gradeSubjects[gn] = new Set())).add(String(s).trim());
+      }));
       const subject = subs.size ? Array.from(subs).join(', ') : String(x.subject||'').trim();
       const grades = Object.keys(asg).map(Number).filter(g => Number.isInteger(g) && g > 0);
       return {uid:d.id, name:String(x.name||x.displayName||x.fullName||'').trim(), subject, grades, photo:x.photo||x.photoURL||x.photoUrl||'', phone:String(x.phoneNumber||x.phone||'').trim()};
     }).filter(t => t && t.name);
+    S.gradeSubjects = gradeSubjects;   // {grade: Set(subject names)}, from Results Portal's own per-grade assignments
     const names = S.roster.map(t => t.name).sort((a,b) => a.localeCompare(b));
     $('#teacherOpts').innerHTML = names.map(n => '<option value="'+esc(n)+'">').join('');
   } catch(e){ console.warn('users', e); }
 }
+/* This stage's own subjects. Best source: the actual column headers on that grade's results
+   records in the Results Portal DB (each sitting's row has one column per subject) — this is
+   what's really taught in that grade, unlike teacher assignedSubjects which can be wrong or
+   incomplete for Upper Primary / Junior. Falls back to assignedSubjects, then the shared
+   subject library, only if a grade has no results rows yet. */
+/* Never a real subject, however it got in — a stray results column, a library doc someone
+   added by mistake, a cached copy from before this filter existed, etc. Checked at every
+   point a subject name is added, not just at the results-column stage, so it can't sneak
+   back in from another source. */
+const NOT_A_SUBJECT_NAME = /^(opening|closing)[\s_]*date$/i;
+const isRealSubjectName = n => { n = String(n||'').trim(); return !!n && !NOT_A_SUBJECT_NAME.test(n); };
+function subjectsForSection(sec){
+  const grades = gradesOf(sec), set = new Set();
+  grades.forEach(g => { const s = S.gradeSubjectsResults && S.gradeSubjectsResults[g]; if (s) s.forEach(n => { if (isRealSubjectName(n)) set.add(n); }); });
+  if (!set.size) grades.forEach(g => { const s = S.gradeSubjects && S.gradeSubjects[g]; if (s) s.forEach(n => { if (isRealSubjectName(n)) set.add(n); }); });
+  if (!set.size) S.subjects.forEach(n => { if (isRealSubjectName(n)) set.add(n); });
+  return Array.from(set).sort((a,b) => a.localeCompare(b));
+}
+function subjectSourceForSection(sec){
+  const grades = gradesOf(sec);
+  if (grades.some(g => S.gradeSubjectsResults && S.gradeSubjectsResults[g] && S.gradeSubjectsResults[g].size)) return 'results';
+  if (grades.some(g => S.gradeSubjects && S.gradeSubjects[g] && S.gradeSubjects[g].size)) return 'assignments';
+  return 'library';
+}
 async function loadSubjects(){
   try {
     const {F} = fb, snap = await F.getDocs(F.collection(fb.fs, P.subjects));
-    const set = new Set(); snap.docs.forEach(d => { const x = d.data() || {}; const n = String(x.name||x.subject||x.title||x.label||'').trim(); if (n) set.add(n); });
+    const set = new Set(); snap.docs.forEach(d => { const x = d.data() || {}; const n = String(x.name||x.subject||x.title||x.label||'').trim(); if (n && isRealSubjectName(n)) set.add(n); });
     S.subjects = Array.from(set).sort((a,b) => a.localeCompare(b));
   } catch(e){ console.warn('librarySubjects', e); }
 }
@@ -1968,6 +2089,23 @@ const NAME_EXACT_KEYS = ['Official Student Name', 'StudentFullName'];
 const NAME_FIELD_TESTS = [/^(learner|student|pupil)[\s_]*(full)?[\s_]*name$/i, /^full[\s_]*name$/i, /^name$/i];
 const ASSESS_NO_TESTS = [/^assess(ment)?[\s_]*(no|num|number)?\.?$/i];
 const UPI_TESTS = [/^upi$/i, /^u\.?l\.?i\.?(\s*(no|number))?\.?$/i];
+/* Every other column on a results row is a subject header ("Mathematics", "Kiswahili", ...) —
+   these are the columns known NOT to be a subject, so whatever's left is the grade's subject list. */
+const SUBJECT_HEADER_EXCLUDE_TESTS = [
+  /^(learner|student|pupil)[\s_]*(full)?[\s_]*name$/i, /^full[\s_]*name$/i, /^name$/i,
+  /^assess(ment)?[\s_]*(no|num|number)?\.?$/i, /^upi$/i, /^u\.?l\.?i\.?(\s*(no|number))?\.?$/i,
+  /^adm(ission)?[\s_]*(no|number)?\.?$/i, /^(grade|class|stream|section|term|year)s?$/i,
+  /^(dob|date[\s_]*of[\s_]*birth)$/i, /^(gender|sex|age)$/i,
+  /^(position|rank|mean|average|avg|total|out[\s_]*of|grand[\s_]*total)$/i,
+  /^(remarks?|comments?|notes?)$/i, /^(teacher|invigilator|class[\s_]*teacher)$/i,
+  /^(updated|created)[\s_]*(by|at)?$/i, /^(status|active|photo|phone|id|key|row)$/i,
+  /^(opening|closing)[\s_]*date$/i
+];
+const isSubjectHeader = k => {
+  k = String(k||'').trim();
+  if (!k || NAME_EXACT_KEYS.includes(k)) return false;
+  return !SUBJECT_HEADER_EXCLUDE_TESTS.some(re => re.test(k));
+};
 function fieldOf(r, tests, exactKeysFirst){
   if (exactKeysFirst){
     for (let i=0; i<exactKeysFirst.length; i++){
@@ -1993,12 +2131,18 @@ function sittingKey(head){       // 'Grade 9-2026-B1-Mid Term 2' -> sortable: ye
   return y*1e6 + (c ? (c[1].toUpperCase().charCodeAt(0)-64)*1e4 + (+c[2])*100 : 0) + t;
 }
 async function loadLearners(){
-  const ck = 'tt_v4_learners', c = lsGet(ck, null);
-  if (c && Date.now() - c.t < 12*3600*1000){ S.learners = c.v.learners || c.v; S.learnerRoster = c.v.roster || {}; return; }
+  const ck = 'tt_v5_learners', c = lsGet(ck, null);
+  if (c && Date.now() - c.t < 12*3600*1000){
+    S.learners = c.v.learners || c.v; S.learnerRoster = c.v.roster || {};
+    S.gradeSubjectsResults = {};
+    Object.keys(c.v.subjects || {}).forEach(g => { S.gradeSubjectsResults[g] = new Set(c.v.subjects[g]); });
+    return;
+  }
   try {
     const {D} = fb, snap = await D.get(D.ref(fb.db, P.students)), val = snap.val();
     if (!val) return;
     const latest = new Map(); let anon = 0;
+    const gradeSubjectsResults = {};
     Object.keys(val).forEach(k => {
       const r = val[k] || {}, head = String(r.grade ?? r.Grade ?? '');
       if (/^\s*(pp|pre)/i.test(head)) return;                 // pre-primary is not on an exam timetable
@@ -2008,6 +2152,9 @@ async function loadLearners(){
       if (!cur || sk > cur.sk || (sk === cur.sk && g > cur.g)){
         latest.set(id, {g, sk, name: fieldOf(r, NAME_FIELD_TESTS, NAME_EXACT_KEYS), assessNo: fieldOf(r, ASSESS_NO_TESTS), upi: fieldOf(r, UPI_TESTS)});
       }
+      /* Every column on this row that isn't a known metadata field is a subject that grade sits — the
+         real, per-grade subject list, straight from the results the school actually recorded. */
+      Object.keys(r).forEach(key => { if (isSubjectHeader(key)) (gradeSubjectsResults[g] || (gradeSubjectsResults[g] = new Set())).add(String(key).trim()); });
     });
     const counts = {}, roster = {};
     latest.forEach(v => {
@@ -2017,8 +2164,9 @@ async function loadLearners(){
     Object.keys(roster).forEach(g => roster[g].sort((a,b) => (a.name||'').localeCompare(b.name||'')));
     const total = Object.values(counts).reduce((a,b) => a+b, 0);
     if (!total) return;
-    S.learners = {counts, total}; S.learnerRoster = roster;
-    lsSet(ck, {t:Date.now(), v:{learners:S.learners, roster}});
+    S.learners = {counts, total}; S.learnerRoster = roster; S.gradeSubjectsResults = gradeSubjectsResults;
+    const subjectsForCache = {}; Object.keys(gradeSubjectsResults).forEach(g => { subjectsForCache[g] = Array.from(gradeSubjectsResults[g]); });
+    lsSet(ck, {t:Date.now(), v:{learners:S.learners, roster, subjects:subjectsForCache}});
   } catch(e){ console.warn('students', e); }
 }
 
@@ -2081,7 +2229,7 @@ async function boot(){
 let editing = null;
 function fillSubjects(){
   // most relevant first: this timetable's own subjects (most used first), then other timetables', then the library list
-  const seen = new Map(), put = (n, where) => { n = String(n||'').trim(); const k = n.toLowerCase(); if (k && !seen.has(k)) seen.set(k, {name:n, where}); };
+  const seen = new Map(), put = (n, where) => { n = String(n||'').trim(); const k = n.toLowerCase(); if (k && isRealSubjectName(n) && !seen.has(k)) seen.set(k, {name:n, where}); };
   const use = {};
   Object.values(S.weeks).forEach(wk => wk.forEach(day => (day||[]).forEach(l => { if (l) use[l.subject] = (use[l.subject] || 0) + 1; })));
   Object.keys(use).sort((a,b) => use[b]-use[a] || a.localeCompare(b)).forEach(n => put(n, 'This timetable'));
@@ -2122,13 +2270,14 @@ $('#fNote').addEventListener('input', showClash);
    timetable at this time, ranked by: teaches this subject, has done it before, then lightest load that day and week. */
 const sameSubject = (a,b) => { a = String(a||'').trim().toLowerCase(); b = String(b||'').trim().toLowerCase(); return !!a && !!b && (a === b || (a.length > 2 && b.length > 2 && (a.includes(b) || b.includes(a)))); };
 function teacherPool(){
-  const pool = new Map(), put = (name, subject, seen) => {
+  const pool = new Map(), put = (name, subject, seen, grades) => {
     const k = normName(name); if (!k) return;
-    let e = pool.get(k); if (!e){ e = {name:String(name).trim(), subject:'', seen:new Set()}; pool.set(k, e); }
+    let e = pool.get(k); if (!e){ e = {name:String(name).trim(), subject:'', seen:new Set(), grades:new Set()}; pool.set(k, e); }
     if (subject && !e.subject) e.subject = subject;
     if (seen) e.seen.add(String(seen).trim().toLowerCase());
+    (grades||[]).forEach(g => e.grades.add(g));
   };
-  S.roster.forEach(t => put(t.name, t.subject));
+  S.roster.forEach(t => put(t.name, t.subject, null, t.grades));
   S.sections.forEach(sec => Object.values(weeksOf(sec)).forEach(wk => wk.forEach(day => (day||[]).forEach(l => { if (l && l.teacher) put(l.teacher, '', l.subject); }))));
   return pool;
 }
@@ -2137,12 +2286,15 @@ function renderSuggest(){
   const box = $('#tSuggest');
   if (!editing || !S.canEdit){ box.hidden = true; suggestList = []; return; }
   const key = iso(S.sel), d = editing.d, si = editing.s, sub = $('#fSubject').value.trim(), cur = normName($('#fTeacher').value);
-  const oth = others(key), loads = teacherLoads(key, {d, s:si}), list = [];
+  const oth = others(key), loads = teacherLoads(key, {d, s:si}), list = [], secGrades = gradesOf(S.section);
   teacherPool().forEach((p,k) => {
     if (k === cur || clashes(d, si, p.name, oth).length) return;       // already chosen, or busy in another timetable at that time
+    const teaches = sameSubject(p.subject, sub);
+    if (teaches) return;                                               // never suggest the subject's own teacher — conflict of interest
+    if (p.grades.size && secGrades.length && !secGrades.some(g => p.grades.has(g))) return;   // must be authorized for this level
     const ld = loads.get(k) || {week:0, day:{}}, dayN = ld.day[d] || 0;
-    const teaches = sameSubject(p.subject, sub), before = !teaches && Array.from(p.seen).some(x => sameSubject(x, sub));
-    list.push({name:p.name, subject:p.subject, teaches, before, week:ld.week, score:(teaches ? 3 : 0) + (before ? 2 : 0) - ld.week*0.5 - dayN*1.5});
+    const before = Array.from(p.seen).some(x => sameSubject(x, sub));
+    list.push({name:p.name, subject:p.subject, teaches, before, week:ld.week, score:(before ? 2 : 0) - ld.week*0.5 - dayN*1.5});
   });
   list.sort((a,b) => b.score - a.score || a.week - b.week || a.name.localeCompare(b.name));
   suggestList = list.slice(0, 6);
@@ -2158,6 +2310,118 @@ function pickSuggested(i){
 $('#fTeacher').addEventListener('change', () => {
   const info = teacherInfo($('#fTeacher').value);
   if (info && info.subject && !$('#fSubject').value.trim()) $('#fSubject').value = info.subject;
+});
+
+/* ---------- Auto-fill a whole week from this stage's own subjects ---------- */
+function shuffled(arr){ const a = arr.slice(); for (let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+function autoFillTargets(replace){
+  const wk = getWeek(iso(S.sel)), out = [];
+  activeDayOffsets().forEach(d => lessonSlotIdxs().forEach(si => { if (replace || !(wk[d] && wk[d][si])) out.push({d, si}); }));
+  return out.sort((a,b) => a.d-b.d || a.si-b.si);
+}
+function planAutoFill(subjects, opts){
+  const key = iso(S.sel), targets = autoFillTargets(opts.replace), oth = others(key), targetGrades = gradesOf(S.section);
+  if (!subjects.length) return {rows:[], err:'No subjects to schedule yet — pick at least one below.'};
+  if (!targets.length) return {rows:[], err:'Every slot this week is already filled. Turn on "Replace exams already filled" to regenerate it.'};
+  const order = shuffled(subjects), dayUsed = {}, pending = [];
+  let ptr = 0;
+  targets.forEach(({d,si}) => {
+    dayUsed[d] = dayUsed[d] || new Set();
+    let pick = -1;
+    for (let i=0; i<order.length; i++){ const idx = (ptr+i) % order.length; if (!dayUsed[d].has(order[idx])){ pick = idx; break; } }
+    if (pick === -1) pick = ptr % order.length;                  // ran out of fresh subjects for the day — repeat is unavoidable
+    const subject = order[pick]; ptr = (pick+1) % order.length; dayUsed[d].add(subject);
+    let teacher = '', teacherUid = '';
+    if (opts.autoInvig){
+      const loads = teacherLoads(key, null, pending), pool = [];
+      teacherPool().forEach((p,k) => {
+        if (clashes(d, si, p.name, oth).length) return;          // busy in another timetable at that time
+        if (p.grades.size && !targetGrades.some(g => p.grades.has(g))) return;   // must actually be authorized to teach at this grade level
+        if (sameSubject(p.subject, subject)) return;              // never the subject's own teacher — conflict of interest
+        const ld = loads.get(k) || {week:0, day:{}}, dayN = ld.day[d] || 0;
+        const before = Array.from(p.seen).some(x => sameSubject(x, subject));
+        pool.push({name:p.name, score:(before?2:0)-ld.week*0.5-dayN*1.5});
+      });
+      pool.sort((a,b) => b.score-a.score);
+      if (pool.length){ teacher = pool[0].name; teacherUid = (teacherInfo(teacher)||{}).uid || ''; }
+    }
+    pending.push({d, s:si, l:{subject, teacher, teacherUid, note:'', by:''}});
+  });
+  return {rows: pending.map(p => ({d:p.d, si:p.s, les:p.l})), err:''};
+}
+let autoReplace = false, autoInvig = true;
+function selectedAutoSubjects(){ return Array.from($('#aSubjects').querySelectorAll('input:checked')).map(i => i.value); }
+function subjectChipHtml(name, checked){
+  return '<span class="achip" style="display:inline-flex;align-items:center;gap:4px">'+
+    '<label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" value="'+esc(name)+'"'+(checked?' checked':'')+'> '+esc(name)+'</label>'+
+    '<button type="button" class="btn ghost sm aPaperBtn" data-base="'+esc(name)+'" data-paper="1" title="Add '+esc(name)+' Paper 1 as its own exam">+P1</button>'+
+    '<button type="button" class="btn ghost sm aPaperBtn" data-base="'+esc(name)+'" data-paper="2" title="Add '+esc(name)+' Paper 2 as its own exam">+P2</button>'+
+    '</span>';
+}
+function addAutoSubject(name){
+  name = String(name||'').trim(); if (!name) return;
+  const exists = Array.from($('#aSubjects').querySelectorAll('input')).some(i => i.value.toLowerCase() === name.toLowerCase());
+  if (exists) return;
+  const wrap = document.createElement('div'); wrap.style.display = 'contents'; wrap.innerHTML = subjectChipHtml(name, true);
+  $('#aSubjects').appendChild(wrap.firstElementChild);
+}
+function addCustomAutoSubject(){
+  const box = $('#aCustomSubject'), name = box.value.trim();
+  if (!name) return;
+  addAutoSubject(name);
+  box.value = ''; box.focus();
+  renderAutoPreview();
+}
+function renderAutoPreview(){
+  const plan = planAutoFill(selectedAutoSubjects(), {replace:autoReplace, autoInvig}), box = $('#aPreview'), go = $('#aGo');
+  if (plan.err){ box.innerHTML = '<p class="muted">'+esc(plan.err)+'</p>'; go.disabled = true; go.textContent = 'Generate timetable'; return plan; }
+  box.innerHTML = plan.rows.map(r => '<div class="bRow"><b>'+esc(DAYS[r.d]+' '+fmtTime(S.slots[r.si].start))+'</b> '+esc(r.les.subject)+' <span class="muted">'+esc(r.les.teacher || 'no invigilator matched')+'</span></div>').join('');
+  go.disabled = false; go.textContent = 'Generate '+plan.rows.length+(plan.rows.length===1?' exam':' exams');
+  return plan;
+}
+function openAutoFill(){
+  autoReplace = false; $('#aReplace').setAttribute('aria-pressed','false');
+  autoInvig = true; $('#aInvig').setAttribute('aria-pressed','true');
+  $('#aCustomSubject').value = '';
+  const grades = gradesOf(S.section), subs = subjectsForSection(S.section), src = subjectSourceForSection(S.section);
+  $('#aHelp').textContent = S.section+', '+weekLabel(S.sel, true)+'.';
+  $('#aSrc').textContent = src === 'results'
+    ? 'Subjects for '+gradeLabel(grades)+', from the actual subject columns on that grade\u2019s results.'
+    : src === 'assignments'
+    ? 'No results rows found yet for '+gradeLabel(grades)+', so this uses teachers\u2019 assigned subjects instead.'
+    : 'No results or subject assignments found yet for '+gradeLabel(grades)+', so this uses the shared subject library instead.';
+  $('#aSubjects').innerHTML = subs.length
+    ? subs.map(s => subjectChipHtml(s, true)).join('')
+    : '<p class="muted">No subjects found for this grade yet. Import some results in the Results Portal, or add subjects to the library, then try again.</p>';
+  renderAutoPreview();
+  $('#autoDlg').showModal();
+}
+$('#autoBtn').addEventListener('click', () => { if (guard()) openAutoFill(); });
+$('#aCancel').addEventListener('click', () => $('#autoDlg').close());
+$('#aReplace').addEventListener('click', () => { autoReplace = !autoReplace; $('#aReplace').setAttribute('aria-pressed', String(autoReplace)); renderAutoPreview(); });
+$('#aInvig').addEventListener('click', () => { autoInvig = !autoInvig; $('#aInvig').setAttribute('aria-pressed', String(autoInvig)); renderAutoPreview(); });
+$('#aShuffle').addEventListener('click', renderAutoPreview);
+$('#aSubjects').addEventListener('change', renderAutoPreview);
+$('#aSubjects').addEventListener('click', e => {
+  const btn = e.target.closest('.aPaperBtn'); if (!btn) return;
+  addAutoSubject(btn.dataset.base+' Paper '+btn.dataset.paper);
+  renderAutoPreview();
+});
+$('#aCustomAdd').addEventListener('click', addCustomAutoSubject);
+$('#aCustomSubject').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addCustomAutoSubject(); } });
+$('#autoForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const plan = renderAutoPreview();
+  if (plan.err || !plan.rows.length){ $('#aErr').textContent = plan.err || 'Nothing to generate.'; return; }
+  $('#aErr').textContent = '';
+  const key = iso(S.sel), wkNow = getWeek(key);
+  const prevCells = plan.rows.map(r => ({d:r.d, s:r.si, lesson:(wkNow[r.d]||[])[r.si] || null}));
+  $('#autoDlg').close();
+  try {
+    await writeCells(key, plan.rows.map(r => ({d:r.d, s:r.si, lesson:r.les})));
+    toast(plan.rows.length+(plan.rows.length===1?' exam':' exams')+' generated for '+weekLabel(S.sel,true)+'.', 7000,
+      {label:'Undo', fn: () => writeCells(key, prevCells).then(() => toast('Undone')).catch(err => toast('Could not undo: '+(err && err.message || err), 5000))});
+  } catch(err){ toast('Could not generate: '+(err && err.message || err), 5000); }
 });
 function undoToast(msg, key, d, si, prev, ms){
   toast(msg, ms || 6000, {label:'Undo', fn: () => setLesson(key, d, si, prev).then(() => toast('Undone')).catch(err => toast('Could not undo: '+(err && err.message || err), 5000))});
@@ -2274,6 +2538,11 @@ $('#copyNext').addEventListener('click', () => { if (guard()) copyWeek(iso(S.sel
 $('#weeksPrev').addEventListener('click', () => { S.weekAnchor = addDays(S.weekAnchor || baseMonday(), -28); renderWeeks(); });
 $('#weeksNext').addEventListener('click', () => { S.weekAnchor = addDays(S.weekAnchor || baseMonday(), 28); renderWeeks(); });
 $('#weekListToday').addEventListener('click', () => { S.weekAnchor = null; renderWeeks(); });
+$('#weekJump').addEventListener('change', e => {
+  if (!e.target.value) return;
+  const [sec, key] = e.target.value.split('|');
+  jumpToWeek(sec, key);
+});
 
 /* ---------- Live exam notifications (opt-in, this device only) ---------- */
 let notifiedLive = new Set();
@@ -2991,7 +3260,7 @@ $('#cardsForm').addEventListener('submit', async e => {
 });
 
 /* ---------- Conflict-free auto-suggest: fill exams that are missing an invigilator ---------- */
-function bestInvigilatorFor(d, si, oth, loads, exclude, sectionGrades, preferLevel){
+function bestInvigilatorFor(d, si, oth, loads, exclude, sectionGrades, requireLevel, subject){
   const candidates = new Map();
   (S.roster||[]).forEach(t => { if (t.name) candidates.set(normName(t.name), t); });
   loads.forEach(e => { const k = normName(e.name); if (!candidates.has(k)) candidates.set(k, {name:e.name, grades:[]}); });
@@ -2999,11 +3268,13 @@ function bestInvigilatorFor(d, si, oth, loads, exclude, sectionGrades, preferLev
   candidates.forEach((t,k) => {
     if (!k || (exclude && exclude.has(k))) return;
     if (clashes(d, si, t.name, oth).length) return;                 // never suggest a clash
+    if (subject && sameSubject(t.subject, subject)) return;          // never the subject's own teacher — conflict of interest
+    const teachesLevel = sectionGrades.length && Array.isArray(t.grades) && t.grades.some(g => sectionGrades.includes(g));
+    const knownOtherLevel = sectionGrades.length && Array.isArray(t.grades) && t.grades.length && !teachesLevel;
+    if (requireLevel && knownOtherLevel) return;                     // must be authorized to teach at this level, when we actually know their level
     const e = loads.get(k), dayN = e ? (e.day[d]||0) : 0, weekN = e ? e.week : 0;
     if (dayN >= LOAD.day || weekN >= LOAD.week) return;            // don't push anyone into a heavy load
-    const teachesLevel = sectionGrades.length && Array.isArray(t.grades) && t.grades.some(g => sectionGrades.includes(g));
-    const levelPenalty = (preferLevel && sectionGrades.length && !teachesLevel) ? 1000 : 0;   // prefer this level, but fall back to anyone conflict-free if nobody at that level is available
-    const score = levelPenalty + weekN*10 + dayN;
+    const score = weekN*10 + dayN;
     if (score < bestScore){ bestScore = score; best = t.name; }
   });
   return best;
@@ -3011,13 +3282,13 @@ function bestInvigilatorFor(d, si, oth, loads, exclude, sectionGrades, preferLev
 async function autoAssignInvigilators(){
   if (!guard()) return;
   const key = iso(S.sel), wk = getWeek(key), oth = others(key), loads = teacherLoads(key);
-  const sectionGrades = gradesOf(S.section), preferLevel = $('#afLevelPref').checked;
+  const sectionGrades = gradesOf(S.section), requireLevel = $('#afLevelPref').checked;
   const targets = []; wk.forEach((day,d) => day.forEach((l,s) => { if (l && !l.teacher) targets.push({d,s,l}); }));
   if (!targets.length){ toast('Every exam already has an invigilator.'); return; }
   const pickedToday = {}, cells = [];
   targets.forEach(({d,s,l}) => {
     const exclude = pickedToday[d] || new Set();
-    const name = bestInvigilatorFor(d, s, oth, loads, exclude, sectionGrades, preferLevel);
+    const name = bestInvigilatorFor(d, s, oth, loads, exclude, sectionGrades, requireLevel, l.subject);
     if (!name) return;
     cells.push({d, s, lesson:{...l, teacher:name}});
     if (!pickedToday[d]) pickedToday[d] = new Set();
@@ -3027,7 +3298,7 @@ async function autoAssignInvigilators(){
   });
   if (!cells.length){ toast('No conflict-free invigilator was found. Add more names to the staff list and try again.'); return; }
   await writeCells(key, cells);
-  toast('Assigned '+cells.length+' invigilator'+(cells.length===1?'':'s')+(cells.length<targets.length ? '; '+(targets.length-cells.length)+' left unassigned (no conflict-free option).' : '.'));
+  toast('Assigned '+cells.length+' invigilator'+(cells.length===1?'':'s')+(cells.length<targets.length ? '; '+(targets.length-cells.length)+' left unassigned (no authorized, conflict-free option).' : '.'));
 }
 $('#autoFillBtn').addEventListener('click', autoAssignInvigilators);
 $('#printBtn').addEventListener('click', () => { try { window.print(); } catch(e){ toast('Printing is not available here'); } });
@@ -3061,6 +3332,17 @@ document.querySelectorAll('dialog').forEach(dlg => {
 });
 
 /* Sign in / out */
+(() => {
+  const app = $('#app'), btn = $('#sideToggle');
+  if (!app || !btn) return;
+  const KEY = 'ttSideCollapsed';
+  if (localStorage.getItem(KEY) !== '0'){ app.classList.add('side-collapsed'); btn.setAttribute('aria-pressed','true'); }
+  btn.addEventListener('click', () => {
+    const collapsed = app.classList.toggle('side-collapsed');
+    btn.setAttribute('aria-pressed', String(collapsed));
+    try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch(e){}
+  });
+})();
 $('#signOut').addEventListener('click', () => { if (fb) fb.Au.signOut(fb.auth); });
 $('#gGoogle').addEventListener('click', async () => {
   $('#gErr').textContent = '';
