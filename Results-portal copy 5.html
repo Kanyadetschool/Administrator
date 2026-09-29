@@ -6351,9 +6351,9 @@ const PK = {
   _lastKey: 'ksd_last_email',
   all() { try { return JSON.parse(localStorage.getItem(this._key) || '{}'); } catch { return {}; } },
   get(email) { return this.all()[email] || null; },
-  set(email, credId, uid, name) {
+  set(email, credId, uid) {
     const map = this.all();
-    map[email] = { credId, uid, name: name || '' };
+    map[email] = { credId, uid };
     localStorage.setItem(this._key, JSON.stringify(map));
     localStorage.setItem(this._lastKey, email);
   },
@@ -6365,12 +6365,6 @@ const PK = {
       const remaining = Object.keys(map);
       localStorage.setItem(this._lastKey, remaining[0] || '');
     }
-  },
-  setName(email, name) {
-    const map = this.all();
-    if (!map[email] || !name || map[email].name === name) return;
-    map[email].name = name;
-    localStorage.setItem(this._key, JSON.stringify(map));
   },
   lastEmail() { return localStorage.getItem(this._lastKey) || ''; },
   setLast(email) { localStorage.setItem(this._lastKey, email); },
@@ -6417,7 +6411,7 @@ function _renderAccountList(activeEmail) {
   emails.forEach(email => {
     const isActive = email === (activeEmail || PK.lastEmail());
     const rawName = email.split('@')[0].replace(/[^a-zA-Z]/g, '');
-    const name = (accounts[email] && accounts[email].name) || rawName.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\b\w/g, c => c.toUpperCase()) || email;
+    const name = rawName.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\b\w/g, c => c.toUpperCase()) || email;
     const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
     const btn = document.createElement('button');
     btn.dataset.email = email;
@@ -6431,126 +6425,70 @@ function _renderAccountList(activeEmail) {
       <div style="flex-shrink:0;">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="${isActive ? 'var(--blue-lt)' : 'var(--text3)'}" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/></svg>
       </div>`;
-    const askRemove = async () => {
-      if(await _pkConfirmRemove(name, email)) {
+    btn.addEventListener('click', () => _unlockAccount(email));
+    // Long-press to remove account
+    let pressTimer;
+    btn.addEventListener('pointerdown', () => { pressTimer = setTimeout(async () => {
+      if(confirm(`Remove ${name} (${email}) from this device? Biometric will be cleared.`)) {
         PK.remove(email);
         _showSignInUI();
       }
-    };
-    let longPressed = false;
-    btn.addEventListener('click', () => { if (longPressed) { longPressed = false; return; } _unlockAccount(email); });
-    // Remove: long-press (touch), right-click (laptop), or the trash button beside the card
-    let pressTimer;
-    btn.addEventListener('pointerdown', () => { longPressed = false; pressTimer = setTimeout(() => { longPressed = true; askRemove(); }, 700); });
+    }, 700); });
     btn.addEventListener('pointerup', () => clearTimeout(pressTimer));
     btn.addEventListener('pointerleave', () => clearTimeout(pressTimer));
-    btn.addEventListener('contextmenu', e => { e.preventDefault(); clearTimeout(pressTimer); askRemove(); });
-    const del = document.createElement('button');
-    del.type = 'button';
-    del.title = 'Remove from this device';
-    del.setAttribute('aria-label', `Remove ${name} from this device`);
-    del.style.cssText = "flex-shrink:0;width:46px;border-radius:12px;border:2px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;";
-    del.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg>';
-    del.addEventListener('mouseenter', () => { del.style.color = 'var(--red)'; del.style.borderColor = 'var(--red)'; del.style.background = 'rgba(231,76,60,.1)'; });
-    del.addEventListener('mouseleave', () => { del.style.color = 'var(--text3)'; del.style.borderColor = 'var(--border)'; del.style.background = 'var(--surface2)'; });
-    del.addEventListener('click', askRemove);
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;gap:.5rem;align-items:stretch;width:100%;';
-    btn.style.flex = '1'; btn.style.minWidth = '0';
-    row.append(btn, del);
-    list.appendChild(row);
+    list.appendChild(btn);
   });
 }
 
 // ── UNLOCK A SPECIFIC ACCOUNT ──────────────────────────
-function _pkAgo(ts) {
-  if (!ts) return '';
-  const d = new Date(ts), now = new Date(), t = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
-  if (days === 0) return 'today at ' + t;
-  if (days === 1) return 'yesterday at ' + t;
-  return d.toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' at ' + t;
-}
 async function _unlockAccount(email) {
   const entry = PK.get(email);
   if (!entry) return;
-  if (window._pkUnlocking) return; // ignore double-taps / auto-unlock racing a tap
-  window._pkUnlocking = true;
-  const rawName = email.split('@')[0].replace(/[^a-zA-Z]/g, '');
-  const name = (entry && entry.name) || rawName.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\b\w/g, c => c.toUpperCase()) || email;
-  const first = name.split(' ')[0];
-  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const cu = auth && auth.currentUser;
-  let lastMap = {}; try { lastMap = JSON.parse(localStorage.getItem('ksd_last_unlock') || '{}'); } catch (e) {}
-  const lastTxt = _pkAgo(lastMap[email]);
-  const ui = _pkDialog({
-    flow: 'unlock', dismissible: true, steps: ['Verify', 'Unlock', 'Open'], badge: '🔓 Unlocked',
-    foot: lastTxt ? `🔒 Last unlocked ${lastTxt}` : '🔒 Verified by your device — nothing leaves it',
-    user: { name, email, photo: (cu && cu.email === email && cu.photoURL) || '' },
-  });
-  const finish = async () => {
-    try { const dn = auth && auth.currentUser && auth.currentUser.displayName; if (dn) PK.setName(email, dn); } catch (e) {}
-    try { lastMap[email] = Date.now(); localStorage.setItem('ksd_last_unlock', JSON.stringify(lastMap)); } catch (e) {}
-    ui.set('success', { title: `Welcome back, ${first}!`, sub: 'Unlocked. Opening your workspace…' });
-    await new Promise(r => setTimeout(r, 1300));
-    ui.close();
-  };
+  const listEl = document.getElementById('account-list');
+  const btn = listEl?.querySelector(`[data-email="${email}"]`);
+  if (btn) {
+    btn.style.borderColor = 'var(--blue-lt)';
+    const nameDiv = btn.querySelectorAll('div > div')[0];
+    if (nameDiv) nameDiv.textContent = 'Scanning…';
+  }
   try {
-    while (true) {
-      ui.set('scanning', {
-        title: `Welcome back, ${first}`, sub: 'Confirm it\'s really you to unlock the school portal.',
-        hints: ['👆 Touch the fingerprint sensor', '👀 Or look at the camera', '⌨️ Or enter your device PIN'],
-        btn: 'Waiting for your device…', busy: true,
-      });
-      try {
-        const challenge = new Uint8Array(32);
-        crypto.getRandomValues(challenge);
-        const assertion = await navigator.credentials.get({
-          publicKey: {
-            challenge, timeout: 60000, userVerification: 'preferred',
-            allowCredentials: [{ type: 'public-key', id: _base64ToBuffer(entry.credId) }],
-            rpId: location.hostname === 'localhost' ? 'localhost' : location.hostname,
-          }
-        });
-        if (assertion) {
-          PK.setLast(email);
-          // Check if this account's Firebase session is alive
-          const existingUser = auth && auth.currentUser;
-          if (existingUser && existingUser.email === email) {
-            await finish();
-            _softUnlock(existingUser);
-            return;
-          }
-          ui.set('opening', { title: 'Verified ✓', sub: 'Restoring your secure session…', btn: 'Opening…', busy: true });
-          // Wait for Firebase to restore the session
-          const restored = await new Promise(resolve => {
-            let done = false;
-            const {onAuthStateChanged: _osc} = window._fb;
-            const unsub = _osc(auth, u => { if(done)return; done=true; unsub(); resolve(u); });
-            setTimeout(() => { if(!done){done=true;unsub();resolve(null);} }, 3000);
-          });
-          if (restored && restored.email === email) { await finish(); _softUnlock(restored); return; }
-          // Session expired — silent Google re-auth
-          ui.set('opening', { title: 'Refreshing your session', sub: 'Your Google session expired. A sign-in window may open — choose <b>' + esc(email) + '</b>.', btn: 'Please wait…', busy: true });
-          const {signInWithPopup, GoogleAuthProvider: _GA} = window._fb;
-          const provider = new _GA();
-          provider.setCustomParameters({ login_hint: email });
-          await signInWithPopup(auth, provider);
-          await finish();
-          return;
-        }
-      } catch(e) {
-        const cancelled = e && e.name === 'NotAllowedError';
-        ui.set('error', {
-          title: cancelled ? 'Scan cancelled' : 'Couldn\'t unlock',
-          sub: cancelled ? 'No problem — tap below and confirm with your fingerprint, face or PIN.' : esc((e && e.message) || 'Something went wrong. Please try again.'),
-          btn: 'Try again', btn2: PK.count() > 1 ? 'Use another account' : 'Cancel',
-        });
-        const r = await ui.ask();
-        if (r === 'secondary') { ui.close(); _renderAccountList(email); return; }
+    const challenge = new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge, timeout: 60000, userVerification: 'preferred',
+        allowCredentials: [{ type: 'public-key', id: _base64ToBuffer(entry.credId) }],
+        rpId: location.hostname === 'localhost' ? 'localhost' : location.hostname,
       }
+    });
+    if (assertion) {
+      PK.setLast(email);
+      // Check if this account's Firebase session is alive
+      const existingUser = auth && auth.currentUser;
+      if (existingUser && existingUser.email === email) {
+        _softUnlock(existingUser);
+        return;
+      }
+      if (btn) { const nd = btn.querySelectorAll('div > div')[0]; if(nd) nd.textContent = 'Opening…'; }
+      // Wait for Firebase to restore the session
+      const restored = await new Promise(resolve => {
+        let done = false;
+        const {onAuthStateChanged: _osc} = window._fb;
+        const unsub = _osc(auth, u => { if(done)return; done=true; unsub(); resolve(u); });
+        setTimeout(() => { if(!done){done=true;unsub();resolve(null);} }, 3000);
+      });
+      if (restored && restored.email === email) { _softUnlock(restored); return; }
+      // Session expired — silent Google re-auth
+      const {signInWithPopup, GoogleAuthProvider: _GA} = window._fb;
+      const provider = new _GA();
+      provider.setCustomParameters({ login_hint: email });
+      await signInWithPopup(auth, provider);
     }
-  } finally { window._pkUnlocking = false; }
+  } catch(e) {
+    if (e.name === 'NotAllowedError') notify('Biometric scan cancelled. Tap your account to try again.','info');
+    else notify('Unlock failed: ' + e.message,'error');
+    _renderAccountList(email); // restore button
+  }
 }
 
 // ── AUTO-TRIGGER BIOMETRIC on app open ───────────────
@@ -6590,323 +6528,6 @@ function _softLock() {
   _autoUnlockIfPossible();
 }
 
-/* ══════════════════════════════════════════
-   PASSKEY DIALOG — replaces alert()/confirm() around biometric setup.
-   The OS fingerprint/PIN sheet itself cannot be styled by any web page, so
-   this dialog stays on screen *behind* it and walks the person through every
-   state: intro → scanning → success / error → retry.
-══════════════════════════════════════════ */
-function _pkDialog(opts) {
-  opts = opts || {};
-  if (!document.getElementById('pkd-css')) {
-    const st = document.createElement('style');
-    st.id = 'pkd-css';
-    st.textContent = `
-@property --a1{syntax:'<color>';inherits:true;initial-value:#38bdf8;}
-@property --a2{syntax:'<color>';inherits:true;initial-value:#818cf8;}
-@property --ang{syntax:'<angle>';inherits:false;initial-value:0deg;}
-.pkd-ov{--a1:#38bdf8;--a2:#818cf8;position:fixed;inset:0;z-index:30000;display:flex;align-items:center;justify-content:center;padding:1rem;overflow:hidden;background:#050a16;opacity:0;transition:opacity .35s ease,--a1 .7s,--a2 .7s;font-family:'Plus Jakarta Sans',sans-serif;perspective:1000px;}
-.pkd-ov.in{opacity:1;}
-.pkd-ov[data-state=success]{--a1:#34d399;--a2:#22d3ee;}
-.pkd-ov[data-state=error],.pkd-ov[data-state=danger]{--a1:#fb7185;--a2:#f97316;}
-.pkd-aur{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
-.pkd-aur b{position:absolute;width:62vmax;height:62vmax;border-radius:50%;filter:blur(90px);opacity:.5;mix-blend-mode:screen;}
-.pkd-aur b:nth-child(1){background:var(--a1);left:-20vmax;top:-25vmax;animation:pkdDrift 16s ease-in-out infinite alternate;}
-.pkd-aur b:nth-child(2){background:var(--a2);right:-22vmax;bottom:-28vmax;animation:pkdDrift 20s ease-in-out infinite alternate-reverse;}
-.pkd-aur b:nth-child(3){background:#a78bfa;width:40vmax;height:40vmax;left:35%;top:40%;opacity:.28;animation:pkdDrift 24s ease-in-out infinite alternate;}
-@keyframes pkdDrift{to{transform:translate(9vmax,6vmax) scale(1.18);}}
-.pkd-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:46px 46px;-webkit-mask-image:radial-gradient(circle at 50% 45%,#000,transparent 70%);mask-image:radial-gradient(circle at 50% 45%,#000,transparent 70%);}
-.pkd-dots{position:absolute;inset:0;pointer-events:none;}
-.pkd-dots i{position:absolute;bottom:-12px;border-radius:50%;background:#fff;opacity:0;animation:pkdRise linear infinite;}
-@keyframes pkdRise{0%{transform:translateY(0);opacity:0;}15%{opacity:.7;}100%{transform:translateY(-105vh);opacity:0;}}
-.pkd-wrap{position:relative;width:100%;max-width:420px;transform:translateY(40px) scale(.9);opacity:0;transition:transform .7s cubic-bezier(.2,1.25,.35,1),opacity .5s;}
-.pkd-ov.in .pkd-wrap{transform:none;opacity:1;}
-.pkd-card{position:relative;padding:1.5rem 1.6rem 1.25rem;border-radius:30px;text-align:center;color:#eaf3ff;background:linear-gradient(160deg,rgba(24,36,62,.82),rgba(9,14,28,.9));backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 90px -20px var(--a1),inset 0 1px 0 rgba(255,255,255,.12);transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .15s ease-out;transform-style:preserve-3d;}
-.pkd-card::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;background:conic-gradient(from var(--ang),transparent 0 55%,var(--a1) 75%,var(--a2) 90%,transparent 100%),linear-gradient(rgba(255,255,255,.1),rgba(255,255,255,.1));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:pkdSpin 5s linear infinite;}
-@keyframes pkdSpin{to{--ang:360deg;}}
-.pkd-user{display:inline-flex;align-items:center;gap:.5rem;max-width:100%;padding:.28rem .8rem .28rem .3rem;border-radius:99px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);font-size:.72rem;font-weight:600;color:#c8d9ee;}
-.pkd-user:empty{display:none;}
-.pkd-user .av{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;font-size:.68rem;font-weight:800;object-fit:cover;}
-.pkd-user span.t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pkd-stepper{display:flex;align-items:center;justify-content:center;margin:1rem auto .2rem;max-width:300px;}
-.pkd-st{display:flex;flex-direction:column;align-items:center;gap:.3rem;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5f7796;transition:color .4s;}
-.pkd-st u{width:22px;height:22px;border-radius:50%;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:.66rem;border:1.5px solid #34496a;background:#0b1428;transition:all .4s;}
-.pkd-st.cur{color:#eaf3ff;}.pkd-st.cur u{border-color:var(--a1);box-shadow:0 0 0 4px color-mix(in srgb,var(--a1) 25%,transparent),0 0 16px var(--a1);color:#fff;}
-.pkd-st.done{color:var(--a1);}.pkd-st.done u{background:linear-gradient(135deg,var(--a1),var(--a2));border-color:transparent;color:#04101f;}
-.pkd-ln{flex:1;height:2px;margin:0 .4rem 1.1rem;background:#22324f;border-radius:2px;position:relative;overflow:hidden;min-width:28px;}
-.pkd-ln::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,var(--a1),var(--a2));transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.3,1,.4,1);}
-.pkd-ln.on::after{transform:none;}
-.pkd-hero{position:relative;width:176px;height:176px;margin:.6rem auto .5rem;display:flex;align-items:center;justify-content:center;}
-.pkd-prog{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
-.pkd-prog circle{fill:none;stroke-width:2.5;}
-.pkd-prog .tr{stroke:rgba(255,255,255,.08);}
-.pkd-prog .fg{transition:stroke-dashoffset .7s ease;stroke:var(--a1);stroke-linecap:round;stroke-dasharray:515;stroke-dashoffset:515;filter:drop-shadow(0 0 5px var(--a1));}
-.pkd-card[data-state=scanning] .pkd-prog .fg{animation:pkdCount 60s linear forwards;}
-@keyframes pkdCount{from{stroke-dashoffset:0;}to{stroke-dashoffset:515;}}
-.pkd-card[data-state=opening] .pkd-prog .fg,.pkd-card[data-state=success] .pkd-prog .fg{stroke-dashoffset:0;}
-.pkd-card.quiet .pkd-conf{display:none;}
-.pkd-orbit{position:absolute;inset:6px;border-radius:50%;opacity:0;transition:opacity .4s;}
-.pkd-orbit i{position:absolute;top:-4px;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--a1);box-shadow:0 0 12px 3px var(--a1);}
-.pkd-orbit.o2{inset:-2px;animation-direction:reverse!important;}.pkd-orbit.o2 i{background:var(--a2);box-shadow:0 0 12px 3px var(--a2);width:6px;height:6px;margin-left:-3px;top:-3px;}
-.pkd-card[data-state=intro] .pkd-orbit,.pkd-card[data-state=scanning] .pkd-orbit,.pkd-card[data-state=opening] .pkd-orbit{opacity:1;animation:pkdRot 7s linear infinite;}
-.pkd-card[data-state=scanning] .pkd-orbit,.pkd-card[data-state=opening] .pkd-orbit{animation-duration:2.6s;}
-@keyframes pkdRot{to{transform:rotate(360deg);}}
-.pkd-wave{position:absolute;inset:18px;border-radius:50%;border:2px solid var(--a1);opacity:0;pointer-events:none;}
-.pkd-card[data-state=intro] .pkd-wave,.pkd-card[data-state=scanning] .pkd-wave,.pkd-card[data-state=opening] .pkd-wave{animation:pkdWave 2.8s ease-out infinite;}
-.pkd-wave.w2{animation-delay:1.4s!important;}
-.pkd-card[data-state=success] .pkd-wave{animation:pkdBoom 1s ease-out forwards;}
-.pkd-card[data-state=success] .pkd-wave.w2{animation-delay:.18s;}
-@keyframes pkdWave{0%{transform:scale(.7);opacity:.65;}100%{transform:scale(1.5);opacity:0;}}
-@keyframes pkdBoom{0%{transform:scale(.8);opacity:.9;border-width:5px;}100%{transform:scale(2.4);opacity:0;border-width:1px;}}
-.pkd-orb{position:relative;width:118px;height:118px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.2),rgba(255,255,255,.04) 55%),rgba(13,22,42,.9);border:1px solid rgba(255,255,255,.16);box-shadow:0 0 44px -6px var(--a1),inset 0 0 28px color-mix(in srgb,var(--a1) 22%,transparent);}
-.pkd-card[data-state=intro] .pkd-orb{animation:pkdBreath 3.4s ease-in-out infinite;}
-@keyframes pkdBreath{50%{transform:scale(1.045);box-shadow:0 0 64px -2px var(--a1),inset 0 0 34px color-mix(in srgb,var(--a1) 32%,transparent);}}
-.pkd-card[data-state=error] .pkd-orb{animation:pkdShake .55s;}
-@keyframes pkdShake{20%,60%{transform:translateX(-8px);}40%,80%{transform:translateX(8px);}}
-.pkd-fp{position:absolute;width:74px;height:74px;transition:opacity .3s,transform .5s cubic-bezier(.2,1.4,.4,1);filter:drop-shadow(0 0 6px var(--a1));}
-.pkd-fp path{fill:none;stroke:url(#pkd-grad);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:pkdDrawR 1.2s calc(var(--i)*.11s + .25s) cubic-bezier(.4,0,.2,1) forwards;}
-@keyframes pkdDrawR{to{stroke-dashoffset:0;}}
-.pkd-card[data-state=scanning] .pkd-fp path,.pkd-card[data-state=opening] .pkd-fp path{animation:pkdDrawR 0s forwards,pkdPulseR 1.6s calc(var(--i)*.09s) ease-in-out infinite;stroke-dashoffset:0;}
-@keyframes pkdPulseR{50%{stroke-width:3.4;opacity:.55;}}
-.pkd-glyph{position:absolute;width:56px;height:56px;opacity:0;transform:scale(.2) rotate(-30deg);transition:opacity .25s,transform .55s cubic-bezier(.2,1.5,.4,1);}
-.pkd-card[data-state=success] .pkd-fp,.pkd-card[data-state=error] .pkd-fp,.pkd-card[data-state=danger] .pkd-fp{opacity:0;transform:scale(.4);}
-.pkd-card[data-state=success] .pkd-g-ok,.pkd-card[data-state=error] .pkd-g-x,.pkd-card[data-state=danger] .pkd-g-tr{opacity:1;transform:none;}
-.pkd-g-ok path{stroke-dasharray:32;stroke-dashoffset:32;}
-.pkd-card[data-state=success] .pkd-g-ok path{animation:pkdDrawK .6s .25s ease forwards;}
-@keyframes pkdDrawK{to{stroke-dashoffset:0;}}
-.pkd-beam{position:absolute;left:-10%;right:-10%;height:34px;top:-34px;opacity:0;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--a1) 55%,transparent) 70%,#fff 96%,transparent);filter:blur(1px);}
-.pkd-card[data-state=scanning] .pkd-beam,.pkd-card[data-state=opening] .pkd-beam{opacity:1;animation:pkdBeam 1.5s cubic-bezier(.5,0,.5,1) infinite alternate;}
-@keyframes pkdBeam{to{top:calc(100% + 2px);}}
-.pkd-conf{position:absolute;left:50%;top:150px;width:0;height:0;pointer-events:none;z-index:3;}
-.pkd-conf i{position:absolute;width:8px;height:13px;border-radius:2px;opacity:0;}
-.pkd-card[data-state=success] .pkd-conf i{animation:pkdConf 1.5s cubic-bezier(.1,.7,.3,1) forwards;}
-@keyframes pkdConf{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(.6);}}
-.pkd-badge{display:none;margin:0 auto .6rem;padding:.28rem .8rem;width:max-content;border-radius:99px;font-size:.68rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#052e1f;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 6px 20px -4px var(--a1);}
-.pkd-card[data-state=success] .pkd-badge{display:block;animation:pkdPop .6s .35s cubic-bezier(.2,1.6,.4,1) both;}
-@keyframes pkdPop{from{transform:scale(0);opacity:0;}}
-.pkd-title{font-size:1.45rem;font-weight:800;letter-spacing:-.02em;margin:.2rem 0 .45rem;background:linear-gradient(180deg,#fff,#b8cfee);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
-.pkd-sub{font-size:.86rem;line-height:1.6;color:#9db6d3;margin:0 auto 1rem;max-width:330px;}
-.pkd-sub b{color:#fff;font-weight:700;}
-.pkd-hint{min-height:1.2rem;margin:-.4rem 0 .9rem;font-size:.76rem;font-weight:700;color:var(--a1);letter-spacing:.02em;}
-.pkd-hint:empty{display:none;}
-.pkd-perks{display:none;flex-direction:column;gap:.45rem;margin:0 0 1.15rem;text-align:left;}
-.pkd-card[data-state=intro] .pkd-perks{display:flex;}
-.pkd-perks div{display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border-radius:14px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);font-size:.8rem;font-weight:600;color:#d6e4f6;opacity:0;animation:pkdIn .6s calc(.45s + var(--k)*.12s) cubic-bezier(.2,1,.3,1) forwards;}
-@keyframes pkdIn{from{opacity:0;transform:translateX(-14px);}to{opacity:1;transform:none;}}
-.pkd-perks em{font-style:normal;width:30px;height:30px;flex-shrink:0;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem;background:linear-gradient(135deg,color-mix(in srgb,var(--a1) 35%,transparent),color-mix(in srgb,var(--a2) 35%,transparent));}
-.pkd-btn{position:relative;overflow:hidden;width:100%;padding:1rem;border:none;border-radius:16px;font:800 1rem 'Plus Jakarta Sans',sans-serif;letter-spacing:.01em;color:#04101f;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 12px 30px -8px var(--a1),inset 0 1px 0 rgba(255,255,255,.5);transition:transform .15s,box-shadow .25s,opacity .25s,filter .2s;}
-.pkd-ov[data-state=error] .pkd-btn,.pkd-ov[data-state=danger] .pkd-btn{color:#fff;}
-.pkd-btn::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);animation:pkdShine 3.2s ease-in-out infinite;}
-@keyframes pkdShine{0%,55%{left:-60%;}100%{left:140%;}}
-.pkd-btn:hover{transform:translateY(-2px);filter:brightness(1.08);}.pkd-btn:active{transform:scale(.97);}
-.pkd-btn:focus-visible{outline:3px solid #fff;outline-offset:3px;}
-.pkd-btn[disabled]{opacity:.5;cursor:default;transform:none;filter:none;}.pkd-btn[disabled]::after{display:none;}
-.pkd-rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);transform:scale(0);animation:pkdRip .6s ease-out forwards;pointer-events:none;}
-@keyframes pkdRip{to{transform:scale(1);opacity:0;}}
-.pkd-btn2{margin-top:.4rem;width:100%;padding:.75rem;border:none;background:none;border-radius:12px;font:700 .82rem 'Plus Jakarta Sans',sans-serif;color:#7d94b3;cursor:pointer;transition:background .2s,color .2s;}
-.pkd-btn2:hover{background:rgba(255,255,255,.06);color:#fff;}.pkd-btn2:empty{display:none;}
-.pkd-btn3{margin-top:0;padding:.55rem;font-size:.74rem;font-weight:600;color:#5f7796;}
-.pkd-foot{margin-top:.9rem;font-size:.68rem;color:#5f7796;display:flex;align-items:center;justify-content:center;gap:.4rem;}
-.pkd-swap{animation:pkdSwap .45s cubic-bezier(.2,1,.3,1);}
-@keyframes pkdSwap{from{opacity:0;transform:translateY(10px);filter:blur(4px);}}
-@media (max-height:700px){.pkd-hero{transform:scale(.8);margin:-.6rem auto -.7rem;}.pkd-perks{display:none!important;}}
-@media (prefers-reduced-motion:reduce){.pkd-ov *,.pkd-ov *::before,.pkd-ov *::after{animation-duration:.01s!important;animation-iteration-count:1!important;transition-duration:.01s!important;}}
-`;
-    document.head.appendChild(st);
-  }
-  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  // Fingerprint: nested arches that draw themselves ridge by ridge
-  let ridges = '';
-  for (let i = 0; i < 7; i++) {
-    const r = 7 + i * 6.2, l = 8 + ((i * 7) % 11), rr = 12 + ((i * 5) % 9);
-    ridges += `<path pathLength="1" style="--i:${i}" d="M${50 - r} ${58 + l} V58 A${r} ${r} 0 0 1 ${50 + r} 58 V${58 + rr}"/>`;
-  }
-  ridges += `<path pathLength="1" style="--i:7" d="M50 58 V70"/>`;
-
-  const ov = document.createElement('div');
-  ov.className = 'pkd-ov';
-  ov.dataset.state = 'intro';
-  ov.innerHTML = `
-<div class="pkd-aur" aria-hidden="true"><b></b><b></b><b></b></div>
-<div class="pkd-grid" aria-hidden="true"></div>
-<div class="pkd-dots" aria-hidden="true"></div>
-<div class="pkd-wrap"><div class="pkd-card" role="dialog" aria-modal="true" aria-live="polite" aria-labelledby="pkd-t" data-state="intro">
-  <div class="pkd-conf" aria-hidden="true"></div>
-  <div class="pkd-user"></div>
-  <div class="pkd-stepper" aria-hidden="true">
-    <div class="pkd-st"><u>1</u>Verify</div><div class="pkd-ln"></div>
-    <div class="pkd-st"><u>2</u>Secure</div><div class="pkd-ln"></div>
-    <div class="pkd-st"><u>✓</u>Done</div>
-  </div>
-  <div class="pkd-hero" aria-hidden="true">
-    <svg class="pkd-prog" viewBox="0 0 176 176"><circle class="tr" cx="88" cy="88" r="82"/><circle class="fg" cx="88" cy="88" r="82"/></svg>
-    <div class="pkd-orbit"><i></i></div><div class="pkd-orbit o2"><i></i></div>
-    <span class="pkd-wave"></span><span class="pkd-wave w2"></span>
-    <div class="pkd-orb">
-      <svg class="pkd-fp" viewBox="0 0 100 100"><defs><linearGradient id="pkd-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--a1)"/><stop offset="1" style="stop-color:var(--a2)"/></linearGradient></defs>${ridges}</svg>
-      <svg class="pkd-glyph pkd-g-ok" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
-      <svg class="pkd-glyph pkd-g-x" viewBox="0 0 24 24" fill="none" stroke="#fb7185" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      <svg class="pkd-glyph pkd-g-tr" viewBox="0 0 24 24" fill="none" stroke="#fb7185" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg>
-      <span class="pkd-beam"></span>
-    </div>
-  </div>
-  <div class="pkd-badge">🛡️ Device protected</div>
-  <h3 class="pkd-title" id="pkd-t"></h3>
-  <p class="pkd-sub"></p>
-  <div class="pkd-hint"></div>
-  <div class="pkd-perks">
-    <div style="--k:0"><em>⚡</em>Unlock in one touch — no typing</div>
-    <div style="--k:1"><em>🔑</em>No password to remember or share</div>
-    <div style="--k:2"><em>🔒</em>Stays on this device, never uploaded</div>
-  </div>
-  <button class="pkd-btn" type="button"></button>
-  <button class="pkd-btn2" type="button"></button>
-  <button class="pkd-btn2 pkd-btn3" type="button"></button>
-  <div class="pkd-foot">🔒 Protected by your device's built-in security</div>
-</div></div>`;
-  const card = ov.querySelector('.pkd-card');
-  const $ = q => card.querySelector(q);
-  const btn = $('.pkd-btn'), btn2 = $('.pkd-btn2'), btn3 = $('.pkd-btn3');
-  if (opts.steps) card.querySelectorAll('.pkd-st').forEach((el, i) => { if (opts.steps[i]) el.lastChild.textContent = opts.steps[i]; });
-  if (opts.badge) $('.pkd-badge').textContent = opts.badge;
-  if (opts.foot) $('.pkd-foot').textContent = opts.foot;
-  if (opts.flow === 'unlock') card.classList.add('quiet');
-
-  // signed-in person pill
-  if (opts.user) {
-    const u = $('.pkd-user'), nm = opts.user.email || opts.user.name || '';
-    if (opts.user.photo) {
-      const im = document.createElement('img');
-      im.className = 'av'; im.alt = ''; im.referrerPolicy = 'no-referrer'; im.src = opts.user.photo;
-      im.onerror = () => { const d = document.createElement('div'); d.className = 'av'; d.textContent = (opts.user.name || nm || '?')[0].toUpperCase(); im.replaceWith(d); };
-      u.appendChild(im);
-    } else {
-      const d = document.createElement('div'); d.className = 'av'; d.textContent = (opts.user.name || nm || '?')[0].toUpperCase(); u.appendChild(d);
-    }
-    const t = document.createElement('span'); t.className = 't'; t.textContent = nm; u.appendChild(t);
-  }
-  // floating particles
-  const dots = ov.querySelector('.pkd-dots');
-  for (let i = 0; i < 24; i++) {
-    const d = document.createElement('i'), z = 2 + Math.random() * 4;
-    d.style.cssText = `left:${Math.random() * 100}%;width:${z}px;height:${z}px;animation-duration:${9 + Math.random() * 12}s;animation-delay:${-Math.random() * 18}s`;
-    dots.appendChild(d);
-  }
-  // confetti
-  const conf = $('.pkd-conf'), cols = ['#34d399', '#38bdf8', '#fbbf24', '#fb7185', '#a78bfa', '#f472b6'];
-  for (let i = 0; i < 46; i++) {
-    const c = document.createElement('i'), a = Math.random() * Math.PI * 2, d = 90 + Math.random() * 190;
-    c.style.cssText = `background:${cols[i % cols.length]};--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d * .8 - 60 + Math.random() * 120}px;--r:${Math.random() * 900 - 450}deg;animation-delay:${Math.random() * .2}s`;
-    conf.appendChild(c);
-  }
-  // 3D tilt following the pointer (mouse only)
-  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
-  const onMove = e => {
-    if (reduce || e.pointerType === 'touch') return;
-    const x = (e.clientX / innerWidth - .5) * 2, y = (e.clientY / innerHeight - .5) * 2;
-    card.style.setProperty('--ry', (x * 7).toFixed(2) + 'deg');
-    card.style.setProperty('--rx', (-y * 6).toFixed(2) + 'deg');
-  };
-  ov.addEventListener('pointermove', onMove);
-  // button ripple
-  btn.addEventListener('pointerdown', e => {
-    const r = btn.getBoundingClientRect(), z = Math.max(r.width, r.height) * 2, sp = document.createElement('span');
-    sp.className = 'pkd-rip';
-    sp.style.cssText = `width:${z}px;height:${z}px;left:${e.clientX - r.left - z / 2}px;top:${e.clientY - r.top - z / 2}px`;
-    btn.appendChild(sp); setTimeout(() => sp.remove(), 650);
-  });
-
-  let resolver = null, hintTimer = null;
-  const settle = v => { if (resolver) { const r = resolver; resolver = null; r(v); } };
-  btn.onclick = () => { try { navigator.vibrate && navigator.vibrate(12); } catch (e) {} settle('primary'); };
-  btn2.onclick = () => settle('secondary');
-  btn3.onclick = () => settle('tertiary');
-  const onKey = e => { if (e.key === 'Escape' && opts.dismissible) settle('secondary'); };
-  document.addEventListener('keydown', onKey);
-  document.body.appendChild(ov);
-  requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('in')));
-
-  const chime = (soft) => {
-    try {
-      const A = window.AudioContext || window.webkitAudioContext; if (!A) return;
-      const c = new A(); if (c.resume) c.resume();
-      const t = c.currentTime, vol = soft ? .06 : .09;
-      (soft ? [783.99, 1174.66] : [659.25, 880, 1318.5]).forEach((f, i) => {
-        const o = c.createOscillator(), g = c.createGain();
-        o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(c.destination);
-        g.gain.setValueAtTime(0, t + i * .09); g.gain.linearRampToValueAtTime(vol, t + i * .09 + .02); g.gain.exponentialRampToValueAtTime(.0001, t + i * .09 + .5);
-        o.start(t + i * .09); o.stop(t + i * .09 + .55);
-      });
-      setTimeout(() => c.close(), 1400);
-    } catch (e) {}
-  };
-  const stepOf = opts.flow === 'unlock'
-    ? { intro: 0, scanning: 0, error: 0, opening: 1, success: 3, danger: -1 }
-    : { intro: 0, scanning: 1, error: 1, opening: 1, success: 3, danger: -1 };
-  const api = {
-    /** state: intro | scanning | opening | success | error | danger. o: {title, sub, btn, btn2, busy, hints[]} */
-    set(state, o) {
-      o = o || {};
-      card.dataset.state = state; ov.dataset.state = state;
-      $('.pkd-title').textContent = o.title || '';
-      $('.pkd-sub').innerHTML = o.sub || '';
-      btn.textContent = o.btn || '';
-      btn.style.display = o.btn ? '' : 'none';
-      btn.disabled = !!o.busy;
-      btn2.textContent = o.btn2 || '';
-      btn3.textContent = o.btn3 || '';
-      const cur = stepOf[state];
-      card.querySelectorAll('.pkd-st').forEach((el, i) => { el.classList.toggle('done', cur >= 0 && i < cur); el.classList.toggle('cur', i === cur); });
-      card.querySelectorAll('.pkd-ln').forEach((el, i) => el.classList.toggle('on', cur >= 0 && i < cur));
-      card.querySelector('.pkd-stepper').style.display = state === 'danger' ? 'none' : '';
-      clearInterval(hintTimer);
-      const h = $('.pkd-hint'); h.textContent = '';
-      if (o.hints && o.hints.length) {
-        let k = 0; const show = () => { h.textContent = o.hints[k++ % o.hints.length]; h.classList.remove('pkd-swap'); void h.offsetWidth; h.classList.add('pkd-swap'); };
-        show(); hintTimer = setInterval(show, 2600);
-      }
-      [$('.pkd-title'), $('.pkd-sub')].forEach(el => { el.classList.remove('pkd-swap'); void el.offsetWidth; el.classList.add('pkd-swap'); });
-      if (state === 'success') { chime(opts.flow === 'unlock'); try { navigator.vibrate && navigator.vibrate(opts.flow === 'unlock' ? [20, 40, 20] : [18, 50, 18, 50, 40]); } catch (e) {} }
-      if (state === 'error') { try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (e) {} }
-      if (o.btn && !o.busy) setTimeout(() => btn.focus(), 80);
-      return api;
-    },
-    /** Resolves 'primary', 'secondary' or 'tertiary' when the person taps a button. */
-    ask() { return new Promise(res => { resolver = res; }); },
-    close() {
-      clearInterval(hintTimer);
-      document.removeEventListener('keydown', onKey);
-      ov.classList.remove('in');
-      setTimeout(() => ov.remove(), 420);
-    },
-  };
-  return api;
-}
-
-/** Styled replacement for confirm() when removing a saved account. */
-async function _pkConfirmRemove(name, email) {
-  const d = _pkDialog({ dismissible: true });
-  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  d.set('danger', {
-    title: 'Remove this account?',
-    sub: `<b>${esc(name)}</b><br>${esc(email)}<br><br>Fingerprint sign-in will be cleared from this device. You can set it up again any time.`,
-    btn: 'Remove from device', btn2: 'Keep it',
-  });
-  const r = await d.ask();
-  d.close();
-  return r === 'primary';
-}
-
-/** Remembers who dismissed the optional "enable biometric login" offer. */
-const _pkOffer = {
-  _k: 'ksd_pk_offer',
-  _all() { try { return JSON.parse(localStorage.getItem(this._k) || '{}'); } catch { return {}; } },
-  _save(m) { try { localStorage.setItem(this._k, JSON.stringify(m)); } catch (e) {} },
-  allowed(email) { const e = this._all()[email]; return !e || (!e.never && !(e.until && Date.now() < e.until)); },
-  snooze(email, days) { const m = this._all(); m[email] = Object.assign({}, m[email], { until: Date.now() + days * 864e5 }); this._save(m); },
-  never(email) { const m = this._all(); m[email] = Object.assign({}, m[email], { never: true }); this._save(m); },
-};
-
 /** OPT-IN passkey setup — NOT required by default for anyone. It only gates
  *  a sign-in when an Advanced Admin has explicitly turned on "Force Passkey
  *  Setup" for that specific person via the Advanced Admin Role panel
@@ -6941,48 +6562,19 @@ async function _mandatoryPasskeySetup(user, email) {
   // freshly-granted requirement takes effect on the very next attempt. If
   // the check itself fails for any reason, fail OPEN — never trap someone
   // in a forced setup they weren't opted into.
-  let forced = false;
   try {
     if (!firestoreDb || !user.uid) return;
     const snap = await window._fb.getDoc(window._fb.doc(firestoreDb, 'users', user.uid));
-    forced = snap.exists() && snap.data().passkeyRequired === true;
+    if (!(snap.exists() && snap.data().passkeyRequired === true)) return;
   } catch(e) { return; }
-  // Not forced → a friendly, skippable one-time offer (snoozed 7 days on "Maybe later",
-  // never shown again on "Don't ask again"). Forced → the strict loop below.
-  if (!forced) {
-    if (window._pkOfferShown || !_pkOffer.allowed(email)) return;
-    window._pkOfferShown = true;
-  }
-  const who = user.displayName || email.split('@')[0] || 'there';
-  const ui = _pkDialog({ user: { name: who, email: email, photo: user.photoURL || '' } });
-  let firstAttempt = true, fails = 0;
-  const fail = (title, sub) => {
-    fails++;
-    const o = { title, sub, btn: 'Try again' };
-    if (!forced) o.btn2 = 'Not now';
-    else if (fails >= 3) {
-      o.sub += '<br><br>Still stuck? Ask your administrator to switch off <b>Force Passkey</b> for your account.';
-      o.btn2 = 'Can\'t use biometrics? Sign out';
-    }
-    ui.set('error', o);
-  };
+  let firstAttempt = true;
   while (true) {
-    if (firstAttempt) {
-      ui.set('intro', forced
-        ? { title: `Hi ${who}! 👋`, sub: 'Secure this device with <b>fingerprint, face or PIN</b> before opening the app. It takes about 5 seconds.', btn: 'Activate biometric login' }
-        : { title: `Hi ${who}! 👋`, sub: 'Want faster, safer sign-in? Turn on <b>fingerprint, face or PIN</b> unlock for this device. It takes about 5 seconds.', btn: 'Activate biometric login', btn2: 'Maybe later', btn3: 'Don\'t ask again' });
-    }
+    alert(
+      firstAttempt
+        ? `Hi ${user.displayName || email.split('@')[0] || 'there'}!\n\nThis device requires fingerprint/PIN setup before you can use the app.\n\nTap OK, then complete the prompt that follows.`
+        : `Fingerprint/PIN setup is required to continue on this device.\n\nTap OK to try again.`
+    );
     firstAttempt = false;
-    const act = await ui.ask();
-    if (act !== 'primary') {
-      if (!forced) { if (act === 'tertiary') _pkOffer.never(email); else _pkOffer.snooze(email, 7); ui.close(); return; }
-      // Forced + stuck: sign out and reload; never resolve so callers can't open the app meanwhile.
-      ui.set('opening', { title: 'Signing you out…', sub: 'Please contact your administrator.', btn: 'One moment…', busy: true });
-      try { await window._fb.signOut(auth); } catch (e) {}
-      location.reload();
-      return new Promise(() => {});
-    }
-    ui.set('scanning', { title: 'Waiting for your device…', sub: 'Your device is asking you to confirm it\'s really you.', hints: ['👆 Touch the fingerprint sensor', '👀 Or look at the camera', '⌨️ Or enter your device PIN'], btn: 'Waiting…', busy: true });
     try {
       const challenge = new Uint8Array(32);
       crypto.getRandomValues(challenge);
@@ -6998,18 +6590,13 @@ async function _mandatoryPasskeySetup(user, email) {
         }
       });
       if (credential) {
-        PK.set(email, _bufferToBase64(credential.rawId), user.uid, user.displayName || '');
-        ui.set('success', { title: 'Biometric login activated!', sub: 'Next time, just use your fingerprint, face or PIN to sign in.' });
-        await new Promise(r => setTimeout(r, 2400));
-        ui.close();
-        notify(forced ? '✓ Biometric login set up — required on this device.' : '✓ Biometric login set up.', 'success');
+        PK.set(email, _bufferToBase64(credential.rawId), user.uid);
+        notify('✓ Biometric login set up — required on this device.', 'success');
         return;
       }
-      fail('Setup didn\'t finish', forced ? 'It\'s required to continue on this device. Let\'s try once more.' : 'Let\'s try once more, or skip it for now.');
+      notify('Biometric setup did not complete — it\'s required to continue.', 'error', 6000);
     } catch (fpErr) {
-      const cancelled = fpErr && fpErr.name === 'NotAllowedError';
-      fail(cancelled ? 'Prompt was cancelled' : 'Couldn\'t set up biometrics',
-        cancelled ? (forced ? 'No worries — this step is required on this device. Tap below and complete the prompt.' : 'No worries — you can try again or skip it for now.') : 'Something went wrong on this device. Please try again.');
+      notify('Biometric setup is required on this device — please try again.', 'error', 6000);
     }
   }
 }
