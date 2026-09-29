@@ -716,7 +716,7 @@ body::before{
 }
 .auth-illustration.auth-illustration-round .auth-logo-badge{border-radius:50%;width:60px;height:60px;}
 
-.auth-heading{font-size:1.65rem;font-weight:900;color:var(--text);margin-bottom:.25rem;letter-spacing:-.01em; text-align: center; } 
+.auth-heading{font-size:1.65rem;font-weight:900;color:var(--text);margin-bottom:.25rem;letter-spacing:-.01em;}
 .auth-subtitle{color:var(--text2);font-size:.83rem;margin-bottom:1.5rem;font-weight:500;}
 
 /* Icon-prefixed input fields */
@@ -775,28 +775,6 @@ body::before{
 .auth-btn-secondary:hover{border-color:var(--blue-lt);color:var(--blue-lt);transform:translateY(-1px);}
 
 /* Bottom switch line — "Don't have an account? Sign Up" */
-
-/* ── Portal quick links ── */
-.auth-links-title{display:flex;align-items:center;gap:.6rem;margin:1rem 0 .8rem;font-size:.66rem;color:var(--text3);font-weight:800;text-transform:uppercase;letter-spacing:.09em}
-.auth-links-title::before,.auth-links-title::after{content:'';flex:1;height:1px;background:var(--border)}
-.portal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem;width:100%}
-.portal-link{--c:var(--blue);position:relative;display:flex;align-items:center;gap:.65rem;min-width:0;padding:.7rem .75rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);text-decoration:none;overflow:hidden;transition:var(--transition);-webkit-tap-highlight-color:transparent}
-.portal-link::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--c),transparent 70%);opacity:0;transition:opacity .25s}
-.portal-link:hover,.portal-link:focus-visible{transform:translateY(-2px);border-color:var(--c);box-shadow:0 8px 20px -8px var(--c);outline:none}
-.portal-link:hover::before,.portal-link:focus-visible::before{opacity:.08}
-.portal-link:active{transform:translateY(0) scale(.98)}
-.portal-link.current{border-color:var(--c);cursor:default;pointer-events:none}
-.portal-link.current::before{opacity:.1}
-.portal-ico{position:relative;flex:0 0 auto;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 60%,#000));box-shadow:0 4px 10px -3px var(--c)}
-.portal-ico svg{width:18px;height:18px}
-.portal-txt{position:relative;display:flex;flex-direction:column;min-width:0;line-height:1.2}
-.portal-txt strong{font-size:.78rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.portal-txt small{font-size:.64rem;color:var(--text3);font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.portal-arrow{position:relative;margin-left:auto;width:14px;height:14px;color:var(--text3);opacity:0;transform:translateX(-4px);transition:var(--transition);flex:0 0 auto}
-.portal-link:hover .portal-arrow,.portal-link:focus-visible .portal-arrow{opacity:1;transform:none;color:var(--c)}
-.portal-here{position:relative;margin-left:auto;flex:0 0 auto;font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);padding:3px 6px;border-radius:6px}
-@media(max-width:360px){.portal-grid{grid-template-columns:1fr}}
-@media(hover:none){.portal-arrow{display:none}}
 .auth-switch{text-align:center;font-size:.79rem;color:var(--text2);font-weight:500;}
 .auth-switch a,.auth-switch button.auth-switch-link{
   color:var(--blue-dk);font-weight:800;cursor:pointer;background:none;border:none;
@@ -2359,29 +2337,6 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
     <div class="auth-switch" style="margin-top:.9rem;">
       <a href="./Report-Cards/Individual-student-portal.html">🎓 Students Portal →</a>
     </div>
-    <div class="auth-links-title">Other portals</div>
-    <div class="portal-grid">
-        <a class="portal-link current" aria-current="page" style="--c:#e67e22" href="./Results-portal.html">
-          <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
-          <span class="portal-txt"><strong>Results</strong><small>Scores &amp; rankings</small></span>
-          <span class="portal-here">You're here</span>
-        </a>
-        <a class="portal-link" style="--c:#27ae60" href="https://kanyadet-school-parents.web.app/">
-          <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-          <span class="portal-txt"><strong>Parents</strong><small>Follow your child</small></span>
-          <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-        </a>
-        <a class="portal-link" style="--c:#2980b9" href="https://kanyadet-school-portal.web.app">
-          <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></span>
-          <span class="portal-txt"><strong>Teachers</strong><small>Classes &amp; marks</small></span>
-          <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-        </a>
-        <a class="portal-link" style="--c:#8e44ad" href="https://kanyadet-school-admin.web.app">
-          <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
-          <span class="portal-txt"><strong>Admin</strong><small>School control</small></span>
-          <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-        </a>
-    </div>
   </div>
 
   <!-- ── NEW USER CARD — first-time users: Google sign-in ── -->
@@ -2421,29 +2376,6 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
 
     <div class="auth-switch" style="margin-top:1.1rem;">
       <a href="./Report-Cards/Individual-student-portal.html">🎓 Students Portal →</a>
-    </div>
-    <div class="auth-links-title">Other portals</div>
-    <div class="portal-grid">
-        <a class="portal-link current" aria-current="page" style="--c:#e67e22" href="./Results-portal.html">
-          <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
-          <span class="portal-txt"><strong>Results</strong><small>Scores &amp; rankings</small></span>
-          <span class="portal-here">You're here</span>
-        </a>
-        <a class="portal-link" style="--c:#27ae60" href="https://kanyadet-school-parents.web.app/">
-          <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-          <span class="portal-txt"><strong>Parents</strong><small>Follow your child</small></span>
-          <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-        </a>
-        <a class="portal-link" style="--c:#2980b9" href="https://kanyadet-school-portal.web.app">
-          <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></span>
-          <span class="portal-txt"><strong>Teachers</strong><small>Classes &amp; marks</small></span>
-          <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-        </a>
-        <a class="portal-link" style="--c:#8e44ad" href="https://kanyadet-school-admin.web.app">
-          <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
-          <span class="portal-txt"><strong>Admin</strong><small>School control</small></span>
-          <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-        </a>
     </div>
   </div>
 
@@ -2782,9 +2714,7 @@ setInterval(_rotateAuthTip, 5000);
         </div>
 
         <div class="grid-60-40">
-          <!-- Performance Distribution — now a trend line chart: % of
-               students in each performance band, per exam term, instead of
-               a single frozen snapshot. See renderDistChart. -->
+          <!-- Performance Distribution Chart -->
           <div class="card">
             <div class="card-hdr">
               <div class="card-title">Performance Distribution</div>
@@ -2797,15 +2727,12 @@ setInterval(_rotateAuthTip, 5000);
             <div class="chart-box"><canvas id="dist-chart"></canvas></div>
           </div>
 
-          <!-- Grade Averages — now a trend line chart: one line per grade,
-               tracking its average score across every exam term, instead of
-               one static bar mixing every term into a single number. See
-               renderGradeBars. -->
+          <!-- Grade Level Breakdown -->
           <div class="card">
             <div class="card-hdr">
               <div class="card-title">Grade Averages</div>
             </div>
-            <div class="chart-box"><canvas id="grade-avg-chart"></canvas></div>
+            <div id="grade-bars"></div>
           </div>
         </div>
 
@@ -5195,7 +5122,7 @@ let db, allData = [], filteredStudents = [], filteredResults = [];
 let currentPage = 1, resultsPage = 1;
 const PAGE_SIZE = 10;
 let dupPage = 1;
-let distChart, trendChart, genderChart, levelChart, gradeAvgChart;
+let distChart, trendChart, genderChart, levelChart;
 let autoRefreshTimer = null;
 let editingKey = null;
 // SUBJECTS are derived dynamically from the database records via getSubjects(rec)
@@ -10119,158 +10046,61 @@ function getFilteredByGrade(gradeVal,src){
 function updateDistChart(){renderDistChart();}
 window.updateDistChart=updateDistChart;
 
-// The 6 CBC-style performance bands used across this app, each as an
-// independent (non-overlapping, exhaustive) range test — matches exactly
-// the cascading if/else-if this replaced, just expressed so every band can
-// be evaluated per exam term instead of just once for a single snapshot.
-const DIST_BANDS = [
-  { label:'EE1 (90-100)', color:'#27ae60', test:a=>a>=90 },
-  { label:'EE2 (75-89)',  color:'#5dade2', test:a=>a>=75 && a<90 },
-  { label:'ME1 (58-74)',  color:'#f39c12', test:a=>a>=58 && a<75 },
-  { label:'ME2 (41-57)',  color:'#e67e22', test:a=>a>=41 && a<58 },
-  { label:'AE (21-40)',   color:'#e74c3c', test:a=>a>=21 && a<41 },
-  { label:'BE (<21)',     color:'#8e44ad', test:a=>a<21 },
-];
-
-/** Performance Distribution, redesigned as a trend line chart: what % of
- *  students fell into each performance band, TERM BY TERM, rather than one
- *  static bar chart frozen at whatever data happens to be loaded. This is
- *  the actually useful question a school asks — "is the bottom band
- *  shrinking over time, or growing?" — which a single snapshot can never
- *  answer. Terms are ordered with the same chronological key Quick Entry's
- *  own exam picker uses (_qeCompoundOrderKey), not alphabetically, so e.g.
- *  "Term 2" never sorts before "Term 10". */
 function renderDistChart(){
   const grade=document.getElementById('dist-grade-sel')?.value||'all';
   const data=getFilteredByGrade(grade);
-
-  const byTerm={};
+  const counts={EE1:0,EE2:0,ME1:0,ME2:0,AE:0,BE:0};
   data.forEach(r=>{
-    const t=getRecordTerm(r);
-    if(!t||t==='Unknown') return;
     const a=parseFloat(calcStats(r).avg);
-    if(isNaN(a)) return;
-    (byTerm[t] || (byTerm[t]=[])).push(a);
+    if(a>=90) counts.EE1++;
+    else if(a>=75) counts.EE2++;
+    else if(a>=58) counts.ME1++;
+    else if(a>=41) counts.ME2++;
+    else if(a>=21) counts.AE++;
+    else counts.BE++;
   });
-  const terms=Object.keys(byTerm).sort((x,y)=>_qeCompoundOrderKey(x).localeCompare(_qeCompoundOrderKey(y)));
-
-  const datasets=DIST_BANDS.map(b=>({
-    label:b.label,
-    data:terms.map(t=>{
-      const vals=byTerm[t];
-      return vals.length ? +(vals.filter(b.test).length/vals.length*100).toFixed(1) : 0;
-    }),
-    borderColor:b.color,
-    backgroundColor:b.color+'22',
-    borderWidth:2.5,
-    tension:.35,
-    pointRadius:3,
-    pointHoverRadius:6,
-    pointBackgroundColor:b.color,
-    fill:false,
-  }));
-
   const ctx=document.getElementById('dist-chart').getContext('2d');
   if(distChart) distChart.destroy();
   distChart=new Chart(ctx,{
-    type:'line',
-    data:{ labels:terms, datasets },
+    type:'bar',
+    data:{
+      labels:['EE1 (90-100)','EE2 (75-89)','ME1 (58-74)','ME2 (41-57)','AE (<41)','BE (<21)'],
+      datasets:[{
+        label:'Students',
+        data:Object.values(counts),
+        backgroundColor:['rgba(39,174,96,.7)','rgba(93,173,226,.7)','rgba(243,156,18,.7)','rgba(230,126,34,.7)','rgba(231,76,60,.7)','rgba(142,68,173,.7)'],
+        borderColor:['#27ae60','#5dade2','#f39c12','#e67e22','#e74c3c','#8e44ad'],
+        borderWidth:2,borderRadius:6,
+      }]
+    },
     options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{ mode:'index', intersect:false },
-      plugins:{
-        legend:{ position:'bottom', labels:{ color:'#7aaec9', font:{size:10}, boxWidth:12, usePointStyle:true } },
-        tooltip:{ callbacks:{ label: c => {
-          const total = byTerm[terms[c.dataIndex]]?.length || 0;
-          const count = Math.round(c.parsed.y/100*total);
-          return ` ${c.dataset.label}: ${c.parsed.y}% (${count} student${count===1?'':'s'})`;
-        } } }
-      },
-      scales:{
-        x:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#7aaec9',font:{size:10},maxRotation:45,minRotation:0,autoSkip:false} },
-        y:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#7aaec9',font:{size:10},callback:v=>v+'%'}, min:0, max:100 }
-      }
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#7aaec9',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#7aaec9',font:{size:10}},beginAtZero:true}}
     }
   });
 }
 
 /* ══════════════════════════════════════════
-   GRADE AVERAGES — trend line chart
+   GRADE BARS
 ══════════════════════════════════════════ */
-const GRADE_LINE_PALETTE = ['#5dade2','#27ae60','#f39c12','#e74c3c','#8e44ad','#16a085','#e67e22','#2980b9','#c0392b','#7f8c8d'];
-
-/** Grade Averages, redesigned as a trend line chart: one line per grade
- *  level, tracking its average score across every exam term it has records
- *  for. Replaces the old static progress bar per grade, which silently
- *  averaged every term that grade ever had together into one frozen
- *  number — never showing whether a grade is actually improving, holding
- *  steady, or slipping term to term, which is the whole point of tracking
- *  it. A grade with no exam in a given term gets a gap in its line
- *  (spanGaps), not a misleading dip to zero. */
 function renderGradeBars(){
   const grades=getUniqueGrades();
-  const canvas=document.getElementById('grade-avg-chart');
-  if(!canvas) return;
-  if(!grades.length){
-    if(gradeAvgChart){ gradeAvgChart.destroy(); gradeAvgChart=null; }
-    return;
-  }
-
-  const byGradeTerm={}; // grade -> term -> [scores]
-  allData.forEach(r=>{
-    const g=gShort(r['Grade']);
-    if(!grades.includes(g)) return;
-    const t=getRecordTerm(r);
-    if(!t||t==='Unknown') return;
-    const a=parseFloat(calcStats(r).avg);
-    if(isNaN(a)) return;
-    const byTerm = byGradeTerm[g] || (byGradeTerm[g]={});
-    (byTerm[t] || (byTerm[t]=[])).push(a);
-  });
-
-  const allTerms=new Set();
-  Object.values(byGradeTerm).forEach(byTerm=>Object.keys(byTerm).forEach(t=>allTerms.add(t)));
-  const terms=[...allTerms].sort((x,y)=>_qeCompoundOrderKey(x).localeCompare(_qeCompoundOrderKey(y)));
-
-  const datasets=grades.map((g,i)=>{
-    const color=GRADE_LINE_PALETTE[i % GRADE_LINE_PALETTE.length];
-    const byTerm=byGradeTerm[g]||{};
-    return {
-      label:g,
-      data:terms.map(t=>{
-        const vals=byTerm[t];
-        return vals && vals.length ? +(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : null;
-      }),
-      borderColor:color,
-      backgroundColor:color+'22',
-      borderWidth:2.5,
-      tension:.35,
-      pointRadius:3,
-      pointHoverRadius:6,
-      pointBackgroundColor:color,
-      spanGaps:true,
-      fill:false,
-    };
-  });
-
-  const ctx=canvas.getContext('2d');
-  if(gradeAvgChart) gradeAvgChart.destroy();
-  gradeAvgChart=new Chart(ctx,{
-    type:'line',
-    data:{ labels:terms, datasets },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{ mode:'index', intersect:false },
-      plugins:{
-        legend:{ position:'bottom', labels:{ color:'#7aaec9', font:{size:10}, boxWidth:12, usePointStyle:true } },
-        tooltip:{ callbacks:{ label: c => ` ${c.dataset.label}: ${c.parsed.y}%` } }
-      },
-      scales:{
-        x:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#7aaec9',font:{size:10},maxRotation:45,minRotation:0,autoSkip:false} },
-        y:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#7aaec9',font:{size:10},callback:v=>v+'%'}, min:0, max:100 }
-      }
-    }
-  });
+  const container=document.getElementById('grade-bars');
+  if(!grades.length){container.innerHTML='<p style="font-size:12px;color:var(--text3)">No data</p>';return;}
+  container.innerHTML=grades.map(g=>{
+    const recs=allData.filter(r=>gShort(r['Grade'])===g);
+    const avgs=recs.map(r=>parseFloat(calcStats(r).avg)).filter(x=>!isNaN(x));
+    const avg=avgs.length?(avgs.reduce((a,b)=>a+b,0)/avgs.length).toFixed(1):0;
+    const color=barColor(avg);
+    return `<div class="subj-bar-item">
+      <div class="subj-bar-head">
+        <span class="subj-bar-name">${g}</span>
+        <span class="subj-bar-val" style="color:${color}">${avg}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${avg}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
 }
 
 /* ══════════════════════════════════════════
@@ -17962,20 +17792,15 @@ function _qeRestampSubjectColumn(subj){
       ? `Raw score out of ${max} — converted to a percentage automatically.${badge.tagName==='BUTTON'?' Tap to change.':''}`
       : `Scores are typed as a straight 0–100 percentage.${badge.tagName==='BUTTON'?' Tap to change.':''}`;
   }
-  let clearedCount = 0;
   document.querySelectorAll(`#qe-tbody input[data-subject="${CSS.escape(subj)}"]`).forEach(inp=>{
     inp.max = enabled ? max : 100;
     if(!inp.disabled){
       inp.style.borderColor = enabled ? 'var(--orange)' : 'var(--green)';
       inp.style.background  = enabled ? 'rgba(255,159,10,.07)' : 'rgba(39,174,96,.07)';
     }
-    if(_qeValidateScoreInput(inp, /*silent*/true)) clearedCount++;
+    _qeValidateScoreInput(inp);
     _qeUpdateConversionPreview(inp);
   });
-  // One consolidated notice instead of one per cell — the "scores already
-  // typed" confirm dialog already warned about this before the scheme
-  // change was applied; this just confirms what actually happened to them.
-  if(clearedCount) notify(`⚠️ ${clearedCount} score(s) for "${subj}" were above the new max of ${max} and have been cleared — please re-enter them.`,'warn',7000);
   _qeUpdateRawModeBanner();
   // Keep the mobile badge in step too — a no-op if this isn't the subject
   // currently selected in the mobile stepper (it just re-shows what's
@@ -18614,7 +18439,7 @@ function _qePatchScoresIntoTable(scoresMap, {protect=true}={}){
     const newVal = (scoresMap[key] && scoresMap[key][subj] !== undefined) ? String(scoresMap[key][subj]) : '';
     if(inp.value !== newVal){
       inp.value = newVal;
-      if(newVal !== '') _qeValidateScoreInput(inp, /*silent*/true); // bulk sync from a colleague — one toast per cell would be spam
+      if(newVal !== '') _qeValidateScoreInput(inp);
       _qeUpdateConversionPreview(inp);
       _qeDtInvalidateInput(inp);
       inp.classList.add('qe-live-updated');
@@ -18806,14 +18631,12 @@ function renderQuickEntryTable(draftScores, locked){
     </tr>`;
   }).join('');
 
-  // Cap/flag any out-of-range values already on the sheet (e.g. restored
-  // from a draft saved before this validation existed) — don't wait for the
-  // user to retype them to notice. Silent: a fresh render can touch every
-  // cell on the sheet at once, so this is a one-time cleanup pass, not
-  // something worth a toast per cell.
+  // Flag any out-of-range values already on the sheet (e.g. restored from a
+  // draft saved before this validation existed) — don't wait for the user
+  // to retype them to notice.
   if(!locked){
     document.querySelectorAll('#qe-tbody input[data-student]').forEach(inp=>{
-      if(inp.value !== '') _qeValidateScoreInput(inp, /*silent*/true);
+      if(inp.value !== '') _qeValidateScoreInput(inp);
     });
   }
   _qeUpdateFinalSubmitStatus();
@@ -19645,24 +19468,7 @@ window._qeRemoveStudentRow = _qeRemoveStudentRow;
 /** Cleans and visually flags a single score input — used both live (as the
  *  teacher types) and right after render (to catch bad values already on
  *  the sheet, e.g. restored from an older draft). Does NOT touch autosave. */
-/** Cleans, range-checks, and now also REJECTS a too-high score box in real
- *  time — a value bigger than the subject's max never gets to just sit
- *  there turning red and hoping someone notices; the instant a keystroke
- *  would push it over, the box is CLEARED so the teacher has to type the
- *  correct score themselves. This matters for two reasons: the old "flag
- *  red, then silently drop it at submit" behaviour meant an over-max score
- *  could vanish without the teacher ever realizing it wasn't saved; and
- *  auto-substituting the max instead (an earlier version of this) is its
- *  own trap — a typo like "385" for a subject out of 40 doesn't mean the
- *  real mark WAS 40, so silently rewriting it to 40 could submit a made-up
- *  number nobody actually entered. Clearing forces a real, intentional
- *  re-entry instead.
- *  `silent` suppresses the little pop-up explanation — used by every BULK
- *  caller (a fresh render, a scheme change re-stamping a whole column, a
- *  colleague's sync patching in values) so cleaning up 30 rows at once
- *  doesn't fire 30 stacked toasts; live typing (the normal case) keeps it
- *  so the teacher sees why the box just emptied under their fingers. */
-function _qeValidateScoreInput(inputEl, silent){
+function _qeValidateScoreInput(inputEl){
   let raw = inputEl.value;
   let cleaned = raw.replace(/[^0-9.]/g,'');
   const firstDot = cleaned.indexOf('.');
@@ -19675,29 +19481,19 @@ function _qeValidateScoreInput(inputEl, silent){
   const subj = inputEl.getAttribute('data-subject');
   const maxAllowed = (subj && _qeSubjectRawMode[subj]) ? (_qeSubjectMaxScore[subj] || 100) : 100;
 
-  let v = parseFloat(cleaned);
-  let rejected = false;
-  if(!isNaN(v) && v > maxAllowed){
-    inputEl.value = '';
-    cleaned = '';
-    v = NaN;
-    rejected = true;
-    if(!silent) notify(`⚠️ ${subj ? `"${subj}" is` : 'This subject is'} marked out of ${maxAllowed} — that score was too high and has been cleared. Please re-enter the correct score.`,'warn',6000);
-  }
-
-  const invalid = cleaned !== '' && (isNaN(v) || v < 0); // an over-max value is cleared above, not left sitting here flagged
+  const v = parseFloat(cleaned);
+  const invalid = cleaned !== '' && (isNaN(v) || v < 0 || v > maxAllowed);
   inputEl.style.borderColor = invalid ? 'var(--red)' : '';
   inputEl.style.background  = invalid ? 'rgba(220,53,69,0.1)' : '';
-  inputEl.title = invalid ? `⚠️ Enter a number between 0 and ${maxAllowed}` : '';
+  inputEl.title = invalid ? `⚠️ Score must be between 0 and ${maxAllowed}` : '';
   inputEl.classList.toggle('qe-invalid-score', invalid);
-  return rejected;
 }
 
 /** Debounced autosave — fires ~1.2s after the user stops typing. Marks the
  *  edited cell as both "dirty" (protected from incoming live updates until
  *  submit) and "pending" (queued to actually be written next autosave). */
 function _qeOnScoreInput(inputEl){
-  if(inputEl) _qeValidateScoreInput(inputEl); // silent=false (default) — live typing, the teacher should see why it changed
+  if(inputEl) _qeValidateScoreInput(inputEl);
   if(inputEl) _qeUpdateConversionPreview(inputEl);
   // Updates DataTables' cached value for this cell only — never triggers a
   // redraw, so the table never reorders rows while (or after) someone types.

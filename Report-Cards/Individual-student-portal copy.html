@@ -129,7 +129,7 @@ body::after{
    TOP BAR
 ════════════════════════════════════════════ */
 .top-bar{
-  display:none;align-items:center;justify-content:space-between;
+  display:flex;align-items:center;justify-content:space-between;
   padding:12px 28px;
   background:var(--topbar);
   backdrop-filter:blur(20px);
@@ -138,8 +138,6 @@ body::after{
   position:sticky;top:0;z-index:200;
   transition:var(--transition);
 }
-.top-bar.on{display:flex;}
-.top-bar:not(.on) + #login-screen{min-height:100vh;}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand-logo{
   width:38px;height:38px;
@@ -382,38 +380,10 @@ body::after{
    LOGIN SCREEN
 ════════════════════════════════════════════ */
 #login-screen{
-  display:flex;align-items:stretch;justify-content:center;
-  min-height:calc(100vh - 64px);position:relative;
+  display:flex;align-items:center;justify-content:center;
+  min-height:calc(100vh - 64px);padding:40px 20px;
 }
-.login-main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;min-width:0;}
 .login-wrap{width:100%;max-width:440px;}
-
-/* ── DESKTOP SIDE PANEL — irregular wave-divided blue panel ── */
-.auth-side-panel{display:none;}
-.auth-divider-wave{display:none;}
-@media(min-width:901px){
-  #login-screen{justify-content:flex-start;--auth-panel-w:min(42%,600px);--auth-wave-amp:72px;}
-  .auth-side-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--auth-panel-w);flex-shrink:0;min-height:calc(100vh - 64px);position:relative;overflow:hidden;padding:4rem 3rem;color:#fff;}
-  .auth-side-panel::before{content:'';position:absolute;top:0;bottom:0;left:0;right:var(--auth-wave-amp);background:linear-gradient(160deg,var(--blue-dk) 0%,#132a45 55%,#0a1c30 100%);}
-  .auth-side-panel .asp-blob{position:absolute;border-radius:50%;pointer-events:none;}
-  .auth-side-panel .asp-blob-1{width:360px;height:360px;top:-130px;right:-130px;background:rgba(255,255,255,.055);}
-  .auth-side-panel .asp-blob-2{width:280px;height:280px;bottom:-110px;left:-90px;background:rgba(93,173,226,.18);}
-  .auth-side-panel .asp-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.22);}
-  .auth-side-panel .asp-dot-1{width:14px;height:14px;top:16%;right:20%;}
-  .auth-side-panel .asp-dot-2{width:10px;height:10px;bottom:22%;left:14%;background:var(--blue-lt);opacity:.9;}
-  .auth-side-panel .asp-illustration{position:relative;z-index:1;width:100%;max-width:320px;margin:0 auto 2.4rem;}
-  .auth-side-panel .asp-illustration svg{width:100%;height:auto;display:block;}
-  .auth-side-panel .asp-brand{position:relative;z-index:1;text-align:center;}
-  .auth-side-panel .asp-brand-name{font-size:1.5rem;font-weight:900;margin-bottom:.6rem;letter-spacing:-.01em;}
-  .auth-side-panel .asp-brand-tag{font-size:.88rem;color:rgba(255,255,255,.72);font-weight:500;line-height:1.55;max-width:320px;margin:0 auto;min-height:2.7em;transition:opacity .35s ease;}
-  .auth-side-panel .asp-brand-tag.fading{opacity:0;}
-  .auth-side-panel .asp-tip-dots{display:flex;justify-content:center;gap:.4rem;margin-top:1.1rem;position:relative;z-index:1;}
-  .auth-side-panel .asp-tip-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28);transition:background .25s,width .25s;}
-  .auth-side-panel .asp-tip-dot.active{background:var(--blue-lt);width:18px;border-radius:3px;}
-  .auth-divider-wave{display:block;position:absolute;top:0;bottom:0;left:calc(var(--auth-panel-w) - var(--auth-wave-amp));width:calc(var(--auth-wave-amp) * 2);z-index:2;pointer-events:none;}
-  .auth-divider-wave svg{width:100%;height:100%;display:block;}
-  .login-main{flex:1;min-height:calc(100vh - 64px);padding:40px 4vw;position:relative;z-index:1;}
-}
 
 .login-hero{text-align:center;margin-bottom:32px;}
 .hero-badge{
@@ -485,28 +455,6 @@ body::after{
 }
 .login-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(41,128,185,.5);}
 .login-btn:active{transform:translateY(0);}
-
-/* ── Portal quick links ── */
-.auth-links-title{display:flex;align-items:center;gap:.6rem;margin:1.3rem 0 .8rem;font-size:.66rem;color:var(--text3);font-weight:800;text-transform:uppercase;letter-spacing:.09em}
-.auth-links-title::before,.auth-links-title::after{content:'';flex:1;height:1px;background:var(--border)}
-.portal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
-.portal-link{--c:var(--blue);position:relative;display:flex;align-items:center;gap:.65rem;min-width:0;padding:.7rem .75rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);text-decoration:none;overflow:hidden;transition:var(--transition);-webkit-tap-highlight-color:transparent}
-.portal-link::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--c),transparent 70%);opacity:0;transition:opacity .25s}
-.portal-link:hover,.portal-link:focus-visible{transform:translateY(-2px);border-color:var(--c);box-shadow:0 8px 20px -8px var(--c);outline:none}
-.portal-link:hover::before,.portal-link:focus-visible::before{opacity:.08}
-.portal-link:active{transform:translateY(0) scale(.98)}
-.portal-link.current{border-color:var(--c);cursor:default;pointer-events:none}
-.portal-link.current::before{opacity:.1}
-.portal-ico{position:relative;flex:0 0 auto;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 60%,#000));box-shadow:0 4px 10px -3px var(--c)}
-.portal-ico svg{width:18px;height:18px}
-.portal-txt{position:relative;display:flex;flex-direction:column;min-width:0;line-height:1.2}
-.portal-txt strong{font-size:.78rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.portal-txt small{font-size:.64rem;color:var(--text3);font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.portal-arrow{position:relative;margin-left:auto;width:14px;height:14px;color:var(--text3);opacity:0;transform:translateX(-4px);transition:var(--transition);flex:0 0 auto}
-.portal-link:hover .portal-arrow,.portal-link:focus-visible .portal-arrow{opacity:1;transform:none;color:var(--c)}
-.portal-here{position:relative;margin-left:auto;flex:0 0 auto;font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);padding:3px 6px;border-radius:6px}
-@media(max-width:360px){.portal-grid{grid-template-columns:1fr}}
-@media(hover:none){.portal-arrow{display:none}}
 
 .hint-box{
   margin-top:18px;
@@ -1414,7 +1362,7 @@ body::after{
 <div class="shell">
 
 <!-- ── TOP BAR ── -->
-<div class="top-bar" id="top-bar">
+<div class="top-bar">
   <div class="brand">
     <div class="brand-logo" id="brand-logo-wrap">🏫</div>
     <div class="brand-text">
@@ -1443,55 +1391,12 @@ body::after{
 
 <!-- ── LOGIN ── -->
 <div id="login-screen">
-
-  <!-- ── DESKTOP SIDE PANEL — hidden on mobile, fills the left side on wide screens ── -->
-  <div class="auth-side-panel" aria-hidden="true">
-    <div class="asp-blob asp-blob-1"></div>
-    <div class="asp-blob asp-blob-2"></div>
-    <div class="asp-dot asp-dot-1"></div>
-    <div class="asp-dot asp-dot-2"></div>
-    <div class="asp-illustration">
-      <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="160" cy="130" r="112" fill="rgba(255,255,255,.06)"/>
-        <rect x="88" y="46" width="144" height="176" rx="14" fill="rgba(255,255,255,.09)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
-        <rect x="102" y="64" width="70" height="8" rx="4" fill="rgba(255,255,255,.35)"/>
-        <rect x="102" y="82" width="116" height="6" rx="3" fill="rgba(255,255,255,.2)"/>
-        <rect x="102" y="96" width="90" height="6" rx="3" fill="rgba(255,255,255,.2)"/>
-        <rect x="102" y="118" width="116" height="34" rx="8" fill="var(--blue-lt)" opacity=".85"/>
-        <rect x="112" y="128" width="60" height="6" rx="3" fill="#0a1c30" opacity=".5"/>
-        <rect x="112" y="140" width="40" height="6" rx="3" fill="#0a1c30" opacity=".35"/>
-        <rect x="102" y="164" width="50" height="7" rx="3.5" fill="rgba(255,255,255,.25)"/>
-        <rect x="160" y="164" width="58" height="7" rx="3.5" fill="rgba(255,255,255,.25)"/>
-        <circle cx="66" cy="52" r="18" fill="var(--blue-lt)" opacity=".45"/>
-        <circle cx="258" cy="204" r="14" fill="rgba(255,255,255,.2)"/>
-        <path d="M46 200 q16 -34 44 -10" stroke="var(--blue-lt)" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
-        <path d="M244 50 l14 -14 m0 14 l-14 -14" stroke="rgba(255,255,255,.5)" stroke-width="3.5" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="asp-brand">
-      <div class="asp-brand-name">Kanyadet PRI &amp; Junior School</div>
-      <div class="asp-brand-tag" id="asp-tip-text">See your results the moment they're released — assessments, grades and full report cards, all in one place.</div>
-      <div class="asp-tip-dots" id="asp-tip-dots"></div>
-    </div>
-  </div>
-
-  <!-- ── IRREGULAR WAVE DIVIDER ── -->
-  <div class="auth-divider-wave" aria-hidden="true">
-    <svg viewBox="0 0 144 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="authWaveGrad2" x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0%"  stop-color="#1a5276"/>
-          <stop offset="55%" stop-color="#132a45"/>
-          <stop offset="100%" stop-color="#0a1c30"/>
-        </linearGradient>
-      </defs>
-      <path fill="url(#authWaveGrad2)" d="M88,0 L103.7,16 L101.8,32 L96.3,48 L100.9,64 L114.1,80 L120.3,96 L105.6,112 L73.2,128 L41.4,144 L27.7,160 L33.5,176 L44.2,192 L45.2,208 L37.4,224 L35.5,240 L52.7,256 L85.5,272 L115.6,288 L125.5,304 L114.7,320 L98.4,336 L92,352 L110,368 L118,384 L104,400 L82,416 L70,432 L86,448 L112,464 L120,480 L104,496 L84,512 L76,528 L96,544 L118,560 L112,576 L90,592 L74,608 L88,624 L108,640 L100,656 L78,672 L70,688 L92,704 L114,720 L106,736 L84,752 L72,768 L94,784 L88,800 L0,800 L0,0 Z"/>
-    </svg>
-  </div>
-
-  <div class="login-main">
   <div class="login-wrap">
-    
+    <div class="login-hero">
+      <div class="hero-badge" id="hero-badge">🎓</div>
+      <h1>Student Portal</h1>
+      <p>View your results &amp; download report cards</p>
+    </div>
 
     <!-- ── STEP INDICATOR ── -->
     <div class="step-rail" id="step-rail">
@@ -1513,41 +1418,16 @@ body::after{
 
     <!-- ── STEP 1: Google Sign-In ── -->
     <div class="login-card" id="step-google">
-      <div class="login-hero">
-      <div class="hero-badge" id="hero-badge">🎓</div>
-      <h1>Student Portal</h1>
-      <p>View your results &amp; download report cards</p>
-    </div>
+      <h2>🔐 Sign In to Continue</h2>
       <div class="err-msg" id="err-msg-google"></div>
       <div id="offline-login-notice">📵 You're offline. <strong>Previous results</strong> can still be viewed if you were signed in before.</div>
       <button class="google-btn" id="google-btn" onclick="doGoogleSignIn()">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 30 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-21 0-1.3-.2-2.7-.5-5z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15.1 17 19.3 14 24 14c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16 2 9.1 7.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 46c5.5 0 10.5-1.9 14.4-5l-6.7-5.5C29.7 37 27 38 24 38c-5.9 0-10.9-4-12.7-9.5l-7 5.4C7.5 41.8 15.2 46 24 46z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-1.6 4.3-5.6 7.5-10.8 7.5-3 0-5.7-1-7.8-2.6l-7 5.4C13.7 43.6 18.6 46 24 46c11 0 20-9 20-22 0-1.3-.2-2.7-.5-4z"/></svg>
         Continue with Google
       </button>
-     
-    <div class="auth-links-title">Other portals</div>
-    <div class="portal-grid">
-      <a class="portal-link current" aria-current="page" style="--c:#e67e22" href="../Results-portal.html">
-        <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
-        <span class="portal-txt"><strong>Results</strong><small>Scores &amp; rankings</small></span>
-        <span class="portal-here">You're here</span>
-      </a>
-      <a class="portal-link" style="--c:#27ae60" href="https://kanyadet-school-parents.web.app/">
-        <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-        <span class="portal-txt"><strong>Parents</strong><small>Follow your child</small></span>
-        <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-      </a>
-      <a class="portal-link" style="--c:#2980b9" href="https://kanyadet-school-portal.web.app">
-        <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></span>
-        <span class="portal-txt"><strong>Teachers</strong><small>Classes &amp; marks</small></span>
-        <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-      </a>
-      <a class="portal-link" style="--c:#8e44ad" href="https://kanyadet-school-admin.web.app">
-        <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
-        <span class="portal-txt"><strong>Admin</strong><small>School control</small></span>
-        <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-      </a>
-    </div>
+      <div class="hint-box" style="margin-top:0">
+        <p>🔒 Sign in with your <strong>Google account</strong> to securely access the portal.<br>Your Google account is only used for identity — no data is stored.</p>
+      </div>
     </div>
 
     <!-- ── STEP 2: Assessment details (shown after Google auth) ── -->
@@ -1590,7 +1470,6 @@ body::after{
       </div>
     </div>
 
-  </div>
   </div>
 </div>
 
@@ -2211,7 +2090,6 @@ function doSignOut(){
   closeSwitcher();
 
   document.getElementById('dashboard').classList.remove('on');
-  document.getElementById('top-bar')?.classList.remove('on');
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('user-pill').classList.remove('on');
   document.getElementById('signout-btn').classList.remove('on');
@@ -2463,7 +2341,6 @@ function renderDash(){
   _setLoginStep(3);
 
   document.getElementById('login-screen').style.display='none';
-  document.getElementById('top-bar')?.classList.add('on');
   document.getElementById('dashboard').classList.add('on');
   document.getElementById('user-pill').classList.add('on');
   document.getElementById('signout-btn').classList.add('on');
@@ -4028,33 +3905,6 @@ window.addEventListener('appinstalled', ()=>{
   document.getElementById('install-prompt').classList.remove('on');
   notify('📲 Portal installed on your device!','success',5000);
 });
-
-/* ── Rotating side-panel tips (desktop only) ── */
-const _authTips2 = [
-  "See your results the moment they're released — assessments, grades and full report cards, all in one place.",
-  "Enter your assessment number and any part of your name to look yourself up.",
-  "Download or share your report card as soon as it's ready.",
-  "Sign in with Google once — switch between students anytime from the drawer.",
-];
-let _authTipIdx2 = 0;
-function _renderAuthTipDots2(){
-  const dotsEl = document.getElementById('asp-tip-dots');
-  if(!dotsEl) return;
-  dotsEl.innerHTML = _authTips2.map((_, i)=>`<span class="asp-tip-dot${i===_authTipIdx2?' active':''}"></span>`).join('');
-}
-function _rotateAuthTip2(){
-  const el = document.getElementById('asp-tip-text');
-  if(!el) return;
-  el.classList.add('fading');
-  setTimeout(()=>{
-    _authTipIdx2 = (_authTipIdx2 + 1) % _authTips2.length;
-    el.textContent = _authTips2[_authTipIdx2];
-    _renderAuthTipDots2();
-    el.classList.remove('fading');
-  }, 350);
-}
-_renderAuthTipDots2();
-setInterval(_rotateAuthTip2, 4500);
 </script>
 
 </body>
