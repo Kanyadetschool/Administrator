@@ -5202,13 +5202,13 @@ const exportToPdf = async () => {
 
     const rubric = [
         { score: '90 – 100', level: 'EE1', meaning: 'Exceeding Expectation 1', description: 'Outstanding performance. Student consistently surpasses all learning objectives.',            color: [39, 174, 96]  },
-        { score: '75 – 89',  level: 'EE2', meaning: 'Exceeding Expectation 2', description: 'Very good performance. Student frequently goes beyond the expected standard.',                color: [82, 190, 128] },
-        { score: '58 – 74',  level: 'ME1', meaning: 'Meeting Expectation 1',   description: 'Good performance. Student meets most learning objectives with confidence.',                  color: [41, 128, 185] },
-        { score: '41 – 57',  level: 'ME2', meaning: 'Meeting Expectation 2',   description: 'Satisfactory performance. Student adequately meets the basic learning objectives.',          color: [93, 173, 226] },
-        { score: '31 – 40',  level: 'AE1', meaning: 'Approaching Expectation 1',description: 'Needs improvement. Student is working towards meeting the learning objectives.',            color: [230, 126, 34] },
-        { score: '21 – 30',  level: 'AE2', meaning: 'Approaching Expectation 2',description: 'Requires support. Student shows partial understanding but needs more guidance.',            color: [243, 156, 18] },
-        { score: '11 – 20',  level: 'BE1', meaning: 'Below Expectation 1',     description: 'Significant support needed. Student struggles to meet minimum learning objectives.',        color: [192, 57, 43]  },
-        { score: '1  – 10',  level: 'BE2', meaning: 'Below Expectation 2',     description: 'Critical intervention required. Student has not met the learning objectives.',              color: [231, 76, 60]  },
+        { score: '75 – 89.9',  level: 'EE2', meaning: 'Exceeding Expectation 2', description: 'Very good performance. Student frequently goes beyond the expected standard.',                color: [82, 190, 128] },
+        { score: '58 – 74.9',  level: 'ME1', meaning: 'Meeting Expectation 1',   description: 'Good performance. Student meets most learning objectives with confidence.',                  color: [41, 128, 185] },
+        { score: '41 – 57.9',  level: 'ME2', meaning: 'Meeting Expectation 2',   description: 'Satisfactory performance. Student adequately meets the basic learning objectives.',          color: [93, 173, 226] },
+        { score: '31 – 40.9',  level: 'AE1', meaning: 'Approaching Expectation 1',description: 'Needs improvement. Student is working towards meeting the learning objectives.',            color: [230, 126, 34] },
+        { score: '21 – 30.9',  level: 'AE2', meaning: 'Approaching Expectation 2',description: 'Requires support. Student shows partial understanding but needs more guidance.',            color: [243, 156, 18] },
+        { score: '11 – 20.9',  level: 'BE1', meaning: 'Below Expectation 1',     description: 'Significant support needed. Student struggles to meet minimum learning objectives.',        color: [192, 57, 43]  },
+        { score: '1  – 10.9',  level: 'BE2', meaning: 'Below Expectation 2',     description: 'Critical intervention required. Student has not met the learning objectives.',              color: [231, 76, 60]  },
     ];
 
     const pW   = doc.internal.pageSize.width;
