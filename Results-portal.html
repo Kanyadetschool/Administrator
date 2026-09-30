@@ -2105,6 +2105,30 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
 #quick-links-panel .qpin-btn.on{color:#f1c40f;}
 @media(hover:none){#quick-links-panel .qpin-btn{opacity:.8;}}
 
+/* Dashboard charts: empty state, notes, level chips, latest-term ranking */
+.chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:1rem;font-size:12px;font-weight:600;color:var(--text3);}
+.chart-empty[hidden]{display:none;}
+.chart-note{margin-top:6px;font-size:10.5px;color:var(--text3);min-height:0;}
+.chart-note:empty{display:none;}
+.gavg-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;}
+.gavg-chips:empty{display:none;}
+.gavg-chip{border:1px solid var(--border);background:var(--surface2);color:var(--text2);font:inherit;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;cursor:pointer;transition:var(--transition);}
+.gavg-chip:hover{border-color:var(--border-strong);color:var(--text);}
+.gavg-chip.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+.gavg-rank{margin-top:10px;padding:10px 4px 0 0;border-top:1px solid var(--border);max-height:200px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent;}
+.gavg-rank::-webkit-scrollbar{width:6px;}
+.gavg-rank::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:99px;}
+.gavg-rank:empty{display:none;}
+.gavg-rank-hdr{position:sticky;top:0;z-index:1;background:var(--surface);padding-bottom:6px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.gavg-row{display:grid;grid-template-columns:62px 1fr 46px 58px;align-items:center;gap:8px;padding:3px 0;font-size:11.5px;}
+.gavg-row-name{font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gavg-row-bar{height:6px;border-radius:99px;background:var(--surface3);overflow:hidden;}
+.gavg-row-bar i{display:block;height:100%;border-radius:99px;}
+.gavg-row-val{font-weight:800;color:var(--text);text-align:right;}
+.gavg-row-d{font-weight:700;font-size:10.5px;text-align:right;color:var(--text3);}
+.gavg-row-d.up{color:var(--green);}
+.gavg-row-d.dn{color:#e74c3c;}
+
 /* ══════════════════════════════════════════
    REPORT CARD — TERM / GRADE CHIPS
 ══════════════════════════════════════════ */
@@ -2839,7 +2863,8 @@ setInterval(_rotateAuthTip, 5000);
                 </select>
               </div>
             </div>
-            <div class="chart-box"><canvas id="dist-chart"></canvas></div>
+            <div class="chart-box"><canvas id="dist-chart"></canvas><div class="chart-empty" id="dist-empty" hidden>No exam results with a term yet</div></div>
+            <div class="chart-note" id="dist-note"></div>
           </div>
 
           <!-- Grade Averages — now a trend line chart: one line per grade,
@@ -2849,8 +2874,14 @@ setInterval(_rotateAuthTip, 5000);
           <div class="card">
             <div class="card-hdr">
               <div class="card-title">Grade Averages</div>
+              <div class="actions-row">
+                <button type="button" class="gavg-chip" id="gavg-scale" onclick="toggleGradeAvgScale()" title="Start the axis at 0 and end at 100">Full scale</button>
+              </div>
             </div>
-            <div class="chart-box"><canvas id="grade-avg-chart"></canvas></div>
+            <div class="gavg-chips" id="gavg-chips"></div>
+            <div class="chart-box"><canvas id="grade-avg-chart"></canvas><div class="chart-empty" id="gavg-empty" hidden>No exam results with a term yet</div></div>
+            <div class="chart-note" id="gavg-note"></div>
+            <div class="gavg-rank" id="gavg-rank"></div>
           </div>
         </div>
 
@@ -6132,6 +6163,8 @@ function toggleTheme(){
   // Sync settings page toggle
   const sw=document.getElementById('toggle-dark');
   if(sw) sw.classList.toggle('on',!isDark);
+  // Dashboard charts read their grid/tick colours from the theme — redraw them.
+  try{ renderDistChart(); renderGradeBars(); }catch(e){}
 }
 window.toggleTheme=toggleTheme;
 (()=>{
@@ -10715,7 +10748,9 @@ const DIST_BANDS = [
  *  "Term 2" never sorts before "Term 10". */
 function renderDistChart(){
   const grade=document.getElementById('dist-grade-sel')?.value||'all';
-  const data=getFilteredByGrade(grade);
+  // Teachers only ever see their own grade(s), even on "All Grades".
+  const _allowed = isAdvancedAdmin ? null : getUniqueGrades();
+  const data=getFilteredByGrade(grade).filter(r=>!_allowed || _allowed.includes(gShort(r['Grade'])));
 
   const byTerm={};
   data.forEach(r=>{
@@ -10743,8 +10778,18 @@ function renderDistChart(){
     fill:false,
   }));
 
+  const empty=document.getElementById('dist-empty');
+  const note=document.getElementById('dist-note');
+  if(note){
+    const skipped=data.filter(r=>{ const t=getRecordTerm(r); return !t||t==='Unknown'||isNaN(parseFloat(calcStats(r).avg)); }).length;
+    note.textContent = skipped ? `${skipped} record${skipped===1?'':'s'} left out (no term or no marks).` : '';
+  }
+  if(distChart){ distChart.destroy(); distChart=null; }
+  if(empty) empty.hidden = terms.length>0;
+  if(!terms.length) return;
+
+  const th=_chartTheme();
   const ctx=document.getElementById('dist-chart').getContext('2d');
-  if(distChart) distChart.destroy();
   distChart=new Chart(ctx,{
     type:'line',
     data:{ labels:terms, datasets },
@@ -10752,7 +10797,7 @@ function renderDistChart(){
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#7aaec9', font:{size:10}, boxWidth:12, usePointStyle:true } },
+        legend:{ position:'bottom', labels:{ color:th.tick, font:{size:10}, boxWidth:12, usePointStyle:true } },
         tooltip:{ callbacks:{ label: c => {
           const total = byTerm[terms[c.dataIndex]]?.length || 0;
           const count = Math.round(c.parsed.y/100*total);
@@ -10760,11 +10805,20 @@ function renderDistChart(){
         } } }
       },
       scales:{
-        x:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#7aaec9',font:{size:10},maxRotation:45,minRotation:0,autoSkip:false} },
-        y:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#7aaec9',font:{size:10},callback:v=>v+'%'}, min:0, max:100 }
+        x:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},maxRotation:45,minRotation:0,autoSkip:false} },
+        y:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},callback:v=>v+'%'}, min:0, max:100 }
       }
     }
   });
+}
+
+/** Grid/tick colours for the dashboard charts, read from the active theme
+ *  (the old hardcoded white grid was invisible on the light theme). */
+function _chartTheme(){
+  const cs=getComputedStyle(document.documentElement);
+  const light=document.documentElement.getAttribute('data-theme')==='light';
+  return { tick:(cs.getPropertyValue('--text2')||'#7aaec9').trim()||'#7aaec9',
+           grid: light?'rgba(12,30,51,.09)':'rgba(255,255,255,.05)' };
 }
 
 /* ══════════════════════════════════════════
@@ -10780,23 +10834,51 @@ const GRADE_LINE_PALETTE = ['#5dade2','#27ae60','#f39c12','#e74c3c','#8e44ad','#
  *  steady, or slipping term to term, which is the whole point of tracking
  *  it. A grade with no exam in a given term gets a gap in its line
  *  (spanGaps), not a misleading dip to zero. */
+let gradeAvgLevel='all', gradeAvgFullScale=false, _gavgLgLast={i:-1,t:0};
+const GAVG_LEVELS=[['all','All grades'],['lower','Lower (PP–3)'],['upper','Upper (4–6)'],['junior','Junior (7–9)'],['other','Other']];
+function _gradeLevel(g){
+  if(/^pp/i.test(g)) return 'lower';
+  const n=parseInt(String(g).replace(/\D/g,''),10);
+  if(isNaN(n)) return 'other';
+  return n<=3?'lower':n<=6?'upper':'junior';
+}
+function _gavgEsc(x){ return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function setGradeAvgLevel(l){ gradeAvgLevel=l; renderGradeBars(); }
+function toggleGradeAvgScale(){ gradeAvgFullScale=!gradeAvgFullScale; renderGradeBars(); }
+window.setGradeAvgLevel=setGradeAvgLevel;
+window.toggleGradeAvgScale=toggleGradeAvgScale;
+
 function renderGradeBars(){
-  const grades=getUniqueGrades();
   const canvas=document.getElementById('grade-avg-chart');
   if(!canvas) return;
-  if(!grades.length){
-    if(gradeAvgChart){ gradeAvgChart.destroy(); gradeAvgChart=null; }
-    return;
+  const allGrades=getUniqueGrades();
+
+  // Level chips (only levels that actually have grades; hidden if just one)
+  const present=new Set(allGrades.map(_gradeLevel));
+  if(gradeAvgLevel!=='all' && !present.has(gradeAvgLevel)) gradeAvgLevel='all';
+  const chips=document.getElementById('gavg-chips');
+  if(chips){
+    chips.innerHTML='';
+    if(present.size>1) GAVG_LEVELS.forEach(([k,lab])=>{
+      if(k!=='all' && !present.has(k)) return;
+      const b=document.createElement('button');
+      b.type='button'; b.className='gavg-chip'+(gradeAvgLevel===k?' on':''); b.textContent=lab;
+      b.onclick=()=>setGradeAvgLevel(k);
+      chips.appendChild(b);
+    });
   }
+  document.getElementById('gavg-scale')?.classList.toggle('on',gradeAvgFullScale);
+
+  const grades=gradeAvgLevel==='all' ? allGrades : allGrades.filter(g=>_gradeLevel(g)===gradeAvgLevel);
 
   const byGradeTerm={}; // grade -> term -> [scores]
+  let skipped=0;
   allData.forEach(r=>{
     const g=gShort(r['Grade']);
     if(!grades.includes(g)) return;
     const t=getRecordTerm(r);
-    if(!t||t==='Unknown') return;
     const a=parseFloat(calcStats(r).avg);
-    if(isNaN(a)) return;
+    if(!t||t==='Unknown'||isNaN(a)){ skipped++; return; }
     const byTerm = byGradeTerm[g] || (byGradeTerm[g]={});
     (byTerm[t] || (byTerm[t]=[])).push(a);
   });
@@ -10804,16 +10886,21 @@ function renderGradeBars(){
   const allTerms=new Set();
   Object.values(byGradeTerm).forEach(byTerm=>Object.keys(byTerm).forEach(t=>allTerms.add(t)));
   const terms=[...allTerms].sort((x,y)=>_qeCompoundOrderKey(x).localeCompare(_qeCompoundOrderKey(y)));
+  const avgOf=(g,t)=>{ const v=byGradeTerm[g]?.[t]; return v&&v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; };
 
-  const datasets=grades.map((g,i)=>{
-    const color=GRADE_LINE_PALETTE[i % GRADE_LINE_PALETTE.length];
-    const byTerm=byGradeTerm[g]||{};
+  const empty=document.getElementById('gavg-empty');
+  const note=document.getElementById('gavg-note');
+  const rank=document.getElementById('gavg-rank');
+  if(note) note.textContent = skipped ? `${skipped} record${skipped===1?'':'s'} left out (no term or no marks).` : '';
+  if(gradeAvgChart){ gradeAvgChart.destroy(); gradeAvgChart=null; }
+  if(empty) empty.hidden = terms.length>0;
+  if(!terms.length){ if(rank) rank.innerHTML=''; return; }
+
+  const datasets=grades.map(g=>{
+    const color=GRADE_LINE_PALETTE[allGrades.indexOf(g) % GRADE_LINE_PALETTE.length]; // stable colour per grade
     return {
       label:g,
-      data:terms.map(t=>{
-        const vals=byTerm[t];
-        return vals && vals.length ? +(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : null;
-      }),
+      data:terms.map(t=>{ const v=avgOf(g,t); return v===null?null:+v.toFixed(1); }),
       borderColor:color,
       backgroundColor:color+'22',
       borderWidth:2.5,
@@ -10826,8 +10913,17 @@ function renderGradeBars(){
     };
   });
 
+  // Y axis: zoom to the data so differences are visible; "Full scale" = 0–100
+  const vals=datasets.flatMap(d=>d.data).filter(v=>v!==null);
+  let yMin=0, yMax=100;
+  if(!gradeAvgFullScale && vals.length){
+    yMin=Math.max(0,Math.floor((Math.min(...vals)-5)/5)*5);
+    yMax=Math.min(100,Math.ceil((Math.max(...vals)+5)/5)*5);
+    if(yMax-yMin<20){ yMax=Math.min(100,yMin+20); yMin=Math.max(0,yMax-20); }
+  }
+
+  const th=_chartTheme();
   const ctx=canvas.getContext('2d');
-  if(gradeAvgChart) gradeAvgChart.destroy();
   gradeAvgChart=new Chart(ctx,{
     type:'line',
     data:{ labels:terms, datasets },
@@ -10835,15 +10931,52 @@ function renderGradeBars(){
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
       plugins:{
-        legend:{ position:'bottom', labels:{ color:'#7aaec9', font:{size:10}, boxWidth:12, usePointStyle:true } },
-        tooltip:{ callbacks:{ label: c => ` ${c.dataset.label}: ${c.parsed.y}%` } }
+        legend:{
+          position:'bottom',
+          labels:{ color:th.tick, font:{size:10}, boxWidth:12, usePointStyle:true },
+          // click = show/hide a grade; double-click = show only that grade (again = show all)
+          onClick:(e,item,legend)=>{
+            const ch=legend.chart, i=item.datasetIndex, now=Date.now();
+            if(_gavgLgLast.i===i && now-_gavgLgLast.t<350){
+              const others=ch.data.datasets.map((_,k)=>k).filter(k=>k!==i);
+              const isolated=others.every(k=>!ch.isDatasetVisible(k));
+              ch.data.datasets.forEach((_,k)=>ch.setDatasetVisibility(k, isolated ? true : k===i));
+            } else {
+              ch.setDatasetVisibility(i,!ch.isDatasetVisible(i));
+            }
+            _gavgLgLast={i,t:now};
+            ch.update();
+          }
+        },
+        tooltip:{ callbacks:{ label: c => {
+          const n=byGradeTerm[c.dataset.label]?.[terms[c.dataIndex]]?.length||0;
+          return ` ${c.dataset.label}: ${c.parsed.y}% · ${n} student${n===1?'':'s'}`;
+        } } }
       },
       scales:{
-        x:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#7aaec9',font:{size:10},maxRotation:45,minRotation:0,autoSkip:false} },
-        y:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#7aaec9',font:{size:10},callback:v=>v+'%'}, min:0, max:100 }
+        x:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},maxRotation:45,minRotation:0,autoSkip:false} },
+        y:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},callback:v=>v+'%'}, min:yMin, max:yMax }
       }
     }
   });
+
+  // Latest-term ranking with change vs each grade's previous term
+  if(rank){
+    const latest=terms[terms.length-1];
+    const rows=grades.map(g=>{
+      const cur=avgOf(g,latest); if(cur===null) return null;
+      let prev=null;
+      for(let k=terms.length-2;k>=0 && prev===null;k--) prev=avgOf(g,terms[k]);
+      return { g, cur, d: prev===null?null:cur-prev, color:GRADE_LINE_PALETTE[allGrades.indexOf(g)%GRADE_LINE_PALETTE.length] };
+    }).filter(Boolean).sort((a,b)=>b.cur-a.cur);
+    rank.innerHTML = rows.length
+      ? `<div class="gavg-rank-hdr">Ranking · ${_gavgEsc(latest)}</div>` + rows.map(r=>{
+          const d=r.d===null ? '<span class="gavg-row-d">—</span>'
+            : `<span class="gavg-row-d ${r.d>=0.05?'up':r.d<=-0.05?'dn':''}">${r.d>=0.05?'▲':r.d<=-0.05?'▼':'•'} ${Math.abs(r.d).toFixed(1)}</span>`;
+          return `<div class="gavg-row"><span class="gavg-row-name">${_gavgEsc(r.g)}</span><span class="gavg-row-bar"><i style="width:${Math.max(0,Math.min(100,r.cur))}%;background:${r.color}"></i></span><span class="gavg-row-val">${r.cur.toFixed(1)}%</span>${d}</div>`;
+        }).join('')
+      : '';
+  }
 }
 
 /* ══════════════════════════════════════════
