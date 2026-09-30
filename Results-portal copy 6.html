@@ -6473,7 +6473,6 @@ function _renderAccountList(activeEmail) {
     const askRemove = async () => {
       if(await _pkConfirmRemove(name, email)) {
         PK.remove(email);
-        _pkAuditLog('🗑️ Biometric login removed from a device: ' + email, 'act-orange', email, 'Removed from the lock screen');
         _showSignInUI();
       }
     };
@@ -6520,7 +6519,6 @@ async function _unlockAccount(email) {
     user: { name, email, photo: (cu && cu.email === email && cu.photoURL) || '' },
   });
   const finish = async () => {
-    _pkFailBump(email, true);
     try { const dn = auth && auth.currentUser && auth.currentUser.displayName; if (dn) PK.setName(email, dn); } catch (e) {}
     try { lastMap[email] = Date.now(); localStorage.setItem('ksd_last_unlock', JSON.stringify(lastMap)); } catch (e) {}
     ui.set('success', { title: `Welcome back, ${first}!`, sub: 'Unlocked. Opening your workspace…' });
@@ -6573,8 +6571,6 @@ async function _unlockAccount(email) {
         }
       } catch(e) {
         const cancelled = e && e.name === 'NotAllowedError';
-        const nFail = _pkFailBump(email);
-        if (nFail >= 3 && nFail % 3 === 0) _pkAuditLog('🚨 ' + nFail + ' failed biometric unlocks in a row: ' + email, 'act-red', email, cancelled ? 'Scan cancelled/timed out' : ((e && e.name) || 'Error'));
         ui.set('error', {
           title: cancelled ? 'Scan cancelled' : 'Couldn\'t unlock',
           sub: cancelled ? 'No problem — tap below and confirm with your fingerprint, face or PIN.' : esc((e && e.message) || 'Something went wrong. Please try again.'),
@@ -6741,9 +6737,6 @@ function _pkDialog(opts) {
 .pkd-btn2:hover{background:rgba(255,255,255,.06);color:#fff;}.pkd-btn2:empty{display:none;}
 .pkd-btn3{margin-top:0;padding:.55rem;font-size:.74rem;font-weight:600;color:#5f7796;}
 .pkd-foot{margin-top:.9rem;font-size:.68rem;color:#5f7796;display:flex;align-items:center;justify-content:center;gap:.4rem;}
-.pkd-card:focus{outline:none;}
-.pkd-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
-.pkd-btn2:focus-visible{outline:2px solid #fff;outline-offset:2px;}
 .pkd-swap{animation:pkdSwap .45s cubic-bezier(.2,1,.3,1);}
 @keyframes pkdSwap{from{opacity:0;transform:translateY(10px);filter:blur(4px);}}
 @media (max-height:700px){.pkd-hero{transform:scale(.8);margin:-.6rem auto -.7rem;}.pkd-perks{display:none!important;}}
@@ -6767,8 +6760,7 @@ function _pkDialog(opts) {
 <div class="pkd-aur" aria-hidden="true"><b></b><b></b><b></b></div>
 <div class="pkd-grid" aria-hidden="true"></div>
 <div class="pkd-dots" aria-hidden="true"></div>
-<div class="pkd-wrap"><div class="pkd-card" role="dialog" aria-modal="true" aria-labelledby="pkd-t" aria-describedby="pkd-s" tabindex="-1" data-state="intro">
-  <div class="pkd-sr" role="status" aria-live="polite" aria-atomic="true"></div>
+<div class="pkd-wrap"><div class="pkd-card" role="dialog" aria-modal="true" aria-live="polite" aria-labelledby="pkd-t" data-state="intro">
   <div class="pkd-conf" aria-hidden="true"></div>
   <div class="pkd-user"></div>
   <div class="pkd-stepper" aria-hidden="true">
@@ -6790,7 +6782,7 @@ function _pkDialog(opts) {
   </div>
   <div class="pkd-badge">🛡️ Device protected</div>
   <h3 class="pkd-title" id="pkd-t"></h3>
-  <p class="pkd-sub" id="pkd-s"></p>
+  <p class="pkd-sub"></p>
   <div class="pkd-hint"></div>
   <div class="pkd-perks">
     <div style="--k:0"><em>⚡</em>Unlock in one touch — no typing</div>
@@ -6862,23 +6854,6 @@ function _pkDialog(opts) {
   const onKey = e => { if (e.key === 'Escape' && opts.dismissible) settle('secondary'); };
   document.addEventListener('keydown', onKey);
   document.body.appendChild(ov);
-  // ── focus trap: keep keyboard + screen-reader users inside the dialog ──
-  const prevFocus = document.activeElement;
-  const inerted = [];
-  Array.from(document.body.children).forEach(el => {
-    if (el !== ov && !el.inert && !/^(SCRIPT|STYLE|LINK)$/.test(el.tagName)) { el.inert = true; inerted.push(el); }
-  });
-  const trap = e => {
-    if (e.key !== 'Tab') return;
-    const f = Array.from(card.querySelectorAll('button')).filter(b => !b.disabled && b.offsetParent !== null);
-    if (!f.length) { e.preventDefault(); card.focus(); return; }
-    const first = f[0], last = f[f.length - 1], cur = document.activeElement;
-    if (!card.contains(cur) || (cur === card && !e.shiftKey)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
-    else if (e.shiftKey && (cur === first || cur === card)) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && cur === last) { e.preventDefault(); first.focus(); }
-  };
-  document.addEventListener('keydown', trap, true);
-  setTimeout(() => card.focus(), 30);
   requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('in')));
 
   // Loudness: a web page can't change the device volume, it can only set how loud the sound is
@@ -6919,10 +6894,6 @@ function _pkDialog(opts) {
       card.dataset.state = state; ov.dataset.state = state;
       $('.pkd-title').textContent = o.title || '';
       $('.pkd-sub').innerHTML = o.sub || '';
-      const sr = $('.pkd-sr');
-      sr.setAttribute('aria-live', state === 'error' ? 'assertive' : 'polite');
-      sr.textContent = (o.title || '') + '. ' + String(o.sub || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-      card.setAttribute('aria-busy', o.busy ? 'true' : 'false');
       btn.textContent = o.btn || '';
       btn.style.display = o.btn ? '' : 'none';
       btn.disabled = !!o.busy;
@@ -6942,7 +6913,6 @@ function _pkDialog(opts) {
       if (state === 'success') { chime(opts.flow === 'unlock'); try { navigator.vibrate && navigator.vibrate(opts.flow === 'unlock' ? [20, 40, 20] : [18, 50, 18, 50, 40]); } catch (e) {} }
       if (state === 'error') { try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (e) {} }
       if (o.btn && !o.busy) setTimeout(() => btn.focus(), 80);
-      else setTimeout(() => { if (!card.contains(document.activeElement) || document.activeElement === btn) card.focus(); }, 80);
       return api;
     },
     /** Resolves 'primary', 'secondary' or 'tertiary' when the person taps a button. */
@@ -6950,9 +6920,6 @@ function _pkDialog(opts) {
     close() {
       clearInterval(hintTimer);
       document.removeEventListener('keydown', onKey);
-      document.removeEventListener('keydown', trap, true);
-      inerted.forEach(el => { el.inert = false; });
-      try { if (prevFocus && document.contains(prevFocus) && prevFocus.focus) prevFocus.focus(); } catch (e) {}
       ov.classList.remove('in');
       setTimeout(() => ov.remove(), 420);
     },
@@ -6972,42 +6939,6 @@ async function _pkConfirmRemove(name, email) {
   const r = await d.ask();
   d.close();
   return r === 'primary';
-}
-
-/* ── PASSKEY AUDIT ──────────────────────────────────────────
-   Events are sent to logActivity() (the admin audit log). Some happen before anyone is
-   signed in (e.g. failed unlocks), so those are queued in localStorage and flushed right
-   after the next successful sign-in. Plain functions so they are hoisted and always safe. */
-function _pkAuditSend(ev) {
-  logActivity(ev.text, ev.icon, undefined, {
-    category: 'system', targetName: ev.email || '',
-    extra: (ev.extra ? ev.extra + ' · ' : '') + 'at ' + new Date(ev.t).toLocaleString(),
-  });
-}
-function _pkAuditLog(text, icon, email, extra) {
-  const ev = { text, icon: icon || 'act-blue', email: email || '', extra: extra || '', t: Date.now() };
-  try {
-    if (typeof currentAdminEmail !== 'undefined' && currentAdminEmail && typeof logActivity === 'function') { _pkAuditSend(ev); return; }
-    const q = JSON.parse(localStorage.getItem('ksd_pk_events') || '[]');
-    q.push(ev);
-    localStorage.setItem('ksd_pk_events', JSON.stringify(q.slice(-20)));
-  } catch (e) {}
-}
-function _pkAuditFlush() {
-  try {
-    const q = JSON.parse(localStorage.getItem('ksd_pk_events') || '[]');
-    localStorage.removeItem('ksd_pk_events');
-    q.forEach(_pkAuditSend);
-  } catch (e) {}
-}
-/** Consecutive failed unlocks per account. Returns the new count (or resets it to 0). */
-function _pkFailBump(email, reset) {
-  try {
-    const m = JSON.parse(localStorage.getItem('ksd_pk_fails') || '{}');
-    m[email] = reset ? 0 : (m[email] || 0) + 1;
-    localStorage.setItem('ksd_pk_fails', JSON.stringify(m));
-    return m[email];
-  } catch (e) { return 0; }
 }
 
 /** Remembers who dismissed the optional "enable biometric login" offer. */
@@ -7071,7 +7002,6 @@ async function _mandatoryPasskeySetup(user, email) {
   let firstAttempt = true, fails = 0;
   const fail = (title, sub) => {
     fails++;
-    if (fails === 3) _pkAuditLog('⚠️ Biometric setup failed 3 times: ' + email, 'act-orange', email, forced ? 'Required setup' : 'Optional setup');
     const o = { title, sub, btn: 'Try again' };
     if (!forced) o.btn2 = 'Not now';
     else if (fails >= 3) {
@@ -7092,7 +7022,6 @@ async function _mandatoryPasskeySetup(user, email) {
       if (!forced) { if (act === 'tertiary') _pkOffer.never(email); else _pkOffer.snooze(email, 7); ui.close(); return; }
       // Forced + stuck: sign out and reload; never resolve so callers can't open the app meanwhile.
       ui.set('opening', { title: 'Signing you out…', sub: 'Please contact your administrator.', btn: 'One moment…', busy: true });
-      _pkAuditLog('🚪 Signed out — could not finish required biometric setup: ' + email, 'act-orange', email, 'Used the sign-out option');
       try { await window._fb.signOut(auth); } catch (e) {}
       location.reload();
       return new Promise(() => {});
@@ -7114,7 +7043,6 @@ async function _mandatoryPasskeySetup(user, email) {
       });
       if (credential) {
         PK.set(email, _bufferToBase64(credential.rawId), user.uid, user.displayName || '');
-        _pkAuditLog((forced ? '🔐 Biometric login set up (required): ' : '🔐 Biometric login set up: ') + email, 'act-green', email, forced ? 'Admin-required' : 'Chosen by user');
         ui.set('success', { title: 'Biometric login activated!', sub: 'Next time, just use your fingerprint, face or PIN to sign in.' });
         await new Promise(r => setTimeout(r, 2400));
         ui.close();
@@ -7611,7 +7539,6 @@ function showApp(userData){
     av.textContent=userData.name[0]||'A';
   }
   logActivity('🔐 Admin signed in','act-blue',userData.name);
-  if (typeof _pkAuditFlush === 'function') _pkAuditFlush();
   resetInactivity();
   _startAbsoluteSessionTimer();
   window._currentUser = { uid: userData.uid, name: userData.name };
