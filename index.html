@@ -147,6 +147,54 @@
     .nav-item:hover{background:rgba(41,128,185,.12);color:var(--text);transform:translateX(2px)}
     .nav-item.active{background:linear-gradient(135deg,rgba(41,128,185,.25),rgba(41,128,185,.12));color:var(--blue-lt);border-color:rgba(41,128,185,.32);box-shadow:0 6px 18px rgba(41,128,185,.15)}
     .nav-item .nav-icon{font-size:16px;flex-shrink:0;width:18px;text-align:center}
+    /* Embedded portals group — visually separated from normal links */
+    .embed-group{margin:10px 10px 4px;padding:8px 8px 6px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,rgba(123,92,209,.10),rgba(41,128,185,.05) 70%,transparent)}
+    .s-toggle{display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;margin-bottom:4px;border:none;background:none;cursor:pointer;font-family:inherit;color:var(--text3);border-radius:10px;transition:var(--transition)}
+    .s-toggle:hover{color:var(--text);background:rgba(123,92,209,.10)}
+    .s-toggle .s-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#8e44ad,#2980b9);box-shadow:0 0 0 3px rgba(142,68,173,.18)}
+    .s-toggle .s-title{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .s-toggle .s-count{margin-left:auto;font-size:9px;font-weight:800;padding:1px 7px;border-radius:99px;background:rgba(123,92,209,.18);color:#a98cf0}
+    .s-toggle .s-chev{font-size:11px;transition:transform .25s}
+    .embed-group.collapsed .s-chev{transform:rotate(-90deg)}
+    .embed-group.collapsed .embed-list{display:none}
+    .embed-group.collapsed .s-toggle{margin-bottom:0}
+    .nav-item.embed{padding:7px 10px}
+    .nav-item.embed .nav-icon{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:14px;background:color-mix(in srgb,var(--ec) 18%,transparent);border:1px solid color-mix(in srgb,var(--ec) 30%,transparent)}
+    .nav-item.embed::after{content:'⧉';margin-left:auto;font-size:12px;opacity:.3;transition:var(--transition)}
+    .nav-item.embed:hover::after{opacity:.75}
+    .nav-item.embed:hover{background:color-mix(in srgb,var(--ec) 12%,transparent)}
+    .nav-item.embed.active{background:color-mix(in srgb,var(--ec) 20%,transparent);border-color:color-mix(in srgb,var(--ec) 45%,transparent);color:var(--text);box-shadow:0 6px 18px color-mix(in srgb,var(--ec) 22%,transparent)}
+    .nav-item.embed.active::after{opacity:.9;color:var(--ec)}
+    .nav-item.embed.live::after{display:none}
+    .lv-nav-live{animation:pulse 1.6s infinite}
+    /* Live View page */
+    .lv-conn{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;padding:6px 12px;border-radius:99px;background:var(--bg2);border:1px solid var(--rule,var(--border));color:var(--text2)}
+    .lv-conn i{width:8px;height:8px;border-radius:50%;background:#e67e22}
+    .lv-conn.on{color:var(--green)}
+    .lv-conn.on i{background:var(--green);box-shadow:0 0 0 0 rgba(39,174,96,.6);animation:lvPing 1.8s infinite}
+    .lv-conn.off{color:var(--red)}.lv-conn.off i{background:var(--red)}
+    @keyframes lvPing{70%{box-shadow:0 0 0 8px rgba(39,174,96,0)}100%{box-shadow:0 0 0 0 rgba(39,174,96,0)}}
+    .lv-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:12px;margin-bottom:16px}
+    .lv-tile{background:var(--bg2);border:1px solid var(--rule,var(--border));border-radius:16px;padding:14px 16px;position:relative;overflow:hidden}
+    .lv-tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--blue))}
+    .lv-tile span{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+    .lv-tile b{display:block;font-size:26px;font-weight:900;line-height:1.15;margin:3px 0 2px;color:var(--text);transition:transform .25s}
+    .lv-tile b.bump{transform:scale(1.18)}
+    .lv-tile small{font-size:11px;color:var(--text3);font-weight:600}
+    .lv-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px}
+    @media(max-width:1100px){.lv-cols{grid-template-columns:1fr}}
+    .lv-ph{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+    .lv-ph h3{font-size:13px;font-weight:900;color:var(--text)}
+    .lv-ph span{font-size:11px;font-weight:700;color:var(--text3)}
+    .lv-livepill{color:#fff!important;background:var(--red);padding:2px 9px;border-radius:99px;font-size:9px!important;font-weight:800;letter-spacing:.1em;animation:pulse 1.6s infinite}
+    .lv-feed{max-height:min(62vh,640px);overflow-y:auto;padding-right:4px}
+    .lv-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin-bottom:8px;background:var(--bg2);border:1px solid var(--rule,var(--border));border-radius:12px;transition:background .6s,border-color .6s}
+    .lv-item.new{animation:fadeIn .35s both;background:rgba(41,128,185,.16);border-color:var(--blue)}
+    .lv-ic{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:14px;background:rgba(41,128,185,.14)}
+    .lv-main{min-width:0;flex:1}
+    .lv-act{font-size:12px;font-weight:700;color:var(--text);overflow-wrap:anywhere}
+    .lv-sub{font-size:11px;color:var(--text3);margin-top:2px;overflow-wrap:anywhere}
+    .lv-ago{flex:none;font-size:10px;font-weight:800;color:var(--text3);white-space:nowrap}
     .nav-badge{margin-left:auto;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:8px;min-width:18px;text-align:center}
     .nav-badge.red{background:var(--red)}
     .nav-badge.orange{background:var(--orange)}
@@ -427,6 +475,94 @@
     .toast.err{border-left:4px solid var(--red)}
     .toast.info{border-left:4px solid var(--blue)}
     .toast-action{pointer-events:auto;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--card-shadow);max-width:340px;width:min(340px,88vw);animation:fadeIn .25s ease;display:flex;flex-direction:column;gap:9px}
+    /* Live "teacher entering scores" toasts (shown on every page) */
+    .toast-live{pointer-events:auto;position:relative;overflow:hidden;width:min(360px,92vw);background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:16px;padding:12px 14px 14px;box-shadow:0 18px 44px rgba(0,0,0,.28);animation:tlIn .38s cubic-bezier(.2,.9,.3,1.15) both}
+    .toast-live.score{border-left-color:var(--blue)}
+    .toast-live.end{border-left-color:var(--orange)}
+    .toast-live.sum{border-left-color:#8e44ad}
+    @keyframes tlIn{from{transform:translateX(40px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+    .tl-top{display:flex;align-items:center;gap:10px}
+    .tl-av{flex:none;width:38px;height:38px;border-radius:12px;overflow:hidden;display:grid;place-items:center;background:var(--bg2);font-size:18px}
+    .tl-av > *{max-width:100%;max-height:100%}
+    .tl-head{min-width:0;flex:1}
+    .tl-title{font-size:13px;font-weight:800;color:var(--text);line-height:1.3;overflow-wrap:anywhere}
+    .tl-sub{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-top:2px}
+    .tl-sub i{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.4s infinite}
+    .toast-live.score .tl-sub{color:var(--blue)}.toast-live.score .tl-sub i{background:var(--blue)}
+    .toast-live.end .tl-sub{color:var(--orange)}.toast-live.end .tl-sub i{background:var(--orange);animation:none}
+    .toast-live.sum .tl-sub{color:#a266c9}.toast-live.sum .tl-sub i{background:#a266c9}
+    .tl-x{flex:none;align-self:flex-start;width:24px;height:24px;border:none;border-radius:8px;background:none;color:var(--text3);cursor:pointer;font-size:12px}
+    .tl-x:hover{background:var(--bg2);color:var(--text)}
+    .tl-rows{margin:10px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:11.5px}
+    .tl-rows dt{color:var(--text3);font-weight:700}
+    .tl-rows dd{margin:0;color:var(--text);font-weight:800;overflow-wrap:anywhere}
+    .tl-rows dd.val{color:var(--blue);font-size:13px}
+    .tl-foot{display:flex;align-items:center;justify-content:space-between;margin-top:11px}
+    .tl-go{border:none;border-radius:9px;padding:6px 12px;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;background:var(--blue);color:#fff}
+    .tl-go:hover{filter:brightness(1.1)}
+    .tl-time{font-size:10px;font-weight:700;color:var(--text3)}
+    .tl-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:currentColor;color:var(--green);transform-origin:left;animation:tlBar 10s linear forwards}
+    .toast-live.score .tl-bar{color:var(--blue)}.toast-live.end .tl-bar{color:var(--orange)}.toast-live.sum .tl-bar{color:#a266c9}
+    .toast-live:hover .tl-bar{animation-play-state:paused}
+    @keyframes tlBar{to{transform:scaleX(0)}}
+    /* Quick links (pinned + recent) */
+    .qlinks{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px}
+    .ql-lab{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-right:2px}
+    .ql{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:var(--transition)}
+    .ql:hover{color:var(--text);border-color:var(--blue);transform:translateY(-1px)}
+    .ql.pin{background:rgba(243,156,18,.14);border-color:rgba(243,156,18,.45);color:var(--text)}
+    .ql-x{font-style:normal;font-size:10px;opacity:.5;padding:0 2px;border-radius:6px}
+    .ql-x:hover{opacity:1;background:rgba(231,76,60,.2)}
+    #pinBtn.on{color:#f39c12;border-color:rgba(243,156,18,.55);background:rgba(243,156,18,.14)}
+    /* Attention center */
+    .attn{margin:0 0 18px}
+    .attn-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .attn-hdr b{font-size:13px;font-weight:900;color:var(--text)}
+    .attn-count{font-size:10px;font-weight:800;padding:2px 9px;border-radius:99px;background:var(--red);color:#fff}
+    .attn-count.ok{background:var(--green)}
+    .attn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(270px,100%),1fr));gap:10px}
+    .attn-card{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;border-radius:16px;border:1px solid var(--rule,var(--border));border-left:4px solid var(--blue);background:var(--bg2);font-family:inherit;color:var(--text);cursor:pointer;transition:var(--transition)}
+    .attn-card:hover{transform:translateY(-2px);box-shadow:var(--card-shadow)}
+    .attn-card.bad{border-left-color:var(--red)}.attn-card.warn{border-left-color:var(--orange)}.attn-card.info{border-left-color:var(--blue)}
+    .attn-ic{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:18px;background:var(--surface2)}
+    .attn-tx{min-width:0;flex:1}
+    .attn-tx b{display:block;font-size:12.5px;font-weight:800;line-height:1.3}
+    .attn-tx span{display:block;font-size:11px;color:var(--text3);font-weight:600;margin-top:2px;overflow-wrap:anywhere}
+    .attn-go{color:var(--text3);font-size:16px}
+    .attn-clear{padding:14px 16px;border-radius:16px;border:1px dashed var(--border);color:var(--text2);font-size:12.5px;font-weight:700;background:var(--bg2)}
+    /* Morning briefing + shortcuts sheets */
+    .kx-back{position:fixed;inset:0;z-index:2800;display:none;align-items:flex-start;justify-content:center;padding:6vh 16px 16px;overflow-y:auto;background:rgba(8,20,38,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+    .kx-back.open{display:flex;animation:fadeIn .25s both}
+    .brief,.kbd{width:min(680px,100%);background:var(--surface);border:1px solid var(--border);border-radius:24px;box-shadow:0 40px 100px rgba(6,18,36,.5);padding:24px 26px 20px}
+    .brief-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .brief-hi{font-size:22px;font-weight:900;letter-spacing:-.01em;color:var(--text)}
+    .brief-date{font-size:12px;font-weight:700;color:var(--text3);margin-top:3px}
+    .kx-btns{display:flex;gap:6px}
+    .kx-btns button{border:1px solid var(--border);background:var(--bg2);color:var(--text2);border-radius:10px;padding:7px 12px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer}
+    .kx-btns button:hover{color:var(--text);border-color:var(--blue)}
+    .brief-nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:6px}
+    .brief-num{padding:12px 14px;border-radius:14px;background:var(--bg2);border:1px solid var(--rule,var(--border))}
+    .brief-num b{display:block;font-size:22px;font-weight:900;color:var(--text)}
+    .brief-num span{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)}
+    .brief h4{margin:18px 0 8px;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+    .brief-li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--rule,var(--border));font-size:12.5px;color:var(--text);font-weight:700}
+    .brief-li small{display:block;font-size:11px;color:var(--text3);font-weight:600;margin-top:1px}
+    .brief-li i{font-style:normal;flex:none;width:24px;text-align:center}
+    .brief-none{font-size:12px;color:var(--text3);font-weight:600;padding:6px 0}
+    .brief-auto{display:flex;align-items:center;gap:8px;margin-top:18px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer}
+    .kbd h3{font-size:18px;font-weight:900;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+    .kbd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:4px 26px}
+    .kbd-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule,var(--border));font-size:12.5px;font-weight:700;color:var(--text2)}
+    kbd{display:inline-block;min-width:24px;text-align:center;padding:2px 7px;border-radius:7px;border:1px solid var(--border);border-bottom-width:2px;background:var(--bg2);font:800 11px/1.5 'SFMono-Regular',Menlo,Consolas,monospace;color:var(--text)}
+    .ghint{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:2900;display:none;padding:10px 16px;border-radius:14px;background:#0c1e33;color:#fff;font-size:12px;font-weight:700;box-shadow:0 14px 34px rgba(0,0,0,.4);white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+    .ghint.show{display:block;animation:fadeIn .15s both}
+    .ghint kbd{background:#1b3456;color:#fff;border-color:#2a4a72}
+    @media print{
+      body.printing-brief > *:not(.kx-back){display:none!important}
+      body.printing-brief .kx-back{position:static;display:block;background:none;padding:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+      body.printing-brief .brief{box-shadow:none;border:none;width:100%;padding:0}
+      body.printing-brief .kx-btns,body.printing-brief .brief-auto{display:none}
+    }
     .toast-action.warn{border-left:4px solid var(--orange)}
     .toast-action.err{border-left:4px solid var(--red)}
     .toast-action.ok{border-left:4px solid var(--green)}
@@ -604,19 +740,29 @@
       <div class="sidebar-section">
         <div class="s-label">Navigation</div>
         <div class="nav-item active" data-view="dashboard"><span class="nav-icon">📊</span>Dashboard <span class="nav-badge" id="nav-pending">0</span></div>
-        <div class="nav-item" data-view="timetable"><span class="nav-icon">⏱️</span>Exam Timetable <span class="nav-badge" style="background:#7b5cd1;color:#fff;">Planner</span></div>
         <div class="nav-item" data-view="students"><span class="nav-icon">🎓</span>Students <span class="nav-badge" id="nav-students">—</span></div>
-        <div class="nav-item" data-view="studentsearch"><span class="nav-icon">🔎</span>Student Profile</div>
-        <div class="nav-item" data-view="studentbiodata"><span class="nav-icon">🪪</span>Student Search</div>
-        <div class="nav-item" data-view="graduation"><span class="nav-icon">🎓</span>Graduation</div>
         <div class="nav-item" data-view="admissions"><span class="nav-icon">📝</span>Admissions <span class="nav-badge orange" id="nav-admissions">0</span></div>
         <div class="nav-item" data-view="teachers"><span class="nav-icon">👩‍🏫</span>Teachers <span class="nav-badge" id="nav-teachers">—</span></div>
         <div class="nav-item" data-view="attendance"><span class="nav-icon">🧾</span>Attendance</div>
-        <div class="nav-item" data-view="resultsportal"><span class="nav-icon">📋</span>Enter Results</div>
         <div class="nav-item" data-view="results"><span class="nav-icon">📝</span>Results</div>
         <div class="nav-item" data-view="welfare"><span class="nav-icon">🍽️</span>Welfare <span class="nav-badge orange" id="nav-welfare">—</span></div>
         <div class="nav-item" data-view="library"><span class="nav-icon">📚</span>Library <span class="nav-badge red" id="nav-library">0</span></div>
         <div class="nav-item" data-view="settings"><span class="nav-icon">⚙️</span>Settings</div>
+      </div>
+
+      <div class="sidebar-section embed-group" id="embedGroup">
+        <button class="s-toggle" type="button" id="embedToggle" aria-expanded="true" aria-controls="embedList">
+          <span class="s-dot"></span><span class="s-title">Portals &amp; Tools</span><span class="s-count">7</span><span class="s-chev">▾</span>
+        </button>
+        <div class="embed-list" id="embedList">
+          <div class="nav-item embed live" data-view="liveview" style="--ec:#e74c3c"><span class="nav-icon">📡</span>Live View <span class="nav-badge red lv-nav-live">LIVE</span></div>
+          <div class="nav-item embed" data-view="timetable" style="--ec:#7b5cd1"><span class="nav-icon">⏱️</span>Exam Timetable</div>
+          <div class="nav-item embed" data-view="studentsearch" style="--ec:#2980b9"><span class="nav-icon">🔎</span>Student Search</div>
+          <div class="nav-item embed" data-view="studentbiodata" style="--ec:#16a085"><span class="nav-icon">🪪</span>Student Biodata</div>
+          <div class="nav-item embed" data-view="graduation" style="--ec:#f39c12"><span class="nav-icon">🎓</span>Graduation</div>
+          <div class="nav-item embed" data-view="resultsportal" style="--ec:#e67e22"><span class="nav-icon">📋</span>Results Portal</div>
+          <div class="nav-item embed" data-view="teachersportal" style="--ec:#8e44ad"><span class="nav-icon">🧑‍🏫</span>Teachers Portal</div>
+        </div>
       </div>
 
       <div class="sidebar-section">
@@ -652,6 +798,8 @@
         </div>
         <div class="topbar-right" style="position:relative;">
           <span id="countdown" class="pill blue" title="Session time remaining"></span>
+          <button class="icon-btn" id="pinBtn" title="Pin this page (P)" aria-pressed="false">☆</button>
+          <button class="icon-btn" id="briefBtn" title="Morning briefing (B)">🌅</button>
           <button class="icon-btn" id="cmdkBtn" title="Search everything (Ctrl+K)">🔍</button>
           <div class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
             <span class="theme-icon moon">🌙</span>
@@ -680,6 +828,9 @@
               <button class="btn btn-blue btn-sm" id="refreshDashBtn">Refresh</button>
             </div>
           </div>
+
+          <div class="qlinks" id="qlinks" style="display:none"></div>
+          <div class="attn" id="attn"></div>
 
           <div class="kpi-grid">
             <div class="kpi-card" data-goto="students">
@@ -1632,6 +1783,48 @@
             <iframe id="resultsPortalFrame" data-src="./Results-portal.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Results Portal" loading="lazy"></iframe>
           </div>
         </section>
+        <!-- TEACHERS PORTAL (embedded teachers.html) -->
+        <section class="view" id="teachersportal">
+          <div class="sec-hdr">
+            <div>
+              <h2>Teachers Portal</h2>
+              <div class="sec-sub">Teacher profiles, attendance, leave, welfare &amp; resources.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="./teachers.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🧑‍🏫 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('teachersPortalFrame')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="teachersPortalFrame" data-src="./teachers.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Teachers Portal" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- LIVE VIEW (real-time) -->
+        <section class="view" id="liveview">
+          <div class="sec-hdr">
+            <div>
+              <h2>Live View</h2>
+              <div class="sec-sub">Real-time school activity — updates automatically, no refresh needed.</div>
+            </div>
+            <div class="actions-row"><button class="btn btn-outline btn-sm" id="lv-toast-toggle" type="button" title="Pop-up alerts when a teacher enters scores">🔔 Toast alerts: On</button><span class="lv-conn" id="lv-conn"><i></i><b>Connecting…</b></span></div>
+          </div>
+          <div class="lv-tiles">
+            <div class="lv-tile" style="--c:#27ae60"><span>Scoring now</span><b id="lv-scoring">0</b><small>teachers in Quick Entry</small></div>
+            <div class="lv-tile" style="--c:#2980b9"><span>Last hour</span><b id="lv-hour">0</b><small>admin actions</small></div>
+            <div class="lv-tile" style="--c:#e67e22"><span>Pending admissions</span><b id="lv-adm">0</b><small>awaiting review</small></div>
+            <div class="lv-tile" style="--c:#8e44ad"><span>Last activity</span><b id="lv-last">—</b><small id="lv-last-who">Waiting for activity…</small></div>
+          </div>
+          <div class="lv-cols">
+            <div class="panel">
+              <div class="lv-ph"><h3>Teachers entering scores</h3><span id="lv-qe-count"></span></div>
+              <div id="lv-qe"><div class="muted">Loading…</div></div>
+            </div>
+            <div class="panel">
+              <div class="lv-ph"><h3>Live activity</h3><span class="lv-livepill">LIVE</span></div>
+              <div id="lv-feed" class="lv-feed"><div class="muted">Loading…</div></div>
+            </div>
+          </div>
+        </section>
         <section class="view" id="portals">
           <div class="sec-hdr">
             <div>
@@ -1801,6 +1994,8 @@
       studentbiodata: ['Student Biodata', 'Search a learner and view their biodata'],
       graduation: ['Graduation', 'Graduands list & ceremony mode'],
       resultsportal: ['Results Portal', 'Grades, quick entry, rankings & analytics'],
+      teachersportal: ['Teachers Portal', 'Teacher profiles, attendance, leave & welfare'],
+      liveview: ['Live View', 'Real-time activity across the school'],
       portals: ['Linked Portals', 'Jump to specialized tools']
     };
 
@@ -2842,12 +3037,22 @@
 
     window.reloadFrame = function(id){ const fr = document.getElementById(id); if(fr) fr.src = fr.dataset.src || fr.src; };
 
+    function setEmbedCollapsed(on, persist){
+      const g = $('embedGroup'); if(!g) return;
+      g.classList.toggle('collapsed', on); $('embedToggle').setAttribute('aria-expanded', String(!on));
+      if(persist){ try{ localStorage.setItem('kss-embed-collapsed', on ? '1' : '0'); }catch(e){} }
+    }
+    try{ setEmbedCollapsed(localStorage.getItem('kss-embed-collapsed') === '1', false); }catch(e){}
+    $('embedToggle').addEventListener('click', () => setEmbedCollapsed(!$('embedGroup').classList.contains('collapsed'), true));
+
     function navTo(view){
       document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+      if(document.querySelector('.nav-item.embed.active')) setEmbedCollapsed(false, false);
       document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === view));
       const meta = VIEW_META[view] || [view, ''];
       $('pageTitle').textContent = meta[0];
       $('pageCrumb').textContent = meta[1];
+      try{ trackNav(view); }catch(e){}
       $('sidebar').classList.remove('open');
       $('sidebarBackdrop').classList.remove('show');
       if(view === 'attendance') renderAttendance();
@@ -2860,6 +3065,8 @@
       if(view === 'studentbiodata'){ const f = $('studentBiodataFrame'); if(f && f.getAttribute('src') === 'about:blank') f.src = f.dataset.src; }
       if(view === 'graduation'){ const fr = $('graduationFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
       if(view === 'resultsportal'){ const fr = $('resultsPortalFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
+      if(view === 'liveview') startLiveView();
+      if(view === 'teachersportal'){ const fr = $('teachersPortalFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
     }
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => navTo(item.dataset.view));
@@ -3080,6 +3287,7 @@
       renderAdmissions();
       const pending = state.admissions.filter(a => (a.status||'pending') === 'pending').length;
       $('nav-admissions').textContent = String(pending);
+      renderLiveView();
     }
     async function loadAdmissions(){
       try{
@@ -4337,7 +4545,134 @@
           Object.values(byUid || {}).forEach(sess => { if(sess && sess.uid) flat.push(sess); });
         });
         renderQeLiveSessions(flat);
+        _liveQe = flat; renderLiveView(); qeToastDiff(flat); try{ renderAttention(); }catch(e){}
       });
+    }
+
+    /* ── Realtime toasts: teachers entering scores (pop up from any page) ── */
+    const _qeKnown = new Map();   // key -> { sig, t, s }
+    let _qeFirst = true;
+    const QE_TOAST_MS = 10000;
+    function qeToastsOn(){ try{ return localStorage.getItem('kss-qe-toasts') !== '0'; }catch(e){ return true; } }
+    function syncQeToastBtn(){ const b = $('lv-toast-toggle'); if(b) b.textContent = `🔔 Toast alerts: ${qeToastsOn() ? 'On' : 'Off'}`; }
+    function qeKey(s){ return `${s.uid}|${s.compound||s.grade||''}`; }
+    function qeAvatar(s){
+      const t = (state.teachers||[]).find(x => x.uid === s.uid);
+      try{ return t ? teacherAvatarHtml(t, 'tch-av') : '📝'; }catch(e){ return '📝'; }
+    }
+    function qeRow(k, v, cls){ return v ? `<dt>${k}</dt><dd${cls ? ` class="${cls}"` : ''}>${escapeHtml(String(v))}</dd>` : ''; }
+    function showLiveToast(key, o){
+      const host = $('toastHost'); if(!host) return;
+      let el = host.querySelector(`.toast-live[data-key="${CSS.escape(key)}"]`);
+      const fresh = !el;
+      if(fresh){
+        el = document.createElement('div'); el.dataset.key = key;
+        const live = host.querySelectorAll('.toast-live'); if(live.length >= 3) live[0].remove();
+      }
+      el.className = `toast-live ${o.tone}`;
+      el.innerHTML = `<div class="tl-top"><div class="tl-av">${o.avatar}</div><div class="tl-head"><div class="tl-title">${o.title}</div><div class="tl-sub"><i></i>${o.tag}</div></div><button class="tl-x" type="button" aria-label="Dismiss">✕</button></div>
+        <dl class="tl-rows">${o.rows}</dl>
+        <div class="tl-foot"><button class="tl-go" type="button">📡 Watch live</button><span class="tl-time">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</span></div><i class="tl-bar"></i>`;
+      const close = () => { clearTimeout(el._t); el.remove(); };
+      const arm = () => { clearTimeout(el._t); el._t = setTimeout(close, QE_TOAST_MS); };
+      el.querySelector('.tl-x').onclick = close;
+      el.querySelector('.tl-go').onclick = () => { close(); navTo('liveview'); };
+      el.onmouseenter = () => clearTimeout(el._t); el.onmouseleave = arm;
+      if(fresh) host.appendChild(el);
+      arm();
+    }
+    function showQeToast(kind, s){
+      const name = escapeHtml(s.name || 'A teacher'), cell = s.cell || {};
+      const cls = s.compound || s.grade || '—';
+      const val = cell.value === undefined || cell.value === '' ? '' : cell.value;
+      if(kind === 'start'){
+        showLiveToast(qeKey(s), { tone:'start', avatar:qeAvatar(s), title:`📝 ${name} started entering scores`, tag:'Quick Entry · live',
+          rows: qeRow('Class', cls) + qeRow('Started', timeAgoShort(s.startedAt)) });
+      }else if(kind === 'score'){
+        showLiveToast(qeKey(s), { tone:'score', avatar:qeAvatar(s), title:`✍️ ${name} entered a score`, tag:'Quick Entry · live',
+          rows: qeRow('Class', cls) + qeRow('Learner', cell.studentName) + qeRow('Subject', cell.subject) + qeRow('Score', val, 'val') });
+      }else if(kind === 'end'){
+        const mins = Math.max(1, Math.round(((s.lastActive || Date.now()) - (s.startedAt || Date.now())) / 60000));
+        showLiveToast(qeKey(s), { tone:'end', avatar:qeAvatar(s), title:`✅ ${name} finished entering scores`, tag:'Session ended',
+          rows: qeRow('Class', cls) + qeRow('Duration', `${mins} min`) });
+      }
+    }
+    function qeToastDiff(sessions){
+      const me = state.user && state.user.uid, now = Date.now(), seen = new Set();
+      const others = sessions.filter(s => s && s.uid !== me);
+      if(_qeFirst){
+        _qeFirst = false;
+        if(others.length && qeToastsOn()){
+          const names = others.map(s => s.name || 'Teacher');
+          showLiveToast('qe-summary', { tone:'sum', avatar:'👩‍🏫', title:`${others.length} teacher${others.length === 1 ? ' is' : 's are'} entering scores right now`, tag:'Quick Entry · live',
+            rows: qeRow('Teachers', names.slice(0, 4).join(', ') + (names.length > 4 ? ` +${names.length - 4} more` : '')) });
+        }
+      }
+      sessions.forEach(s => {
+        if(!s || !s.uid) return;
+        const key = qeKey(s); seen.add(key);
+        const cell = s.cell || null;
+        const sig = cell ? `${cell.studentName}|${cell.subject}|${cell.value}|${cell.updatedAt}` : '';
+        const rec = _qeKnown.get(key) || { sig:'', t:0, s, isNew:true };
+        if(s.uid !== me && qeToastsOn()){
+          if(rec.isNew){ if(now - (s.startedAt || now) < 180000 && _qeSeenFirst) { showQeToast('start', s); rec.t = now; } }
+          else if(sig && sig !== rec.sig && now - rec.t > 8000){ showQeToast('score', s); rec.t = now; }
+        }
+        rec.isNew = false; rec.sig = sig; rec.s = s; _qeKnown.set(key, rec);
+      });
+      _qeKnown.forEach((rec, key) => {
+        if(seen.has(key)) return;
+        _qeKnown.delete(key);
+        if(rec.s && rec.s.uid !== me && qeToastsOn() && _qeSeenFirst) showQeToast('end', rec.s);
+      });
+      _qeSeenFirst = true;
+    }
+    let _qeSeenFirst = false;   // true after the first snapshot, so existing sessions don't all pop as "started"
+    syncQeToastBtn();
+    $('lv-toast-toggle').addEventListener('click', () => {
+      try{ localStorage.setItem('kss-qe-toasts', qeToastsOn() ? '0' : '1'); }catch(e){}
+      syncQeToastBtn(); toast(qeToastsOn() ? 'Live score alerts turned on' : 'Live score alerts turned off', 'info');
+    });
+
+    /* ── Live View page ── */
+    let _liveQe = [], _liveAudit = [], _liveStarted = false, _liveSeen = null;
+    const LIVE_ICONS = { login:'🔐', auth:'🔐', student:'🎓', students:'🎓', teacher:'👩‍🏫', results:'📝', result:'📝', exam:'📝', welfare:'🍽️', lunch:'🍽️', library:'📚', admission:'📋', admissions:'📋', attendance:'🧾', announcement:'📢', settings:'⚙️', security:'🛡️' };
+    function liveIcon(cat){ const k = String(cat||'').toLowerCase(); const hit = Object.keys(LIVE_ICONS).find(x => k.includes(x)); return hit ? LIVE_ICONS[hit] : '🔔'; }
+    function liveBump(id, val){ const el = $(id); if(!el) return; const t = String(val); if(el.textContent !== t){ el.textContent = t; el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 260); } }
+    function renderLiveView(){
+      if(!_liveStarted) return;
+      const now = Date.now();
+      liveBump('lv-scoring', _liveQe.length);
+      $('lv-qe-count').textContent = _liveQe.length ? `${_liveQe.length} active` : '';
+      const qeBox = $('qe-live-list'); $('lv-qe').innerHTML = qeBox ? qeBox.innerHTML : '<div class="muted">No teachers are currently entering scores.</div>';
+      liveBump('lv-hour', _liveAudit.filter(r => now - Number(r.time||0) < 3600000).length);
+      liveBump('lv-adm', (state.admissions||[]).filter(a => (a.status||'pending') === 'pending').length);
+      const last = _liveAudit[0];
+      $('lv-last').textContent = last ? timeAgoShort(Number(last.time)) : '—';
+      $('lv-last-who').textContent = last ? `${last.admin || 'Admin'} · ${last.action || ''}`.slice(0, 60) : 'Waiting for activity…';
+      const feed = $('lv-feed');
+      if(!_liveAudit.length){ feed.innerHTML = '<div class="muted">No activity yet. New actions will appear here instantly.</div>'; return; }
+      feed.innerHTML = _liveAudit.map(r => {
+        const isNew = _liveSeen && !_liveSeen.has(r.key);
+        const sub = [r.admin, r.targetName, r.category].filter(Boolean).map(escapeHtml).join(' · ');
+        return `<div class="lv-item${isNew ? ' new' : ''}"><div class="lv-ic">${liveIcon(r.category)}</div><div class="lv-main"><div class="lv-act">${escapeHtml(r.action || 'Activity')}</div><div class="lv-sub">${sub}</div></div><div class="lv-ago">${timeAgoShort(Number(r.time))}</div></div>`;
+      }).join('');
+      _liveSeen = new Set(_liveAudit.map(r => r.key));
+    }
+    function startLiveView(){
+      if(_liveStarted){ renderLiveView(); return; }
+      _liveStarted = true;
+      onValue(ref(db, '.info/connected'), snap => {
+        const on = snap.val() === true, c = $('lv-conn');
+        c.className = 'lv-conn ' + (on ? 'on' : 'off'); c.querySelector('b').textContent = on ? 'Connected · live' : 'Offline — reconnecting…';
+      });
+      onValue(query(ref(db, AUDIT_PATH), orderByChild('time'), limitToLast(30)), snap => {
+        const data = snap.val() || {};
+        _liveAudit = Object.entries(data).map(([key, v]) => ({ key, ...v })).sort((a, b) => Number(b.time||0) - Number(a.time||0));
+        renderLiveView();
+      }, err => { $('lv-feed').innerHTML = `<div class="muted" style="color:var(--red)">Can't read activity: ${escapeHtml(err?.message || String(err))}</div>`; });
+      setInterval(() => { if($('liveview').classList.contains('active')) renderLiveView(); }, 20000);   // keep "x min ago" fresh
+      renderLiveView();
     }
 
     /* ── Live Quick Entry Sessions (mirrors the Results Portal's presence node) ── */
@@ -4378,6 +4713,7 @@
 
     /* ── Dashboard ── */
     function updateDashboard(){
+      try{ renderAttention(); maybeAutoBrief(); }catch(e){}
       const grades = new Set(state.students.map(studentGrade));
       $('kpi-students').textContent = state.students.length.toLocaleString();
       $('kpi-grades-count').textContent = `${grades.size} grades`;
@@ -6777,6 +7113,181 @@
         $('cmdkBackdrop').classList.contains('open') ? cmdkClose() : cmdkOpen();
       }
     });
+
+    /* ═══ Attention Center · Morning Briefing · Shortcuts · Pins & Recents ═══ */
+    var _kssReady = false, _briefAutoDone = false;   // var: touched by hoisted functions that may run before this block
+    const KSS_ICON = v => document.querySelector(`.nav-item[data-view="${v}"] .nav-icon`)?.textContent || '📄';
+    const KSS_TITLE = v => (VIEW_META[v] && VIEW_META[v][0]) || v;
+    const jget = (k, d) => { try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } };
+    const jset = (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+
+    /* 1) Attention Center — what needs the admin right now, ranked */
+    function attentionItems(){
+      const out = [], plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+      try{
+        const l = libraryStats();
+        if(l && l.hasData && l.overdue.length) out.push({ sev:'bad', icon:'📚', title:`${plural(l.overdue.length, 'overdue textbook')}`, hint:'Send reminders or record returns', view:'library' });
+      }catch(e){}
+      const pend = (state.admissions || []).filter(a => (a.status || 'pending') === 'pending').length;
+      if(pend) out.push({ sev:'warn', icon:'📝', title:`${plural(pend, 'admission request')} awaiting review`, hint:'Approve or reject', view:'admissions' });
+      try{
+        const s = lunchPeriodStats();
+        if(s && s.shortfall > 0) out.push({ sev:'warn', icon:'🍽️', title:`Lunch shortfall of ${fmtKsh(s.shortfall)}`, hint:`${s.partial + s.nil} member${(s.partial + s.nil) === 1 ? '' : 's'} owing this period`, view:'welfare' });
+      }catch(e){}
+      const urgent = (state.announcements || []).filter(a => a.type === 'urgent');
+      if(urgent.length) out.push({ sev:'warn', icon:'📢', title:`${plural(urgent.length, 'urgent announcement')} live`, hint:urgent[0].title || '', view:'messages' });
+      const inq = (state.feedback || []).filter(f => f.type === 'parent_inquiry' && Date.now() - (f.timestamp || 0) < 7 * 864e5).length;
+      if(inq) out.push({ sev:'info', icon:'💬', title:`${plural(inq, 'parent inquiry')} this week`, hint:'Check and respond', view:'feedback' });
+      try{
+        const ev = upcomingCalendarEvents(3);
+        if(ev.length) out.push({ sev:'info', icon:'🗓️', title:`${plural(ev.length, 'event')} in the next 3 days`, hint:ev.slice(0, 2).map(e => e.title).join(' · '), view:'calendar' });
+      }catch(e){}
+      if(typeof _liveQe !== 'undefined' && _liveQe.length) out.push({ sev:'info', icon:'✍️', title:`${plural(_liveQe.length, 'teacher')} entering scores now`, hint:_liveQe.slice(0, 3).map(x => x.name || 'Teacher').join(', '), view:'liveview' });
+      const rank = { bad:0, warn:1, info:2 };
+      return out.sort((a, b) => rank[a.sev] - rank[b.sev]);
+    }
+    function renderAttention(){
+      const box = $('attn'); if(!box) return;
+      const items = attentionItems();
+      box.innerHTML = `<div class="attn-hdr"><b>Needs your attention</b><span class="attn-count${items.length ? '' : ' ok'}">${items.length || '✓'}</span></div>` +
+        (items.length
+          ? `<div class="attn-grid">${items.map(i => `<button type="button" class="attn-card ${i.sev}" data-attn="${i.view}"><span class="attn-ic">${i.icon}</span><span class="attn-tx"><b>${escapeHtml(i.title)}</b><span>${escapeHtml(i.hint || '')}</span></span><span class="attn-go">›</span></button>`).join('')}</div>`
+          : `<div class="attn-clear">🎉 All clear — nothing needs your attention right now.</div>`);
+    }
+    $('attn').addEventListener('click', e => { const v = e.target.closest('[data-attn]')?.dataset.attn; if(v) navTo(v); });
+
+    /* 2) Pinned & recent pages */
+    function curView(){ return document.querySelector('.view.active')?.id || 'dashboard'; }
+    function renderQLinks(){
+      const box = $('qlinks'); if(!box) return;
+      const pins = jget('kss-pins', []), recent = jget('kss-recent', []).filter(v => !pins.includes(v) && v !== 'dashboard').slice(0, 5);
+      if(!pins.length && !recent.length){ box.style.display = 'none'; return; }
+      const chip = (v, pinned) => `<button type="button" class="ql${pinned ? ' pin' : ''}" data-ql="${v}"><span>${KSS_ICON(v)}</span>${escapeHtml(KSS_TITLE(v))}${pinned ? `<i class="ql-x" data-unpin="${v}" title="Unpin">✕</i>` : ''}</button>`;
+      box.innerHTML = (pins.length ? `<span class="ql-lab">⭐ Pinned</span>${pins.map(v => chip(v, true)).join('')}` : '') +
+                      (recent.length ? `<span class="ql-lab" style="margin-left:${pins.length ? 8 : 0}px">🕘 Recent</span>${recent.map(v => chip(v, false)).join('')}` : '');
+      box.style.display = 'flex';
+    }
+    function syncPinBtn(){
+      const b = $('pinBtn'); if(!b) return; const on = jget('kss-pins', []).includes(curView());
+      b.textContent = on ? '★' : '☆'; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+      b.title = on ? 'Unpin this page (P)' : 'Pin this page (P)';
+    }
+    function togglePin(v){
+      v = v || curView(); if(v === 'dashboard'){ toast('The dashboard is always one click away.', 'info'); return; }
+      let pins = jget('kss-pins', []);
+      if(pins.includes(v)){ pins = pins.filter(x => x !== v); toast(`Unpinned ${KSS_TITLE(v)}`, 'info'); }
+      else { pins = [v, ...pins].slice(0, 8); toast(`Pinned ${KSS_TITLE(v)} ⭐`, 'ok'); }
+      jset('kss-pins', pins); syncPinBtn(); renderQLinks();
+    }
+    function trackNav(view){
+      if(!_kssReady) return;
+      if(view !== 'dashboard') jset('kss-recent', [view, ...jget('kss-recent', []).filter(v => v !== view)].slice(0, 10));
+      syncPinBtn(); renderQLinks();
+    }
+    $('pinBtn').addEventListener('click', () => togglePin());
+    $('qlinks').addEventListener('click', e => {
+      const un = e.target.closest('[data-unpin]')?.dataset.unpin;
+      if(un){ e.stopPropagation(); jset('kss-pins', jget('kss-pins', []).filter(v => v !== un)); syncPinBtn(); renderQLinks(); return; }
+      const v = e.target.closest('[data-ql]')?.dataset.ql; if(v) navTo(v);
+    });
+
+    /* 3) Morning briefing */
+    function kxSheet(id){
+      let el = $(id); if(el) return el;
+      el = document.createElement('div'); el.id = id; el.className = 'kx-back';
+      el.addEventListener('mousedown', e => { if(e.target === el) el.classList.remove('open'); });
+      document.body.appendChild(el); return el;
+    }
+    function buildBriefing(){
+      const h = new Date().getHours(), hi = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+      const name = (state.user?.displayName || state.user?.email || 'Admin').split(/[ @]/)[0];
+      const items = attentionItems(), ev = (() => { try{ return upcomingCalendarEvents(7).slice(0, 6); }catch(e){ return []; } })();
+      const pend = (state.admissions || []).filter(a => (a.status || 'pending') === 'pending').length;
+      let shortfall = 0, overdue = 0;
+      try{ shortfall = lunchPeriodStats().shortfall || 0; }catch(e){}
+      try{ const l = libraryStats(); overdue = l.hasData ? l.overdue.length : 0; }catch(e){}
+      const li = (ic, t, sm) => `<div class="brief-li"><i>${ic}</i><div>${escapeHtml(t)}${sm ? `<small>${escapeHtml(sm)}</small>` : ''}</div></div>`;
+      const acts = (state.audits || []).slice(0, 5);
+      return `<div class="brief" role="dialog" aria-modal="true" aria-label="Morning briefing">
+        <div class="brief-top"><div><div class="brief-hi">${hi}, ${escapeHtml(name)} 👋</div><div class="brief-date">${new Date().toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long', year:'numeric' })} · Kanyadet School briefing</div></div>
+          <div class="kx-btns"><button type="button" data-a="print">🖨 Print</button><button type="button" data-a="x">✕</button></div></div>
+        <div class="brief-nums">
+          <div class="brief-num"><b>${(state.students || []).length.toLocaleString()}</b><span>Learners</span></div>
+          <div class="brief-num"><b>${(state.teachers || []).length}</b><span>Staff</span></div>
+          <div class="brief-num"><b>${pend}</b><span>Pending admissions</span></div>
+          <div class="brief-num"><b>${overdue}</b><span>Overdue books</span></div>
+          <div class="brief-num"><b>${shortfall ? fmtKsh(shortfall) : '—'}</b><span>Lunch shortfall</span></div>
+        </div>
+        <h4>Needs attention</h4>${items.length ? items.map(i => li(i.icon, i.title, i.hint)).join('') : '<div class="brief-none">🎉 Nothing urgent — a clear desk.</div>'}
+        <h4>Next 7 days</h4>${ev.length ? ev.map(e => { const m = (CAL_TYPE_META[e.type] || CAL_TYPE_META.event); return li(m.icon, e.title, `${fmtTime(e.date)} · ${m.label}`); }).join('') : '<div class="brief-none">No events scheduled this week.</div>'}
+        <h4>Recent admin activity</h4>${acts.length ? acts.map(a => li('🛡️', a.action || a.text || 'Activity', `${a.admin || a.user || 'System'} · ${fmtTime(a.time || a.createdAt)}`)).join('') : '<div class="brief-none">No recent activity.</div>'}
+        <label class="brief-auto"><input type="checkbox" id="briefAuto" ${localStorage.getItem('kss-brief-auto') === '1' ? 'checked' : ''}> Open this automatically once each morning</label>
+      </div>`;
+    }
+    function openBrief(){
+      const el = kxSheet('briefBack'); el.innerHTML = buildBriefing(); el.classList.add('open');
+      el.onclick = e => {
+        const a = e.target.closest('[data-a]')?.dataset.a;
+        if(a === 'x') el.classList.remove('open');
+        else if(a === 'print'){ document.body.classList.add('printing-brief'); window.print(); }
+      };
+      $('briefAuto').onchange = e => { try{ localStorage.setItem('kss-brief-auto', e.target.checked ? '1' : '0'); }catch(err){} };
+    }
+    window.addEventListener('afterprint', () => document.body.classList.remove('printing-brief'));
+    $('briefBtn').addEventListener('click', openBrief);
+    function maybeAutoBrief(){
+      if(_briefAutoDone || !_kssReady) return; _briefAutoDone = true;
+      try{
+        if(localStorage.getItem('kss-brief-auto') === '1' && localStorage.getItem('kss-brief-last') !== todayISO()){
+          localStorage.setItem('kss-brief-last', todayISO()); setTimeout(openBrief, 2500);   // wait for data to land
+        }
+      }catch(e){}
+    }
+
+    /* 4) Keyboard shortcuts */
+    const G_MAP = { d:'dashboard', s:'students', t:'teachers', a:'attendance', r:'results', w:'welfare', l:'library', c:'calendar', m:'messages', i:'admissions', p:'portals' };
+    function gHint(on){
+      let h = $('gHint'); if(!h){ h = document.createElement('div'); h.id = 'gHint'; h.className = 'ghint'; document.body.appendChild(h); }
+      h.innerHTML = '<kbd>g</kbd> then <kbd>d</kbd> Dashboard · <kbd>s</kbd> Students · <kbd>t</kbd> Teachers · <kbd>a</kbd> Attendance · <kbd>r</kbd> Results · <kbd>w</kbd> Welfare · <kbd>l</kbd> Library · <kbd>c</kbd> Calendar · <kbd>i</kbd> Admissions';
+      h.classList.toggle('show', on);
+    }
+    function openKbd(){
+      const el = kxSheet('kbdBack');
+      const row = (k, t) => `<div class="kbd-row"><span>${t}</span><span>${k}</span></div>`;
+      el.innerHTML = `<div class="kbd" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts"><h3>⌨️ Keyboard shortcuts <span class="kx-btns"><button type="button" data-a="x">✕</button></span></h3>
+        <div class="kbd-grid"><div>
+          ${row('<kbd>Ctrl</kbd> <kbd>K</kbd>', 'Search everything')}${row('<kbd>/</kbd>', 'Search everything')}${row('<kbd>?</kbd>', 'This cheat-sheet')}
+          ${row('<kbd>B</kbd>', 'Morning briefing')}${row('<kbd>P</kbd>', 'Pin / unpin this page')}${row('<kbd>[</kbd>', 'Show / hide sidebar')}${row('<kbd>Esc</kbd>', 'Close any pop-up')}
+        </div><div>
+          ${row('<kbd>g</kbd> <kbd>d</kbd>', 'Go to Dashboard')}${row('<kbd>g</kbd> <kbd>s</kbd>', 'Go to Students')}${row('<kbd>g</kbd> <kbd>t</kbd>', 'Go to Teachers')}
+          ${row('<kbd>g</kbd> <kbd>a</kbd>', 'Go to Attendance')}${row('<kbd>g</kbd> <kbd>r</kbd>', 'Go to Results')}${row('<kbd>g</kbd> <kbd>w</kbd>', 'Go to Welfare')}
+          ${row('<kbd>g</kbd> <kbd>l</kbd>', 'Go to Library')}${row('<kbd>g</kbd> <kbd>c</kbd>', 'Go to Calendar')}${row('<kbd>g</kbd> <kbd>i</kbd>', 'Go to Admissions')}
+        </div></div></div>`;
+      el.onclick = e => { if(e.target.closest('[data-a="x"]')) el.classList.remove('open'); };
+      el.classList.add('open');
+    }
+    let _gPending = false, _gT = null;
+    document.addEventListener('keydown', e => {
+      if(e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if(e.key === 'Escape'){ ['briefBack', 'kbdBack'].forEach(id => $(id)?.classList.remove('open')); return; }
+      if(t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+      if($('cmdkBackdrop').classList.contains('open')) return;
+      if(_gPending){
+        clearTimeout(_gT); _gPending = false; gHint(false);
+        const v = G_MAP[e.key.toLowerCase()]; if(v){ e.preventDefault(); navTo(v); }
+        return;
+      }
+      const k = e.key;
+      if(k === '?'){ e.preventDefault(); openKbd(); }
+      else if(k === '/'){ e.preventDefault(); cmdkOpen(); }
+      else if(k === 'g'){ _gPending = true; gHint(true); _gT = setTimeout(() => { _gPending = false; gHint(false); }, 2200); }
+      else if(k === '['){ $('burgerBtn').click(); }
+      else if(k === 'b' || k === 'B'){ openBrief(); }
+      else if(k === 'p' || k === 'P'){ togglePin(); }
+    });
+
+    _kssReady = true; syncPinBtn(); renderQLinks(); renderAttention();
 
     /* ── Data Backup & Export ── */
     $('backup-export-btn')?.addEventListener('click', () => {
