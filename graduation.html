@@ -228,6 +228,30 @@
       .g-card{break-inside:avoid;box-shadow:none;border:0;border-bottom:1px solid #ccc;border-radius:0;padding:5px 0;animation:none;margin-bottom:0}
       .g-av{display:none}.g-no{position:static;margin-right:8px}
     }
+
+    /* ── EYE certification popup ── */
+    .g-card{cursor:pointer}
+    .cf-overlay{position:fixed;inset:0;z-index:2600;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,20,38,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s linear .25s}
+    .cf-overlay.open{opacity:1;visibility:visible;transition:opacity .25s ease}
+    .cf-sheet{position:relative;width:100%;max-width:360px;text-align:center;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:28px;padding:2.2rem 1.6rem 1.6rem;box-shadow:0 30px 90px rgba(10,30,60,.4);transform:translateY(18px) scale(.9);transition:transform .45s cubic-bezier(.34,1.56,.64,1);overflow:hidden}
+    .cf-overlay.open .cf-sheet{transform:none}
+    .cf-sheet::before{content:'';position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(90deg,var(--green),var(--gold),var(--blue))}
+    .cf-badge{width:84px;height:84px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#2ecc71,#1d8a4e);box-shadow:0 0 0 8px rgba(39,174,96,.14),0 14px 30px rgba(39,174,96,.4)}
+    .cf-overlay.open .cf-badge{animation:cfPop .6s .1s cubic-bezier(.34,1.56,.64,1) both}
+    .cf-badge svg{width:44px;height:44px}
+    .cf-badge path{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50}
+    .cf-overlay.open .cf-badge path{animation:cfDraw .5s .45s ease forwards}
+    @keyframes cfPop{from{transform:scale(0) rotate(-40deg)}to{transform:none}}
+    @keyframes cfDraw{to{stroke-dashoffset:0}}
+    .cf-kicker{font-size:.66rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--green)}
+    .cf-sheet h2{font-size:1.25rem;font-weight:900;margin:.3rem 0 .9rem}
+    .cf-name{font-size:1.02rem;font-weight:800;text-transform:capitalize;overflow-wrap:anywhere}
+    .cf-meta{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:.6rem 0 1rem}
+    .cf-level{margin:0 0 .6rem;padding:.7rem .9rem;border-radius:16px;background:rgba(243,156,18,.12);border:1px dashed rgba(243,156,18,.55);font-size:.8rem;font-weight:700;color:var(--text2)}
+    .cf-level b{display:block;font-size:.92rem;color:var(--text)}
+    .cf-date{font-size:.7rem;font-weight:700;color:var(--text3);margin-bottom:1rem}
+    .cf-close{width:100%;border:0;border-radius:14px;padding:.75rem;font:800 .85rem inherit;font-family:inherit;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--blue),var(--blue-dk));box-shadow:0 8px 18px var(--blue-glow)}
+    @media(prefers-reduced-motion:reduce){.cf-sheet,.cf-badge,.cf-badge path{animation:none!important;transition:none!important;stroke-dashoffset:0}}
   </style>
 </head>
 <body>
@@ -358,6 +382,19 @@
   <div class="st-main"><div class="st-cls" id="st-cls"></div><h2 id="st-name"></h2><p id="st-meta"></p></div>
   <div class="st-next" id="st-next"></div>
   <div class="st-ctl"><button id="st-prev" type="button">← Previous</button><button id="st-mark" type="button">✓ Mark present</button><button id="st-nextb" type="button">Next →</button></div>
+</div>
+
+<div class="cf-overlay" id="cf-modal" role="dialog" aria-modal="true" aria-labelledby="cf-title" aria-hidden="true">
+  <div class="cf-sheet">
+    <div class="cf-badge"><svg viewBox="0 0 52 52" aria-hidden="true"><path d="M13 27l9 9 17-19"/></svg></div>
+    <div class="cf-kicker">Certification confirmed</div>
+    <h2 id="cf-title">Successfully Certified!</h2>
+    <div class="cf-name" id="cf-name"></div>
+    <div class="cf-meta" id="cf-meta"></div>
+    <div class="cf-level">has been certified for<b>Early Years Education (EYE)</b></div>
+    <div class="cf-date" id="cf-date"></div>
+    <button class="cf-close" id="cf-close" type="button">Done</button>
+  </div>
 </div>
 
 <div class="toast-host" id="toastHost"></div>
@@ -606,7 +643,7 @@ function render(){
     return;
   }
   list.innerHTML = rows.map((s,i)=>`
-    <article class="g-card" data-l="${esc((s.name[0]||'').toUpperCase())}" style="--ch:${clsHue(s.cls)};animation-delay:${Math.min(i,20)*18}ms">
+    <article class="g-card" tabindex="0" data-id="${esc(s.id)}" data-l="${esc((s.name[0]||'').toUpperCase())}" style="--ch:${clsHue(s.cls)};animation-delay:${Math.min(i,20)*18}ms">
       <span class="g-no">#${String(i+1).padStart(2,'0')}</span>
       <label class="chk" title="Mark present"><input type="checkbox" data-id="${esc(s.id)}" ${ROLL[s.id]?'checked':''} aria-label="Present"><span>✓</span></label>
       <div class="g-av ${s.gender==='f'?'f':''}">${esc(initials(s.name))}</div>
@@ -713,6 +750,39 @@ $('az').addEventListener('click', e=>{
 $('hero-date').addEventListener('click', ()=>{ const i = $('date-in'); try{ i.showPicker(); }catch(e){ i.click(); } });
 $('date-in').addEventListener('change', e=>{ try{ localStorage.setItem('kgp-date', e.target.value); }catch(x){} dateChip(); });
 dateChip();
+
+/* ── EYE certification popup ── */
+let cfLast = null;
+function cfOpen(s){
+  const m = $('cf-modal'); cfLast = document.activeElement;
+  $('cf-name').textContent = s.name.toLowerCase();
+  $('cf-meta').innerHTML = [s.cls ? `<span class="tag">${esc(s.cls)}</span>` : '', s.gender ? `<span class="tag ${s.gender}">${s.gender==='m'?'Boy':'Girl'}</span>` : '', s.an ? `<span class="tag mono">${esc(s.an)}</span>` : ''].join('');
+  let d = ''; try{ d = localStorage.getItem('kgp-date') || ''; }catch(e){}
+  const dt = d ? new Date(d + 'T00:00:00') : new Date();
+  $('cf-date').textContent = dt.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+  m.classList.add('open'); m.setAttribute('aria-hidden','false'); document.body.classList.add('em-lock');
+  setTimeout(()=>$('cf-close').focus(), 50);
+  confetti();
+}
+function cfClose(){
+  const m = $('cf-modal'); if(!m.classList.contains('open')) return;
+  m.classList.remove('open'); m.setAttribute('aria-hidden','true');
+  if($('stage').hidden) document.body.classList.remove('em-lock');
+  if(cfLast && cfLast.focus) try{ cfLast.focus(); }catch(e){}
+}
+$('list').addEventListener('click', e=>{
+  if(e.target.closest('.chk')) return;
+  const c = e.target.closest('.g-card'); if(!c) return;
+  const s = COHORT.find(x=>x.id===c.dataset.id); if(s) cfOpen(s);
+});
+$('list').addEventListener('keydown', e=>{
+  if(e.key!=='Enter' || e.target.closest('input')) return;
+  const c = e.target.closest('.g-card'); if(!c) return;
+  const s = COHORT.find(x=>x.id===c.dataset.id); if(s){ e.preventDefault(); cfOpen(s); }
+});
+$('cf-close').addEventListener('click', cfClose);
+$('cf-modal').addEventListener('mousedown', e=>{ if(e.target===e.currentTarget) cfClose(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') cfClose(); });
 
 /* ── session ── */
 onAuthStateChanged(auth, user => {

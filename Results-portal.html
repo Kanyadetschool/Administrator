@@ -4094,6 +4094,7 @@ setInterval(_rotateAuthTip, 5000);
             <div class="card-title">2️⃣ Enter Scores</div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <input type="text" id="qe-search" class="sel" placeholder="🔍 Search student…" oninput="_qeFilterTable(this.value)" style="width:180px;padding:6px 10px;font-size:12px">
+              <button class="btn btn-outline btn-sm" id="qe-reset-filters-btn" onclick="_qeResetAllFilters()" title="Clear the search box and every column filter in one go">🔄 Reset Filters</button>
               <button class="btn btn-outline btn-sm" onclick="_qeJumpToMissing()" title="Jump to the next empty score in a subject you can enter">🎯 Jump to Missing</button>
               <span id="qe-save-status" style="font-size:11px;color:var(--text2)"></span>
               <span id="qe-final-status" style="font-size:11px;font-weight:700"></span>
@@ -20519,6 +20520,35 @@ function _qeFilterTable(query){
   if(emptyEl) emptyEl.style.display = (q && !visibleCount) ? 'block' : 'none';
 }
 window._qeFilterTable = _qeFilterTable;
+
+/** Clears EVERY filter on the Quick Entry sheet in one go: the student-name
+ *  search box plus each column's ColumnControl filter (checklist + operator
+ *  search). Sort order and the data itself are untouched. */
+function _qeResetAllFilters(){
+  const box = document.getElementById('qe-search');
+  if(box) box.value = '';
+  const emptyEl = document.getElementById('qe-search-empty');
+  if(emptyEl) emptyEl.style.display = 'none';
+
+  if(_qeDataTable){
+    // 1) Let ColumnControl clear its own filter widgets (checklists / operator boxes)
+    try{ _qeDataTable.columns().columnControl.searchClear(); }catch(e){
+      try{ _qeDataTable.columnControl.searchClear(); }catch(e2){}
+    }
+    // 2) Belt and braces: wipe DataTables' own searches too
+    try{ _qeDataTable.search(''); }catch(e){}
+    try{ _qeDataTable.columns().every(function(){ this.search(''); }); }catch(e){}
+    try{ _qeDataTable.draw(); }catch(e){}
+    // 3) Clear any leftover filter inputs rendered in the headers
+    try{
+      document.querySelectorAll('#qe-table thead .dtcc input[type="search"], #qe-table thead .dtcc input[type="text"]').forEach(i=>{ i.value=''; });
+      document.querySelectorAll('#qe-table thead .dtcc input[type="checkbox"]').forEach(i=>{ i.checked = true; });
+    }catch(e){}
+    return;
+  }
+  _qeFilterTable('');
+}
+window._qeResetAllFilters = _qeResetAllFilters;
 
 /** Downloads an Excel mark sheet for the CURRENTLY LOADED Quick Entry roster
  *  — same students, in the exact same order as the on-screen table (whatever
