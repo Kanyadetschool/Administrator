@@ -1236,26 +1236,6 @@ body::before{
   .modal-footer .btn{flex:1;justify-content:center;font-size:11px;padding:8px 10px;}
 }
 
-/* Quick Entry "Two ways to enter scores" popup — always centred on every
-   screen size (overrides the bottom-sheet layout other modals use on
-   phones), with an auto-dismiss progress bar along the top edge. */
-#qe-rawtip-modal{align-items:center;justify-content:center;padding:16px;}
-#qe-rawtip-modal .modal-box{
-  position:relative;overflow:hidden;margin:auto;
-  width:min(420px,100%);max-height:calc(100dvh - 32px);
-  border-radius:var(--radius-xl);
-}
-@media(max-width:600px){
-  #qe-rawtip-modal{padding:16px;}
-  #qe-rawtip-modal .modal-box{width:min(420px,100%);max-height:calc(100dvh - 32px);border-radius:var(--radius-xl);margin:auto;}
-}
-#qe-rawtip-progress{position:absolute;top:0;left:0;right:0;height:4px;background:var(--surface2);z-index:1;}
-#qe-rawtip-progress > i{display:block;height:100%;width:100%;background:var(--green,#27ae60);transform-origin:left center;transform:scaleX(1);}
-#qe-rawtip-progress.run > i{animation:qeRawTipCount var(--qe-rawtip-ms,12s) linear forwards;}
-#qe-rawtip-modal .modal-box.paused #qe-rawtip-progress > i{animation-play-state:paused;}
-@keyframes qeRawTipCount{from{transform:scaleX(1)}to{transform:scaleX(0)}}
-@media(prefers-reduced-motion:reduce){#qe-rawtip-modal .modal-box{animation:none;}}
-
 /* ══════════════════════════════════════════
    HELP / TUTORIAL CENTER
 ══════════════════════════════════════════ */
@@ -4415,10 +4395,7 @@ setInterval(_rotateAuthTip, 5000);
      re-render), so the raw-vs-percentage choice never comes as a surprise
      partway through scoring. See _qeMaybeShowRawTip. -->
 <div class="modal-overlay" id="qe-rawtip-modal" onclick="if(event.target===this)_qeCloseRawTipModal()">
-  <div class="modal-box" id="qe-rawtip-box" style="max-width:420px"
-       onmouseenter="this.classList.add('paused')" onmouseleave="this.classList.remove('paused')"
-       ontouchstart="this.classList.add('paused')" ontouchend="this.classList.remove('paused')" ontouchcancel="this.classList.remove('paused')">
-    <div id="qe-rawtip-progress" aria-hidden="true"><i></i></div>
+  <div class="modal-box" style="max-width:420px">
     <div class="modal-hdr">
       <h3>💡 Two ways to enter scores</h3>
       <button class="modal-close" onclick="_qeCloseRawTipModal()">✕</button>
@@ -10101,7 +10078,7 @@ async function profLoadInfo(){
   // is offline" when there's no persistence layer and no network, so we
   // check navigator.onLine FIRST and skip the network call entirely rather
   // than trying and catching that error every time.
-  if(!(window._qeIsOnline ? window._qeIsOnline() : navigator.onLine)){
+  if(!navigator.onLine){
     _profApplyCachedDoc(uid, nameEl, roleEl, emailEl, avatarEl);
     profSetStatus('prof-info-status','📴 Offline — showing your last saved profile. Changes will need an internet connection to save.','err');
     return;
@@ -17790,7 +17767,7 @@ window.downloadResultsTemplate = function(){
     window.navTo = function(view, el){
       _origNavTo(view, el);
       if(view === 'import') setTimeout(_populateTemplateSelectors, 100);
-      if(view === 'quickentry'){ setTimeout(_populateQuickEntrySelectors, 100); setTimeout(_qeUpdateOnlineBanner, 100); if(_qeIsOnline()) _qeSyncPendingLocalDrafts(); }
+      if(view === 'quickentry'){ setTimeout(_populateQuickEntrySelectors, 100); setTimeout(_qeUpdateOnlineBanner, 100); if(navigator.onLine) _qeSyncPendingLocalDrafts(); }
     };
   } else {
     // navTo not yet defined — hook via MutationObserver once
@@ -17800,7 +17777,7 @@ window.downloadResultsTemplate = function(){
         window.navTo = function(view, el){
           _o(view, el);
           if(view==='import') setTimeout(_populateTemplateSelectors, 100);
-          if(view==='quickentry'){ setTimeout(_populateQuickEntrySelectors, 100); setTimeout(_qeUpdateOnlineBanner, 100); if(_qeIsOnline()) _qeSyncPendingLocalDrafts(); }
+          if(view==='quickentry'){ setTimeout(_populateQuickEntrySelectors, 100); setTimeout(_qeUpdateOnlineBanner, 100); if(navigator.onLine) _qeSyncPendingLocalDrafts(); }
         };
       }
     });
@@ -17895,7 +17872,7 @@ function _qeWriteLocalRoster(examKey, payload){
  *  multi-device changes are picked up too. */
 async function _qeFetchRosterOverrides(examKey){
   let overrides = _qeReadLocalRoster(examKey) || _qeEmptyOverrides();
-  if(_qeIsOnline()){
+  if(navigator.onLine){
     try{
       const {ref, get} = window._fb;
       const snap = await get(ref(db, `${QE_ROSTER_OVERRIDES_PATH}/${examKey}`));
@@ -17917,7 +17894,7 @@ async function _qeSaveRosterAdd(examKey, key, studentObj){
   overrides.added[key] = studentObj;
   delete overrides.removed[key];
   _qeWriteLocalRoster(examKey, overrides);
-  if(_qeIsOnline()){
+  if(navigator.onLine){
     try{
       const {ref, set, remove} = window._fb;
       await set(ref(db, `${QE_ROSTER_OVERRIDES_PATH}/${examKey}/added/${_qeFbKey(key)}`), studentObj);
@@ -17937,7 +17914,7 @@ async function _qeSaveRosterRemove(examKey, key, wasLocallyAdded){
   if(wasLocallyAdded){ delete overrides.added[key]; }
   else { overrides.removed[key] = true; }
   _qeWriteLocalRoster(examKey, overrides);
-  if(_qeIsOnline()){
+  if(navigator.onLine){
     try{
       const {ref, set, remove} = window._fb;
       if(wasLocallyAdded){
@@ -17957,7 +17934,7 @@ async function _qeSaveSubjectRemove(examKey, subject){
   const overrides = _qeReadLocalRoster(examKey) || _qeEmptyOverrides();
   overrides.removedSubjects[subject] = true;
   _qeWriteLocalRoster(examKey, overrides);
-  if(_qeIsOnline()){
+  if(navigator.onLine){
     try{
       const {ref, set} = window._fb;
       await set(ref(db, `${QE_ROSTER_OVERRIDES_PATH}/${examKey}/removedSubjects/${_qeFbKey(subject)}`), true);
@@ -17972,7 +17949,7 @@ async function _qeClearSubjectRemoval(examKey, subject){
   const overrides = _qeReadLocalRoster(examKey) || _qeEmptyOverrides();
   delete overrides.removedSubjects[subject];
   _qeWriteLocalRoster(examKey, overrides);
-  if(_qeIsOnline()){
+  if(navigator.onLine){
     try{
       const {ref, remove} = window._fb;
       await remove(ref(db, `${QE_ROSTER_OVERRIDES_PATH}/${examKey}/removedSubjects/${_qeFbKey(subject)}`));
@@ -17989,49 +17966,13 @@ async function _qeClearSubjectRemoval(examKey, subject){
  *  building up. */
 async function _qeClearRosterOverrides(examKey){
   _qeWriteLocalRoster(examKey, _qeEmptyOverrides());
-  if(_qeIsOnline()){
+  if(navigator.onLine){
     try{
       const {ref, remove} = window._fb;
       await remove(ref(db, `${QE_ROSTER_OVERRIDES_PATH}/${examKey}`));
     }catch(e){ /* harmless — next successful submit will retry the clear */ }
   }
 }
-
-/* ── RELIABLE CONNECTIVITY CHECK ─────────────────────────────────────────────
-   navigator.onLine only says whether the device has a network INTERFACE up —
-   on mobile data / flaky Wi-Fi it routinely reads false while Firebase is
-   happily connected (and true while it's dead). Firebase's own
-   '.info/connected' flag reflects the real websocket state, so that is the
-   source of truth; navigator.onLine is only a fallback until Firebase has
-   reported its first state. ─────────────────────────────────────────────── */
-let _qeRtdbConnected = null; // null = not reported yet, true/false once known
-function _qeIsOnline(){
-  if(_qeRtdbConnected !== null) return _qeRtdbConnected;
-  return navigator.onLine !== false;
-}
-window._qeIsOnline = _qeIsOnline;
-function _qeStartConnectionWatch(tries){
-  tries = tries||0;
-  try{
-    const fb = window._fb;
-    if(!fb || !fb.ref || !fb.onValue || typeof db === 'undefined' || !db){
-      if(tries < 40) setTimeout(()=>_qeStartConnectionWatch(tries+1), 500);
-      return;
-    }
-    if(window._qeConnWatchStarted) return;
-    window._qeConnWatchStarted = true;
-    fb.onValue(fb.ref(db, '.info/connected'), snap=>{
-      const was = _qeRtdbConnected;
-      _qeRtdbConnected = snap.val() === true;
-      if(was === _qeRtdbConnected) return;
-      try{ _qeUpdateOnlineBanner(); }catch(e){}
-      if(_qeRtdbConnected){
-        try{ _qeSyncPendingLocalDrafts(); _qeSyncPendingFinalSubmits(); }catch(e){}
-      }
-    });
-  }catch(e){ if(tries < 40) setTimeout(()=>_qeStartConnectionWatch(tries+1), 500); }
-}
-setTimeout(_qeStartConnectionWatch, 0);
 
 /* ── OFFLINE SUPPORT (Google-Sheets-style) ───────────────────────────────────
    Quick Entry keeps working with no internet connection at all: every
@@ -18114,7 +18055,7 @@ function _qeFlattenSharedDraft(raw){
  *  online, and once on page load in case drafts were left queued from a
  *  prior offline session that was closed before reconnecting. */
 async function _qeSyncPendingLocalDrafts(){
-  if(!_qeIsOnline() || !window._fb || !window._fb.ref || !window._fb.update) return;
+  if(!navigator.onLine || !window._fb || !window._fb.ref || !window._fb.update) return;
   const pending = [];
   for(let i=0;i<localStorage.length;i++){
     const k = localStorage.key(i);
@@ -18219,7 +18160,7 @@ window._qeCommitFinalSubmit = _qeCommitFinalSubmit;
  *  they (or just the app, in the background) are back online, it finishes
  *  on its own. */
 async function _qeSyncPendingFinalSubmits(){
-  if(!_qeIsOnline() || !window._fb || !window._fb.ref || !window._fb.update) return;
+  if(!navigator.onLine || !window._fb || !window._fb.ref || !window._fb.update) return;
   const pending = [];
   for(let i=0;i<localStorage.length;i++){
     const k = localStorage.key(i);
@@ -18252,7 +18193,7 @@ function _qeUpdateOnlineBanner(){
   const submitBtn = document.getElementById('qe-submit-btn');
   if(!banner) return;
   const inQE = document.getElementById('view-quickentry')?.classList.contains('active');
-  if(!_qeIsOnline()){
+  if(!navigator.onLine){
     banner.style.display = 'block';
     banner.innerHTML = `📴 You're offline — Quick Entry still works. Keep entering scores; they're saved on this device and will sync to the database automatically once you're back online.`;
     if(submitBtn && inQE && _qeCompound && !_qeLocked){ submitBtn.disabled = true; submitBtn.dataset.offlineDisabled = '1'; submitBtn.textContent = '📴 Offline — connect to submit'; }
@@ -18274,7 +18215,7 @@ window.addEventListener('offline', ()=>{
   }
 });
 // Catch drafts left queued from a prior session that was closed before reconnecting.
-if(_qeIsOnline()) setTimeout(_qeSyncPendingLocalDrafts, 3000);
+if(navigator.onLine) setTimeout(_qeSyncPendingLocalDrafts, 3000);
 
 /** Populate the Grade / Exam selects, scoped to the teacher's own assigned grades.
  *  Only Advanced Admin sees the "Create New Exam" option; regular teachers only
@@ -19459,61 +19400,22 @@ async function _qeSaveMarkingModal(){
 }
 window._qeSaveMarkingModal = _qeSaveMarkingModal;
 
-/** Shows the "Two ways to enter scores" popup ONCE per device — the first
- *  time a sheet with at least one subject finishes loading. Centred on all
- *  screens, auto-dismisses with a progress bar (pauses while hovered/touched)
- *  and is remembered in localStorage so it never reminds again. Skipped for
- *  an empty sheet (nothing to point the badges at yet). The standing
- *  #qe-rawtip-banner above the score sheet still gives a quiet reminder. */
-const QE_RAWTIP_SEEN_KEY = 'kss_qe_rawtip_seen_v1'; // set once the popup has been shown — never reminded again on this device
-const QE_RAWTIP_MS = 12000;                          // auto-dismiss after 12s (pauses while hovered / touched)
-let _qeRawTipTimer = null, _qeRawTipRemaining = QE_RAWTIP_MS, _qeRawTipStartedAt = 0;
-function _qeRawTipAlreadySeen(){
-  try{ return localStorage.getItem(QE_RAWTIP_SEEN_KEY) === '1'; }catch(e){ return false; }
-}
-function _qeRawTipMarkSeen(){
-  try{ localStorage.setItem(QE_RAWTIP_SEEN_KEY, '1'); }catch(e){}
-}
-function _qeRawTipArm(ms){
-  clearTimeout(_qeRawTipTimer);
-  _qeRawTipStartedAt = Date.now();
-  _qeRawTipRemaining = ms;
-  _qeRawTipTimer = setTimeout(_qeCloseRawTipModal, ms);
-}
+/** Shows the "Two ways to enter scores" reminder once per app load — the
+ *  first time a sheet with at least one subject finishes loading, not on
+ *  every subject or every re-render. Skipped for an empty sheet (nothing to
+ *  point the badges at yet) and never re-shown again until the page itself
+ *  is reloaded, so it's a one-time heads-up rather than a recurring nag. */
 function _qeMaybeShowRawTip(){
   if(_qeRawTipShownThisSession || !_qeSubjects.length) return;
-  if(_qeRawTipAlreadySeen()){ _qeRawTipShownThisSession = true; return; }
   _qeRawTipShownThisSession = true;
-  _qeRawTipMarkSeen(); // shown once, ever — however it ends (button, ✕, tap outside or timeout)
   const modal = document.getElementById('qe-rawtip-modal');
-  if(!modal) return;
-  const bar = document.getElementById('qe-rawtip-progress');
-  const box = document.getElementById('qe-rawtip-box');
-  if(box) box.classList.remove('paused');
-  if(bar){
-    bar.style.setProperty('--qe-rawtip-ms', (QE_RAWTIP_MS/1000)+'s');
-    bar.classList.remove('run'); void bar.offsetWidth; bar.classList.add('run'); // restart the animation
-  }
-  modal.classList.add('on');
-  _qeRawTipArm(QE_RAWTIP_MS);
-  // Pause the countdown (bar + timer together) while the user is reading.
-  if(box && !box._qeRawTipWired){
-    box._qeRawTipWired = true;
-    const pause  = ()=>{ if(!_qeRawTipTimer) return; clearTimeout(_qeRawTipTimer); _qeRawTipTimer = null; _qeRawTipRemaining = Math.max(800, _qeRawTipRemaining - (Date.now() - _qeRawTipStartedAt)); };
-    const resume = ()=>{ if(_qeRawTipTimer || !modal.classList.contains('on')) return; _qeRawTipArm(_qeRawTipRemaining); };
-    box.addEventListener('mouseenter', pause);  box.addEventListener('mouseleave', resume);
-    box.addEventListener('touchstart', pause, {passive:true});
-    box.addEventListener('touchend', resume);   box.addEventListener('touchcancel', resume);
-  }
+  if(modal) modal.classList.add('on');
 }
 window._qeMaybeShowRawTip = _qeMaybeShowRawTip;
 
 function _qeCloseRawTipModal(){
-  clearTimeout(_qeRawTipTimer); _qeRawTipTimer = null;
   const modal = document.getElementById('qe-rawtip-modal');
   if(modal) modal.classList.remove('on');
-  const bar = document.getElementById('qe-rawtip-progress');
-  if(bar) bar.classList.remove('run');
 }
 window._qeCloseRawTipModal = _qeCloseRawTipModal;
 
@@ -19651,7 +19553,7 @@ async function loadQuickEntry(){
   // not-yet-synced local copy that should win anyway (see the offline-first
   // note below) — otherwise this is a wasted round-trip on top of the one
   // that matters.
-  const needsSharedDraftFetch = !locked && !(localDraft && localDraft.pendingSync) && _qeIsOnline();
+  const needsSharedDraftFetch = !locked && !(localDraft && localDraft.pendingSync) && navigator.onLine;
   const sharedDraftPromise = needsSharedDraftFetch
     ? (async () => {
         try{
@@ -19755,7 +19657,7 @@ async function loadQuickEntry(){
     if(!draftTime && localDraft){
       draftScores = localDraft.scores || {};
       draftTime = localDraft.updatedAt || null;
-      draftFromLocalOnly = !_qeIsOnline();
+      draftFromLocalOnly = !navigator.onLine;
     }
   }
 
@@ -21162,10 +21064,10 @@ async function _qeSaveDraft(){
   const cellsToSave = _qePendingCells;
   _qePendingCells = new Set(); // any further typing queues fresh cells for the NEXT autosave
 
-  // _qeIsOnline() is unreliable — it can read false on a perfectly good
+  // navigator.onLine is unreliable — it can read false on a perfectly good
   // connection (or true on a dead one). So don't gate on it: always ATTEMPT
   // the real Firebase write first, and only fall back to local storage if
-  // that attempt genuinely fails or times out. A 15s timeout (slow mobile data) keeps a truly
+  // that attempt genuinely fails or times out. A 6s timeout keeps a truly
   // offline device from hanging the autosave indefinitely.
   try{
     const {ref, update} = window._fb;
@@ -21187,7 +21089,7 @@ async function _qeSaveDraft(){
     }
     if(Object.keys(updates).length){
       const writePromise = update(ref(db), updates);
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000));
       await Promise.race([writePromise, timeoutPromise]);
     }
 
@@ -21199,7 +21101,6 @@ async function _qeSaveDraft(){
     return;
   }catch(e){
     console.warn('[QuickEntry] online draft write failed, falling back to local:', e?.code || e?.message || e);
-    var _qeSaveErr = e;
   }
 
   // The real write failed or timed out — genuinely offline (or flaky).
@@ -21210,27 +21111,7 @@ async function _qeSaveDraft(){
   _qeWriteLocalDraft(draftKey, {
     grade: _qeGrade, compound: _qeCompound, scores, updatedAt, pendingSync: true
   });
-  // Say WHY it fell back — only claim "offline" when Firebase itself says so.
-  // A permission error while connected is NOT an offline problem, and a
-  // timeout on a live connection just means a slow network.
-  const _qeErrCode = String((_qeSaveErr && (_qeSaveErr.code || _qeSaveErr.message)) || '');
-  const _qeRealOffline = (_qeRtdbConnected === false);
-  const _qePermErr = /permission[_ -]?denied/i.test(_qeErrCode);
-  if(statusEl){
-    if(_qePermErr){
-      statusEl.innerHTML = `⚠️ Couldn't save to the database (permission denied) — kept on this device. Please tell an admin if this continues.`;
-    } else if(_qeRealOffline){
-      statusEl.innerHTML = `📴 Saved on this device — will sync once you're connected`;
-    } else {
-      statusEl.innerHTML = `⏳ Slow connection — saved on this device, retrying automatically`;
-    }
-  }
-  // Connected but the write failed/timed out: retry shortly instead of
-  // waiting for a reconnect event that will never fire.
-  if(!_qeRealOffline && !_qePermErr){
-    clearTimeout(window._qeRetryTimer);
-    window._qeRetryTimer = setTimeout(()=>{ try{ _qeSyncPendingLocalDrafts(); }catch(e){} }, 8000);
-  }
+  if(statusEl) statusEl.innerHTML = `📴 Saved on this device — will sync once connection is stable`;
 }
 
 /** Bulk-import scores from a CSV/XLSX file straight into the CURRENT
@@ -21563,7 +21444,7 @@ async function submitQuickEntry(){
   // ── Final submission needs a connection — offline work is never lost, ────
   // it's just kept queued as a local draft (synced automatically once back
   // online) until the teacher can actually submit it for real.
-  if(!_qeIsOnline()){
+  if(!navigator.onLine){
     notify("📴 You're offline — your scores are saved on this device as a draft and will sync automatically. Submit once you're back online.",'warn',6000);
     return;
   }
