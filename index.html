@@ -458,6 +458,13 @@
     .gbar-track{height:8px;background:rgba(41,128,185,.1);border-radius:99px;overflow:hidden}
     .gbar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:99px;transition:width .5s ease}
 
+    /* Desktop: collapsible sidebar (burger is shown on desktop too) */
+    @media (min-width: 951px){
+      .burger{display:flex;align-items:center;justify-content:center}
+      .burger:hover{background:var(--surface2);color:var(--text)}
+      body.sb-collapsed .sidebar{transform:translateX(-102%);visibility:hidden;box-shadow:none;transition:transform .3s,visibility 0s linear .3s}
+      body.sb-collapsed .main-content{margin-left:0;max-width:100vw}
+    }
     @media (max-width: 950px){
       .sidebar{transform:translateX(-102%)}
       .sidebar.open{transform:translateX(0)}
@@ -599,6 +606,10 @@
         <div class="nav-item active" data-view="dashboard"><span class="nav-icon">📊</span>Dashboard <span class="nav-badge" id="nav-pending">0</span></div>
         <div class="nav-item" data-view="timetable"><span class="nav-icon">⏱️</span>Exam Timetable <span class="nav-badge" style="background:#7b5cd1;color:#fff;">Planner</span></div>
         <div class="nav-item" data-view="students"><span class="nav-icon">🎓</span>Students <span class="nav-badge" id="nav-students">—</span></div>
+        <div class="nav-item" data-view="studentsearch"><span class="nav-icon">🔎</span>Student Search</div>
+        <div class="nav-item" data-view="studentbiodata"><span class="nav-icon">🪪</span>Student Biodata</div>
+        <div class="nav-item" data-view="graduation"><span class="nav-icon">🎓</span>Graduation</div>
+        <div class="nav-item" data-view="resultsportal"><span class="nav-icon">📋</span>Results Portal</div>
         <div class="nav-item" data-view="admissions"><span class="nav-icon">📝</span>Admissions <span class="nav-badge orange" id="nav-admissions">0</span></div>
         <div class="nav-item" data-view="teachers"><span class="nav-icon">👩‍🏫</span>Teachers <span class="nav-badge" id="nav-teachers">—</span></div>
         <div class="nav-item" data-view="attendance"><span class="nav-icon">🧾</span>Attendance</div>
@@ -1548,7 +1559,7 @@
             <div class="actions-row">
               <a class="btn btn-blue btn-sm" href="./timetable-planner.html" target="_blank" style="background:#7b5cd1;color:#fff;display:inline-flex;align-items:center;gap:6px;">⏱️ Open Fullscreen Planner ↗</a>
               <a class="btn btn-outline btn-sm" href="./teachers.html" target="_blank">👩‍🏫 Teachers Portal ↗</a>
-              <button class="btn btn-outline btn-sm" type="button" onclick="const f=document.getElementById('examPlannerFrame'); if(f) f.src=f.src;">🔄 Reload</button>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('examPlannerFrame')">🔄 Reload</button>
             </div>
           </div>
           <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
@@ -1556,6 +1567,71 @@
           </div>
         </section>
 
+
+        <!-- STUDENT SEARCH (embedded Admin Student Progress) -->
+        <section class="view" id="studentsearch">
+          <div class="sec-hdr">
+            <div>
+              <h2>Student Search</h2>
+              <div class="sec-sub">Look up any learner and view detailed progress across classes &amp; terms.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="./Report-Cards/Admin-Individual-student-portal.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🔎 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('studentSearchFrame')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="studentSearchFrame" data-src="./Report-Cards/Admin-Individual-student-portal.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Student Search" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- STUDENT BIODATA (embedded students-search.html) -->
+        <section class="view" id="studentbiodata">
+          <div class="sec-hdr">
+            <div>
+              <h2>Student Biodata</h2>
+              <div class="sec-sub">Search a learner and view their full biodata record.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="./students-search.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🪪 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('studentBiodataFrame')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="studentBiodataFrame" data-src="./students-search.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Student Biodata" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- GRADUATION (embedded graduation.html) -->
+        <section class="view" id="graduation">
+          <div class="sec-hdr">
+            <div>
+              <h2>Graduation</h2>
+              <div class="sec-sub">Graduands list, ceremony mode, roll call &amp; printable lists.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="./graduation.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🎓 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('graduationFrame')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="graduationFrame" data-src="./graduation.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Graduation" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- RESULTS PORTAL (embedded Results-portal.html) -->
+        <section class="view" id="resultsportal">
+          <div class="sec-hdr">
+            <div>
+              <h2>Results Portal</h2>
+              <div class="sec-sub">Grades, quick entry, rankings &amp; analytics.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="./Results-portal.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">📋 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('resultsPortalFrame')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="resultsPortalFrame" data-src="./Results-portal.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Results Portal" loading="lazy"></iframe>
+          </div>
+        </section>
         <section class="view" id="portals">
           <div class="sec-hdr">
             <div>
@@ -1721,6 +1797,10 @@
       feedback: ['Feedback', 'Teacher reports & parent inquiries'],
       calendar: ['Calendar', 'Term dates, exams & school events'],
       timetable: ['Exam Timetable Planner', 'Examination schedules, invigilators & exam cards'],
+      studentsearch: ['Student Search', 'Find a learner and view progress'],
+      studentbiodata: ['Student Biodata', 'Search a learner and view their biodata'],
+      graduation: ['Graduation', 'Graduands list & ceremony mode'],
+      resultsportal: ['Results Portal', 'Grades, quick entry, rankings & analytics'],
       portals: ['Linked Portals', 'Jump to specialized tools']
     };
 
@@ -2760,6 +2840,8 @@
       }
     });
 
+    window.reloadFrame = function(id){ const fr = document.getElementById(id); if(fr) fr.src = fr.dataset.src || fr.src; };
+
     function navTo(view){
       document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
       document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === view));
@@ -2774,6 +2856,10 @@
       if(view === 'library') renderLibrary();
       if(view === 'audit') renderAudit();
       if(view === 'calendar') renderCalendar();
+      if(view === 'studentsearch'){ const f = $('studentSearchFrame'); if(f && f.getAttribute('src') === 'about:blank') f.src = f.dataset.src; }
+      if(view === 'studentbiodata'){ const f = $('studentBiodataFrame'); if(f && f.getAttribute('src') === 'about:blank') f.src = f.dataset.src; }
+      if(view === 'graduation'){ const fr = $('graduationFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
+      if(view === 'resultsportal'){ const fr = $('resultsPortalFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
     }
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => navTo(item.dataset.view));
@@ -2811,7 +2897,16 @@
         }
       });
     });
+    const _desktopMQ = window.matchMedia('(min-width: 951px)');
+    function setSidebarCollapsed(on, persist){
+      document.body.classList.toggle('sb-collapsed', on);
+      const b = $('burgerBtn'); b.setAttribute('aria-expanded', String(!on)); b.title = on ? 'Show sidebar' : 'Hide sidebar';
+      if(persist){ try{ localStorage.setItem('kss-sb-collapsed', on ? '1' : '0'); }catch(e){} }
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 320);   // let charts/tables re-fit the wider area
+    }
+    try{ setSidebarCollapsed(localStorage.getItem('kss-sb-collapsed') === '1', false); }catch(e){}
     $('burgerBtn').addEventListener('click', () => {
+      if(_desktopMQ.matches){ setSidebarCollapsed(!document.body.classList.contains('sb-collapsed'), true); return; }
       $('sidebar').classList.toggle('open');
       $('sidebarBackdrop').classList.toggle('show');
     });

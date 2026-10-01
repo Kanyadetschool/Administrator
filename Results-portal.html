@@ -2129,6 +2129,46 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
 .gavg-row-d.up{color:var(--green);}
 .gavg-row-d.dn{color:#e74c3c;}
 
+/* Dashboard: skeletons, export, drill-down, recent links */
+.chart-skel{position:absolute;inset:0;z-index:2;}
+.dash-toolbar{display:flex;justify-content:flex-end;margin:0 0 10px;}
+.chart-export-btn{border:1px solid var(--border);background:var(--surface2);color:var(--text2);font:inherit;font-size:12px;font-weight:800;line-height:1;width:28px;height:28px;border-radius:8px;cursor:pointer;transition:var(--transition);}
+.chart-export-btn:hover,.chart-export-btn:focus-visible{border-color:var(--blue);color:var(--text);outline:none;}
+.gavg-row{cursor:pointer;border-radius:6px;transition:background .15s;}
+.gavg-row:hover{background:rgba(41,128,185,.08);}
+.qlinks-recent{display:flex;flex-direction:column;gap:4px;margin-top:8px;}
+.qlinks-recent:empty{display:none;}
+.qlinks-recent-hdr{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:0 8px;}
+.app-shell.sidebar-collapsed .qlinks-recent{display:none;}
+
+/* Learner movement, term comparison, target gap */
+.move-list{max-height:280px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent;}
+.move-row{display:grid;grid-template-columns:minmax(0,1fr) 92px 64px;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:6px;transition:background .15s;}
+.move-row:hover{background:rgba(41,128,185,.08);}
+.move-name{font-size:12px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.move-sub{font-size:10.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.move-avgs{font-size:11.5px;font-weight:700;color:var(--text2);text-align:right;font-family:'JetBrains Mono',monospace;}
+.move-d{font-size:12px;font-weight:800;text-align:right;color:var(--text3);}
+.move-d.up{color:var(--green);}
+.move-d.dn{color:#e74c3c;}
+.move-empty{padding:18px 6px;text-align:center;font-size:12px;color:var(--text3);}
+@media(max-width:520px){.move-row{grid-template-columns:minmax(0,1fr) 60px;}.move-avgs{display:none;}}
+.dist-cmp-wrap{overflow-x:auto;margin-top:8px;}
+.dist-cmp-wrap:empty{display:none;}
+.dist-cmp{width:100%;border-collapse:collapse;font-size:11.5px;}
+.dist-cmp caption{caption-side:top;text-align:left;font-size:10.5px;color:var(--text3);padding:0 0 4px;}
+.dist-cmp th{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);text-align:right;padding:3px 6px;}
+.dist-cmp th:first-child,.dist-cmp td:first-child{text-align:left;}
+.dist-cmp td{padding:4px 6px;text-align:right;border-top:1px solid var(--border);color:var(--text);font-weight:700;}
+.dist-cmp td.good{color:var(--green);}
+.dist-cmp td.bad{color:#e74c3c;}
+.dist-cmp td.neutral{color:var(--text3);}
+.dist-cmp i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
+.gavg-rank.has-target .gavg-row{grid-template-columns:62px 1fr 46px 58px 60px;}
+.gavg-row-g{font-weight:700;font-size:10.5px;text-align:right;}
+.gavg-row-g.up{color:var(--green);}
+.gavg-row-g.dn{color:#e74c3c;}
+
 /* ══════════════════════════════════════════
    REPORT CARD — TERM / GRADE CHIPS
 ══════════════════════════════════════════ */
@@ -2762,6 +2802,7 @@ setInterval(_rotateAuthTip, 5000);
         <span class="qt-arrow">↗</span>
       </button>
       <div class="qlinks-pins" id="qlinks-pins"></div>
+      <div class="qlinks-recent" id="qlinks-recent"></div>
     </div>
 
     <div class="sidebar-footer">
@@ -2821,6 +2862,7 @@ setInterval(_rotateAuthTip, 5000);
 
       <!-- ══════ DASHBOARD VIEW ══════ -->
       <div class="view active" id="view-dashboard">
+        <div class="dash-toolbar"><button type="button" class="gavg-chip" onclick="exportDashboardPDF()" title="Download the dashboard as a school-format PDF">📄 Dashboard PDF</button></div>
         <!-- KPI Cards -->
         <div class="kpi-grid" id="kpi-grid">
           <div class="kpi-card" style="--accent-glow:rgba(41,128,185,.1)">
@@ -2858,13 +2900,15 @@ setInterval(_rotateAuthTip, 5000);
             <div class="card-hdr">
               <div class="card-title">Performance Distribution</div>
               <div class="actions-row">
+                <select class="sel" id="dist-compare" onchange="renderDistChart()" style="font-size:11px;max-width:150px" title="Compare the latest term with an earlier one"><option value="">Compare with…</option></select>
                 <select class="sel" id="dist-grade-sel" onchange="updateDistChart()">
                   <option value="all">All Grades</option>
                 </select>
               </div>
             </div>
-            <div class="chart-box"><canvas id="dist-chart"></canvas><div class="chart-empty" id="dist-empty" hidden>No exam results with a term yet</div></div>
+            <div class="chart-box"><canvas id="dist-chart"></canvas><div class="skeleton chart-skel" id="dist-skel"></div><div class="chart-empty" id="dist-empty" hidden>No exam results with a term yet</div></div>
             <div class="chart-note" id="dist-note"></div>
+            <div class="dist-cmp-wrap" id="dist-cmp"></div>
           </div>
 
           <!-- Grade Averages — now a trend line chart: one line per grade,
@@ -2875,14 +2919,32 @@ setInterval(_rotateAuthTip, 5000);
             <div class="card-hdr">
               <div class="card-title">Grade Averages</div>
               <div class="actions-row">
+                <select class="sel" id="gavg-compare" onchange="renderGradeBars()" style="font-size:11px;max-width:150px" title="What the ranking change is measured against"><option value="prev">vs previous term</option></select>
+                <button type="button" class="gavg-chip" id="gavg-target" onclick="setSchoolTarget()" title="Set the school target average (admins)" hidden>🎯 Target</button>
                 <button type="button" class="gavg-chip" id="gavg-scale" onclick="toggleGradeAvgScale()" title="Start the axis at 0 and end at 100">Full scale</button>
               </div>
             </div>
             <div class="gavg-chips" id="gavg-chips"></div>
-            <div class="chart-box"><canvas id="grade-avg-chart"></canvas><div class="chart-empty" id="gavg-empty" hidden>No exam results with a term yet</div></div>
+            <div class="chart-box"><canvas id="grade-avg-chart"></canvas><div class="skeleton chart-skel" id="gavg-skel"></div><div class="chart-empty" id="gavg-empty" hidden>No exam results with a term yet</div></div>
             <div class="chart-note" id="gavg-note"></div>
             <div class="gavg-rank" id="gavg-rank"></div>
           </div>
+        </div>
+
+        <!-- Learner Movement: at-risk learners and most improved, from each student's last two exams -->
+        <div class="card" id="move-card" style="margin-bottom:18px">
+          <div class="card-hdr">
+            <div class="card-title">🎯 Learner Movement</div>
+            <div class="actions-row">
+              <select class="sel" id="move-threshold" onchange="setMovementThreshold(this.value)" style="font-size:11px" title="Smallest change in average that counts">
+                <option value="5">± 5 pts</option><option value="10" selected>± 10 pts</option><option value="15">± 15 pts</option>
+              </select>
+              <button type="button" class="gavg-chip" onclick="exportMovementPDF()" title="Download this list as a school-format PDF">📄 Download PDF</button>
+            </div>
+          </div>
+          <div class="gavg-chips" id="move-tabs"></div>
+          <div class="chart-note" id="move-note" style="margin:0 0 8px"></div>
+          <div class="move-list" id="move-list"></div>
         </div>
 
         <div class="grid-2">
@@ -2991,8 +3053,10 @@ setInterval(_rotateAuthTip, 5000);
             <option value="EE2">EE2</option>
             <option value="ME1">ME1</option>
             <option value="ME2">ME2</option>
+            <option value="AE">AE (all)</option>
             <option value="AE1">AE1</option>
             <option value="AE2">AE2</option>
+            <option value="BE">BE (all)</option>
             <option value="BE1">BE1</option>
             <option value="BE2">BE2</option>
           </select>
@@ -10534,6 +10598,7 @@ function renderAll(){
   renderKPIs();
   renderDistChart();
   renderGradeBars();
+  renderMovement();
   renderTopStudents();
   renderActivityLog();
   renderDashboardAuditWidget();
@@ -10778,6 +10843,8 @@ function renderDistChart(){
     fill:false,
   }));
 
+  document.getElementById('dist-skel')?.remove();
+  _renderDistCompare(terms,byTerm);
   const empty=document.getElementById('dist-empty');
   const note=document.getElementById('dist-note');
   if(note){
@@ -10796,9 +10863,15 @@ function renderDistChart(){
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
+      onHover:(e,_els,chart)=>_chartHoverCursor(e,chart),
+      onClick:(e,_els,chart)=>{
+        const hit=_chartPick(chart,e); if(!hit) return;
+        const g=document.getElementById('dist-grade-sel')?.value||'all';
+        drillToStudents({ grade:g==='all'?'':g, term:terms[hit.index], level:DIST_BANDS[hit.datasetIndex].label.split(' ')[0] });
+      },
       plugins:{
         legend:{ position:'bottom', labels:{ color:th.tick, font:{size:10}, boxWidth:12, usePointStyle:true } },
-        tooltip:{ callbacks:{ label: c => {
+        tooltip:{ callbacks:{ footer:()=>'Click to list these students', label: c => {
           const total = byTerm[terms[c.dataIndex]]?.length || 0;
           const count = Math.round(c.parsed.y/100*total);
           return ` ${c.dataset.label}: ${c.parsed.y}% (${count} student${count===1?'':'s'})`;
@@ -10811,6 +10884,354 @@ function renderDistChart(){
     }
   });
 }
+
+/** Open the Students list pre-filtered (grade / term / level) — used when a
+ *  chart point or ranking row is clicked. navTo() still enforces teacher/
+ *  unassigned restrictions, and filterStudents() re-applies grade scope. */
+function drillToStudents(o){
+  o=o||{};
+  navTo('students',document.querySelector('.nav-item[data-label="Students"]'));
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||''; };
+  set('student-search',''); set('filter-gender','');
+  set('filter-grade',o.grade); set('filter-term',o.term); set('filter-level',o.level);
+  filterStudents();
+}
+window.drillToStudents=drillToStudents;
+function _chartPick(chart,evt){
+  const pts=chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},true);
+  return pts.length?pts[0]:null;
+}
+function _chartHoverCursor(evt,chart){
+  const t=evt.native&&evt.native.target; if(t) t.style.cursor=_chartPick(chart,evt)?'pointer':'default';
+}
+
+/** Download a chart card as a PNG (title + chart on the card's background). */
+function exportChartPNG(btn){
+  const card=btn.closest('.card'), cv=card&&card.querySelector('canvas'); if(!cv) return;
+  const title=(card.querySelector('.card-title')?.textContent||'chart').replace(/[^\w\s&%-]/g,'').trim()||'chart';
+  const dpr=window.devicePixelRatio||1, pad=Math.round(16*dpr), head=Math.round(34*dpr);
+  const out=document.createElement('canvas'); out.width=cv.width+pad*2; out.height=cv.height+pad*2+head;
+  const ctx=out.getContext('2d'), cs=getComputedStyle(card);
+  let bg=cs.backgroundColor; if(!bg||bg==='transparent'||/,\s*0\)$/.test(bg)) bg=getComputedStyle(document.body).backgroundColor||'#ffffff';
+  ctx.fillStyle=bg; ctx.fillRect(0,0,out.width,out.height);
+  ctx.fillStyle=cs.color||'#000'; ctx.font='700 '+Math.round(14*dpr)+'px sans-serif'; ctx.textBaseline='middle';
+  ctx.fillText(title,pad,pad+head/2-pad/2);
+  ctx.drawImage(cv,pad,pad+head-pad/2);
+  const a=document.createElement('a');
+  a.download=title.toLowerCase().replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.png';
+  a.href=out.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
+}
+window.exportChartPNG=exportChartPNG;
+function initChartExportButtons(){
+  document.querySelectorAll('.card').forEach(card=>{
+    if(!card.querySelector('.chart-box canvas, .chart-box-sm canvas')) return;
+    const hdr=card.querySelector('.card-hdr'); if(!hdr||hdr.querySelector('.chart-export-btn')) return;
+    let row=hdr.querySelector('.actions-row');
+    if(!row){ row=document.createElement('div'); row.className='actions-row'; hdr.appendChild(row); }
+    const b=document.createElement('button');
+    b.type='button'; b.className='chart-export-btn'; b.textContent='⬇'; b.title='Download as PNG'; b.setAttribute('aria-label','Download chart as PNG');
+    b.onclick=()=>exportChartPNG(b); row.appendChild(b);
+  });
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initChartExportButtons); else initChartExportButtons();
+
+/* ─── Term comparison table (Performance Distribution) ─── */
+function _renderDistCompare(terms,byTerm){
+  const sel=document.getElementById('dist-compare'), box=document.getElementById('dist-cmp');
+  if(!sel||!box) return;
+  const keep=sel.value||'';
+  sel.innerHTML='';
+  const o0=document.createElement('option'); o0.value=''; o0.textContent='Compare with…'; sel.appendChild(o0);
+  terms.slice(0,-1).forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent='vs '+t; sel.appendChild(o); });
+  sel.value=[...sel.options].some(o=>o.value===keep)?keep:'';
+  const base=sel.value, latest=terms[terms.length-1];
+  if(!base||!latest||!byTerm[base]||!byTerm[latest]){ box.innerHTML=''; return; }
+  const pct=(t,b)=>{ const v=byTerm[t]; return v.length? v.filter(b.test).length/v.length*100 : 0; };
+  const rows=DIST_BANDS.map((b,i)=>{
+    const a=pct(base,b), c=pct(latest,b), d=c-a;
+    const good = i<=2 ? d>0 : i>=4 ? d<0 : null;   // EE/ME1 up = good, AE/BE up = bad, ME2 neutral
+    const cls = Math.abs(d)<0.05 || good===null ? 'neutral' : good ? 'good' : 'bad';
+    const arrow = Math.abs(d)<0.05 ? '•' : d>0 ? '▲' : '▼';
+    return `<tr><td><i style="background:${b.color}"></i>${_gavgEsc(b.label)}</td><td>${a.toFixed(1)}%</td><td>${c.toFixed(1)}%</td><td class="${cls}">${arrow} ${Math.abs(d).toFixed(1)} pp</td></tr>`;
+  }).join('');
+  box.innerHTML=`<table class="dist-cmp"><caption>Then: ${_gavgEsc(base)} (${byTerm[base].length}) · Now: ${_gavgEsc(latest)} (${byTerm[latest].length}) — pp = percentage points</caption><thead><tr><th>Band</th><th>Then</th><th>Now</th><th>Change</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+/* ─── School target line (Grade Averages) ───
+ * Saved on this device straight away; admins also try to save it to the
+ * shared database (dashboardSettings/targetMean) so everyone sees the same line.
+ * If the database rules refuse the write, it stays device-only and says so. */
+const SCHOOL_TARGET_KEY='schoolTargetMean', SCHOOL_TARGET_PATH='dashboardSettings/targetMean';
+let schoolTarget=null, _targetRemoteTried=false;
+try{ const v=parseFloat(localStorage.getItem(SCHOOL_TARGET_KEY)); schoolTarget=isNaN(v)?null:v; }catch(e){}
+function _loadTargetRemote(){
+  if(_targetRemoteTried || !window._fb || typeof db==='undefined' || !db) return;
+  _targetRemoteTried=true;
+  try{
+    window._fb.get(window._fb.ref(db,SCHOOL_TARGET_PATH)).then(snap=>{
+      const v=snap.val();
+      if(typeof v==='number' && v!==schoolTarget){
+        schoolTarget=v;
+        try{ localStorage.setItem(SCHOOL_TARGET_KEY,String(v)); }catch(e){}
+        renderGradeBars();
+      }
+    }).catch(()=>{});
+  }catch(e){}
+}
+async function setSchoolTarget(){
+  if(!isAdvancedAdmin) return;
+  const raw=prompt('School target for the average score (1–100).\nLeave empty to remove the line.', schoolTarget===null?'':String(schoolTarget));
+  if(raw===null) return;
+  const txt=raw.trim();
+  let val=null;
+  if(txt!==''){ val=parseFloat(txt); if(isNaN(val)||val<1||val>100){ notify('Enter a number between 1 and 100','error'); return; } val=Math.round(val*10)/10; }
+  schoolTarget=val;
+  try{ if(val===null) localStorage.removeItem(SCHOOL_TARGET_KEY); else localStorage.setItem(SCHOOL_TARGET_KEY,String(val)); }catch(e){}
+  renderGradeBars();
+  try{
+    await window._fb.set(window._fb.ref(db,SCHOOL_TARGET_PATH),val);
+    notify(val===null?'Target removed':'Target saved for everyone: '+val+'%','success');
+  }catch(e){
+    notify('Target saved on this device only (the database refused the shared save).','warning',5000);
+  }
+}
+window.setSchoolTarget=setSchoolTarget;
+window.renderDistChart=renderDistChart;
+window.renderGradeBars=renderGradeBars;
+
+/* ─── Learner movement: at-risk and most improved ───
+ * Uses each student's last two exam records (matched by Assessment No, then
+ * name), and only students who sat their grade's most recent exam.
+ * At risk  = average fell by the chosen threshold, OR 2+ subjects below 41%
+ *            (AE/BE band) in the latest exam.
+ * Improved = average rose by the chosen threshold.
+ * Teachers only see their own grade(s). */
+const MOVE_WEAK_BELOW=41;
+let movementTab='risk', movementThreshold=10, _movementData={risk:[],up:[]};
+function _movementKey(r){ return String(r['Assessment No']||r['Official Student Name']||'').trim()||r.id; }
+function computeMovement(){
+  const allowed=isAdvancedAdmin?null:getUniqueGrades();
+  const by={}, gradeLatest={};
+  allData.forEach(r=>{
+    const g=gShort(r['Grade']);
+    if(allowed && !allowed.includes(g)) return;
+    const t=getRecordTerm(r); if(!t||t==='Unknown') return;
+    const st=calcStats(r), avg=parseFloat(st.avg);
+    if(!st.assessed||isNaN(avg)) return;
+    const ok=_qeCompoundOrderKey(t)+'|'+t;
+    if(!gradeLatest[g]||ok>gradeLatest[g]) gradeLatest[g]=ok;
+    const k=_movementKey(r);
+    (by[k]||(by[k]=[])).push({r,g,avg,ok});
+  });
+  const risk=[], up=[];
+  Object.values(by).forEach(recs=>{
+    recs.sort((a,b)=>a.ok<b.ok?-1:a.ok>b.ok?1:0);
+    const cur=recs[recs.length-1];
+    if(cur.ok!==gradeLatest[cur.g]) return;
+    const prev=recs.length>1?recs[recs.length-2]:null;
+    const weak=getSubjects(cur.r).filter(s=>parseFloat(cur.r[s])<MOVE_WEAK_BELOW).length;
+    const d=prev?cur.avg-prev.avg:null;
+    const row={id:cur.r.id,name:cur.r['Official Student Name']||'—',grade:cur.g,term:getRecordTerm(cur.r),prev:prev?prev.avg:null,cur:cur.avg,d,weak};
+    const why=[];
+    if(d!==null && d<=-movementThreshold) why.push('dropped '+Math.abs(d).toFixed(1)+' pts');
+    if(weak>=2) why.push(weak+' subjects below '+MOVE_WEAK_BELOW+'%');
+    if(why.length) risk.push({...row,why:why.join(' · ')});
+    if(d!==null && d>=movementThreshold) up.push({...row,why:'rose '+d.toFixed(1)+' pts'});
+  });
+  risk.sort((a,b)=>((a.d===null?0:a.d)-(b.d===null?0:b.d))||(b.weak-a.weak));
+  up.sort((a,b)=>b.d-a.d);
+  return {risk,up};
+}
+function renderMovement(){
+  const list=document.getElementById('move-list'); if(!list) return;
+  _movementData=computeMovement();
+  const tabs=document.getElementById('move-tabs');
+  if(tabs){
+    tabs.innerHTML='';
+    [['risk','At risk'],['up','Most improved']].forEach(([k,lab])=>{
+      const b=document.createElement('button');
+      b.type='button'; b.className='gavg-chip'+(movementTab===k?' on':'');
+      b.textContent=`${lab} (${_movementData[k].length})`;
+      b.onclick=()=>{ movementTab=k; renderMovement(); };
+      tabs.appendChild(b);
+    });
+  }
+  const note=document.getElementById('move-note');
+  if(note) note.textContent = movementTab==='risk'
+    ? `Average fell by ${movementThreshold}+ points since the previous exam, or 2+ subjects below ${MOVE_WEAK_BELOW}%. Latest exam of each grade.`
+    : `Average rose by ${movementThreshold}+ points since the previous exam. Latest exam of each grade.`;
+  const rows=_movementData[movementTab].slice(0,100);
+  if(!rows.length){ list.innerHTML=`<div class="move-empty">${movementTab==='risk'?'No learners flagged — nice.':'No learners meet this threshold yet.'}</div>`; list.onclick=null; return; }
+  list.innerHTML=rows.map(r=>{
+    const dCls=r.d===null?'':r.d>=0?'up':'dn';
+    const dTxt=r.d===null?'—':(r.d>=0?'▲ ':'▼ ')+Math.abs(r.d).toFixed(1);
+    const avgs=r.prev===null?r.cur.toFixed(1)+'%':r.prev.toFixed(1)+' → '+r.cur.toFixed(1);
+    return `<div class="move-row" data-id="${_gavgEsc(r.id)}" title="Open this learner's records"><div><div class="move-name">${_gavgEsc(r.name)}</div><div class="move-sub">${_gavgEsc(r.grade)} · ${_gavgEsc(r.why)}</div></div><div class="move-avgs">${avgs}</div><div class="move-d ${dCls}">${dTxt}</div></div>`;
+  }).join('');
+  list.onclick=e=>{ const row=e.target.closest('.move-row'); if(row) openRecordsModal(row.dataset.id); };
+}
+function setMovementThreshold(v){ movementThreshold=parseInt(v,10)||10; renderMovement(); }
+/* ─── PDF exports: same banner / info band / table styling as the Subject
+ *     Progress Report PDF (blue banner + logo + school name + address). ─── */
+async function _pdfBanner(doc,title){
+  const W=doc.internal.pageSize.width;
+  const logoRes=(typeof loadLogo==='function')?await loadLogo():null;
+  doc.setFillColor(26,82,118); doc.rect(0,0,W,26,'F');
+  if(logoRes&&logoRes.loaded){ try{ doc.addImage(logoRes.img,'PNG',10,3,20,20); }catch(e){} }
+  const textX=logoRes&&logoRes.loaded?(W/2)+10:W/2;
+  doc.setTextColor(255,255,255); doc.setFontSize(15); doc.setFont(undefined,'bold');
+  doc.text('KANYADET PRIMARY & JUNIOR SCHOOL',textX,10,{align:'center'});
+  doc.setFontSize(9); doc.setFont(undefined,'normal');
+  doc.text(KANYADET_ADDRESS,textX,15.5,{align:'center'});
+  doc.setFontSize(10); doc.setFont(undefined,'bold');
+  doc.text(title,textX,21.5,{align:'center'});
+  return W;
+}
+function _pdfInfoBand(doc,left,right){
+  const W=doc.internal.pageSize.width;
+  doc.setFillColor(234,242,250); doc.rect(0,26,W,12,'F');
+  doc.setTextColor(12,30,51); doc.setFontSize(8.5); doc.setFont(undefined,'bold');
+  doc.text(left,10,33);
+  doc.setFont(undefined,'normal');
+  doc.text(right,W-10,33,{align:'right'});
+  doc.setTextColor(0,0,0);
+  return 42;
+}
+const _PDF_TABLE_STYLE={ styles:{fontSize:7.5,cellPadding:2.5}, headStyles:{fillColor:[26,82,118],textColor:[255,255,255],fontStyle:'bold'}, alternateRowStyles:{fillColor:[234,242,250]} };
+function _pdfAscii(t){ return String(t||'').replace(/[^\x20-\x7E]/g,'').replace(/\s+/g,' ').trim(); }
+function _pdfFooters(doc){
+  const n=doc.internal.getNumberOfPages(), W=doc.internal.pageSize.width, H=doc.internal.pageSize.height;
+  for(let i=1;i<=n;i++){ doc.setPage(i); doc.setFontSize(7.5); doc.setTextColor(120,120,120); doc.text(`Page ${i} of ${n}`,W-10,H-6,{align:'right'}); }
+  doc.setTextColor(0,0,0);
+}
+
+async function exportMovementPDF(){
+  const rows=_movementData[movementTab]||[];
+  if(!rows.length){ notify('Nothing to export in this list','warning'); return; }
+  if(!window.jspdf){ notify('⏳ PDF library loading — try again in a moment.','warn'); return; }
+  const { jsPDF }=window.jspdf;
+  const doc=new jsPDF('portrait','mm','a4');
+  const W=doc.internal.pageSize.width, H=doc.internal.pageSize.height;
+  const title=movementTab==='risk'?'AT-RISK LEARNERS REPORT':'MOST IMPROVED LEARNERS REPORT';
+  await _pdfBanner(doc,title);
+  const y0=_pdfInfoBand(doc,
+    `Change of ${movementThreshold}+ points${movementTab==='risk'?` · or 2+ subjects below ${MOVE_WEAK_BELOW}%`:''}`,
+    `Learners: ${rows.length}   ·   Generated: ${new Date().toLocaleDateString()}`);
+  doc.autoTable({
+    head:[['#','Learner','Grade','Previous','Latest','Change','Note']],
+    body:rows.map((r,i)=>[i+1,r.name,r.grade,r.prev===null?'—':r.prev.toFixed(1),r.cur.toFixed(1),r.d===null?'—':(r.d>=0?'+':'−')+Math.abs(r.d).toFixed(1),r.why]),
+    startY:y0, margin:{left:10,right:10}, ..._PDF_TABLE_STYLE,
+    columnStyles:{0:{cellWidth:9},3:{halign:'right'},4:{halign:'right'},5:{halign:'right',fontStyle:'bold'}},
+    didParseCell:d=>{ if(d.section==='body'&&d.column.index===5){ const v=String(d.cell.raw); d.cell.styles.textColor = v.startsWith('+')?[39,174,96]:v.startsWith('−')?[192,57,43]:[90,90,90]; } }
+  });
+  const fy=(doc.lastAutoTable&&doc.lastAutoTable.finalY)||60;
+  const sigY=Math.min(fy+14,H-14);
+  doc.setFontSize(9); doc.setTextColor(51,51,51);
+  doc.text("Class Teacher's Signature: ______________________",10,sigY);
+  doc.text('Date: ______________________',W-10,sigY,{align:'right'});
+  _pdfFooters(doc);
+  doc.save(`${movementTab==='risk'?'At-risk-learners':'Most-improved-learners'}_${new Date().toISOString().slice(0,10)}.pdf`);
+  notify('📄 PDF downloaded!','success');
+}
+window.exportMovementPDF=exportMovementPDF;
+window.printMovementList=exportMovementPDF;   // old name kept
+
+/** Dashboard PDF: header band, KPI boxes, every visible chart (two per row),
+ *  the grade ranking + term comparison tables, and the learner movement lists. */
+async function exportDashboardPDF(){
+  if(!window.jspdf){ notify('⏳ PDF library loading — try again in a moment.','warn'); return; }
+  const { jsPDF }=window.jspdf;
+  const doc=new jsPDF('portrait','mm','a4');
+  const W=doc.internal.pageSize.width, H=doc.internal.pageSize.height, M=10;
+  await _pdfBanner(doc,'DASHBOARD SUMMARY REPORT');
+  let y=_pdfInfoBand(doc,'Results overview',`Generated: ${new Date().toLocaleDateString()}`);
+
+  // KPI boxes
+  const kpis=[['kpi-students','Total Students'],['kpi-avg','School Average'],['kpi-ee','EE (Exceeding)'],['kpi-grades','Grade Levels']];
+  const bw=(W-2*M-3*4)/4;
+  kpis.forEach(([id,label],i)=>{
+    const x=M+i*(bw+4);
+    doc.setFillColor(234,242,250); doc.setDrawColor(26,82,118); doc.roundedRect(x,y,bw,18,2,2,'FD');
+    doc.setTextColor(26,82,118); doc.setFont(undefined,'bold'); doc.setFontSize(13);
+    doc.text(_pdfAscii(document.getElementById(id)?.textContent)||'-',x+bw/2,y+9,{align:'center'});
+    doc.setFont(undefined,'normal'); doc.setFontSize(7.5); doc.setTextColor(60,60,60);
+    doc.text(label,x+bw/2,y+15,{align:'center'});
+  });
+  y+=24;
+
+  // Charts, two per row (drawn on the card's own background so theme colours stay readable)
+  const cards=[...document.querySelectorAll('#view-dashboard .card')].filter(c=>{
+    const cv=c.querySelector('.chart-box canvas, .chart-box-sm canvas');
+    return cv && cv.width>0 && cv.offsetParent!==null;
+  });
+  const colW=(W-2*M-6)/2;
+  for(let i=0;i<cards.length;i+=2){
+    const pair=cards.slice(i,i+2).map(c=>{
+      const cv=c.querySelector('.chart-box canvas, .chart-box-sm canvas');
+      const tmp=document.createElement('canvas'); tmp.width=cv.width; tmp.height=cv.height;
+      const cx=tmp.getContext('2d');
+      let bg=getComputedStyle(c).backgroundColor;
+      if(!bg||bg==='transparent'||/,\s*0\)$/.test(bg)) bg=getComputedStyle(document.body).backgroundColor||'#ffffff';
+      cx.fillStyle=bg; cx.fillRect(0,0,tmp.width,tmp.height); cx.drawImage(cv,0,0);
+      return { title:_pdfAscii(c.querySelector('.card-title')?.textContent)||'Chart', img:tmp.toDataURL('image/png'), h:Math.min(colW*cv.height/cv.width,70) };
+    });
+    const rowH=Math.max(...pair.map(p=>p.h))+8;
+    if(y+rowH>H-14){ doc.addPage(); y=M+2; }
+    pair.forEach((p,k)=>{
+      const x=M+k*(colW+6);
+      doc.setFontSize(8.5); doc.setFont(undefined,'bold'); doc.setTextColor(26,82,118);
+      doc.text(p.title,x,y+3.5);
+      try{ doc.addImage(p.img,'PNG',x,y+6,colW,p.h-2); }catch(e){}
+    });
+    y+=rowH+2;
+  }
+
+  const tableGap=()=>(doc.lastAutoTable&&doc.lastAutoTable.finalY?doc.lastAutoTable.finalY:y)+8;
+  const heading=(t)=>{ if(y>H-40){ doc.addPage(); y=M+2; } doc.setFontSize(10); doc.setFont(undefined,'bold'); doc.setTextColor(26,82,118); doc.text(t,M,y); y+=3; doc.setTextColor(0,0,0); };
+
+  // Term comparison (if a comparison term is chosen)
+  const cmpTbl=document.querySelector('#dist-cmp table');
+  if(cmpTbl){
+    heading('Performance Distribution — term comparison'); y+=1;
+    doc.autoTable({ html:cmpTbl, startY:y, margin:{left:M,right:M}, useCss:false, ..._PDF_TABLE_STYLE });
+    y=tableGap();
+  }
+  // Grade ranking
+  const rankRows=[...document.querySelectorAll('#gavg-rank .gavg-row')].map(r=>[
+    r.querySelector('.gavg-row-name')?.textContent||'', r.querySelector('.gavg-row-val')?.textContent||'',
+    _pdfAscii(r.querySelector('.gavg-row-d')?.textContent)||'-', _pdfAscii(r.querySelector('.gavg-row-g')?.textContent)
+  ]);
+  if(rankRows.length){
+    const withGap=rankRows.some(r=>r[3]);
+    heading(_pdfAscii(document.querySelector('#gavg-rank .gavg-rank-hdr')?.textContent)||'Grade ranking'); y+=1;
+    doc.autoTable({
+      head:[withGap?['Grade','Average','Change','Gap to target']:['Grade','Average','Change']],
+      body:rankRows.map(r=>withGap?r:r.slice(0,3)),
+      startY:y, margin:{left:M,right:M}, ..._PDF_TABLE_STYLE
+    });
+    y=tableGap();
+  }
+  // Learner movement
+  for(const [key,label] of [['risk','At-risk learners'],['up','Most improved learners']]){
+    const list=(_movementData[key]||[]).slice(0,15);
+    if(!list.length) continue;
+    heading(`${label} (top ${list.length} of ${_movementData[key].length}) — change of ${movementThreshold}+ points`); y+=1;
+    doc.autoTable({
+      head:[['#','Learner','Grade','Previous','Latest','Change','Note']],
+      body:list.map((r,i)=>[i+1,r.name,r.grade,r.prev===null?'—':r.prev.toFixed(1),r.cur.toFixed(1),r.d===null?'—':(r.d>=0?'+':'−')+Math.abs(r.d).toFixed(1),r.why]),
+      startY:y, margin:{left:M,right:M}, ..._PDF_TABLE_STYLE,
+      columnStyles:{0:{cellWidth:9},3:{halign:'right'},4:{halign:'right'},5:{halign:'right',fontStyle:'bold'}}
+    });
+    y=tableGap();
+  }
+  _pdfFooters(doc);
+  doc.save(`Dashboard-summary_${new Date().toISOString().slice(0,10)}.pdf`);
+  notify('📄 Dashboard PDF downloaded!','success');
+}
+window.exportDashboardPDF=exportDashboardPDF;
+window.setMovementThreshold=setMovementThreshold;
+window.printMovementList=printMovementList;
+window.renderMovement=renderMovement;
 
 /** Grid/tick colours for the dashboard charts, read from the active theme
  *  (the old hardcoded white grid was invisible on the light theme). */
@@ -10868,6 +11289,9 @@ function renderGradeBars(){
     });
   }
   document.getElementById('gavg-scale')?.classList.toggle('on',gradeAvgFullScale);
+  const tb=document.getElementById('gavg-target');
+  if(tb){ tb.hidden=!isAdvancedAdmin; tb.textContent=schoolTarget===null?'🎯 Target':`🎯 Target ${schoolTarget}%`; }
+  _loadTargetRemote();
 
   const grades=gradeAvgLevel==='all' ? allGrades : allGrades.filter(g=>_gradeLevel(g)===gradeAvgLevel);
 
@@ -10888,6 +11312,18 @@ function renderGradeBars(){
   const terms=[...allTerms].sort((x,y)=>_qeCompoundOrderKey(x).localeCompare(_qeCompoundOrderKey(y)));
   const avgOf=(g,t)=>{ const v=byGradeTerm[g]?.[t]; return v&&v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; };
 
+  // "Compare with" selector: what the ranking's ▲▼ is measured against
+  const cmpSel=document.getElementById('gavg-compare');
+  if(cmpSel){
+    const keep=cmpSel.value||'prev';
+    cmpSel.innerHTML='';
+    const o0=document.createElement('option'); o0.value='prev'; o0.textContent='vs previous term'; cmpSel.appendChild(o0);
+    terms.slice(0,-1).forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent='vs '+t; cmpSel.appendChild(o); });
+    cmpSel.value=[...cmpSel.options].some(o=>o.value===keep)?keep:'prev';
+  }
+  const cmp=cmpSel?cmpSel.value:'prev';
+
+  document.getElementById('gavg-skel')?.remove();
   const empty=document.getElementById('gavg-empty');
   const note=document.getElementById('gavg-note');
   const rank=document.getElementById('gavg-rank');
@@ -10912,6 +11348,11 @@ function renderGradeBars(){
       fill:false,
     };
   });
+  if(schoolTarget!==null) datasets.push({
+    label:`Target ${schoolTarget}%`, data:terms.map(()=>schoolTarget),
+    borderColor:'#95a5a6', borderDash:[6,5], borderWidth:1.5, pointRadius:0, pointHoverRadius:0,
+    fill:false, tension:0, _isTarget:true
+  });
 
   // Y axis: zoom to the data so differences are visible; "Full scale" = 0–100
   const vals=datasets.flatMap(d=>d.data).filter(v=>v!==null);
@@ -10930,6 +11371,12 @@ function renderGradeBars(){
     options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
+      onHover:(e,_els,chart)=>_chartHoverCursor(e,chart),
+      onClick:(e,_els,chart)=>{
+        const hit=_chartPick(chart,e); if(!hit) return;
+        if(chart.data.datasets[hit.datasetIndex]._isTarget) return;
+        drillToStudents({ grade:chart.data.datasets[hit.datasetIndex].label, term:terms[hit.index] });
+      },
       plugins:{
         legend:{
           position:'bottom',
@@ -10938,9 +11385,9 @@ function renderGradeBars(){
           onClick:(e,item,legend)=>{
             const ch=legend.chart, i=item.datasetIndex, now=Date.now();
             if(_gavgLgLast.i===i && now-_gavgLgLast.t<350){
-              const others=ch.data.datasets.map((_,k)=>k).filter(k=>k!==i);
+              const others=ch.data.datasets.map((_,k)=>k).filter(k=>k!==i && !ch.data.datasets[k]._isTarget);
               const isolated=others.every(k=>!ch.isDatasetVisible(k));
-              ch.data.datasets.forEach((_,k)=>ch.setDatasetVisibility(k, isolated ? true : k===i));
+              ch.data.datasets.forEach((d,k)=>ch.setDatasetVisibility(k, isolated ? true : (k===i || !!d._isTarget)));
             } else {
               ch.setDatasetVisibility(i,!ch.isDatasetVisible(i));
             }
@@ -10948,7 +11395,7 @@ function renderGradeBars(){
             ch.update();
           }
         },
-        tooltip:{ callbacks:{ label: c => {
+        tooltip:{ filter:i=>!i.dataset._isTarget, callbacks:{ footer:()=>'Click to list these students', label: c => {
           const n=byGradeTerm[c.dataset.label]?.[terms[c.dataIndex]]?.length||0;
           return ` ${c.dataset.label}: ${c.parsed.y}% · ${n} student${n===1?'':'s'}`;
         } } }
@@ -10966,16 +11413,24 @@ function renderGradeBars(){
     const rows=grades.map(g=>{
       const cur=avgOf(g,latest); if(cur===null) return null;
       let prev=null;
-      for(let k=terms.length-2;k>=0 && prev===null;k--) prev=avgOf(g,terms[k]);
+      if(cmp!=='prev' && cmp!==latest && terms.includes(cmp)) prev=avgOf(g,cmp);
+      else for(let k=terms.length-2;k>=0 && prev===null;k--) prev=avgOf(g,terms[k]);
       return { g, cur, d: prev===null?null:cur-prev, color:GRADE_LINE_PALETTE[allGrades.indexOf(g)%GRADE_LINE_PALETTE.length] };
     }).filter(Boolean).sort((a,b)=>b.cur-a.cur);
+    const gap=v=>{
+      if(schoolTarget===null) return '';
+      const x=v-schoolTarget;
+      return `<span class="gavg-row-g ${x>=0?'up':'dn'}" title="Gap to the ${schoolTarget}% target">${x>=0?'+':'−'}${Math.abs(x).toFixed(1)}</span>`;
+    };
+    rank.classList.toggle('has-target',schoolTarget!==null);
     rank.innerHTML = rows.length
-      ? `<div class="gavg-rank-hdr">Ranking · ${_gavgEsc(latest)}</div>` + rows.map(r=>{
+      ? `<div class="gavg-rank-hdr">Ranking · ${_gavgEsc(latest)}${cmp!=='prev'&&cmp!==latest?' · change vs '+_gavgEsc(cmp):''}${schoolTarget!==null?' · gap to target':''}</div>` + rows.map(r=>{
           const d=r.d===null ? '<span class="gavg-row-d">—</span>'
             : `<span class="gavg-row-d ${r.d>=0.05?'up':r.d<=-0.05?'dn':''}">${r.d>=0.05?'▲':r.d<=-0.05?'▼':'•'} ${Math.abs(r.d).toFixed(1)}</span>`;
-          return `<div class="gavg-row"><span class="gavg-row-name">${_gavgEsc(r.g)}</span><span class="gavg-row-bar"><i style="width:${Math.max(0,Math.min(100,r.cur))}%;background:${r.color}"></i></span><span class="gavg-row-val">${r.cur.toFixed(1)}%</span>${d}</div>`;
+          return `<div class="gavg-row" data-grade="${_gavgEsc(r.g)}" data-term="${_gavgEsc(latest)}" title="Click to list these students"><span class="gavg-row-name">${_gavgEsc(r.g)}</span><span class="gavg-row-bar"><i style="width:${Math.max(0,Math.min(100,r.cur))}%;background:${r.color}"></i></span><span class="gavg-row-val">${r.cur.toFixed(1)}%</span>${d}${gap(r.cur)}</div>`;
         }).join('')
       : '';
+    rank.onclick=e=>{ const row=e.target.closest('.gavg-row'); if(row) drillToStudents({ grade:row.dataset.grade, term:row.dataset.term }); };
   }
 }
 
@@ -12790,50 +13245,60 @@ function _cohortSearchInput(){
 }
 window._cohortSearchInput=_cohortSearchInput;
 
+/* Matching is forgiving: case, extra spaces and word order don't matter, and
+ * every typed word must appear somewhere in the name, ULI or Assessment No.
+ * (Previously a plain substring of the name only, so "doe john" or a double
+ * space in a stored name found nothing, and ULI numbers stored as numbers
+ * crashed the search.) */
+function _cohortNorm(v){ return String(v==null?'':v).toLowerCase().replace(/\s+/g,' ').trim(); }
+function _cohortKey(r){ return _cohortNorm(r['ULI']) || _cohortNorm(r['Official Student Name']); }
+function _cohortGroup(filterFn){
+  const by={};
+  allData.forEach(r=>{
+    const name=String(r['Official Student Name']||'').replace(/\s+/g,' ').trim();
+    const uli=String(r['ULI']==null?'':r['ULI']).trim();
+    const adm=String(r['Assessment No']==null?'':r['Assessment No']).trim();
+    if(filterFn && !filterFn(_cohortNorm(name+' '+uli+' '+adm))) return;
+    const key=_cohortKey(r); if(!key) return;
+    const g=by[key]||(by[key]={key,name,uli,adm,recs:[]});
+    if(!g.name&&name) g.name=name;
+    if(!g.uli&&uli) g.uli=uli;
+    g.recs.push(r);
+  });
+  return by;
+}
+
 function _cohortRunSearch(){
-  const q=(document.getElementById('cohort-search')?.value||'').trim().toLowerCase();
+  const raw=(document.getElementById('cohort-search')?.value||'');
+  const q=_cohortNorm(raw);
   const resultsEl=document.getElementById('cohort-results');
   const chartWrap=document.getElementById('cohort-chart-wrap');
   if(!q){ resultsEl.innerHTML=''; chartWrap.style.display='none'; return; }
 
-  // Group all matching records by student identity (ULI preferred, else name)
-  const byStudent={};
-  allData.forEach(r=>{
-    const name=(r['Official Student Name']||'').trim();
-    const uli=(r['ULI']||'').trim();
-    if(!name.toLowerCase().includes(q) && !uli.toLowerCase().includes(q)) return;
-    const key=uli || name.toLowerCase();
-    if(!byStudent[key]) byStudent[key]={name, uli, recs:[]};
-    byStudent[key].recs.push(r);
-  });
-  const matches=Object.values(byStudent);
+  const tokens=q.split(' ');
+  const matches=Object.values(_cohortGroup(hay=>tokens.every(t=>hay.includes(t))));
 
-  if(!matches.length){ resultsEl.innerHTML='<p style="padding:10px 0">No matching students found.</p>'; chartWrap.style.display='none'; return; }
+  if(!matches.length){
+    resultsEl.innerHTML=`<p style="padding:10px 0">No matching students found for “${_gavgEsc(raw.trim())}”. Try part of the name (any order), the ULI or the Assessment No.</p>`;
+    chartWrap.style.display='none'; return;
+  }
 
-  if(matches.length>1 && q.length){
+  if(matches.length>1){
     resultsEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">${
-      matches.slice(0,15).map(m=>`<div style="cursor:pointer;padding:6px 10px;border-radius:6px;background:var(--surface2)" onclick="_cohortShowStudent('${(m.uli||m.name).replace(/'/g,"\\'")}')">
-        <strong>${m.name}</strong> <span style="color:var(--text3)">· ULI: ${m.uli||'N/A'} · ${m.recs.length} record(s)</span>
+      matches.slice(0,15).map(m=>`<div class="cohort-pick" data-key="${_gavgEsc(encodeURIComponent(m.key))}" style="cursor:pointer;padding:6px 10px;border-radius:6px;background:var(--surface2)">
+        <strong>${_gavgEsc(m.name||'Unnamed')}</strong> <span style="color:var(--text3)">· ULI: ${_gavgEsc(m.uli||'N/A')} · ${m.recs.length} record(s)</span>
       </div>`).join('')
-    }</div>`;
+    }${matches.length>15?`<div style="font-size:11px;color:var(--text3);padding:4px 2px">Showing 15 of ${matches.length} — type more of the name to narrow it down.</div>`:''}</div>`;
+    resultsEl.onclick=e=>{ const el=e.target.closest('.cohort-pick'); if(el) _cohortShowStudent(decodeURIComponent(el.dataset.key)); };
     chartWrap.style.display='none';
     return;
   }
 
-  _cohortShowStudent(matches[0].uli || matches[0].name.toLowerCase());
+  _cohortShowStudent(matches[0].key);
 }
 
 function _cohortShowStudent(key){
-  const byStudent={};
-  allData.forEach(r=>{
-    const name=(r['Official Student Name']||'').trim();
-    const uli=(r['ULI']||'').trim();
-    const k=uli || name.toLowerCase();
-    if(k!==key) return;
-    if(!byStudent[k]) byStudent[k]={name, uli, recs:[]};
-    byStudent[k].recs.push(r);
-  });
-  const student=Object.values(byStudent)[0];
+  const student=Object.values(_cohortGroup(null)).find(g=>g.key===key);
   if(!student) return;
 
   // Sort chronologically by year+term parsed from the compound Grade field
@@ -12843,7 +13308,7 @@ function _cohortShowStudent(key){
     return {label:`${p.grade||'—'} ${p.term||''} ${p.examType||''} (${p.year||'—'})`.replace(/\s+/g,' ').trim(), avg:parseFloat(st.avg), year:p.year||'0000', term:p.term||''};
   }).sort((a,b)=> (a.year+a.term).localeCompare(b.year+b.term));
 
-  document.getElementById('cohort-results').innerHTML = `<div style="padding:6px 0"><strong>${student.name}</strong> · ULI: ${student.uli||'N/A'} · ${rows.length} record(s) found across all grades/terms</div>`;
+  document.getElementById('cohort-results').innerHTML = `<div style="padding:6px 0"><strong>${_gavgEsc(student.name||'Unnamed')}</strong> · ULI: ${_gavgEsc(student.uli||'N/A')} · ${rows.length} record(s) found across all grades/terms</div>`;
   const wrap=document.getElementById('cohort-chart-wrap');
   wrap.style.display='block';
 
@@ -15083,6 +15548,32 @@ function renderQuickLinkPins(){
     const t=document.createElement('span'); t.textContent=src.querySelector('.auth-qlink-label').textContent;
     a.append(i,t); box.appendChild(a);
   });
+  renderQuickLinkRecent();
+}
+const QL_RECENT_KEY='qlinksRecent';
+function _qlRecent(){ try{ return JSON.parse(localStorage.getItem(QL_RECENT_KEY)||'[]'); }catch(e){ return []; } }
+function _qlPushRecent(h){
+  let r=_qlRecent().filter(x=>x!==h); r.unshift(h); r=r.slice(0,3);
+  try{ localStorage.setItem(QL_RECENT_KEY,JSON.stringify(r)); }catch(e){}
+  renderQuickLinkRecent();
+}
+/** Last 3 opened Quick Links (not already pinned), shown under the pins. */
+function renderQuickLinkRecent(){
+  const box=document.getElementById('qlinks-recent'); if(!box) return;
+  box.innerHTML='';
+  const links=[...document.querySelectorAll('#quick-links-panel .auth-qlink')];
+  const pins=_qlPins();
+  const items=_qlRecent().filter(h=>!pins.includes(h)).map(h=>links.find(a=>a.getAttribute('href')===h)).filter(Boolean);
+  if(!items.length) return;
+  const hdr=document.createElement('div'); hdr.className='qlinks-recent-hdr'; hdr.textContent='Recent'; box.appendChild(hdr);
+  items.forEach(src=>{
+    const a=document.createElement('a');
+    a.className='qpin-link'; a.href=src.getAttribute('href'); a.style.setProperty('--c',getComputedStyle(src).getPropertyValue('--c'));
+    if(src.hasAttribute('download')) a.setAttribute('download',src.getAttribute('download'));
+    const i=document.createElement('span'); i.className='qi'; i.innerHTML=src.querySelector('.auth-qlink-dot').innerHTML;
+    const t=document.createElement('span'); t.textContent=src.querySelector('.auth-qlink-label').textContent;
+    a.append(i,t); box.appendChild(a);
+  });
 }
 function initQuickLinkPins(){
   document.querySelectorAll('#quick-links-panel .auth-qlink').forEach(a=>{
@@ -15099,6 +15590,11 @@ function initQuickLinkPins(){
     b.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ') toggle(e); });
     a.appendChild(b);
   });
+  const panel=document.getElementById('quick-links-panel');
+  if(panel && !panel._qlRecentBound){
+    panel._qlRecentBound=true;
+    panel.addEventListener('click',e=>{ const a=e.target.closest('.auth-qlink'); if(a) _qlPushRecent(a.getAttribute('href')); });
+  }
   renderQuickLinkPins();
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initQuickLinkPins); else initQuickLinkPins();

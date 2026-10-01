@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kanyadet School — Student Records</title>
+  <link rel="icon" type="image/x-icon" href="./images/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root{
+      --blue:#2980b9; --blue-dk:#1a5276; --blue-lt:#5dade2; --blue-glow:rgba(41,128,185,.35);
+      --orange:#e67e22; --gold:#f39c12; --green:#27ae60; --red:#e74c3c; --purple:#8e44ad; --teal:#16a085;
+      --transition:all .25s cubic-bezier(.4,0,.2,1);
+    }
+    [data-theme="dark"]{
+      --bg:#090f1a; --bg2:#0c1525; --surface:#111d2e; --surface2:#162438; --surface3:#1c2e44;
+      --border:rgba(41,128,185,.18); --border-strong:rgba(41,128,185,.4);
+      --text:#ddeeff; --text2:#7aaec9; --text3:#4a7a9b; --card-shadow:0 8px 32px rgba(0,0,0,.4);
+    }
+    [data-theme="light"]{
+      --bg:linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%);
+      --bg2:#f7edd0; --surface:#ffffff; --surface2:#fdfaf2; --surface3:#f8eed6;
+      --border:rgba(211,164,55,.2); --border-strong:rgba(211,164,55,.45);
+      --text:#0c1e33; --text2:#5a5342; --text3:#a89b7a; --card-shadow:0 4px 20px rgba(211,164,55,.14);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+    body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(circle at 10% 10%,rgba(41,128,185,.20),transparent 26%),radial-gradient(circle at 88% 92%,rgba(230,126,34,.20),transparent 24%)}
+    body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:linear-gradient(rgba(41,128,185,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(41,128,185,.045) 1px,transparent 1px);
+      background-size:26px 26px;mask-image:radial-gradient(circle at center,black 50%,transparent 92%)}
+    body.em-lock{overflow:hidden}
+    button{font-family:inherit}
+    ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:8px}
+
+    /* ── Auth gate (same design as login.html) ── */
+    #auth-gate{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;overflow-y:auto;background:var(--bg);padding:16px}
+    #auth-gate::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.6;
+      background:radial-gradient(ellipse 55% 45% at 90% 88%,rgba(243,156,18,.18) 0%,transparent 65%),radial-gradient(ellipse 45% 40% at 10% 8%,rgba(211,164,55,.08) 0%,transparent 60%)}
+    .auth-card{position:relative;z-index:1;width:100%;max-width:380px;background:var(--surface);border-radius:28px;padding:2.3rem 2.1rem 2.1rem;box-shadow:0 30px 90px rgba(10,30,60,.28),0 0 0 1px rgba(41,128,185,.07);border:1px solid var(--border);animation:fadeUp .5s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes fadeUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+    .auth-logo{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));display:grid;place-items:center;font-size:26px;margin:0 auto 1.1rem;box-shadow:0 10px 26px var(--blue-glow)}
+    .auth-card h1{text-align:center;font-size:1.55rem;font-weight:900;letter-spacing:-.01em;margin-bottom:.25rem}
+    .auth-sub{text-align:center;font-size:.83rem;color:var(--text2);font-weight:500;margin-bottom:1.4rem}
+    .auth-err{background:rgba(231,76,60,.12);color:#e25b4b;border:1px solid rgba(231,76,60,.3);padding:9px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+    .auth-btn{width:100%;padding:.95rem 1.5rem;border:none;border-radius:14px;font-size:.9rem;font-weight:800;cursor:pointer;transition:var(--transition);margin-top:.3rem;margin-bottom:.6rem;display:flex;align-items:center;justify-content:center;gap:.55rem}
+    .auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .auth-btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
+    .auth-btn-google{background:linear-gradient(135deg,var(--blue-dk),#0c1e33);color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
+    .auth-btn-email{background:var(--surface2);color:var(--text);border:1.5px solid var(--border-strong)}
+    .auth-btn-primary:hover,.auth-btn-google:hover{transform:translateY(-2px)}
+    .auth-btn-email:hover{transform:translateY(-2px);border-color:var(--blue-lt);box-shadow:0 10px 24px -10px var(--blue-glow)}
+    .auth-divider{display:flex;align-items:center;gap:.6rem;margin:.9rem 0;font-size:.68rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .auth-foot{text-align:center;font-size:.72rem;color:var(--text3);font-weight:600;margin-top:.6rem;line-height:1.5}
+
+    /* ── Email modal (same as login.html) ── */
+    .em-overlay{position:fixed;inset:0;z-index:2100;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,20,38,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s linear .25s}
+    .em-overlay.open{opacity:1;visibility:visible;transition:opacity .25s ease}
+    .em-sheet{position:relative;width:100%;max-width:400px;max-height:calc(100dvh - 32px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:26px;padding:2rem 1.7rem 1.4rem;box-shadow:0 40px 100px rgba(6,18,36,.45);transform:translateY(18px) scale(.96);opacity:0;transition:transform .32s cubic-bezier(.2,.9,.3,1.15),opacity .25s ease}
+    .em-overlay.open .em-sheet{transform:none;opacity:1}
+    .em-grip{display:none;width:42px;height:4px;border-radius:4px;background:var(--border-strong);margin:-.9rem auto 1rem}
+    .em-close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);display:grid;place-items:center;cursor:pointer;transition:var(--transition)}
+    .em-close:hover{background:var(--surface3);color:var(--text);transform:rotate(90deg)}
+    .em-head{text-align:center;margin-bottom:1.2rem}
+    .em-badge{width:54px;height:54px;margin:0 auto .9rem;border-radius:17px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue-dk));box-shadow:0 10px 26px var(--blue-glow)}
+    .em-head h2{font-size:1.3rem;font-weight:900;letter-spacing:-.01em}
+    .em-head p{font-size:.8rem;color:var(--text2);font-weight:500;margin-top:.25rem}
+    .em-field{margin-bottom:.6rem}
+    .em-field label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+    .em-input{position:relative}
+    .em-input input{width:100%;padding:.8rem 2.6rem .8rem 2.5rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);font-family:inherit;font-size:16px;color:var(--text);outline:none;transition:var(--transition)}
+    .em-input input:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
+    .em-lead{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;transition:color .15s}
+    .em-input:focus-within .em-lead{color:var(--blue-lt)}
+    .em-eye{position:absolute;right:.35rem;top:50%;transform:translateY(-50%);width:34px;height:34px;border:none;background:none;border-radius:10px;color:var(--text3);display:grid;place-items:center;cursor:pointer}
+    .em-eye:hover{color:var(--text);background:var(--surface3)}
+    .em-eye .eye-off{display:none}
+    .em-eye[aria-pressed="true"] .eye-on{display:none}
+    .em-eye[aria-pressed="true"] .eye-off{display:block}
+    .em-back{display:block;width:100%;margin-top:.2rem;padding:.6rem;border:none;background:none;font-size:.78rem;font-weight:700;color:var(--text2);cursor:pointer;border-radius:10px;transition:var(--transition)}
+    .em-back:hover{color:var(--blue-lt);background:var(--surface2)}
+    .em-sheet.shake{animation:emShake .4s}
+    @keyframes emShake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+    @media(max-width:520px){
+      .em-overlay{align-items:flex-end;padding:0}
+      .em-sheet{max-width:none;max-height:92dvh;border-radius:26px 26px 0 0;padding:1.6rem 1.3rem calc(1.2rem + env(safe-area-inset-bottom));transform:translateY(100%);opacity:1;transition:transform .35s cubic-bezier(.2,.9,.3,1)}
+      .em-overlay.open .em-sheet{transform:none}
+      .em-grip{display:block}
+    }
+    @media(prefers-reduced-motion:reduce){.em-overlay,.em-sheet{transition:none}.em-sheet.shake{animation:none}}
+
+    /* ── App shell ── */
+    #app{position:relative;z-index:1;display:none;min-height:100vh}
+    #app.show{display:block}
+    .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:12px clamp(14px,4vw,36px);background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+    .tb-logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));display:grid;place-items:center;font-size:19px;box-shadow:0 6px 16px var(--blue-glow);flex:none}
+    .tb-title{font-weight:900;font-size:.98rem;letter-spacing:-.01em;line-height:1.1}
+    .tb-title small{display:block;font-size:.66rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+    .tb-sp{flex:1}
+    .icon-btn{height:38px;min-width:38px;padding:0 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:.76rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:var(--transition)}
+    .icon-btn:hover{color:var(--text);border-color:var(--border-strong);transform:translateY(-1px)}
+    .user-chip{font-size:.74rem;font-weight:700;color:var(--text2);max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    main{max-width:1180px;margin:0 auto;padding:clamp(14px,3vw,30px) clamp(14px,4vw,36px) 60px}
+
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:10px;box-shadow:var(--card-shadow)}
+    .search{position:relative;flex:1 1 240px}
+    .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+    .search input{width:100%;padding:.72rem .9rem .72rem 2.4rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);font-family:inherit;font-size:16px;color:var(--text);outline:none;transition:var(--transition)}
+    .search input:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
+    select.sel{padding:.68rem .8rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:.78rem;font-weight:700;outline:none;cursor:pointer}
+    .seg{display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:3px}
+    .seg button{border:none;background:none;padding:.45rem .8rem;border-radius:11px;font-size:.74rem;font-weight:800;color:var(--text2);cursor:pointer;transition:var(--transition)}
+    .seg button.on{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;box-shadow:0 6px 14px var(--blue-glow)}
+    .result-line{display:flex;justify-content:space-between;align-items:center;margin:14px 4px 10px;font-size:.76rem;font-weight:700;color:var(--text3)}
+    .state{text-align:center;padding:60px 20px;color:var(--text2);background:var(--surface);border:1px dashed var(--border-strong);border-radius:24px}
+    .state .big{font-size:42px;margin-bottom:10px}
+    .state h3{font-size:1.05rem;font-weight:900;color:var(--text);margin-bottom:6px}
+    .state p{font-size:.82rem;font-weight:500;max-width:380px;margin:0 auto 14px}
+    .skeleton{height:72px;border-radius:20px;background:linear-gradient(90deg,var(--surface2),var(--surface3),var(--surface2));background-size:200% 100%;animation:shine 1.2s linear infinite}
+    @keyframes shine{to{background-position:-200% 0}}
+
+    .toast-host{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:3000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+    .toast{background:#0c1e33;color:#fff;padding:.65rem 1.1rem;border-radius:14px;font-size:.78rem;font-weight:700;box-shadow:0 14px 34px rgba(0,0,0,.35);animation:fadeUp .3s both}
+    .toast.err{background:#c0392b}.toast.ok{background:#1d8a4e}
+    mark{background:rgba(243,156,18,.35);color:inherit;border-radius:4px;padding:0 2px}
+    .list{display:grid;gap:12px}
+    .list.view-grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+    .list.view-list{grid-template-columns:1fr;gap:8px}
+    .g-card{position:relative;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:13px 14px;box-shadow:var(--card-shadow);transition:var(--transition);animation:fadeUp .4s both}
+    .g-card:hover{transform:translateY(-3px);border-color:var(--border-strong);box-shadow:0 14px 34px -14px var(--blue-glow)}
+    .g-no{position:absolute;top:8px;right:12px;font:700 .62rem 'JetBrains Mono',monospace;color:var(--text3)}
+    .g-av{flex:none;width:46px;height:46px;border-radius:15px;display:grid;place-items:center;font-weight:900;font-size:.9rem;color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue-dk));box-shadow:0 8px 18px var(--blue-glow)}
+    .g-av.f{background:linear-gradient(135deg,#e67e22,#c0392b);box-shadow:0 8px 18px rgba(230,126,34,.35)}
+    .g-info{min-width:0;padding-right:26px}
+    .g-name{font-weight:800;font-size:.86rem;line-height:1.25;text-transform:capitalize;overflow-wrap:anywhere}
+    .g-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+    .tag{font-size:.64rem;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--surface3);color:var(--text2);border:1px solid var(--border)}
+    .tag.mono{font-family:'JetBrains Mono',monospace;font-weight:600}
+    .tag.m{color:var(--blue-dk);background:rgba(41,128,185,.1)}
+    .tag.f{color:var(--orange);background:rgba(230,126,34,.12)}
+    .view-list .g-card{padding:10px 14px}
+    .view-list .g-info{flex:1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-right:40px}
+    .view-list .g-name{flex:1 1 220px}
+    .view-list .g-meta{margin-top:0}
+    .g-card{scroll-margin-top:120px}
+    .g-card::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:hsl(var(--ch,210) 70% 52%)}
+    .g-av{transition:var(--transition)}.g-card:hover .g-av{transform:rotate(-5deg) scale(1.07)}
+    .tag{font-size:.64rem;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--surface3);color:var(--text2);border:1px solid var(--border)}
+    .tag.mono{font-family:'JetBrains Mono',monospace;font-weight:600}
+    .tag.m{color:var(--blue-dk);background:rgba(41,128,185,.1)}
+    .tag.f{color:var(--orange);background:rgba(230,126,34,.12)}
+
+    .head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .head h1{font-size:clamp(1.5rem,4vw,2.1rem);font-weight:900;letter-spacing:-.02em}
+    .head p{font-size:.84rem;color:var(--text2);font-weight:500;margin-top:4px}
+    .cache{display:flex;align-items:center;gap:8px;font-size:.72rem;font-weight:700;color:var(--text2)}
+    .cache i{width:8px;height:8px;border-radius:50%;background:var(--green)}
+    .cache.stale i{background:var(--gold)}
+    .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+    .chip{flex:none;display:inline-flex;gap:7px;align-items:center;padding:.5rem .9rem;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:.76rem;font-weight:800;cursor:pointer;transition:var(--transition)}
+    .chip em{font:700 .66rem 'JetBrains Mono',monospace;font-style:normal;color:var(--text3)}
+    .chip:hover{border-color:var(--border-strong)}
+    .chip.on{background:linear-gradient(135deg,var(--blue),var(--blue-dk));border-color:transparent;color:#fff}
+    .chip.on em{color:rgba(255,255,255,.75)}
+    .pdfb{border:1px solid var(--border-strong);background:var(--surface2);color:var(--blue);font-family:inherit;font-size:.64rem;font-weight:800;padding:2px 9px;border-radius:99px;cursor:pointer;transition:var(--transition)}
+    .pdfb:hover{background:var(--blue);color:#fff}.pdfb:disabled{opacity:.55;cursor:wait}
+    .dq{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:10px 14px;border-radius:16px;background:rgba(243,156,18,.12);border:1px solid rgba(243,156,18,.4);font-size:.78rem;font-weight:700}
+    .dq button{border:1.5px solid rgba(243,156,18,.55);background:none;color:var(--text);font-family:inherit;font-weight:800;font-size:.72rem;padding:.3rem .75rem;border-radius:99px;cursor:pointer;transition:var(--transition)}
+    .dq button.on,.dq button:hover{background:var(--gold);border-color:var(--gold);color:#0c1e33}
+    .g-av.ph{background:none;box-shadow:none;padding:0;overflow:hidden}
+    .g-av img{width:100%;height:100%;object-fit:cover;display:block}
+    .g-av.ph{cursor:zoom-in}
+    #lb{position:fixed;inset:0;z-index:3500;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;background:rgba(6,14,26,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);cursor:zoom-out}
+    #lb.open{display:flex}
+    #lb img{max-width:min(92vw,560px);max-height:78vh;border-radius:20px;border:3px solid rgba(255,255,255,.85);box-shadow:0 30px 80px rgba(0,0,0,.6);background:#fff;animation:fadeUp .25s both}
+    #lb .cap{color:#fff;text-align:center;font-weight:800;font-size:1rem;text-transform:capitalize}
+    #lb .cap small{display:block;margin-top:4px;font:600 .74rem 'JetBrains Mono',monospace;color:rgba(255,255,255,.7);text-transform:none}
+    #lb .x{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer}
+    .more{display:flex;margin:16px auto 0}.more[hidden]{display:none}
+    .state .icon-btn{margin:0 auto}
+  </style>
+</head>
+<body>
+<!-- ── AUTH GATE ── -->
+<div id="auth-gate">
+  <div class="auth-card">
+    <div class="auth-logo">🔎</div>
+    <h1>Student Records</h1>
+    <p class="auth-sub">Kanyadet Primary &amp; Junior School — sign in to search student records.</p>
+    <div class="auth-err" id="auth-err" role="alert"></div>
+    <div id="auth-form">
+      <button class="auth-btn auth-btn-google" id="btn-google" type="button">
+        <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.9 7.35 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <div class="auth-divider">or</div>
+      <button class="auth-btn auth-btn-email" id="btn-open-email" type="button" aria-haspopup="dialog" aria-controls="email-modal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg>
+        Continue with Email
+      </button>
+      <p class="auth-foot">Student records are confidential. Only authorized school staff can open these records.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── EMAIL MODAL ── -->
+<div class="em-overlay" id="email-modal" role="dialog" aria-modal="true" aria-labelledby="em-title" aria-hidden="true">
+  <div class="em-sheet" id="em-sheet">
+    <span class="em-grip" aria-hidden="true"></span>
+    <button class="em-close" id="em-close" type="button" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="em-head">
+      <div class="em-badge"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg></div>
+      <h2 id="em-title">Sign in with email</h2>
+      <p>Enter your school credentials to continue.</p>
+    </div>
+    <div class="auth-err" id="email-err" role="alert"></div>
+    <form id="email-form" autocomplete="on" onsubmit="event.preventDefault()">
+      <div class="em-field">
+        <label for="login-email">Email</label>
+        <div class="em-input">
+          <svg class="em-lead" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg>
+          <input type="email" id="login-email" autocomplete="username" placeholder="you@example.com" inputmode="email" autocapitalize="none" spellcheck="false">
+        </div>
+      </div>
+      <div class="em-field">
+        <label for="login-password">Password</label>
+        <div class="em-input">
+          <svg class="em-lead" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input type="password" id="login-password" autocomplete="current-password" placeholder="Your password">
+          <button class="em-eye" id="em-eye" type="button" aria-label="Show password" aria-pressed="false">
+            <svg class="eye-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="auth-btn auth-btn-primary" id="btn-email-login" type="button">Sign In</button>
+    </form>
+    <button class="em-back" id="em-back" type="button">← Back to other options</button>
+  </div>
+</div>
+
+
+<!-- ── APP ── -->
+<div id="app">
+  <header class="topbar">
+    <div class="tb-logo">🔎</div>
+    <div class="tb-title">Student Records<small>Kanyadet School</small></div>
+    <div class="tb-sp"></div>
+    <span class="user-chip" id="user-chip"></span>
+    <button class="icon-btn" id="btn-theme" type="button" title="Toggle theme" aria-label="Toggle theme">🌓</button>
+    <button class="icon-btn" id="btn-signout" type="button">Sign out</button>
+  </header>
+  <main>
+    <div class="head">
+      <div><h1>Student Records</h1><p>Find any active or deleted learner in Grades 1–9 by name, assessment no or ULI.</p></div>
+      <div class="seg" id="f-scope"><button class="on" data-sc="active" type="button">Active</button><button data-sc="deleted" type="button">Deleted</button></div>
+      <div class="cache" id="cache"><i></i><span id="cache-txt">Loading…</span><button class="icon-btn" id="btn-refresh" type="button">↻ Refresh</button></div>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Filter by grade"></div>
+    <div class="dq" id="dq"></div>
+    <section class="toolbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search name, assessment no or ULI…" autocomplete="off">
+      </div>
+      <select class="sel" id="f-class" aria-label="Filter by class"><option value="">All classes</option></select>
+      <div class="seg" id="f-gender"><button class="on" data-g="" type="button">All</button><button data-g="m" type="button">Boys</button><button data-g="f" type="button">Girls</button></div>
+      <div class="seg" id="f-view"><button class="on" data-v="grid" type="button">Cards</button><button data-v="list" type="button">List</button></div>
+      <button class="icon-btn" id="btn-csv" type="button">⬇ CSV</button>
+      <button class="icon-btn" id="btn-pdf" type="button">🖨 PDF list</button>
+      <label class="icon-btn" style="cursor:pointer" title="Include learner photos in the PDF list"><input type="checkbox" id="pdf-photos" checked> Photos</label>
+      <label class="icon-btn" style="cursor:pointer" title="Include email, phone numbers and health details in the PDF record"><input type="checkbox" id="pdf-private"> Health &amp; contact</label>
+    </section>
+    <div class="result-line"><span id="result-count"></span><span id="gsplit"></span></div>
+    <div id="list" class="list view-grid"></div>
+    <button class="icon-btn more" id="btn-more" type="button" hidden>Show more</button>
+  </main>
+</div>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Learner photo"><button class="x" type="button" aria-label="Close">✕</button><img alt=""><div class="cap"></div></div>
+<div class="toast-host" id="toastHost"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase, ref, get, update } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+import * as CFG from './js/config.js';
+const FIREBASE_CONFIG = CFG.FIREBASE_CONFIG, PATHS = CFG.PATHS || {};
+
+const $ = id => document.getElementById(id);
+const app = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const rtdb = getDatabase(app);
+setPersistence(auth, indexedDBLocalPersistence).catch(()=>setPersistence(auth, browserLocalPersistence).catch(()=>{}));
+
+/* ── helpers ── */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg, type=''){
+  const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
+  $('toastHost').appendChild(t); setTimeout(()=>t.remove(), 3200);
+}
+const gShort = raw => { const m = String(raw||'').match(/Grade\s*\d+/i); return m ? m[0].replace(/\s+/g,' ').trim() : ''; };
+function sortKey(c){
+  c = String(c||'');
+  const year = (c.match(/(\d{4})/)||['','0'])[1];
+  const cyc = c.match(/-([A-Za-z])(\d+)-/);
+  const letter = cyc ? cyc[1].toUpperCase() : 'A';
+  const num = cyc ? parseInt(cyc[2],10) : 0;
+  const term = (c.match(/Term\s*(\d+)/i)||['','0'])[1];
+  return `${year}_${letter}_${String(num).padStart(2,'0')}_${String(term).padStart(2,'0')}`;
+}
+function identity(rec){
+  const an = String(rec['Assessment No']||'').trim();
+  if(an && !/^-+$/.test(an) && !/^pending/i.test(an)) return 'AN:'+an;
+  const uli = String(rec.ULI||'').trim();
+  if(uli && !/^-+$/.test(uli)) return 'ULI:'+uli;
+  return 'NAME:'+String(rec['Official Student Name']||'').trim().toUpperCase();
+}
+const genderKey = g => { g = String(g||'').trim().toLowerCase(); return (g==='m'||g==='male') ? 'm' : (g==='f'||g==='female') ? 'f' : ''; };
+const initials = n => String(n||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+
+/* ── theme ── */
+const savedTheme = localStorage.getItem('kgp-theme'); if(savedTheme) document.documentElement.dataset.theme = savedTheme;
+$('btn-theme').addEventListener('click', ()=>{
+  const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t; localStorage.setItem('kgp-theme', t);
+});
+
+/* ── auth UI ── */
+function friendlyErr(e){
+  const c = (e && e.code) || '';
+  if(/wrong-password|invalid-credential|invalid-login|user-not-found/.test(c)) return 'Incorrect email or password.';
+  if(c.includes('too-many-requests')) return 'Too many attempts. Try again in a few minutes.';
+  if(c.includes('popup-closed')||c.includes('cancelled-popup')) return '';
+  if(c.includes('network')) return 'Network problem. Check your connection.';
+  if(c.includes('user-disabled')) return 'This account has been disabled.';
+  return (e && e.message) || 'Sign-in failed.';
+}
+function showAuthErr(msg){
+  [['auth-err'],['email-err']].forEach(([id])=>{ const el=$(id); el.textContent=msg; el.style.display = msg ? 'block' : 'none'; });
+}
+let emLast = null;
+function openEmail(){
+  const m = $('email-modal'); emLast = document.activeElement;
+  m.classList.add('open'); m.setAttribute('aria-hidden','false'); document.body.classList.add('em-lock');
+  setTimeout(()=>($('login-email').value ? $('login-password') : $('login-email')).focus(), 120);
+}
+function closeEmail(silent){
+  const m = $('email-modal'); if(!m.classList.contains('open')) return;
+  m.classList.remove('open'); m.setAttribute('aria-hidden','true'); document.body.classList.remove('em-lock');
+  if(!silent && emLast) emLast.focus();
+}
+function emailFail(){ const sh=$('em-sheet'); sh.classList.remove('shake'); void sh.offsetWidth; sh.classList.add('shake'); }
+$('btn-open-email').addEventListener('click', ()=>{ showAuthErr(''); openEmail(); });
+$('em-close').addEventListener('click', ()=>closeEmail());
+$('em-back').addEventListener('click', ()=>closeEmail());
+$('email-modal').addEventListener('mousedown', e=>{ if(e.target===e.currentTarget) closeEmail(); });
+document.addEventListener('keydown', e=>{
+  const m = $('email-modal'); if(!m.classList.contains('open')) return;
+  if(e.key==='Escape'){ closeEmail(); return; }
+  if(e.key==='Tab'){
+    const f=[...m.querySelectorAll('button,input')].filter(x=>x.offsetParent!==null), a=f[0], z=f[f.length-1];
+    if(e.shiftKey && document.activeElement===a){ e.preventDefault(); z.focus(); }
+    else if(!e.shiftKey && document.activeElement===z){ e.preventDefault(); a.focus(); }
+  }
+});
+$('em-eye').addEventListener('click', ()=>{
+  const pw=$('login-password'), b=$('em-eye'), show = pw.type==='password';
+  pw.type = show ? 'text' : 'password'; b.setAttribute('aria-pressed', show); b.setAttribute('aria-label', show?'Hide password':'Show password'); pw.focus();
+});
+$('login-email').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('login-password').focus(); } });
+$('login-password').addEventListener('keydown', e=>{ if(e.key==='Enter') $('btn-email-login').click(); });
+
+$('btn-email-login').addEventListener('click', async ()=>{
+  const email = $('login-email').value.trim(), pass = $('login-password').value;
+  showAuthErr('');
+  if(!email || !pass){ showAuthErr('Enter your email and password.'); emailFail(); return; }
+  const b = $('btn-email-login'); b.disabled = true; b.textContent = 'Signing in…';
+  try{ await signInWithEmailAndPassword(auth, email, pass); }
+  catch(e){ showAuthErr(friendlyErr(e)); emailFail(); }
+  finally{ b.disabled = false; b.textContent = 'Sign In'; }
+});
+$('btn-google').addEventListener('click', async ()=>{
+  showAuthErr('');
+  try{ await signInWithPopup(auth, new GoogleAuthProvider()); }
+  catch(e){ showAuthErr(friendlyErr(e)); }
+});
+$('btn-signout').addEventListener('click', ()=>signOut(auth));
+
+/* ── student records: one DB read, then served from an on-device cache ── */
+// Same path formula as the Active and Deleted Students pages (they fall back to 'default-app-id').
+const APP = (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id').replace(/\./g, '_');
+const SCOPE_PATH = { active: `artifacts/${APP}/students`, deleted: `Deletedstudents/${APP}/artifacts` };
+const CACHE_TTL = 24*60*60*1000, PAGE = 60;   // refetch at most once a day (or on Refresh)
+const ckey = sc => `students-v4-${APP}-${sc}`;
+
+const idb = () => new Promise((res, rej) => { const r = indexedDB.open('kss-cache', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+async function cacheGet(sc){
+  try{ const db = await idb(); return await new Promise(res => { const q = db.transaction('kv').objectStore('kv').get(ckey(sc)); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); }
+  catch(e){ try{ return JSON.parse(localStorage.getItem('kss-'+ckey(sc)) || 'null'); }catch(x){ return null; } }
+}
+async function cachePut(sc, v){
+  try{ const db = await idb(); await new Promise((res, rej) => { const t = db.transaction('kv','readwrite'); t.objectStore('kv').put(v, ckey(sc)); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+  catch(e){ try{ localStorage.setItem('kss-'+ckey(sc), JSON.stringify(v)); }catch(x){} }
+}
+async function cacheClear(){
+  for(const sc of Object.keys(SCOPE_PATH)){
+    try{ const db = await idb(); db.transaction('kv','readwrite').objectStore('kv').delete(ckey(sc)); }catch(e){}
+    try{ localStorage.removeItem('kss-'+ckey(sc)); }catch(e){}
+  }
+}
+
+const clean = v => { v = String(v ?? '').trim(); return /^(-+|n\/?a|nil|none)\.?$/i.test(v) ? '' : v; };   // '', '---', 'N/A' all mean blank
+const gradeNo = x => { const m = String(x ?? '').match(/Grade\s*(\d+)/i) || String(x ?? '').match(/^\s*(\d+)\s*$/); return m ? +m[1] : 0; };
+function normalize(val, sc){
+  const out = [];
+  Object.entries(val || {}).forEach(([id, r]) => {
+    if(!r || typeof r !== 'object') return;
+    const n = clean(r['Official Student Name']); if(!n) return;
+    const gr = gradeNo(r.Grade) || gradeNo(r._prevGrade);
+    if(gr < 1 || gr > 9) return;
+    out.push({ id, n, gr, cls: clean(r.Class), an: clean(r['Assessment No']), uli: clean(r.UPI) || clean(r.ULI), g: genderKey(r.Gender),
+      st: sc === 'deleted' ? '' : clean(r.Status), da: sc === 'deleted' ? clean(r.deletedAt) : '', db: sc === 'deleted' ? clean(r.deletedBy) : '',
+      dob: clean(r.DOB), adm: clean(r.DateOfAdmission), born: clean(r['Where Born']), dist: clean(r.District), fa: clean(r.Father), mo: clean(r.Mother), pn: clean(r['Parent Name']), ph: clean(r['Home phone']), pp: clean(r['Parent Phone']) || clean(r.Phone),
+      bc: clean(r['Birth Entry']), em: clean(r.Email), dis: clean(r.Dissability), med: clean(r['Medical Condition']) });
+  });
+  return out;   // only the fields this page shows are cached (photo/birth-cert blobs are never kept)
+}
+
+let DATA = {}, SCOPE = 'active', ALL = [], META = 0, VIEW = [], shown = PAGE, loaded = false;
+const F = { q:'', gr:0, cls:'', g:'', gap:'' };
+const GAPS = [['uli','ULI','uli'], ['an','Assessment No','an'], ['dob','DOB','dob'], ['g','Gender','g']];
+
+function apply(rec){
+  ALL = rec.rows.slice().sort((a,b) => a.gr - b.gr || a.n.localeCompare(b.n));
+  ALL.forEach((s, i) => { s.i = i; s.s = `${s.n} ${s.an} ${s.uli}`.toLowerCase(); });
+  META = rec.ts; chips(); classes(); render();
+  $('cache').classList.toggle('stale', Date.now() - rec.ts > CACHE_TTL);
+  $('cache-txt').textContent = `${ALL.length} ${SCOPE === 'deleted' ? 'deleted ' : ''}learners · saved ${new Date(rec.ts).toLocaleString([], {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}${rec.kb ? ` · ${rec.kb} KB download` : ''}`;
+}
+async function fetchFresh(sc){
+  const snap = await get(ref(rtdb, SCOPE_PATH[sc]));
+  const raw = snap.exists() ? snap.val() : {}, rec = { ts: Date.now(), kb: Math.round(JSON.stringify(raw).length / 1024), rows: normalize(raw, sc) };
+  await cachePut(sc, rec); return rec;
+}
+async function init(force){
+  const sc = SCOPE;
+  if(DATA[sc] && !force){ apply(DATA[sc]); return; }                       // already in memory → no read at all
+  ALL = []; $('list').innerHTML = Array.from({length:9}, () => '<div class="skeleton"></div>').join('');
+  const cached = force ? null : await cacheGet(sc);
+  if(cached && Array.isArray(cached.rows)){ DATA[sc] = cached; if(sc === SCOPE) apply(cached); if(Date.now() - cached.ts < CACHE_TTL) return; }   // fresh cache → zero database reads
+  try{ const rec = await fetchFresh(sc); DATA[sc] = rec; if(sc === SCOPE) apply(rec); if(force) toast('Records refreshed.', 'ok'); }
+  catch(e){
+    if(ALL.length) toast('Could not refresh — showing the saved copy.', 'err');
+    else if(sc === SCOPE) $('list').innerHTML = `<div class="state" style="grid-column:1/-1"><div class="big">⚠️</div><h3>Couldn't load student records</h3><p>${/permission.denied/i.test((e && (e.code || e.message)) || '') ? 'Your account is not allowed to read these records. Ask an administrator for access.' : esc(e && e.message || 'Check your connection and try again.')}</p><button class="icon-btn" id="btn-retry" type="button">Try again</button></div>`;
+  }
+}
+
+function chips(){
+  const n = {}; ALL.forEach(s => n[s.gr] = (n[s.gr]||0) + 1);
+  $('chips').innerHTML = `<button class="chip ${F.gr?'':'on'}" data-gr="0" type="button">All <em>${ALL.length}</em></button>` +
+    Array.from({length:9}, (_, i) => i+1).map(g => `<button class="chip ${F.gr===g?'on':''}" data-gr="${g}" type="button">Grade ${g} <em>${n[g]||0}</em></button>`).join('');
+}
+function classes(){
+  const set = [...new Set(ALL.filter(s => !F.gr || s.gr === F.gr).map(s => s.cls).filter(Boolean))].sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+  if(!set.includes(F.cls)) F.cls = '';
+  $('f-class').innerHTML = '<option value="">All classes</option>' + set.map(c => `<option ${c===F.cls?'selected':''}>${esc(c)}</option>`).join('');
+}
+function filtered(){
+  const t = F.q.toLowerCase().split(/\s+/).filter(Boolean);
+  return ALL.filter(s => (!F.gr || s.gr === F.gr) && (!F.cls || s.cls === F.cls) && (!F.g || s.g === F.g) && (!F.gap || !s[GAPS.find(x => x[0] === F.gap)[2]]) && t.every(x => s.s.includes(x)));
+}
+const hl = t => {
+  const k = F.q.trim().split(/\s+/).filter(Boolean).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return k.length ? String(t).split(new RegExp('(' + k.join('|') + ')', 'gi')).map((p, i) => i % 2 ? '<mark>' + esc(p) + '</mark>' : esc(p)).join('') : esc(t);
+};
+const clsHue = c => { let h = 0; for(const ch of String(c||'x')) h = (h*31 + ch.charCodeAt(0)) % 360; return h; };
+const tagCopy = (label, v) => v ? `<span class="tag mono" data-copy="${esc(v)}" title="Click to copy ${label}">${label} ${hl(v)}</span>` : `<span class="tag mono">${label} —</span>`;
+const row = (s, i) => `<div class="g-card" style="--ch:${clsHue(s.cls || 'Grade ' + s.gr)}"><span class="g-no">${i+1}</span>
+  <div class="g-av ${s.g}" data-i="${s.i}">${esc(initials(s.n))}</div>
+  <div class="g-info"><div class="g-name">${hl(s.n.toLowerCase())}</div>
+    <div class="g-meta"><span class="tag">Grade ${s.gr}${s.cls ? ' · ' + esc(s.cls) : ''}</span>${s.g ? `<span class="tag ${s.g}">${s.g==='m'?'Male':'Female'}</span>` : ''}${SCOPE === 'deleted' ? `<span class="tag" style="color:var(--red)">Deleted${s.da ? ' ' + esc(new Date(s.da).toLocaleDateString('en-GB')) : ''}</span>` : ''}${tagCopy('AN', s.an)}${tagCopy('ULI', s.uli)}<button class="pdfb" data-i="${s.i}" type="button" title="Print PDF record">🖨 PDF</button></div></div></div>`;
+
+function gaps(){
+  const base = ALL.filter(s => (!F.gr || s.gr === F.gr) && (!F.cls || s.cls === F.cls) && (!F.g || s.g === F.g)), el = $('dq');
+  const n = GAPS.map(([k, l, f]) => [k, l, base.filter(s => !s[f]).length]).filter(x => x[2] || F.gap === x[0]);
+  el.style.display = n.length ? 'flex' : 'none';
+  el.innerHTML = n.length ? '⚠ <span>Missing data:</span>' + n.map(([k, l, c]) => `<button type="button" class="${F.gap === k ? 'on' : ''}" data-gap="${k}">${l} · ${c}</button>`).join('') + (F.gap ? '<button type="button" data-gap="">Show all</button>' : '') : '';
+}
+function render(reset = true){
+  if(reset) shown = PAGE;
+  VIEW = filtered(); gaps();
+  const b = VIEW.filter(s => s.g==='m').length, g = VIEW.filter(s => s.g==='f').length;
+  $('result-count').textContent = `${VIEW.length} of ${ALL.length} learners`;
+  $('gsplit').textContent = `${b} boys · ${g} girls`;
+  $('list').innerHTML = VIEW.length
+    ? VIEW.slice(0, shown).map(row).join('')
+    : `<div class="state" style="grid-column:1/-1"><div class="big">🔍</div><h3>No learners found</h3><p>Try a different spelling, or clear the grade, class and gender filters.</p></div>`;
+  $('btn-more').hidden = VIEW.length <= shown;
+  $('btn-more').textContent = `Show more (${VIEW.length - shown} left)`;
+  watchPhotos();
+}
+
+let qt;
+$('q').addEventListener('input', e => { clearTimeout(qt); qt = setTimeout(() => { F.q = e.target.value; render(); }, 120); });
+$('q').addEventListener('keydown', e => { if(e.key === 'Escape'){ e.target.value = ''; F.q = ''; render(); e.target.blur(); } });
+document.addEventListener('keydown', e => { if(e.key === '/' && $('app').classList.contains('show') && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); $('q').focus(); } });
+$('dq').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; F.gap = F.gap === b.dataset.gap ? '' : b.dataset.gap; render(); });
+$('chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if(!b) return; F.gr = +b.dataset.gr; chips(); classes(); render(); });
+$('f-class').addEventListener('change', e => { F.cls = e.target.value; render(); });
+$('f-gender').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; F.g = b.dataset.g; $('f-gender').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); render(); });
+try{ const v = localStorage.getItem('kss-view'); if(v==='list'){ $('list').className = 'list view-list'; $('f-view').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x.dataset.v==='list')); } }catch(e){}
+$('f-view').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; $('list').className = 'list view-' + b.dataset.v; $('f-view').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); try{ localStorage.setItem('kss-view', b.dataset.v); }catch(x){} });
+$('btn-more').addEventListener('click', () => { shown += PAGE; render(false); });
+$('f-scope').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b || b.dataset.sc === SCOPE) return;
+  SCOPE = b.dataset.sc; F.cls = ''; $('f-scope').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); init();
+});
+$('btn-refresh').addEventListener('click', async () => { const b = $('btn-refresh'); b.disabled = true; await init(true); b.disabled = false; });
+function openLightbox(el){
+  const s = ALL[+el.dataset.i], src = PHOTO_SRC.get(s.id); if(!src) return;
+  const lb = $('lb'); lb.querySelector('img').src = src; lb.querySelector('img').alt = s.n;
+  lb.querySelector('.cap').innerHTML = `${esc(s.n.toLowerCase())}<small>Grade ${s.gr}${s.cls ? ' · ' + esc(s.cls) : ''}${s.an ? ' · AN ' + esc(s.an) : ''}${s.uli ? ' · ULI ' + esc(s.uli) : ''}</small>`;
+  lb.classList.add('open');
+}
+const closeLightbox = () => $('lb').classList.remove('open');
+$('lb').addEventListener('click', closeLightbox);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+$('list').addEventListener('click', e => {
+  const av = e.target.closest('.g-av.ph'); if(av){ openLightbox(av); return; }
+  if(e.target.id === 'btn-retry'){ init(true); return; }
+  const p = e.target.closest('.pdfb'); if(p){ printRecord(ALL[+p.dataset.i], p); return; }
+  const c = e.target.closest('[data-copy]'); if(!c) return;
+  navigator.clipboard.writeText(c.dataset.copy).then(() => toast('Copied ' + c.dataset.copy, 'ok')).catch(() => toast('Copy blocked by the browser.', 'err'));
+});
+$('btn-pdf').addEventListener('click', e => printList(e.currentTarget));
+$('btn-csv').addEventListener('click', () => {
+  if(!VIEW.length){ toast('Nothing to export.', 'err'); return; }
+  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const csv = ['No,Name,Grade,Class,Assessment No,ULI,Gender', ...VIEW.map((s, i) => [i+1, q(s.n), s.gr, q(s.cls), q(s.an), q(s.uli), s.g==='m'?'Male':s.g==='f'?'Female':''].join(','))].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8'}));
+  a.download = `students-${F.gr ? 'grade'+F.gr : 'all-grades'}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast('CSV downloaded.', 'ok');
+});
+
+/* ── PDF student record (same look as the Results.html export: blue banner, white logo, watermark, signature footer) ── */
+const BLUE = [41, 128, 185];
+const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+function toData(img, white, max){
+  const w0 = img.naturalWidth || 80, h0 = img.naturalHeight || 80, k = max ? Math.min(1, max / Math.max(w0, h0)) : 1;
+  const c = document.createElement('canvas'); c.width = Math.round(w0 * k); c.height = Math.round(h0 * k);
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0, c.width, c.height);
+  if(white){ const d = x.getImageData(0, 0, c.width, c.height); for(let i = 0; i < d.data.length; i += 4) if(d.data[i+3] > 0){ d.data[i] = d.data[i+1] = d.data[i+2] = 255; } x.putImageData(d, 0, 0); }
+  return c.toDataURL(white ? 'image/png' : 'image/jpeg', .85);
+}
+/* ── card photos: load only when a card scrolls into view, 4 at a time ── */
+const photoQ = []; let photoBusy = 0, photoIO = null;
+function pumpPhotos(){
+  while(photoBusy < 4 && photoQ.length){
+    const el = photoQ.shift(); photoBusy++;
+    studentPhoto(ALL[+el.dataset.i], 120)
+      .then(d => { if(d && el.isConnected){ el.innerHTML = `<img alt="" src="${d}">`; el.classList.add('ph'); } })
+      .catch(() => {}).finally(() => { photoBusy--; pumpPhotos(); });
+  }
+}
+function watchPhotos(){
+  if(photoIO) photoIO.disconnect(); photoQ.length = 0;
+  photoIO = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ photoIO.unobserve(e.target); photoQ.push(e.target); pumpPhotos(); } }), {rootMargin: '250px'});
+  document.querySelectorAll('.g-av[data-i]').forEach(el => photoIO.observe(el));
+}
+const PHOTO = new Map(), PHOTO_SRC = new Map();
+async function studentPhoto(s, max){
+  const key = `${s.id}|${max || 0}`; if(PHOTO.has(key)) return PHOTO.get(key);
+  let out = null;
+  for(const n of [...new Set([s.an, s.n, s.n.toUpperCase(), s.n.toLowerCase()].filter(Boolean))]){   // Assessment No first, names as fallback
+    const img = await loadImg(encodeURI(`./Report-Cards/student_images/Grade ${s.gr}/${n}.jpg`));
+    if(img){ try{ out = toData(img, false, max); PHOTO_SRC.set(s.id, img.src); break; }catch(e){} }
+  }
+  PHOTO.set(key, out); return out;
+}
+async function logPrint(rows, what){   // same entry shape as the Active Students page's AuditLog; never blocks printing
+  try{
+    const who = auth.currentUser?.email || 'unknown', at = new Date(), u = {};
+    rows.forEach(r => { u[`artifacts/${APP}/AuditLog/${r.id}/${at.getTime()}_print`] = { field: 'PDF printed', oldVal: '', newVal: what, changedBy: who, changedAt: at.toISOString() }; });
+    await update(ref(rtdb), u);
+  }catch(e){ console.warn('[audit] print not logged:', e && e.message); }
+}
+function makeChrome(doc, logo, minI, lines){
+  const W = doc.internal.pageSize.width, H = doc.internal.pageSize.height, land = W > 250;
+  const date = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+  const header = () => {
+    try{ if(minI){ doc.saveGraphicsState(); doc.setGState(new doc.GState({opacity:.08})); doc.addImage(minI, 'PNG', (W-80)/2, (H-80)/2, 80, 80); doc.restoreGraphicsState(); } }catch(e){}
+    doc.setFillColor(...BLUE); doc.rect(0, 0, W, 22, 'F');
+    if(logo) doc.addImage(logo, 'PNG', 14, 3.5, 15, 15);
+    doc.setTextColor(255,255,255); doc.setFont(undefined, 'bold'); doc.setFontSize(14); doc.text('KANYADET PRI & JUNIOR SCHOOL', 34, 10);
+    doc.setFontSize(9); doc.text('P O BOX 45 - 40139, AKALA, KENYA', 34, 16);
+    doc.setFont(undefined, 'normal'); doc.text(`Date: ${date}`, W-14, 8, {align:'right'});
+    lines.forEach((t, i) => doc.text(t, W-14, 13 + i*5, {align:'right'}));
+  };
+  const footer = (n, total) => {
+    const y = H - 15, bx = land ? W - 85 : 118;
+    doc.setFillColor(245,245,245); doc.rect(0, y-5, W, 20, 'F'); doc.setDrawColor(...BLUE); doc.setLineWidth(.3); doc.line(0, y-5, W, y-5);
+    doc.setTextColor(60,60,60); doc.setFontSize(8); doc.setFont(undefined, 'bold'); doc.text('Prepared by:', 14, y);
+    doc.setFont(undefined, 'normal'); doc.text('Automated Online School System', 14, y+4); doc.setFontSize(7); doc.text(`Ict Dept - Digital Signature © ${new Date().getFullYear()}`, 14, y+8);
+    doc.setFontSize(9); doc.text(`Page ${n} of ${total}`, land ? W/2 : 88, y+2, {align:'center'});
+    doc.setDrawColor(...BLUE); doc.setLineWidth(.2); doc.rect(bx, y-3, 28, 10); doc.setFontSize(6); doc.setTextColor(150,150,150);
+    doc.text('OFFICIAL', bx+14, y+2, {align:'center'}); doc.text('STAMP', bx+14, y+5, {align:'center'});
+    doc.setTextColor(60,60,60); doc.setFontSize(8); doc.setFont(undefined, 'bold'); doc.text('Verified by:', W-14, y, {align:'right'});
+    doc.setFont(undefined, 'normal'); doc.text('_________________', W-14, y+4, {align:'right'}); doc.setFontSize(7); doc.text('Signature & Stamp', W-14, y+8, {align:'right'});
+  };
+  return { header, footer };
+}
+async function printList(btn){
+  if(!window.jspdf){ toast('PDF library did not load. Check your connection.', 'err'); return; }
+  if(!VIEW.length){ toast('Nothing to export.', 'err'); return; }
+  btn.disabled = true; const label = btn.textContent; btn.textContent = 'Building…';
+  try{
+    const [logoI, minI] = await Promise.all([loadImg('./images/logo.png'), loadImg('./images/kenya_ministry_education.png')]);
+    const doc = new window.jspdf.jsPDF('landscape');
+    const { header, footer } = makeChrome(doc, logoI ? toData(logoI, true) : null, minI, [
+      [F.gr ? `Grade ${F.gr}` : 'All Grades', F.cls, F.g === 'm' ? 'Boys' : F.g === 'f' ? 'Girls' : '', F.gap && `Missing ${GAPS.find(x => x[0] === F.gap)[1]}`, F.q.trim() && `Search: "${F.q.trim()}"`].filter(Boolean).join(' | ') + ` | Academic Year: ${new Date().getFullYear()}`,
+      `Total Students: ${VIEW.length}`
+    ]);
+    const b = VIEW.filter(s => s.g === 'm').length, gi = VIEW.filter(s => s.g === 'f').length;
+    const withPh = $('pdf-photos').checked, photos = new Array(VIEW.length).fill(null);
+    if(withPh){   // load photos a few at a time, shrunk to 120px so the PDF stays small
+      let next = 0, done = 0;
+      await Promise.all(Array.from({length: 8}, async () => {
+        while(next < VIEW.length){ const i = next++; photos[i] = await studentPhoto(VIEW[i], 120); btn.textContent = `Photos ${++done}/${VIEW.length}`; }
+      }));
+    }
+    const o = withPh ? 1 : 0, sum = {styles: {fillColor: BLUE, textColor: 255, fontStyle: 'bold'}};
+    doc.autoTable({
+      startY: 25, margin: {top: 25, right: 10, bottom: 20, left: 10},
+      head: [['No', ...(withPh ? ['Photo'] : []), 'Official Student Name', 'Grade', 'Class', 'Assessment No', 'ULI', 'Gender']],
+      body: [...VIEW.map((s, i) => [i+1, ...(withPh ? [photos[i] ? '' : '—'] : []), s.n.toUpperCase(), `Grade ${s.gr}`, s.cls || '—', s.an || '—', s.uli || '—', s.g === 'm' ? 'Male' : s.g === 'f' ? 'Female' : '—']),
+             [{content: `Total: ${VIEW.length}`, colSpan: 5 + o, ...sum}, {content: `Boys: ${b}`, ...sum}, {content: `Girls: ${gi}`, ...sum}]],
+      styles: {fontSize: 8, cellPadding: 2, valign: 'middle', halign: 'center'},
+      headStyles: {fillColor: BLUE, textColor: 255, fontStyle: 'bold', fontSize: 7, halign: 'center'},
+      alternateRowStyles: {fillColor: [245,245,245]},
+      columnStyles: withPh ? {0: {cellWidth: 12}, 1: {cellWidth: 18}, 2: {halign: 'left', cellWidth: 80}} : {0: {cellWidth: 14}, 1: {halign: 'left', cellWidth: 82}},
+      rowPageBreak: 'avoid',
+      didDrawCell: d => {
+        if(!withPh || d.section !== 'body' || d.column.index !== 1 || d.row.index >= VIEW.length) return;
+        if(!photos[d.row.index]) return;   // blank learners keep the "—" text, like Results
+        const pad = 1, sz = Math.min(d.cell.width - pad*2, d.cell.height - pad*2);
+        try{ doc.addImage(photos[d.row.index], 'JPEG', d.cell.x + (d.cell.width - sz)/2, d.cell.y + (d.cell.height - sz)/2, sz, sz); }catch(e){}
+      },
+      didDrawPage: header
+    });
+    const total = doc.getNumberOfPages();
+    for(let i = 1; i <= total; i++){ doc.setPage(i); footer(i, total); }
+    doc.save(`students-${F.gr ? 'grade' + F.gr : 'all-grades'}${F.cls ? '-' + F.cls.replace(/[^\w]+/g, '_') : ''}.pdf`);
+    toast('PDF list downloaded.', 'ok');
+    logPrint(VIEW, `Class list PDF (${VIEW.length} learners${withPh ? ', with photos' : ''})${SCOPE === 'deleted' ? ' [deleted records]' : ''}`);
+  }catch(e){ console.error(e); toast('Could not build the PDF.', 'err'); }
+  finally{ btn.disabled = false; btn.textContent = label; }
+}
+async function printRecord(s, btn){
+  if(!window.jspdf){ toast('PDF library did not load. Check your connection.', 'err'); return; }
+  btn.disabled = true; const label = btn.textContent; btn.textContent = '…';
+  try{
+    const [logoI, minI, photo] = await Promise.all([loadImg('./images/logo.png'), loadImg('./images/kenya_ministry_education.png'), studentPhoto(s)]);
+    const logo = logoI ? toData(logoI, true) : null;
+    const doc = new window.jspdf.jsPDF('portrait'), W = doc.internal.pageSize.width, H = doc.internal.pageSize.height;
+    const name = s.n.toUpperCase(), v = x => x || '—';
+
+    const priv = $('pdf-private').checked, { header, footer } = makeChrome(doc, logo, minI, ['Student Record']);
+    header();
+    // identity block: photo + name
+    doc.setDrawColor(...BLUE); doc.setLineWidth(.5); doc.rect(14, 30, 34, 42);
+    if(photo){ try{ doc.addImage(photo, 'JPEG', 14.5, 30.5, 33, 41); }catch(e){} }
+    else { doc.setFillColor(238,244,250); doc.rect(14.5, 30.5, 33, 41, 'F'); doc.setTextColor(...BLUE); doc.setFont(undefined, 'bold'); doc.setFontSize(20); doc.text(initials(s.n), 31, 54, {align:'center'}); }
+    doc.setTextColor(12,30,51); doc.setFont(undefined, 'bold'); doc.setFontSize(16);
+    doc.text(doc.splitTextToSize(name, W - 66), 54, 40);
+    doc.setFontSize(10); doc.setFont(undefined, 'normal'); doc.setTextColor(90,90,90);
+    doc.text(`Grade ${s.gr}${s.cls ? '  |  ' + s.cls : ''}`, 54, 56);
+    doc.text(`Assessment No: ${v(s.an)}    ULI: ${v(s.uli)}`, 54, 63);
+
+    const sec = t => [{content: t, colSpan: 2, styles: {fillColor:[238,244,250], textColor:BLUE, fontStyle:'bold'}}];
+    const g = s.g === 'm' ? 'Male' : s.g === 'f' ? 'Female' : '—';
+    doc.autoTable({
+      startY: 80, margin: {top: 28, right: 14, bottom: 25, left: 14},
+      head: [['Field', 'Details']],
+      body: [
+        sec('IDENTIFICATION'), ['Full name', name], ['Assessment No', v(s.an)], ['ULI', v(s.uli)], ['Gender', g], ['Birth entry no.', v(s.bc)],
+        sec('ENROLMENT'), ['Grade', `Grade ${s.gr}`], ['Class', v(s.cls)], ['Date of admission', v(s.adm)],
+        ['Record status', SCOPE === 'deleted' ? `Deleted${s.da ? ' ' + new Date(s.da).toLocaleDateString('en-GB') : ''}${s.db ? ' by ' + s.db : ''}` : v(s.st)],
+        sec('PERSONAL'), ['Date of birth', v(s.dob)], ['Place of birth', v(s.born)], ['District', v(s.dist)], ...(priv ? [['Email', v(s.em)]] : []),
+        sec('FAMILY'), ['Father', v(s.fa)], ['Mother', v(s.mo)], ['Guardian', v(s.pn)], ...(priv ? [['Home phone', v(s.ph)], ['Parent phone', v(s.pp)], sec('HEALTH'), ['Disability', v(s.dis)], ['Medical condition', v(s.med)]] : [])
+      ],
+      styles: {fontSize: 9.5, cellPadding: 2.6, valign: 'middle'},
+      headStyles: {fillColor: BLUE, textColor: 255, fontStyle: 'bold', fontSize: 8},
+      alternateRowStyles: {fillColor: [245,245,245]},
+      columnStyles: {0: {cellWidth: 50, fontStyle: 'bold', textColor: [60,60,60]}},
+      rowPageBreak: 'avoid',
+      didDrawPage: d => { if(d.pageNumber > 1) header(); }
+    });
+    const total = doc.getNumberOfPages();
+    for(let i = 1; i <= total; i++){ doc.setPage(i); footer(i, total); }
+    doc.save(`${s.n.replace(/[^\w]+/g, '_')}_record.pdf`);
+    toast('PDF record downloaded.', 'ok');
+    logPrint([s], `Student record PDF${priv ? ' (with health & contact details)' : ''}${SCOPE === 'deleted' ? ' [deleted record]' : ''}`);
+  }catch(e){ console.error(e); toast('Could not build the PDF.', 'err'); }
+  finally{ btn.disabled = false; btn.textContent = label; }
+}
+
+/* ── offline shell ── */
+if('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('./students-sw.js').catch(() => {}));
+
+/* ── session ── */
+onAuthStateChanged(auth, user => {
+  if(user){
+    closeEmail(true);
+    $('auth-gate').style.display = 'none'; $('app').classList.add('show');
+    $('user-chip').textContent = user.displayName || user.email || '';
+    if(!loaded){ loaded = true; init(); }
+  }else{
+    ALL = []; VIEW = []; DATA = {}; loaded = false; cacheClear();   // confidential data doesn't stay on a signed-out device
+    $('app').classList.remove('show'); $('auth-gate').style.display = 'flex';
+  }
+});
+</script>
+</body>
+</html>
