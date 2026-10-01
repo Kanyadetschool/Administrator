@@ -600,6 +600,23 @@
       .burger:hover{background:var(--surface2);color:var(--text)}
       body.sb-collapsed .sidebar{transform:translateX(-102%);visibility:hidden;box-shadow:none;transition:transform .3s,visibility 0s linear .3s}
       body.sb-collapsed .main-content{margin-left:0;max-width:100vw}
+      /* Slow 3s collapse (used when opening a Portals & Tools embed) */
+      body.sb-slow .sidebar{transition:transform 3s cubic-bezier(.4,0,.2,1),visibility 0s linear 3s !important}
+      body.sb-slow .main-content{transition:margin-left 3s cubic-bezier(.4,0,.2,1)}
+      /* Embedded portals: page header (title + Open Fullscreen / Reload) hides over 3s; hover just under the top bar to bring it back */
+      #metaHot{display:none}
+      body.meta-focus #metaHot{display:block;position:fixed;top:var(--tb-h,60px);left:0;right:0;height:10px;z-index:540}
+      #metaHot .meta-clue,#metaTip{display:none}
+      body.meta-focus #metaHot .meta-clue{display:flex;align-items:center;gap:6px;position:absolute;top:0;left:50%;transform:translateX(-50%);padding:3px 14px 4px;font-size:11px;font-weight:700;letter-spacing:.01em;white-space:nowrap;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;box-shadow:var(--card-shadow);cursor:default;opacity:0;animation:metaClueIn .45s ease 3s forwards}
+      body.meta-focus #metaHot .meta-clue i{font-style:normal;display:inline-block;animation:metaClueBob 1.4s ease-in-out infinite}
+      body.meta-focus.meta-peek #metaHot .meta-clue{animation:none;opacity:0;pointer-events:none}
+      body.meta-focus #metaTip{display:block;position:fixed;left:50%;top:calc(var(--tb-h,60px) + var(--sh-h,0px) + 24px);transform:translateX(-50%);z-index:549;padding:5px 14px;font-size:11.5px;font-weight:600;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:99px;box-shadow:var(--card-shadow);opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+      body.meta-focus.meta-peek #metaTip{opacity:1}
+      @keyframes metaClueIn{from{opacity:0;transform:translateX(-50%) translateY(-6px)}to{opacity:.92;transform:translateX(-50%) translateY(0)}}
+      @keyframes metaClueBob{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
+      body.meta-focus .content-area{padding-top:0;transition:padding-top 3s cubic-bezier(.4,0,.2,1)}
+      body.meta-focus .view.active > .sec-hdr{position:relative;z-index:549;margin-top:calc(-1 * var(--sh-h,0px));margin-bottom:0;background:var(--surface);box-shadow:0 0 0 10px var(--surface);transform:translateY(0);transition:margin-top 3s cubic-bezier(.4,0,.2,1),margin-bottom 3s cubic-bezier(.4,0,.2,1),transform 3s cubic-bezier(.4,0,.2,1)}
+      body.meta-focus.meta-peek .view.active > .sec-hdr{transform:translateY(calc(var(--sh-h,0px) + 10px));transition:transform .18s ease-out,margin-top 3s cubic-bezier(.4,0,.2,1),margin-bottom 3s cubic-bezier(.4,0,.2,1)}
     }
     @media (max-width: 950px){
       .sidebar{transform:translateX(-102%)}
@@ -788,6 +805,8 @@
     </aside>
 
     <main class="main-content">
+      <div id="metaHot"><div class="meta-clue"><i>▾</i> Hover here for Fullscreen &amp; Reload</div></div>
+      <div id="metaTip"></div>
       <div class="topbar">
         <div class="topbar-left">
           <button class="burger" id="burgerBtn">☰</button>
@@ -3067,9 +3086,13 @@
       if(view === 'resultsportal'){ const fr = $('resultsPortalFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
       if(view === 'liveview') startLiveView();
       if(view === 'teachersportal'){ const fr = $('teachersPortalFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
+      try{ setMetaFocus(!!document.querySelector('.nav-item.embed.active') && window.matchMedia('(min-width: 951px)').matches); }catch(e){}
     }
     document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', () => navTo(item.dataset.view));
+      item.addEventListener('click', () => {
+        navTo(item.dataset.view);
+        if(item.classList.contains('embed') && _desktopMQ.matches) setSidebarCollapsed(true, false, true);
+      });
     });
     document.querySelectorAll('[data-goto]').forEach(el => {
       el.addEventListener('click', () => {
@@ -3104,12 +3127,56 @@
         }
       });
     });
+    /* ── Embedded portals: auto-hide page header (Fullscreen / Reload row), hover under the top bar to peek ── */
+    function measureMeta(){
+      const tb = document.querySelector('.topbar'), sh = document.querySelector('.view.active > .sec-hdr');
+      document.body.style.setProperty('--tb-h', (tb ? tb.offsetHeight : 60) + 'px');
+      document.body.style.setProperty('--sh-h', (sh ? sh.offsetHeight : 0) + 'px');
+    }
+    function setMetaFocus(on){
+      if(on) measureMeta();
+      document.body.classList.toggle('meta-focus', on);
+      if(!on) document.body.classList.remove('meta-peek');
+    }
+    const META_TIPS = [
+      'Press Ctrl+B (or [) to hide or show the sidebar',
+      'Press / to search everything',
+      'Press ? to see all keyboard shortcuts',
+      'Press P to pin this page for quick access',
+      'Press G, then a letter, to jump to another page',
+      'Open Fullscreen opens this portal in its own tab',
+      'Reload refreshes just this portal, not the whole dashboard',
+      'Move the cursor away and this header tucks itself back in'
+    ];
+    let _lastTip = '', _peekT = null;
+    function metaPeek(on){
+      clearTimeout(_peekT);
+      if(on){
+        measureMeta();
+        if(!document.body.classList.contains('meta-peek')){
+          let t; do{ t = META_TIPS[Math.floor(Math.random() * META_TIPS.length)]; }while(t === _lastTip && META_TIPS.length > 1);
+          _lastTip = t; $('metaTip').textContent = '💡 ' + t;
+        }
+        document.body.classList.add('meta-peek'); return;
+      }
+      _peekT = setTimeout(() => document.body.classList.remove('meta-peek'), 250);
+    }
+    document.addEventListener('mouseover', e => {
+      if(!document.body.classList.contains('meta-focus')) return;
+      metaPeek(!!(e.target.closest && e.target.closest('#metaHot, .view.active > .sec-hdr')));
+    });
+    document.documentElement.addEventListener('mouseleave', () => { if(document.body.classList.contains('meta-focus')) metaPeek(false); });
     const _desktopMQ = window.matchMedia('(min-width: 951px)');
-    function setSidebarCollapsed(on, persist){
+    const EMBED_COLLAPSE_MS = 3000;   // sidebar collapse duration after clicking a Portals & Tools link
+    let _sbSlowT = null;
+    function setSidebarCollapsed(on, persist, slow){
+      clearTimeout(_sbSlowT);
+      document.body.classList.toggle('sb-slow', !!slow);
+      if(slow) _sbSlowT = setTimeout(() => document.body.classList.remove('sb-slow'), EMBED_COLLAPSE_MS + 50);
       document.body.classList.toggle('sb-collapsed', on);
       const b = $('burgerBtn'); b.setAttribute('aria-expanded', String(!on)); b.title = on ? 'Show sidebar' : 'Hide sidebar';
       if(persist){ try{ localStorage.setItem('kss-sb-collapsed', on ? '1' : '0'); }catch(e){} }
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 320);   // let charts/tables re-fit the wider area
+      setTimeout(() => window.dispatchEvent(new Event('resize')), slow ? EMBED_COLLAPSE_MS + 50 : 320);   // let charts/tables re-fit the wider area
     }
     try{ setSidebarCollapsed(localStorage.getItem('kss-sb-collapsed') === '1', false); }catch(e){}
     $('burgerBtn').addEventListener('click', () => {
@@ -7188,7 +7255,11 @@
     $('qlinks').addEventListener('click', e => {
       const un = e.target.closest('[data-unpin]')?.dataset.unpin;
       if(un){ e.stopPropagation(); jset('kss-pins', jget('kss-pins', []).filter(v => v !== un)); syncPinBtn(); renderQLinks(); return; }
-      const v = e.target.closest('[data-ql]')?.dataset.ql; if(v) navTo(v);
+      const chip = e.target.closest('[data-ql]'), v = chip?.dataset.ql;
+      if(v){
+        navTo(v);
+        if(window.matchMedia('(min-width: 951px)').matches) setSidebarCollapsed(true, false, true);
+      }
     });
 
     /* 3) Morning briefing */
@@ -7257,7 +7328,7 @@
       el.innerHTML = `<div class="kbd" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts"><h3>⌨️ Keyboard shortcuts <span class="kx-btns"><button type="button" data-a="x">✕</button></span></h3>
         <div class="kbd-grid"><div>
           ${row('<kbd>Ctrl</kbd> <kbd>K</kbd>', 'Search everything')}${row('<kbd>/</kbd>', 'Search everything')}${row('<kbd>?</kbd>', 'This cheat-sheet')}
-          ${row('<kbd>B</kbd>', 'Morning briefing')}${row('<kbd>P</kbd>', 'Pin / unpin this page')}${row('<kbd>[</kbd>', 'Show / hide sidebar')}${row('<kbd>Esc</kbd>', 'Close any pop-up')}
+          ${row('<kbd>B</kbd>', 'Morning briefing')}${row('<kbd>P</kbd>', 'Pin / unpin this page')}${row('<kbd>[</kbd> or <kbd>Ctrl</kbd>+<kbd>B</kbd>', 'Show / hide sidebar')}${row('<kbd>Esc</kbd>', 'Close any pop-up')}
         </div><div>
           ${row('<kbd>g</kbd> <kbd>d</kbd>', 'Go to Dashboard')}${row('<kbd>g</kbd> <kbd>s</kbd>', 'Go to Students')}${row('<kbd>g</kbd> <kbd>t</kbd>', 'Go to Teachers')}
           ${row('<kbd>g</kbd> <kbd>a</kbd>', 'Go to Attendance')}${row('<kbd>g</kbd> <kbd>r</kbd>', 'Go to Results')}${row('<kbd>g</kbd> <kbd>w</kbd>', 'Go to Welfare')}
@@ -7268,6 +7339,7 @@
     }
     let _gPending = false, _gT = null;
     document.addEventListener('keydown', e => {
+      if((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'b'){ e.preventDefault(); $('burgerBtn').click(); return; }
       if(e.ctrlKey || e.metaKey || e.altKey) return;
       const t = e.target;
       if(e.key === 'Escape'){ ['briefBack', 'kbdBack'].forEach(id => $(id)?.classList.remove('open')); return; }
