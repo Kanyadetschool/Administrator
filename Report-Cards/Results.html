@@ -1449,6 +1449,8 @@ toggleBtn.addEventListener('click', () => {
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let db, auth, firestoreDb, userId = null;
+        let fpUnlocked = sessionStorage.getItem('fpUnlocked') === '1';
+        const b64ToBuf = (b64) => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
         let studentsData = [];
         let currentPage = 1;
         let studentsPerPage = 10;
@@ -1657,66 +1659,52 @@ toggleBtn.addEventListener('click', () => {
         });
 
         const signInWithGoogle = async () => {
+            fpUnlocked = true; // fresh Google sign-in = already verified
             try {
                 const provider = new GoogleAuthProvider();
                 await signInWithPopup(auth, provider);
             } catch (error) {
+                fpUnlocked = sessionStorage.getItem('fpUnlocked') === '1';
                 console.error("Error during Google sign-in:", error);
                 showModal(`Failed to sign in with Google: ${error.message}`);
             }
         };
 
+        // Fingerprint = device unlock for an existing Firebase session (client-side lock).
+        // Firebase custom tokens must be minted server-side, so the credential ID can never be one.
         const signInWithFingerprint = async () => {
             if (!window.PublicKeyCredential) {
                 showModal("Fingerprint authentication not supported on this device or browser.");
                 return;
             }
+            const user = auth.currentUser;
+            const credId = user && localStorage.getItem(`fpCred_${user.uid}`);
+            if (!credId) {
+                showModal("Sign in with Google once first. You will then be offered fingerprint unlock on this device.");
+                return;
+            }
             try {
-                const challenge = new Uint8Array(32);
-                window.crypto.getRandomValues(challenge);
-
-                let credential;
-                try {
-                    credential = await navigator.credentials.get({
-                        publicKey: {
-                            challenge: challenge,
-                            rpId: window.location.hostname,
-                            userVerification: 'required',
-                        }
-                    });
-                } catch (e) {
-                    credential = await navigator.credentials.create({
-                        publicKey: {
-                            challenge: challenge,
-                            rp: {
-                                name: "Student Data Uploader",
-                                id: window.location.hostname,
-                            },
-                            user: {
-                                id: new Uint8Array(16),
-                                name: "webauthn-user",
-                                displayName: "WebAuthn User",
-                            },
-                            pubKeyCredParams: [{
-                                type: "public-key",
-                                alg: -7
-                            }],
-                            timeout: 60000,
-                            attestation: "direct"
-                        }
-                    });
-                }
-                showModal("Successfully authenticated with fingerprint!");
-                const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-                await signInWithCustomToken(auth, credentialId);
+                await navigator.credentials.get({
+                    publicKey: {
+                        challenge: crypto.getRandomValues(new Uint8Array(32)),
+                        rpId: window.location.hostname,
+                        userVerification: 'required',
+                        timeout: 60000,
+                        allowCredentials: [{ type: 'public-key', id: b64ToBuf(credId) }]
+                    }
+                });
+                sessionStorage.setItem('fpUnlocked', '1');
+                location.reload(); // session persists, gate now passes
             } catch (error) {
-                console.error("Error during fingerprint sign-in:", error);
+                console.error("Error during fingerprint unlock:", error);
                 showModal(`Fingerprint authentication failed: ${error.message}`);
             }
         };
 
         const signOutUser = async () => {
             try {
+                sessionStorage.removeItem('fpUnlocked');
+                fpUnlocked = false;
                 await signOut(auth);
                 showModal("You have been signed out.");
             } catch (error) {
@@ -1760,6 +1748,40 @@ toggleBtn.addEventListener('click', () => {
                             await signOut(auth);
                             return; // onAuthStateChanged will re-fire with user=null and reset the UI
                         }
+
+                        // ── Fingerprint lock / enrolment ─────────────────────────────
+                        const fpKey = `fpCred_${user.uid}`;
+                        if (localStorage.getItem(fpKey) && !fpUnlocked) {
+                            loader.classList.add('hidden');
+                            document.body.classList.add('user-logged-out');
+                            document.body.classList.remove('user-logged-in');
+                            signInSection.classList.remove('hidden');
+                            signOutBtn.classList.remove('hidden');
+                            showModal('🔒 Locked. Tap "Sign in with Fingerprint" to continue.');
+                            return;
+                        }
+                        if (!localStorage.getItem(fpKey) && !localStorage.getItem(fpKey + '_no') && window.PublicKeyCredential) {
+                            if (confirm('Enable fingerprint unlock on this device?')) {
+                                try {
+                                    const cred = await navigator.credentials.create({
+                                        publicKey: {
+                                            challenge: crypto.getRandomValues(new Uint8Array(32)),
+                                            rp: { name: "Kanyadet Results", id: window.location.hostname },
+                                            user: { id: new TextEncoder().encode(user.uid), name: user.email || user.uid, displayName: user.email || user.uid },
+                                            pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+                                            authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                                            timeout: 60000,
+                                            attestation: "none"
+                                        }
+                                    });
+                                    localStorage.setItem(fpKey, btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
+                                } catch (e) { console.warn('Fingerprint enrolment skipped:', e); }
+                            } else {
+                                localStorage.setItem(fpKey + '_no', '1');
+                            }
+                        }
+                        fpUnlocked = true;
+                        sessionStorage.setItem('fpUnlocked', '1');
 
                         userId = user.uid;
                         console.log("Authenticated with user ID:", userId);
@@ -7043,7 +7065,7 @@ const exportToPdf = async () => {
                     <div style="padding:1.1rem 1.5rem;background:var(--navy);border-radius:18px 18px 0 0;display:flex;align-items:center;justify-content:space-between;">
                         <div>
                             <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:800;color:#fff;">Missing Marks Scanner</div>
-                            <div style="font-size:.73rem;color:rgba(255,255,255,.45);margin-top:.15rem;">Finds students on the roster with zero subject scores entered for their Grade/Term</div>
+                            <div style="font-size:.73rem;color:rgba(255,255,255,.45);margin-top:.15rem;">Flags learning areas that are empty, 0, - or --- for each student in their Grade/Term</div>
                         </div>
                         <button id="close-missing-marks" style="width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;">✕</button>
                     </div>
@@ -7096,6 +7118,15 @@ const exportToPdf = async () => {
                 renderResults();
             });
 
+            // ── What counts as "missing": empty, null, whitespace, - / -- / --- (any dash run), 0 / "0" / "0.0" ──
+            const isMissingMark = (v) => {
+                if (v === undefined || v === null) return true;
+                const t = String(v).trim();
+                if (t === '' || /^[-\u2013\u2014]+$/.test(t)) return true;
+                const n = Number(t);
+                return !isNaN(n) && n === 0;
+            };
+
             // ── Scan logic ────────────────────────────────────────────────────
             function runScan() {
                 const data = window.studentsData || studentsData || [];
@@ -7114,20 +7145,19 @@ const exportToPdf = async () => {
                 Object.values(groups).forEach(group => {
                     const subjectCols = getSubjectColumns(group);
                     group.forEach(s => {
-                        const hasAnyMark = subjectCols.some(subj => {
-                            const v = s[subj];
-                            return v !== undefined && v !== null && v !== '' && v !== '-';
-                        });
-                        if (!hasAnyMark) {
+                        const missing = subjectCols.filter(subj => isMissingMark(s[subj]));
+                        if (missing.length > 0 || subjectCols.length === 0) {
                             _flagged.push({
                                 student: s,
                                 grade: s['Grade'] || '—',
                                 term: s['Term'] || '—',
                                 subjectCount: subjectCols.length,
+                                missing,
                             });
                         }
                     });
                 });
+                _flagged.sort((a, b) => b.missing.length - a.missing.length);
 
                 renderSummary();
                 renderTabs();
@@ -7141,11 +7171,11 @@ const exportToPdf = async () => {
                 if (total === 0) {
                     summaryEl.innerHTML = `<div style="display:flex;align-items:center;gap:.5rem;color:#059669;font-weight:700;font-size:.85rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Every student has at least one mark recorded.
+                        No missing marks (0, -, --- or empty) found.
                     </div>`;
                     document.getElementById('mm-scan-footer-note').textContent = `${scannedCount} records scanned.`;
                 } else {
-                    summaryEl.innerHTML = `<div style="padding:.3rem .85rem;border-radius:8px;background:#fff7ed;color:#c2410c;font-size:.8rem;font-weight:700;">⚠ ${total} student${total!==1?'s':''} with no marks entered</div>`;
+                    summaryEl.innerHTML = `<div style="padding:.3rem .85rem;border-radius:8px;background:#fff7ed;color:#c2410c;font-size:.8rem;font-weight:700;">⚠ ${total} student${total!==1?'s':''} with missing marks</div>`;
                     document.getElementById('mm-scan-footer-note').textContent = `${scannedCount} records scanned · ${total} flagged`;
                 }
             }
@@ -7156,7 +7186,7 @@ const exportToPdf = async () => {
 
                 if (filtered.length === 0) {
                     resultsEl.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--slate);font-size:.85rem;">
-                        ${_flagged.length === 0 ? '✓ No students without marks detected.' : 'No flagged students in this grade.'}
+                        ${_flagged.length === 0 ? '✓ No missing marks detected.' : 'No flagged students in this grade.'}
                     </div>`;
                     return;
                 }
@@ -7175,7 +7205,7 @@ const exportToPdf = async () => {
                         <td style="padding:.45rem .75rem;font-size:.7rem;">
                             ${noSubjectsAtAll
                                 ? `<span style="color:var(--slate-lt);" title="No student in this Grade/Term has any subject marks yet">whole exam empty</span>`
-                                : `<span style="color:#c2410c;">0 of ${f.subjectCount} subjects</span>`}
+                                : `<span style="color:#c2410c;" title="${f.missing.join(', ')}">${f.missing.length} of ${f.subjectCount} missing</span><div style="color:var(--slate);font-size:.66rem;">${f.missing.slice(0,4).join(', ')}${f.missing.length>4?'…':''}</div>`}
                         </td>
                         <td style="padding:.45rem .5rem;">
                             <button onclick="addMissingMarks('${dbKey}')" style="padding:.22rem .6rem;border-radius:6px;border:1.5px solid #fdba74;background:#fff7ed;color:#c2410c;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Add Marks</button>
@@ -7283,6 +7313,7 @@ const exportToPdf = async () => {
   };
 })();
 </script>
+<script src="https://kanyadet-school-admin.web.app/js/nav-buttons.js"></script>
 
 </body>
 </html>
