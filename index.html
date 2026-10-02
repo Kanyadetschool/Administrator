@@ -156,7 +156,25 @@
     .s-toggle .s-count{margin-left:auto;font-size:9px;font-weight:800;padding:1px 7px;border-radius:99px;background:rgba(123,92,209,.18);color:#a98cf0}
     .s-toggle .s-chev{font-size:11px;transition:transform .25s}
     .embed-group.collapsed .s-chev{transform:rotate(-90deg)}
-    .embed-group.collapsed .embed-list{display:none}
+    .embed-list{display:grid;grid-template-rows:1fr;transition:grid-template-rows .5s cubic-bezier(.22,1,.36,1),opacity .35s ease,transform .5s cubic-bezier(.22,1,.36,1)}
+    .embed-inner{overflow:hidden;min-height:0}
+    .embed-group.collapsed .embed-list{grid-template-rows:0fr;opacity:0;transform:translateY(-8px);pointer-events:none}
+    .embed-group.collapsed.peek .embed-list{grid-template-rows:1fr;opacity:1;transform:none;pointer-events:auto;transition-delay:.1s,.1s,.1s}
+    .embed-group.collapsed.peek .s-toggle{margin-bottom:4px;color:var(--text);background:rgba(123,92,209,.10)}
+    .embed-group.collapsed.peek .s-chev{transform:none}
+    /* 6s auto-close countdown after the pointer leaves */
+    .embed-group{position:relative}
+    .e-timer{display:none;position:absolute;left:16px;right:16px;bottom:3px;height:2px;border-radius:2px;background:linear-gradient(90deg,#8e44ad,#2980b9);transform-origin:left}
+    .embed-group.closing .e-timer{display:block;animation:eTimer 6s linear forwards}
+    @keyframes eTimer{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+    .s-toggle .s-cd,.sb-cd{display:none;font-size:9px;font-weight:800;letter-spacing:.04em;white-space:nowrap;padding:2px 8px;border-radius:99px;background:linear-gradient(135deg,#8e44ad,#2980b9);color:#fff;box-shadow:0 2px 8px rgba(41,128,185,.35)}
+    .s-toggle .s-cd{margin-left:auto}
+    .embed-group.closing .s-cd{display:inline-block;animation:cdIn .35s ease-out,cdPulse 1s ease-in-out .35s infinite}
+    .embed-group.closing .s-count{display:none}
+    @keyframes cdPulse{50%{transform:scale(1.08)}}
+    @keyframes cdIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+    body.sb-peek.sb-closing .sb-cd{display:block;position:fixed;top:12px;left:calc(var(--sidebar-w) - 108px);z-index:620;animation:cdIn .35s ease-out,cdPulse 1s ease-in-out .35s infinite}
+    .embed-group:has(.nav-item.embed.active) .s-dot{box-shadow:0 0 0 3px rgba(142,68,173,.45)}
     .embed-group.collapsed .s-toggle{margin-bottom:0}
     .nav-item.embed{padding:7px 10px}
     .nav-item.embed .nav-icon{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:14px;background:color-mix(in srgb,var(--ec) 18%,transparent);border:1px solid color-mix(in srgb,var(--ec) 30%,transparent)}
@@ -166,6 +184,37 @@
     .nav-item.embed.active{background:color-mix(in srgb,var(--ec) 20%,transparent);border-color:color-mix(in srgb,var(--ec) 45%,transparent);color:var(--text);box-shadow:0 6px 18px color-mix(in srgb,var(--ec) 22%,transparent)}
     .nav-item.embed.active::after{opacity:.9;color:var(--ec)}
     .nav-item.embed.live::after{display:none}
+    /* Portals & Tools — divided sub-sections; hover a heading to reveal its items */
+    .embed-pin{padding-bottom:2px}
+    .embed-sub{position:relative;margin-top:8px;padding-top:6px}
+    .embed-sub::before{content:'';position:absolute;top:0;left:6px;right:6px;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--sc) 60%,var(--border)),transparent)}
+    .sub-head{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;cursor:pointer;color:var(--text3);user-select:none;transition:var(--transition);outline:none}
+    .sub-head:hover,.sub-head:focus-visible,.embed-sub:hover .sub-head,.embed-sub.open .sub-head,.embed-sub:has(.nav-item.active) .sub-head{color:var(--text);background:color-mix(in srgb,var(--sc) 12%,transparent)}
+    .sub-dot{width:7px;height:7px;border-radius:50%;background:var(--sc);box-shadow:0 0 0 3px color-mix(in srgb,var(--sc) 22%,transparent);flex-shrink:0}
+    .sub-title{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+    .sub-n{margin-left:auto;font-size:9px;font-weight:800;padding:1px 7px;border-radius:99px;background:color-mix(in srgb,var(--sc) 18%,transparent);color:var(--sc)}
+    .sub-chev{font-size:11px;transition:transform .25s}
+    .embed-sub:hover .sub-chev,.embed-sub.open .sub-chev,.embed-sub:has(.nav-item.active) .sub-chev{transform:rotate(180deg)}
+    .sub-body{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .45s cubic-bezier(.22,1,.36,1),opacity .3s ease}
+    .sub-inner{overflow:hidden;min-height:0;margin-left:12px;padding-left:6px;border-left:1px dashed color-mix(in srgb,var(--sc) 45%,transparent)}
+    .embed-sub:hover .sub-body,.embed-sub.open .sub-body,.embed-sub:has(.nav-item.active) .sub-body{grid-template-rows:1fr;opacity:1;transition-delay:.1s,.1s}
+    .embed-sub .sub-inner .nav-item.embed:first-child{margin-top:4px}
+    .embed-sub .nav-item.embed{opacity:0;transform:translateX(-12px);transition:opacity .25s ease,transform .25s cubic-bezier(.22,1,.36,1),background .2s,border-color .2s,box-shadow .2s}
+    .embed-sub:hover .nav-item.embed,.embed-sub.open .nav-item.embed,.embed-sub:has(.nav-item.active) .nav-item.embed{opacity:1;transform:none;transition:opacity .4s ease calc(var(--i,0)*45ms + 120ms),transform .45s cubic-bezier(.22,1,.36,1) calc(var(--i,0)*45ms + 120ms),background .2s,border-color .2s,box-shadow .2s}
+    .embed-sub:hover .nav-item.embed:hover,.embed-sub.open .nav-item.embed:hover{transform:translateX(3px);transition:transform .2s ease,background .2s,border-color .2s,box-shadow .2s}
+    .sub-inner .nav-item:nth-child(1){--i:0}.sub-inner .nav-item:nth-child(2){--i:1}.sub-inner .nav-item:nth-child(3){--i:2}.sub-inner .nav-item:nth-child(4){--i:3}.sub-inner .nav-item:nth-child(5){--i:4}.sub-inner .nav-item:nth-child(6){--i:5}.sub-inner .nav-item:nth-child(7){--i:6}
+    @media (prefers-reduced-motion: reduce){.embed-list,.sub-body,.embed-sub .nav-item.embed,.sidebar{transition-duration:.01s !important;transition-delay:0s !important}}
+    /* Main sidebar: hover the left edge (or the ☰ button) to peek it open; it closes 3s after the pointer leaves */
+    .sb-hot,.sb-timer{display:none}
+    @media (min-width: 951px){
+      body.sb-collapsed:not(.sb-peek) .sb-hot{display:block;position:fixed;left:0;top:0;bottom:0;width:14px;z-index:560;cursor:e-resize}
+      .sb-hot::after{content:'';position:absolute;left:0;top:50%;width:4px;height:72px;transform:translateY(-50%);border-radius:0 8px 8px 0;background:linear-gradient(180deg,var(--blue-lt,#2980b9),#7b5cd1);opacity:.5;transition:width .2s,opacity .2s}
+      .sb-hot:hover::after{width:7px;opacity:1}
+      body.sb-collapsed.sb-peek .sidebar{transform:translateX(0);visibility:visible;box-shadow:12px 0 40px rgba(0,0,0,.28);transition:transform .5s cubic-bezier(.22,1,.36,1),box-shadow .5s ease,visibility 0s}
+      body.sb-peek .sb-timer{display:block;position:sticky;top:0;z-index:5;flex-shrink:0;height:3px;margin-bottom:-3px;width:100%;background:linear-gradient(90deg,var(--blue-lt,#2980b9),#7b5cd1);transform-origin:left;opacity:0}
+      body.sb-peek.sb-closing .sb-timer{opacity:1;animation:sbTimer 3s linear forwards}
+      @keyframes sbTimer{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+    }
     .lv-nav-live{animation:pulse 1.6s infinite}
     /* Live View page */
     .lv-conn{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;padding:6px 12px;border-radius:99px;background:var(--bg2);border:1px solid var(--rule,var(--border));color:var(--text2)}
@@ -598,7 +647,7 @@
     @media (min-width: 951px){
       .burger{display:flex;align-items:center;justify-content:center}
       .burger:hover{background:var(--surface2);color:var(--text)}
-      body.sb-collapsed .sidebar{transform:translateX(-102%);visibility:hidden;box-shadow:none;transition:transform .3s,visibility 0s linear .3s}
+      body.sb-collapsed .sidebar{transform:translateX(-102%);visibility:hidden;box-shadow:none;transition:transform .5s cubic-bezier(.22,1,.36,1),box-shadow .5s ease,visibility 0s linear .5s}
       body.sb-collapsed .main-content{margin-left:0;max-width:100vw}
       /* Slow 3s collapse (used when opening a Portals & Tools embed) */
       body.sb-slow .sidebar{transition:transform 3s cubic-bezier(.4,0,.2,1),visibility 0s linear 3s !important}
@@ -742,7 +791,9 @@
 
   <div id="app-shell">
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="sb-hot" id="sbHot" title="Hover to open the menu"></div>
     <aside class="sidebar" id="sidebar">
+      <div class="sb-timer" id="sbTimer"></div>
       <div class="sidebar-brand">
         <div class="brand-icon" style="overflow:hidden;padding:0;">
           <img src="./images/logo.png" alt="School Logo" style="width:100%;height:100%;object-fit:cover;border-radius:12px;filter: grayscale();" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
@@ -767,19 +818,61 @@
         <div class="nav-item" data-view="settings"><span class="nav-icon">⚙️</span>Settings</div>
       </div>
 
-      <div class="sidebar-section embed-group" id="embedGroup">
-        <button class="s-toggle" type="button" id="embedToggle" aria-expanded="true" aria-controls="embedList">
-          <span class="s-dot"></span><span class="s-title">Portals &amp; Tools</span><span class="s-count">7</span><span class="s-chev">▾</span>
+      <div class="sidebar-section embed-group collapsed" id="embedGroup">
+        <button class="s-toggle" type="button" id="embedToggle" aria-expanded="false" aria-controls="embedList">
+          <span class="s-dot"></span><span class="s-title">Portals &amp; Tools</span><span class="s-count">22</span><span class="s-chev">▾</span>
         </button>
-        <div class="embed-list" id="embedList">
-          <div class="nav-item embed live" data-view="liveview" style="--ec:#e74c3c"><span class="nav-icon">📡</span>Live View <span class="nav-badge red lv-nav-live">LIVE</span></div>
-          <div class="nav-item embed" data-view="timetable" style="--ec:#7b5cd1"><span class="nav-icon">⏱️</span>Exam Timetable</div>
-          <div class="nav-item embed" data-view="studentsearch" style="--ec:#2980b9"><span class="nav-icon">🔎</span>Student Search</div>
-          <div class="nav-item embed" data-view="studentbiodata" style="--ec:#16a085"><span class="nav-icon">🪪</span>Student Biodata</div>
-          <div class="nav-item embed" data-view="graduation" style="--ec:#f39c12"><span class="nav-icon">🎓</span>Graduation</div>
-          <div class="nav-item embed" data-view="resultsportal" style="--ec:#e67e22"><span class="nav-icon">📋</span>Results Portal</div>
-          <div class="nav-item embed" data-view="teachersportal" style="--ec:#8e44ad"><span class="nav-icon">🧑‍🏫</span>Teachers Portal</div>
-        </div>
+        <div class="embed-list" id="embedList"><div class="embed-inner">
+          <div class="embed-pin">
+            <div class="nav-item embed live" data-view="liveview" style="--ec:#e74c3c"><span class="nav-icon">📡</span>Live View <span class="nav-badge red lv-nav-live">LIVE</span></div>
+          </div>
+          <div class="embed-sub" style="--sc:#2980b9">
+            <div class="sub-head" role="button" tabindex="0" aria-expanded="false"><span class="sub-dot"></span><span class="sub-title">Students</span><span class="sub-n">7</span><span class="sub-chev">▾</span></div>
+            <div class="sub-body"><div class="sub-inner">
+              <div class="nav-item embed" data-view="studentsearch" style="--ec:#2980b9"><span class="nav-icon">🔎</span>Student Search</div>
+              <div class="nav-item embed" data-view="studentbiodata" style="--ec:#16a085"><span class="nav-icon">🪪</span>Student Biodata</div>
+              <div class="nav-item embed" data-view="pStudentPortal" style="--ec:#1abc9c"><span class="nav-icon">🏫</span>Student Portal</div>
+              <div class="nav-item embed" data-view="pActiveDB" style="--ec:#27ae60"><span class="nav-icon">🎓</span>Active Students DB</div>
+              <div class="nav-item embed" data-view="pDeleted" style="--ec:#7f8c8d"><span class="nav-icon">🗄️</span>Deleted Students</div>
+              <div class="nav-item embed" data-view="pUpdater" style="--ec:#e67e22"><span class="nav-icon">🛠️</span>Bulk Updater</div>
+              <div class="nav-item embed" data-view="pCleaner" style="--ec:#16a085"><span class="nav-icon">🧹</span>Cleaner Updater</div>
+            </div></div>
+          </div>
+          <div class="embed-sub" style="--sc:#e67e22">
+            <div class="sub-head" role="button" tabindex="0" aria-expanded="false"><span class="sub-dot"></span><span class="sub-title">Results &amp; Exams</span><span class="sub-n">3</span><span class="sub-chev">▾</span></div>
+            <div class="sub-body"><div class="sub-inner">
+              <div class="nav-item embed" data-view="resultsportal" style="--ec:#e67e22"><span class="nav-icon">📋</span>Results Portal</div>
+              <div class="nav-item embed" data-view="timetable" style="--ec:#7b5cd1"><span class="nav-icon">⏱️</span>Exam Timetable</div>
+              <div class="nav-item embed" data-view="graduation" style="--ec:#f39c12"><span class="nav-icon">🎓</span>Graduation</div>
+            </div></div>
+          </div>
+          <div class="embed-sub" style="--sc:#8e44ad">
+            <div class="sub-head" role="button" tabindex="0" aria-expanded="false"><span class="sub-dot"></span><span class="sub-title">Staff &amp; Welfare</span><span class="sub-n">3</span><span class="sub-chev">▾</span></div>
+            <div class="sub-body"><div class="sub-inner">
+              <div class="nav-item embed" data-view="teachersportal" style="--ec:#8e44ad"><span class="nav-icon">🧑‍🏫</span>Teachers Portal</div>
+              <div class="nav-item embed" data-view="pLunch" style="--ec:#d35400"><span class="nav-icon">🍽️</span>Lunch Manager</div>
+              <div class="nav-item embed" data-view="pFood" style="--ec:#c0392b"><span class="nav-icon">🥘</span>Food Budget</div>
+            </div></div>
+          </div>
+          <div class="embed-sub" style="--sc:#2e86c1">
+            <div class="sub-head" role="button" tabindex="0" aria-expanded="false"><span class="sub-dot"></span><span class="sub-title">Library &amp; Textbooks</span><span class="sub-n">6</span><span class="sub-chev">▾</span></div>
+            <div class="sub-body"><div class="sub-inner">
+              <div class="nav-item embed" data-view="pLibrary" style="--ec:#2c3e50"><span class="nav-icon">📚</span>Library</div>
+              <div class="nav-item embed" data-view="pLibAnalytics" style="--ec:#2980b9"><span class="nav-icon">📈</span>Library Analytics</div>
+              <div class="nav-item embed" data-view="pClassLib" style="--ec:#8e44ad"><span class="nav-icon">🏫</span>Class Library</div>
+              <div class="nav-item embed" data-view="pLibFines" style="--ec:#f39c12"><span class="nav-icon">💰</span>Library Fines</div>
+              <div class="nav-item embed" data-view="pBookCond" style="--ec:#95a5a6"><span class="nav-icon">🔍</span>Book Condition</div>
+              <div class="nav-item embed" data-view="pTextbook" style="--ec:#2ecc71"><span class="nav-icon">📗</span>Textbook Portal</div>
+            </div></div>
+          </div>
+          <div class="embed-sub" style="--sc:#1abc9c">
+            <div class="sub-head" role="button" tabindex="0" aria-expanded="false"><span class="sub-dot"></span><span class="sub-title">Access &amp; Community</span><span class="sub-n">2</span><span class="sub-chev">▾</span></div>
+            <div class="sub-body"><div class="sub-inner">
+              <div class="nav-item embed" data-view="pParents" style="--ec:#e91e8c"><span class="nav-icon">👨‍👩‍👧‍👦</span>Parents Portal</div>
+              <div class="nav-item embed" data-view="pHome" style="--ec:#3498db"><span class="nav-icon">📄</span>Home Page</div>
+            </div></div>
+          </div>
+        </div></div>
       </div>
 
       <div class="sidebar-section">
@@ -1818,6 +1911,246 @@
             <iframe id="teachersPortalFrame" data-src="./teachers.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Teachers Portal" loading="lazy"></iframe>
           </div>
         </section>
+        <!-- HOME PAGE (embedded) -->
+        <section class="view" id="pHome">
+          <div class="sec-hdr">
+            <div>
+              <h2>Home Page</h2>
+              <div class="sec-sub">Alternate results viewing surface.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-portal.web.app/login.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">📄 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pHome')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pHome" data-src="https://kanyadet-school-portal.web.app/login.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Home Page" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- PARENTS PORTAL (embedded) -->
+        <section class="view" id="pParents">
+          <div class="sec-hdr">
+            <div>
+              <h2>Parents Portal</h2>
+              <div class="sec-sub">Student information and communication with teachers.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-parents.web.app/" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">👨‍👩‍👧‍👦 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pParents')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pParents" data-src="https://kanyadet-school-parents.web.app/" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Parents Portal" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- STUDENT PORTAL (embedded) -->
+        <section class="view" id="pStudentPortal">
+          <div class="sec-hdr">
+            <div>
+              <h2>Student Portal</h2>
+              <div class="sec-sub">Student lookup and share cards.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/Report-Cards/Individual-student-portal.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🏫 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pStudentPortal')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pStudentPortal" data-src="https://kanyadet-school-admin.web.app/Report-Cards/Individual-student-portal.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Student Portal" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- LUNCH MANAGER (embedded) -->
+        <section class="view" id="pLunch">
+          <div class="sec-hdr">
+            <div>
+              <h2>Lunch Manager</h2>
+              <div class="sec-sub">Lunch contribution payments, reminders &amp; history.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/lunch/lunch.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🍽️ Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pLunch')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pLunch" data-src="https://kanyadet-school-admin.web.app/lunch/lunch.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Lunch Manager" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- FOOD BUDGET (embedded) -->
+        <section class="view" id="pFood">
+          <div class="sec-hdr">
+            <div>
+              <h2>Food Budget</h2>
+              <div class="sec-sub">Food budget management.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/lunch/food.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🥘 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pFood')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pFood" data-src="https://kanyadet-school-admin.web.app/lunch/food.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Food Budget" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- ACTIVE STUDENTS DB (embedded) -->
+        <section class="view" id="pActiveDB">
+          <div class="sec-hdr">
+            <div>
+              <h2>Active Students DB</h2>
+              <div class="sec-sub">Admissions registry with editing, promote, export &amp; audit history.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🎓 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pActiveDB')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pActiveDB" data-src="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Active Students DB" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- DELETED STUDENTS (embedded) -->
+        <section class="view" id="pDeleted">
+          <div class="sec-hdr">
+            <div>
+              <h2>Deleted Students</h2>
+              <div class="sec-sub">Archived / transferred learner records.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/Report-Cards/All-Deleted-Students-Database.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🗄️ Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pDeleted')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pDeleted" data-src="https://kanyadet-school-admin.web.app/Report-Cards/All-Deleted-Students-Database.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Deleted Students" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- BULK UPDATER (embedded) -->
+        <section class="view" id="pUpdater">
+          <div class="sec-hdr">
+            <div>
+              <h2>Bulk Updater</h2>
+              <div class="sec-sub">Bulk-edit student records across the database.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="./updater.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🛠️ Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pUpdater')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pUpdater" data-src="./updater.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Bulk Updater" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- CLEANER UPDATER (embedded) -->
+        <section class="view" id="pCleaner">
+          <div class="sec-hdr">
+            <div>
+              <h2>Cleaner Updater</h2>
+              <div class="sec-sub">Find and clean up duplicate or malformed records.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="./cleaner.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🧹 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pCleaner')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pCleaner" data-src="./cleaner.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Cleaner Updater" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- LIBRARY (embedded) -->
+        <section class="view" id="pLibrary">
+          <div class="sec-hdr">
+            <div>
+              <h2>Library</h2>
+              <div class="sec-sub">Book catalog, loans &amp; reservations admin.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/Library%20system/library.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">📚 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pLibrary')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pLibrary" data-src="https://kanyadet-school-admin.web.app/Library%20system/library.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Library" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- LIBRARY ANALYTICS (embedded) -->
+        <section class="view" id="pLibAnalytics">
+          <div class="sec-hdr">
+            <div>
+              <h2>Library Analytics</h2>
+              <div class="sec-sub">Trends, per-book history &amp; exports.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/Library%20system/library.html#advancedAnalytics" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">📈 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pLibAnalytics')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pLibAnalytics" data-src="https://kanyadet-school-admin.web.app/Library%20system/library.html#advancedAnalytics" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Library Analytics" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- CLASS LIBRARY (embedded) -->
+        <section class="view" id="pClassLib">
+          <div class="sec-hdr">
+            <div>
+              <h2>Class Library</h2>
+              <div class="sec-sub">Per-grade issuance, class-kit bulk issue &amp; stream clearance.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/Library%20system/library.html#classLibrary" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🏫 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pClassLib')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pClassLib" data-src="https://kanyadet-school-admin.web.app/Library%20system/library.html#classLibrary" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Class Library" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- LIBRARY FINES (embedded) -->
+        <section class="view" id="pLibFines">
+          <div class="sec-hdr">
+            <div>
+              <h2>Library Fines</h2>
+              <div class="sec-sub">Outstanding fines, payments &amp; waivers.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/Library%20system/library.html#fines" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">💰 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pLibFines')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pLibFines" data-src="https://kanyadet-school-admin.web.app/Library%20system/library.html#fines" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Library Fines" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- BOOK CONDITION (embedded) -->
+        <section class="view" id="pBookCond">
+          <div class="sec-hdr">
+            <div>
+              <h2>Book Condition</h2>
+              <div class="sec-sub">Condition grading, damaged/retired stock &amp; replacement costs.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-admin.web.app/Library%20system/library.html#bookCondition" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">🔍 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pBookCond')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pBookCond" data-src="https://kanyadet-school-admin.web.app/Library%20system/library.html#bookCondition" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Book Condition" loading="lazy"></iframe>
+          </div>
+        </section>
+        <!-- TEXTBOOK PORTAL (embedded) -->
+        <section class="view" id="pTextbook">
+          <div class="sec-hdr">
+            <div>
+              <h2>Textbook Portal</h2>
+              <div class="sec-sub">Textbook issuance and return tracking.</div>
+            </div>
+            <div class="actions-row">
+              <a class="btn btn-blue btn-sm" href="https://kanyadet-school-portal.web.app/student-portal.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;">📗 Open Fullscreen ↗</a>
+              <button class="btn btn-outline btn-sm" type="button" onclick="reloadFrame('frame_pTextbook')">🔄 Reload</button>
+            </div>
+          </div>
+          <div class="panel" style="padding:0;overflow:hidden;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);">
+            <iframe id="frame_pTextbook" data-src="https://kanyadet-school-portal.web.app/student-portal.html" src="about:blank" style="width:100%;height:calc(100vh - 180px);min-height:760px;border:none;display:block;" title="Textbook Portal" loading="lazy"></iframe>
+          </div>
+        </section>
         <!-- LIVE VIEW (real-time) -->
         <section class="view" id="liveview">
           <div class="sec-hdr">
@@ -1853,26 +2186,26 @@
           </div>
           <div class="panel">
             <div class="link-grid">
-              <a class="link-card" href="https://kanyadet-school-portal.web.app/login.html" target="_blank"><div class="lc-icon">📄</div><div class="lc-title">Home Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
+              <a class="link-card" data-embed="pHome" href="https://kanyadet-school-portal.web.app/login.html" target="_blank"><div class="lc-icon">📄</div><div class="lc-title">Home Page</div><div class="lc-desc">Alternate results viewing surface.</div></a>
               <a class="link-card" href="https://kanyadet-school-admin.web.app/index.html" target="_blank"><div class="lc-icon">⚙️</div><div class="lc-title">Admin Command Center</div><div class="lc-desc">School-wide dashboard, roster, and analytics (admin access required).</div></a>
-              <a class="link-card" href="https://kanyadet-school-parents.web.app/" target="_blank"><div class="lc-icon">👨‍👩‍👧‍👦</div><div class="lc-title">Parents Portal</div><div class="lc-desc">Access to student information and communication with teachers.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Individual-student-portal.html" target="_blank"><div class="lc-icon">🏫</div><div class="lc-title">Student Portal</div><div class="lc-desc">Access to student information and communication with teachers.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch/lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/lunch/food.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Food budget Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
-              <a class="link-card" href="./teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, attendance, gradebook & messaging workspace.</div></a>
-              <a class="link-card" href="./Report-Cards/Admin-Individual-student-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Admin Student Progress</div><div class="lc-desc">View detailed student progress across all classes.</div></a>
-              <a class="link-card" href="./updater.html" target="_blank"><div class="lc-icon">🛠️</div><div class="lc-title">Bulk Updater</div><div class="lc-desc">Bulk-edit student records across the database in one pass.</div></a>
-              <a class="link-card" href="./cleaner.html" target="_blank"><div class="lc-icon">🧹</div><div class="lc-title">Cleaner Updater</div><div class="lc-desc">Find and clean up duplicate or malformed student records.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html" target="_blank"><div class="lc-icon">📚</div><div class="lc-title">Library</div><div class="lc-desc">Book catalog, loans, and reservations admin.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#advancedAnalytics" target="_blank"><div class="lc-icon">📈</div><div class="lc-title">Library Analytics</div><div class="lc-desc">The library system's own deep reporting: trends, per-book history, exports.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#classLibrary" target="_blank"><div class="lc-icon">🏫</div><div class="lc-title">Class Library</div><div class="lc-desc">Per-grade issuance, class-kit bulk issue and end-of-term stream clearance.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#fines" target="_blank"><div class="lc-icon">💰</div><div class="lc-title">Library Fines</div><div class="lc-desc">Outstanding fines, payments and waivers.</div></a>
-              <a class="link-card" href="https://kanyadet-school-admin.web.app/Library system/library.html#bookCondition" target="_blank"><div class="lc-icon">🔍</div><div class="lc-title">Book Condition</div><div class="lc-desc">Condition grading, damaged/retired stock and replacement costs.</div></a>
-              <a class="link-card" href="https://kanyadet-school-portal.web.app/student-portal.html" target="_blank"><div class="lc-icon">📗</div><div class="lc-title">Textbook Portal</div><div class="lc-desc">Textbook issuance and return tracking (verify link before use).</div></a>
-              <a class="link-card" href="./timetable-planner.html" target="_blank"><div class="lc-icon">⏱️</div><div class="lc-title">Exam Timetable Planner</div><div class="lc-desc">Examination timetables, invigilator allocations, learner exam cards & PDF duty rosters.</div></a>
+              <a class="link-card" data-embed="pParents" href="https://kanyadet-school-parents.web.app/" target="_blank"><div class="lc-icon">👨‍👩‍👧‍👦</div><div class="lc-title">Parents Portal</div><div class="lc-desc">Access to student information and communication with teachers.</div></a>
+              <a class="link-card" data-embed="pStudentPortal" href="https://kanyadet-school-admin.web.app/Report-Cards/Individual-student-portal.html" target="_blank"><div class="lc-icon">🏫</div><div class="lc-title">Student Portal</div><div class="lc-desc">Access to student information and communication with teachers.</div></a>
+              <a class="link-card" data-embed="pLunch" href="https://kanyadet-school-admin.web.app/lunch/lunch.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Lunch Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
+              <a class="link-card" data-embed="pFood" href="https://kanyadet-school-admin.web.app/lunch/food.html" target="_blank"><div class="lc-icon">🍽️</div><div class="lc-title">Welfare / Food budget Manager</div><div class="lc-desc">Lunch contribution payments, reminders, and history.</div></a>
+              <a class="link-card" data-embed="resultsportal" href="https://kanyadet-school-admin.web.app/Results-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Results Portal</div><div class="lc-desc">Grades, report cards, quick entry, analytics, import, and Advanced Admin tools.</div></a>
+              <a class="link-card" data-embed="pActiveDB" href="https://kanyadet-school-admin.web.app/Report-Cards/Active-Students-Database.html" target="_blank"><div class="lc-icon">🎓</div><div class="lc-title">Active Students DB</div><div class="lc-desc">Full admissions registry with editing, promote, export, and audit history.</div></a>
+              <a class="link-card" data-embed="pDeleted" href="https://kanyadet-school-admin.web.app/Report-Cards/All-Deleted-Students-Database.html" target="_blank"><div class="lc-icon">🗄️</div><div class="lc-title">Deleted Students</div><div class="lc-desc">Archived / transferred learner records.</div></a>
+              <a class="link-card" data-embed="teachersportal" href="./teachers.html" target="_blank"><div class="lc-icon">👩‍🏫</div><div class="lc-title">Teachers Portal</div><div class="lc-desc">Staff-facing timetable, attendance, gradebook & messaging workspace.</div></a>
+              <a class="link-card" data-embed="studentsearch" href="./Report-Cards/Admin-Individual-student-portal.html" target="_blank"><div class="lc-icon">📋</div><div class="lc-title">Admin Student Progress</div><div class="lc-desc">View detailed student progress across all classes.</div></a>
+              <a class="link-card" data-embed="pUpdater" href="./updater.html" target="_blank"><div class="lc-icon">🛠️</div><div class="lc-title">Bulk Updater</div><div class="lc-desc">Bulk-edit student records across the database in one pass.</div></a>
+              <a class="link-card" data-embed="pCleaner" href="./cleaner.html" target="_blank"><div class="lc-icon">🧹</div><div class="lc-title">Cleaner Updater</div><div class="lc-desc">Find and clean up duplicate or malformed student records.</div></a>
+              <a class="link-card" data-embed="pLibrary" href="https://kanyadet-school-admin.web.app/Library system/library.html" target="_blank"><div class="lc-icon">📚</div><div class="lc-title">Library</div><div class="lc-desc">Book catalog, loans, and reservations admin.</div></a>
+              <a class="link-card" data-embed="pLibAnalytics" href="https://kanyadet-school-admin.web.app/Library system/library.html#advancedAnalytics" target="_blank"><div class="lc-icon">📈</div><div class="lc-title">Library Analytics</div><div class="lc-desc">The library system's own deep reporting: trends, per-book history, exports.</div></a>
+              <a class="link-card" data-embed="pClassLib" href="https://kanyadet-school-admin.web.app/Library system/library.html#classLibrary" target="_blank"><div class="lc-icon">🏫</div><div class="lc-title">Class Library</div><div class="lc-desc">Per-grade issuance, class-kit bulk issue and end-of-term stream clearance.</div></a>
+              <a class="link-card" data-embed="pLibFines" href="https://kanyadet-school-admin.web.app/Library system/library.html#fines" target="_blank"><div class="lc-icon">💰</div><div class="lc-title">Library Fines</div><div class="lc-desc">Outstanding fines, payments and waivers.</div></a>
+              <a class="link-card" data-embed="pBookCond" href="https://kanyadet-school-admin.web.app/Library system/library.html#bookCondition" target="_blank"><div class="lc-icon">🔍</div><div class="lc-title">Book Condition</div><div class="lc-desc">Condition grading, damaged/retired stock and replacement costs.</div></a>
+              <a class="link-card" data-embed="pTextbook" href="https://kanyadet-school-portal.web.app/student-portal.html" target="_blank"><div class="lc-icon">📗</div><div class="lc-title">Textbook Portal</div><div class="lc-desc">Textbook issuance and return tracking (verify link before use).</div></a>
+              <a class="link-card" data-embed="timetable" href="./timetable-planner.html" target="_blank"><div class="lc-icon">⏱️</div><div class="lc-title">Exam Timetable Planner</div><div class="lc-desc">Examination timetables, invigilator allocations, learner exam cards & PDF duty rosters.</div></a>
 
             </div>
           </div>
@@ -2014,6 +2347,21 @@
       graduation: ['Graduation', 'Graduands list & ceremony mode'],
       resultsportal: ['Results Portal', 'Grades, quick entry, rankings & analytics'],
       teachersportal: ['Teachers Portal', 'Teacher profiles, attendance, leave & welfare'],
+      pHome: ['Home Page', 'Alternate results viewing surface.'],
+      pParents: ['Parents Portal', 'Student information and communication with teachers.'],
+      pStudentPortal: ['Student Portal', 'Student lookup and share cards.'],
+      pLunch: ['Lunch Manager', 'Lunch contribution payments, reminders & history.'],
+      pFood: ['Food Budget', 'Food budget management.'],
+      pActiveDB: ['Active Students DB', 'Admissions registry with editing, promote, export & audit history.'],
+      pDeleted: ['Deleted Students', 'Archived / transferred learner records.'],
+      pUpdater: ['Bulk Updater', 'Bulk-edit student records across the database.'],
+      pCleaner: ['Cleaner Updater', 'Find and clean up duplicate or malformed records.'],
+      pLibrary: ['Library', 'Book catalog, loans & reservations admin.'],
+      pLibAnalytics: ['Library Analytics', 'Trends, per-book history & exports.'],
+      pClassLib: ['Class Library', 'Per-grade issuance, class-kit bulk issue & stream clearance.'],
+      pLibFines: ['Library Fines', 'Outstanding fines, payments & waivers.'],
+      pBookCond: ['Book Condition', 'Condition grading, damaged/retired stock & replacement costs.'],
+      pTextbook: ['Textbook Portal', 'Textbook issuance and return tracking.'],
       liveview: ['Live View', 'Real-time activity across the school'],
       portals: ['Linked Portals', 'Jump to specialized tools']
     };
@@ -3061,12 +3409,32 @@
       g.classList.toggle('collapsed', on); $('embedToggle').setAttribute('aria-expanded', String(!on));
       if(persist){ try{ localStorage.setItem('kss-embed-collapsed', on ? '1' : '0'); }catch(e){} }
     }
-    try{ setEmbedCollapsed(localStorage.getItem('kss-embed-collapsed') === '1', false); }catch(e){}
-    $('embedToggle').addEventListener('click', () => setEmbedCollapsed(!$('embedGroup').classList.contains('collapsed'), true));
+    setEmbedCollapsed(true, false);   // closed by default — hover the heading to open, click to pin open
+    /* Smart auto-close: opens on hover (or click), closes EMBED_AUTOCLOSE_MS after the pointer leaves; re-entering or keyboard focus cancels it */
+    const EMBED_AUTOCLOSE_MS = 6000;
+    let _embedCloseT = null;
+    (function(){
+      const g = $('embedGroup'), bar = document.createElement('div'); bar.className = 'e-timer'; g.appendChild(bar);
+      const cd = document.createElement('span'); cd.className = 's-cd'; $('embedToggle').insertBefore(cd, $('embedToggle').querySelector('.s-chev'));
+      let tick = null;
+      const hold = () => { clearTimeout(_embedCloseT); clearInterval(tick); g.classList.remove('closing'); };
+      g.addEventListener('mouseenter', () => { hold(); g.classList.add('peek'); });
+      g.addEventListener('mouseleave', () => {
+        if(g.classList.contains('collapsed') && !g.classList.contains('peek')) return;
+        hold(); void g.offsetWidth; g.classList.add('closing');
+        let left = EMBED_AUTOCLOSE_MS / 1000; cd.textContent = 'Closing ' + left + 's';
+        tick = setInterval(() => { left = Math.max(0, left - 1); cd.textContent = 'Closing ' + left + 's'; if(left <= 0) clearInterval(tick); }, 1000);
+        _embedCloseT = setTimeout(() => { clearInterval(tick); g.classList.remove('closing','peek'); setEmbedCollapsed(true, false); }, EMBED_AUTOCLOSE_MS);
+      });
+      g.addEventListener('focusin', hold);
+      $('embedToggle').addEventListener('click', () => {
+        const open = !g.classList.contains('collapsed') || g.classList.contains('peek');
+        hold(); g.classList.remove('peek'); setEmbedCollapsed(open, false);
+      });
+    })();
 
     function navTo(view){
       document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
-      if(document.querySelector('.nav-item.embed.active')) setEmbedCollapsed(false, false);
       document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === view));
       const meta = VIEW_META[view] || [view, ''];
       $('pageTitle').textContent = meta[0];
@@ -3084,6 +3452,7 @@
       if(view === 'studentbiodata'){ const f = $('studentBiodataFrame'); if(f && f.getAttribute('src') === 'about:blank') f.src = f.dataset.src; }
       if(view === 'graduation'){ const fr = $('graduationFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
       if(view === 'resultsportal'){ const fr = $('resultsPortalFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
+      { const gf = document.querySelector('#' + view + ' iframe[data-src]'); if(gf && gf.getAttribute('src') === 'about:blank') gf.src = gf.dataset.src; }
       if(view === 'liveview') startLiveView();
       if(view === 'teachersportal'){ const fr = $('teachersPortalFrame'); if(fr && fr.getAttribute('src') === 'about:blank') fr.src = fr.dataset.src; }
       try{ setMetaFocus(!!document.querySelector('.nav-item.embed.active') && window.matchMedia('(min-width: 951px)').matches); }catch(e){}
@@ -3092,6 +3461,15 @@
       item.addEventListener('click', () => {
         navTo(item.dataset.view);
         if(item.classList.contains('embed') && _desktopMQ.matches) setSidebarCollapsed(true, false, true);
+      });
+    });
+    // Linked Portals cards open inside the dashboard (Portals & Tools embeds); ctrl/cmd/middle-click still opens a new tab
+    document.querySelectorAll('.link-card[data-embed]').forEach(card => {
+      card.addEventListener('click', e => {
+        if(e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+        e.preventDefault();
+        navTo(card.dataset.embed);
+        if(_desktopMQ.matches) setSidebarCollapsed(true, false, true);
       });
     });
     document.querySelectorAll('[data-goto]').forEach(el => {
@@ -3168,9 +3546,11 @@
     document.documentElement.addEventListener('mouseleave', () => { if(document.body.classList.contains('meta-focus')) metaPeek(false); });
     const _desktopMQ = window.matchMedia('(min-width: 951px)');
     const EMBED_COLLAPSE_MS = 3000;   // sidebar collapse duration after clicking a Portals & Tools link
-    let _sbSlowT = null;
+    let _sbSlowT = null, _peekCloseT = null;
+    const SB_PEEK_CLOSE_MS = 3000;   // peeked sidebar closes this long after the pointer leaves it
     function setSidebarCollapsed(on, persist, slow){
-      clearTimeout(_sbSlowT);
+      clearTimeout(_sbSlowT); clearTimeout(_peekCloseT);
+      document.body.classList.remove('sb-peek','sb-closing');
       document.body.classList.toggle('sb-slow', !!slow);
       if(slow) _sbSlowT = setTimeout(() => document.body.classList.remove('sb-slow'), EMBED_COLLAPSE_MS + 50);
       document.body.classList.toggle('sb-collapsed', on);
@@ -3179,6 +3559,32 @@
       setTimeout(() => window.dispatchEvent(new Event('resize')), slow ? EMBED_COLLAPSE_MS + 50 : 320);   // let charts/tables re-fit the wider area
     }
     try{ setSidebarCollapsed(localStorage.getItem('kss-sb-collapsed') === '1', false); }catch(e){}
+    /* Hover-to-peek sidebar: only while collapsed. Left-edge strip or ☰ opens it as an overlay; closes 3s after the pointer leaves. */
+    const sbCd = document.createElement('div'); sbCd.className = 'sb-cd'; $('sidebar').appendChild(sbCd);
+    let _sbTick = null;
+    function sbPeekHold(){ clearTimeout(_peekCloseT); clearInterval(_sbTick); document.body.classList.remove('sb-closing'); }
+    function sbPeekOpen(){
+      if(!_desktopMQ.matches || !document.body.classList.contains('sb-collapsed')) return;
+      sbPeekHold(); document.body.classList.add('sb-peek');
+    }
+    function sbPeekArmClose(){
+      const b = document.body; if(!b.classList.contains('sb-peek')) return;
+      sbPeekHold(); void b.offsetWidth; b.classList.add('sb-closing');
+      let left = SB_PEEK_CLOSE_MS / 1000; sbCd.textContent = 'Closing ' + left + 's';
+      _sbTick = setInterval(() => { left = Math.max(0, left - 1); sbCd.textContent = 'Closing ' + left + 's'; if(left <= 0) clearInterval(_sbTick); }, 1000);
+      _peekCloseT = setTimeout(() => { clearInterval(_sbTick); b.classList.remove('sb-peek','sb-closing'); }, SB_PEEK_CLOSE_MS);
+    }
+    $('sbHot').addEventListener('mouseenter', sbPeekOpen);
+    $('burgerBtn').addEventListener('mouseenter', sbPeekOpen);
+    $('burgerBtn').addEventListener('mouseleave', sbPeekArmClose);
+    $('sidebar').addEventListener('mouseenter', sbPeekHold);
+    $('sidebar').addEventListener('mouseleave', sbPeekArmClose);
+    /* Portals & Tools sub-sections: hover reveals (CSS); click/Enter pins one open — also the way to open on touch screens */
+    document.querySelectorAll('.embed-sub .sub-head').forEach(h => {
+      const toggle = () => { const sub = h.parentElement, on = !sub.classList.contains('open'); sub.classList.toggle('open', on); h.setAttribute('aria-expanded', String(on)); };
+      h.addEventListener('click', toggle);
+      h.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); } });
+    });
     $('burgerBtn').addEventListener('click', () => {
       if(_desktopMQ.matches){ setSidebarCollapsed(!document.body.classList.contains('sb-collapsed'), true); return; }
       $('sidebar').classList.toggle('open');
