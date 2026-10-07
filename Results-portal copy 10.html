@@ -7397,18 +7397,16 @@ async function _mandatoryPasskeySetup(user, email) {
   // freshly-granted requirement takes effect on the very next attempt. If
   // the check itself fails for any reason, fail OPEN — never trap someone
   // in a forced setup they weren't opted into.
-  let forced = false, offerOn = false;
+  let forced = false;
   try {
     if (!firestoreDb || !user.uid) return;
     const snap = await window._fb.getDoc(window._fb.doc(firestoreDb, 'users', user.uid));
     forced = snap.exists() && snap.data().passkeyRequired === true;
-    offerOn = snap.exists() && snap.data().passkeyOffer === true;
   } catch(e) { return; }
   // Not forced → a friendly, skippable one-time offer (snoozed 7 days on "Maybe later",
   // never shown again on "Don't ask again"). Forced → the strict loop below.
   if (!forced) {
-    // Optional offer only when an admin turned "Offer Passkey" on for this account.
-    if (!offerOn || window._pkOfferShown || !_pkOffer.allowed(email)) return;
+    if (window._pkOfferShown || !_pkOffer.allowed(email)) return;
     window._pkOfferShown = true;
   }
   const who = user.displayName || email.split('@')[0] || 'there';
@@ -9136,7 +9134,6 @@ function _renderAdvancedAdminRolePanel(){
       '</div>',
     '</div>',
     '<div class="arp-info-box">Grant or revoke <strong>Advanced Admin</strong> privileges for any teacher. Advanced Admins can see all grades, import data, manage teachers, and assign roles. Each card also has a <strong>Force Passkey Setup</strong> toggle — off by default for everyone; turn it on only for someone you specifically want required to set up fingerprint/PIN sign-in. Changes take effect immediately.</div>',
-    '<div class="arp-info-box" style="background:rgba(41,128,185,.06);border-color:rgba(41,128,185,.25)"><strong>Database access (staff list)</strong><br>Staff who may write to the Realtime Database are listed under <code>/staff</code>. <b>Sync staff</b> adds every active Advanced Admin and Teacher from this list. <b>Check access</b> tests what your account can read right now and shows any PERMISSION_DENIED.<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-blue" id="arp-sync-staff" type="button">Sync staff</button><button class="btn btn-green" id="arp-check-access" type="button">Check access</button></div><div id="arp-access-out" style="margin-top:8px;font-size:11.5px;line-height:1.7"></div></div>',
     '<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">',
       '<div class="arp-search-wrap">',
         '<input type="text" id="arp-search-input" placeholder="Search teachers...">',
@@ -9152,10 +9149,6 @@ function _renderAdvancedAdminRolePanel(){
   // Search input listener — attached via JS, not inline attribute
   var searchInput = document.getElementById('arp-search-input');
   if(searchInput) searchInput.addEventListener('input', function(){ _arpFilterCards(); });
-  var _syncBtn = document.getElementById('arp-sync-staff');
-  if(_syncBtn) _syncBtn.addEventListener('click', function(){ _arpSyncStaff(); });
-  var _chkBtn = document.getElementById('arp-check-access');
-  if(_chkBtn) _chkBtn.addEventListener('click', function(){ _arpCheckAccess(); });
 
   // Event delegation for toggle switches — attached to the list container
   var listEl = document.getElementById('adv-role-list');
@@ -9170,8 +9163,6 @@ function _renderAdvancedAdminRolePanel(){
       if(!uid) return;
       if(inp.dataset.toggle === 'passkeyrequired'){
         _arpTogglePasskeyRequired(uid, name, inp.checked);
-      } else if(inp.dataset.toggle === 'passkeyoffer'){
-        _arpTogglePasskeyOffer(uid, name, inp.checked);
       } else {
         _arpToggleRole(uid, name, inp.checked);
       }
@@ -9311,82 +9302,10 @@ window._arpFilterCards = function(users){
     html += '<label class="arp-switch"><input type="checkbox" data-toggle="passkeyrequired"' + (isPkRequired ? ' checked' : '') + '>';
     html += '<span class="arp-slider"></span></label>';
     html += '</div>';
-    var isPkOffer = u.passkeyOffer === true;
-    html += '<div class="arp-toggle-row">';
-    html += '<div><div class="arp-toggle-label">Offer Passkey (optional)</div>';
-    html += '<div class="arp-toggle-sub">' + (isPkOffer ? 'Skippable offer shown at sign-in' : 'Off (default) — no prompt') + '</div></div>';
-    html += '<label class="arp-switch"><input type="checkbox" data-toggle="passkeyoffer"' + (isPkOffer ? ' checked' : '') + '>';
-    html += '<span class="arp-slider"></span></label>';
-    html += '</div>';
     html += '</div>';
   });
   html += '</div>';
   container.innerHTML = html;
-};
-
-window._arpTogglePasskeyOffer = async function(uid, name, on){
-  var toggle = document.querySelector('#arp-card-' + uid + ' input[data-toggle="passkeyoffer"]');
-  try{
-    await window._fb.updateDoc(window._fb.doc(firestoreDb, 'users', uid), { passkeyOffer: on });
-    notify('Passkey offer ' + (on ? 'enabled' : 'disabled') + ' for <strong>' + name + '</strong>.', 'success', 5000);
-  } catch(e){
-    notify('Error updating passkey offer: ' + e.message, 'error');
-    if(toggle) toggle.checked = !on;
-  }
-};
-
-/** Adds every active Advanced Admin ('admin') and Teacher/admin-role user ('staff')
- *  to RTDB /staff, and removes disabled users. Requires your own /staff entry
- *  to be 'admin' (set once in the Firebase console). */
-window._arpSyncStaff = async function(){
-  var out = document.getElementById('arp-access-out');
-  var ok = await showConfirm('Sync staff access', 'Add all active Advanced Admins and Teachers to the database staff list, and remove disabled users?', 'Sync', 'Sync staff', 'btn-orange');
-  if(!ok) return;
-  try{
-    var snap = await window._fb.getDocs(window._fb.collection(firestoreDb, 'users'));
-    var updates = {}, nAdmin = 0, nStaff = 0, nRemoved = 0;
-    snap.forEach(function(d){
-      var u = d.data(), role = String(u.role || '').toLowerCase();
-      if(u.disabled === true){ updates['staff/' + d.id] = null; nRemoved++; }
-      else if(u.Advancedadmin === true){ updates['staff/' + d.id] = 'admin'; nAdmin++; }
-      else if(role === 'teacher' || role === 'admin'){ updates['staff/' + d.id] = 'staff'; nStaff++; }
-    });
-    await window._fb.update(window._fb.ref(db), updates);
-    var msg = nAdmin + ' admin, ' + nStaff + ' staff added; ' + nRemoved + ' removed.';
-    if(out) out.innerHTML = '✅ ' + msg;
-    notify('Staff list synced — ' + msg, 'success', 6000);
-    logActivity('Staff access synced: ' + msg, 'act-orange', currentAdminName, { category: 'system' });
-  } catch(e){
-    var m = (e && e.code === 'PERMISSION_DENIED') || /permission/i.test(e && e.message || '')
-      ? 'Permission denied. Add your own UID once in the Firebase console: Realtime Database → staff → ' + (auth && auth.currentUser ? auth.currentUser.uid : '<your uid>') + ' = "admin".'
-      : (e && e.message || 'Unknown error');
-    if(out) out.innerHTML = '❌ ' + m;
-    notify('Sync failed: ' + m, 'error', 9000);
-  }
-};
-
-/** Read-only probe of what the signed-in account can read in the Realtime Database. */
-window._arpCheckAccess = async function(){
-  var out = document.getElementById('arp-access-out');
-  if(out) out.innerHTML = 'Checking…';
-  var uid = auth && auth.currentUser ? auth.currentUser.uid : null;
-  var paths = ['students','teachers','staff','announcements','lunch','audit_logs','roles','messages','submissions','fines'];
-  var lines = [];
-  if(uid){
-    try{
-      var me = await window._fb.get(window._fb.ref(db, 'staff/' + uid));
-      lines.push('Your staff entry: <b>' + (me.exists() ? me.val() : 'none') + '</b>');
-    }catch(e){ lines.push('Your staff entry: ❌ cannot read'); }
-  }
-  for(var i = 0; i < paths.length; i++){
-    try{
-      await window._fb.get(window._fb.query(window._fb.ref(db, paths[i]), window._fb.limitToFirst(1)));
-      lines.push('✅ read ' + paths[i]);
-    }catch(e){
-      lines.push('❌ read ' + paths[i] + ' — PERMISSION_DENIED');
-    }
-  }
-  if(out) out.innerHTML = lines.join('<br>');
 };
 
 window._arpToggleRole = async function(uid, name, grantAccess){

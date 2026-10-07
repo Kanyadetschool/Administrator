@@ -11,7 +11,7 @@
  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="./image-popup.js"></script>
-<!-- Google One Tap: loaded via dynamic import() in _initResultsOneTap() (google-one-tap.js is an ES module) -->
+<script src="https://kanyadet-school-admin.web.app/js/google-one-tap.js"></script>
 
 
 <!-- <script type="module">
@@ -2328,185 +2328,6 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
   #prof-avatar{width:48px !important;height:48px !important;font-size:18px !important;}
   #view-profile [style*="margin-top:18px"][style*="display:flex"]{flex-direction:column;}
   #view-profile [style*="margin-top:18px"][style*="display:flex"] .btn{width:100%;justify-content:center;}
-}
-
-/* ══════════════════════════════════════════
-   CLAYMORPHISM — WHOLE PORTAL (incl. Quick Entry + sign-in)
-   Soft, puffy "clay" surfaces: big radii, a light shadow top-left, a dark
-   shadow bottom-right, plus inner highlight/shade so shapes look moulded.
-   Fields are pressed IN (debossed); buttons are puffed OUT and squash when
-   pressed. CSS only — no markup/JS/ID changes. Placed after every other
-   rule so it wins the cascade. Tweak the --clay-* tokens to restyle all.
-══════════════════════════════════════════ */
-:root{
-  --clay-r-lg:28px; --clay-r-md:20px; --clay-r-sm:14px;
-  --clay-fill:linear-gradient(145deg,#ffffff 0%,#f7f0df 100%);
-  --clay-fill-soft:linear-gradient(145deg,#fffdf8 0%,#f3ead2 100%);
-  --clay-raised:
-    10px 10px 24px rgba(170,135,60,.26), -8px -8px 20px rgba(255,255,255,.95),
-    inset 4px 4px 8px rgba(255,255,255,.95), inset -6px -6px 12px rgba(190,150,70,.14);
-  --clay-raised-sm:
-    5px 5px 12px rgba(170,135,60,.26), -4px -4px 10px rgba(255,255,255,.95),
-    inset 2px 2px 5px rgba(255,255,255,.95), inset -3px -3px 6px rgba(190,150,70,.15);
-  --clay-pressed:
-    inset 4px 4px 9px rgba(170,135,60,.24), inset -4px -4px 9px rgba(255,255,255,.95);
-  --clay-color-in:
-    inset 3px 3px 7px rgba(255,255,255,.5), inset -4px -5px 9px rgba(0,0,0,.2);
-}
-[data-theme="dark"]{
-  --clay-fill:linear-gradient(145deg,#16263b 0%,#0f1b2c 100%);
-  --clay-fill-soft:linear-gradient(145deg,#1a2d45 0%,#122035 100%);
-  --clay-raised:
-    10px 10px 24px rgba(0,0,0,.55), -7px -7px 18px rgba(80,120,170,.12),
-    inset 3px 3px 7px rgba(255,255,255,.07), inset -6px -6px 12px rgba(0,0,0,.35);
-  --clay-raised-sm:
-    5px 5px 12px rgba(0,0,0,.5), -4px -4px 10px rgba(80,120,170,.12),
-    inset 2px 2px 5px rgba(255,255,255,.07), inset -3px -3px 6px rgba(0,0,0,.3);
-  --clay-pressed:
-    inset 4px 4px 9px rgba(0,0,0,.5), inset -3px -3px 8px rgba(80,120,170,.12);
-  --clay-color-in:
-    inset 3px 3px 7px rgba(255,255,255,.22), inset -4px -5px 9px rgba(0,0,0,.35);
-}
-
-/* ── Big surfaces ── */
-.card, .kpi-card, .help-item, .table-wrap, .topbar-more-menu,
-#qe-table-card, #view-quickentry .card{
-  background:var(--clay-fill);
-  border:none;
-  border-radius:var(--clay-r-lg);
-  box-shadow:var(--clay-raised);
-}
-.table-wrap, .help-item{border-radius:var(--clay-r-md);}
-#qe-table-card::before{display:none;}                 /* drop the old sheen overlay */
-.kpi-card:hover{box-shadow:var(--clay-raised);transform:translateY(-3px);}
-.settings-tile{
-  background:var(--clay-fill-soft);border:none;border-radius:var(--clay-r-md);box-shadow:var(--clay-raised-sm);
-}
-.settings-tile:hover{box-shadow:var(--clay-raised-sm);transform:translateY(-2px);}
-.settings-tile:active{box-shadow:var(--clay-pressed);transform:translateY(0);}
-
-/* ── Shell ── */
-.sidebar{
-  background:var(--clay-fill);border-right:none;
-  box-shadow:10px 0 28px rgba(170,135,60,.2), inset -4px 0 8px rgba(255,255,255,.7);
-}
-[data-theme="dark"] .sidebar{box-shadow:10px 0 28px rgba(0,0,0,.5), inset -3px 0 7px rgba(255,255,255,.05);}
-.topbar{
-  background:var(--clay-fill);border-bottom:none;border-radius:0 0 var(--clay-r-lg) var(--clay-r-lg);
-  box-shadow:0 10px 24px rgba(170,135,60,.22), inset 0 -4px 8px rgba(190,150,70,.1);
-}
-[data-theme="dark"] .topbar{box-shadow:0 10px 24px rgba(0,0,0,.5), inset 0 -4px 8px rgba(0,0,0,.3);}
-.nav-item{border-radius:var(--clay-r-sm);}
-.nav-item:hover{background:transparent;box-shadow:var(--clay-raised-sm);}
-.nav-item.active{
-  background:linear-gradient(145deg,var(--blue-lt),var(--blue));color:#fff;border:none;
-  box-shadow:5px 6px 14px var(--blue-glow), var(--clay-color-in);
-}
-.nav-item.active .nav-icon{filter:drop-shadow(0 1px 1px rgba(0,0,0,.25));}
-
-/* ── Fields: pressed into the clay ── */
-.sel, .search-input, .help-search, #qe-search,
-.auth-field input, .eauth-field input, .eauth-field-icon input, .qe-mobile-bar select{
-  background:var(--clay-fill-soft);border:none;border-radius:var(--clay-r-sm);box-shadow:var(--clay-pressed);
-}
-.sel:focus, .search-input:focus, .help-search:focus, #qe-search:focus,
-.auth-field input:focus, .eauth-field input:focus, .eauth-field-icon input:focus{
-  outline:none;box-shadow:var(--clay-pressed), 0 0 0 3px rgba(41,128,185,.28);
-}
-#qe-table input[data-student]{border-radius:10px;box-shadow:var(--clay-pressed);border-color:transparent;}
-
-/* ── Buttons: puffed out, squash on press ── */
-.btn{border-radius:var(--clay-r-sm);}
-.btn:active{transform:translateY(1px) scale(.98);}
-.btn-blue{background:linear-gradient(145deg,var(--blue-lt),var(--blue));box-shadow:5px 6px 14px var(--blue-glow), var(--clay-color-in);}
-.btn-green{background:linear-gradient(145deg,#3ddc84,var(--green));box-shadow:5px 6px 14px rgba(39,174,96,.4), var(--clay-color-in);}
-.btn-orange{background:linear-gradient(145deg,#f5a04a,var(--orange));box-shadow:5px 6px 14px rgba(230,126,34,.4), var(--clay-color-in);}
-.btn-red{background:linear-gradient(145deg,#f1796b,var(--red));box-shadow:5px 6px 14px rgba(231,76,60,.4), var(--clay-color-in);}
-.btn-blue:hover,.btn-green:hover,.btn-orange:hover,.btn-red:hover{transform:translateY(-2px);}
-.btn-blue:active,.btn-green:active,.btn-orange:active,.btn-red:active{box-shadow:inset 3px 3px 8px rgba(0,0,0,.28), inset -2px -2px 6px rgba(255,255,255,.25);transform:translateY(1px) scale(.98);}
-.btn-outline{background:var(--clay-fill-soft);border:none;color:var(--text2);box-shadow:var(--clay-raised-sm);}
-.btn-outline:hover{color:var(--blue);transform:translateY(-2px);}
-.btn-outline:active{box-shadow:var(--clay-pressed);transform:translateY(1px) scale(.98);}
-.pg-btn, .modal-close, .eauth-modal-close, .qe-mobile-bar button, #qe-table-card .dt-paging .dt-paging-button{
-  border:none;background:var(--clay-fill-soft);box-shadow:var(--clay-raised-sm);
-}
-.pg-btn:active, .modal-close:active, .eauth-modal-close:active, .qe-mobile-bar button:active,
-#qe-table-card .dt-paging .dt-paging-button:active{box-shadow:var(--clay-pressed);}
-.pg-btn:hover, .pg-btn.active, #qe-table-card .dt-paging .dt-paging-button.current,
-#qe-table-card .dt-paging .dt-paging-button:hover:not(.disabled){
-  background:linear-gradient(145deg,var(--blue-lt),var(--blue));color:#fff;box-shadow:3px 4px 10px var(--blue-glow), var(--clay-color-in);
-}
-
-/* ── Tables ── */
-.data-table thead tr{background:transparent;border-bottom:none;}
-.data-table th{background:var(--clay-fill-soft);}
-.data-table tbody tr{border-bottom-color:rgba(170,135,60,.12);}
-[data-theme="dark"] .data-table tbody tr{border-bottom-color:rgba(255,255,255,.05);}
-.data-table tbody tr:hover{background:rgba(41,128,185,.07);}
-#qe-table-card .dtcc-popover-panel, #qe-table-card .dtcc-searchList-container{
-  background:var(--clay-fill);border:none;border-radius:var(--clay-r-md);box-shadow:var(--clay-raised);
-}
-#qe-table-card .dtcc-searchList-search input, #qe-table-card .dtcc-input{
-  background:var(--clay-fill-soft);border:none;box-shadow:var(--clay-pressed);
-}
-
-/* ── Banners / builder inside Quick Entry (keep their tint, add a soft lift) ── */
-#view-quickentry [id$="-banner"], #qe-new-exam-builder, #qe-deadline-splash > *{
-  border-radius:var(--clay-r-md)!important;box-shadow:var(--clay-raised-sm);
-}
-
-/* ── Modals (app + Quick Entry + SweetAlert) ── */
-.modal-box, .eauth-modal-card, .swal2-popup{
-  background:var(--clay-fill)!important;border:none!important;border-radius:var(--clay-r-lg)!important;
-  box-shadow:14px 16px 40px rgba(20,35,60,.38), -6px -6px 18px rgba(255,255,255,.35), inset 4px 4px 8px rgba(255,255,255,.7), inset -6px -6px 12px rgba(190,150,70,.12)!important;
-  color:var(--text);
-}
-[data-theme="dark"] .modal-box, [data-theme="dark"] .eauth-modal-card, [data-theme="dark"] .swal2-popup{
-  box-shadow:14px 16px 40px rgba(0,0,0,.65), -5px -5px 16px rgba(80,120,170,.12), inset 3px 3px 7px rgba(255,255,255,.07), inset -6px -6px 12px rgba(0,0,0,.35)!important;
-}
-.modal-hdr, .modal-footer{border-color:rgba(170,135,60,.15);}
-[data-theme="dark"] .modal-hdr, [data-theme="dark"] .modal-footer{border-color:rgba(255,255,255,.06);}
-.swal2-title, .swal2-html-container{color:var(--text)!important;}
-.swal2-styled{border-radius:var(--clay-r-sm)!important;}
-#qe-rawtip-modal .modal-box{border-radius:var(--clay-r-lg);}
-
-/* ── Sign-in section ── */
-#login-screen .signin-card{
-  background:var(--clay-fill);border:none;border-radius:34px;
-  box-shadow:14px 16px 40px rgba(20,35,60,.3), -8px -8px 22px rgba(255,255,255,.5), inset 4px 4px 9px rgba(255,255,255,.8), inset -7px -7px 14px rgba(190,150,70,.14);
-}
-[data-theme="dark"] #login-screen .signin-card{
-  box-shadow:14px 16px 40px rgba(0,0,0,.6), -6px -6px 18px rgba(80,120,170,.12), inset 3px 3px 8px rgba(255,255,255,.07), inset -7px -7px 14px rgba(0,0,0,.35);
-}
-@media(min-width:901px){
-  #login-screen .signin-card{background:var(--clay-fill);border:none;box-shadow:14px 16px 40px rgba(20,35,60,.3), -8px -8px 22px rgba(255,255,255,.5), inset 4px 4px 9px rgba(255,255,255,.8), inset -7px -7px 14px rgba(190,150,70,.14);}
-  [data-theme="dark"] #login-screen .signin-card{box-shadow:14px 16px 40px rgba(0,0,0,.6), -6px -6px 18px rgba(80,120,170,.12), inset 3px 3px 8px rgba(255,255,255,.07), inset -7px -7px 14px rgba(0,0,0,.35);}
-}
-.auth-illustration .auth-logo-badge, .eauth-modal-icon{
-  border-radius:22px;box-shadow:6px 8px 18px var(--blue-glow), var(--clay-color-in);
-}
-.auth-submit-btn, #sign-in-google-btn, #eauth-submit-btn{
-  border-radius:var(--clay-r-md);
-  box-shadow:6px 8px 18px rgba(20,40,70,.4), var(--clay-color-in);
-}
-.auth-submit-btn:active, #sign-in-google-btn:active, #eauth-submit-btn:active{
-  transform:translateY(1px) scale(.98);box-shadow:inset 3px 3px 8px rgba(0,0,0,.35), inset -2px -2px 6px rgba(255,255,255,.2);
-}
-.auth-btn-secondary, #eauth-show-email-btn, .portal-link, .auth-qlink{
-  border:none;border-radius:var(--clay-r-md);background:var(--clay-fill-soft);box-shadow:var(--clay-raised-sm);
-}
-.auth-btn-secondary:hover, #eauth-show-email-btn:hover, .portal-link:hover, .auth-qlink:hover{transform:translateY(-2px);}
-.auth-btn-secondary:active, #eauth-show-email-btn:active, .portal-link:active, .auth-qlink:active{box-shadow:var(--clay-pressed);transform:translateY(1px) scale(.98);}
-#add-account-btn{border:none;border-radius:var(--clay-r-md);background:var(--clay-fill-soft);box-shadow:var(--clay-raised-sm);}
-#add-account-btn:active{box-shadow:var(--clay-pressed);}
-.eauth-tabs{background:var(--clay-fill-soft);border-radius:var(--clay-r-md);box-shadow:var(--clay-pressed);padding:5px;}
-.eauth-tab{border-radius:var(--clay-r-sm);}
-.eauth-tab.active{background:linear-gradient(145deg,var(--blue-lt),var(--blue));box-shadow:4px 5px 12px var(--blue-glow), var(--clay-color-in);}
-.auth-toggle .track{box-shadow:var(--clay-pressed);}
-.auth-toggle .thumb{box-shadow:2px 3px 6px rgba(0,0,0,.3), inset 1px 1px 2px rgba(255,255,255,.9);}
-
-@media print{
-  .card, .kpi-card, .table-wrap, .data-table th, #qe-table-card{background:#fff!important;box-shadow:none!important;}
 }
 </style>
 </head>
@@ -5202,9 +5023,9 @@ setInterval(_rotateAuthTip, 5000);
 <script type="module">
   import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getDatabase, ref, get, set, push, update, remove, query, orderByChild, limitToFirst, limitToLast, onValue, off, increment, serverTimestamp, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signInWithCredential, GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
   import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, setDoc, collection, getDocs, updateDoc, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-  window._fb = { initializeApp, getApps, getDatabase, ref, get, set, push, update, remove, query, orderByChild, limitToFirst, limitToLast, onValue, off, increment, serverTimestamp, onDisconnect, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signInWithCredential, GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail, getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, setDoc, collection, getDocs, updateDoc, onSnapshot, deleteDoc };
+  window._fb = { initializeApp, getApps, getDatabase, ref, get, set, push, update, remove, query, orderByChild, limitToFirst, limitToLast, onValue, off, increment, serverTimestamp, onDisconnect, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail, getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, setDoc, collection, getDocs, updateDoc, onSnapshot, deleteDoc };
 </script>
 
 <script>
@@ -7397,18 +7218,16 @@ async function _mandatoryPasskeySetup(user, email) {
   // freshly-granted requirement takes effect on the very next attempt. If
   // the check itself fails for any reason, fail OPEN — never trap someone
   // in a forced setup they weren't opted into.
-  let forced = false, offerOn = false;
+  let forced = false;
   try {
     if (!firestoreDb || !user.uid) return;
     const snap = await window._fb.getDoc(window._fb.doc(firestoreDb, 'users', user.uid));
     forced = snap.exists() && snap.data().passkeyRequired === true;
-    offerOn = snap.exists() && snap.data().passkeyOffer === true;
   } catch(e) { return; }
   // Not forced → a friendly, skippable one-time offer (snoozed 7 days on "Maybe later",
   // never shown again on "Don't ask again"). Forced → the strict loop below.
   if (!forced) {
-    // Optional offer only when an admin turned "Offer Passkey" on for this account.
-    if (!offerOn || window._pkOfferShown || !_pkOffer.allowed(email)) return;
+    if (window._pkOfferShown || !_pkOffer.allowed(email)) return;
     window._pkOfferShown = true;
   }
   const who = user.displayName || email.split('@')[0] || 'there';
@@ -7769,12 +7588,10 @@ window.addEventListener('load', () => {
         // Not signed in — show appropriate sign-in card
         _showSignInUI();
         if (PK.hasAny()) _autoUnlockIfPossible();
-        _oneTapSignal(false);
         return;
       }
 
       // User is signed in
-      _oneTapSignal(true);
       if (PK.hasAny()) {
         // Require biometric verification before opening app
         if (appShell && appShell.style.display === 'flex') return; // app already open
@@ -7803,65 +7620,7 @@ window.addEventListener('load', () => {
     });
   }
   setTimeout(() => _pkInit(0), 0);
-  setTimeout(_initResultsOneTap, 0);
 });
-
-/* ══════════════════════════════════════════════════════
-   GOOGLE ONE TAP
-   One Tap only hands back a Google ID token; it does not sign anyone in.
-   We exchange that token for a real Firebase session, after which the
-   normal onAuthStateChanged path above takes over unchanged:
-   passkey lock/setup -> disabled check -> authorized-email whitelist
-   (config/loginAccessControl) -> showApp. So One Tap is held to exactly
-   the same rules as "Continue with Google" and email sign-in.
-══════════════════════════════════════════════════════ */
-// Only offer the prompt when there is no session AND no saved passkey on this
-// device (a saved passkey means the biometric lock screen is the way in).
-function _oneTapSignal(signedIn){
-  const t = window._oneTap;
-  if (!t) { window._oneTapPendingSignal = signedIn; return; } // listener fired before One Tap finished loading
-  if (signedIn || PK.hasAny()) t.notifySignedIn(); // cancels/blocks the prompt
-  else t.notifySignedOut();                        // releases the deferred prompt
-}
-
-async function _handleOneTapProfile(profile){
-  const err = document.getElementById('login-err');
-  const showErr = msg => { if (err) { err.textContent = msg; err.classList.add('on'); } else notify(msg, 'error', 8000); };
-  const idToken = profile && profile.raw && profile.raw.credential;
-  if (!idToken || !auth) return;
-  if (!profile.emailVerified) { showErr('Your Google email is not verified, so it cannot be used to sign in.'); return; }
-  if (err) err.classList.remove('on');
-  try {
-    const { signInWithCredential, GoogleAuthProvider: _GA } = window._fb;
-    await signInWithCredential(auth, _GA.credential(idToken));
-    // onAuthStateChanged continues from here (see note above).
-  } catch(e) {
-    showErr('Google sign-in failed: ' + (e.message || '').replace('Firebase: ', ''));
-  }
-}
-
-async function _initResultsOneTap(){
-  try {
-    const BASE = 'https://kanyadet-school-admin.web.app/js/';
-    const [{ GoogleOneTap }, { GOOGLE_CLIENT_ID }] = await Promise.all([
-      import(BASE + 'google-one-tap.js'),
-      import(BASE + 'config.js'),
-    ]);
-    window._oneTap = new GoogleOneTap({
-      clientId: GOOGLE_CLIENT_ID,
-      deferAutoPromptUntilSignal: true, // wait until Firebase confirms there is no session
-      onSuccess: _handleOneTapProfile,
-      onUnavailable: () => {},          // the Google / email buttons still work
-      onSuppressed: r => console.log('[OneTap] suppressed:', r),
-      onError: e => console.warn('[OneTap]', e),
-      debug: false,
-    });
-    await window._oneTap.init();
-    if (window._oneTapPendingSignal !== undefined) _oneTapSignal(window._oneTapPendingSignal);
-  } catch(e) {
-    console.warn('[OneTap] could not load, continuing without it:', e);
-  }
-}
 
 // Stub out old functions so any residual references don't crash
 function switchLoginTab(){}
@@ -7967,7 +7726,6 @@ async function _checkDisabledAndLogin(userData, auth, ui){
       ui.btn.textContent = ui.btnLabel;
     } else {
       notify(msg, 'error', 8000);
-      const _le = document.getElementById('login-err'); if (_le) { _le.textContent = msg; _le.classList.add('on'); }
     }
     logActivity('🚫 Blocked login attempt (disabled): ' + userData.name + ' (' + userData.user + ')', 'act-red', 'System', { category:'system' });
     return;
@@ -7993,7 +7751,6 @@ async function _checkDisabledAndLogin(userData, auth, ui){
         ui.btn.textContent = ui.btnLabel;
       } else {
         notify(msg, 'error', 8000);
-        const _le = document.getElementById('login-err'); if (_le) { _le.textContent = msg; _le.classList.add('on'); }
       }
       logActivity('🚫 Blocked login attempt (not authorized): ' + userData.name + ' (' + userData.user + ')', 'act-red', 'System', { category:'system' });
       return;
@@ -9136,7 +8893,6 @@ function _renderAdvancedAdminRolePanel(){
       '</div>',
     '</div>',
     '<div class="arp-info-box">Grant or revoke <strong>Advanced Admin</strong> privileges for any teacher. Advanced Admins can see all grades, import data, manage teachers, and assign roles. Each card also has a <strong>Force Passkey Setup</strong> toggle — off by default for everyone; turn it on only for someone you specifically want required to set up fingerprint/PIN sign-in. Changes take effect immediately.</div>',
-    '<div class="arp-info-box" style="background:rgba(41,128,185,.06);border-color:rgba(41,128,185,.25)"><strong>Database access (staff list)</strong><br>Staff who may write to the Realtime Database are listed under <code>/staff</code>. <b>Sync staff</b> adds every active Advanced Admin and Teacher from this list. <b>Check access</b> tests what your account can read right now and shows any PERMISSION_DENIED.<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-blue" id="arp-sync-staff" type="button">Sync staff</button><button class="btn btn-green" id="arp-check-access" type="button">Check access</button></div><div id="arp-access-out" style="margin-top:8px;font-size:11.5px;line-height:1.7"></div></div>',
     '<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">',
       '<div class="arp-search-wrap">',
         '<input type="text" id="arp-search-input" placeholder="Search teachers...">',
@@ -9152,10 +8908,6 @@ function _renderAdvancedAdminRolePanel(){
   // Search input listener — attached via JS, not inline attribute
   var searchInput = document.getElementById('arp-search-input');
   if(searchInput) searchInput.addEventListener('input', function(){ _arpFilterCards(); });
-  var _syncBtn = document.getElementById('arp-sync-staff');
-  if(_syncBtn) _syncBtn.addEventListener('click', function(){ _arpSyncStaff(); });
-  var _chkBtn = document.getElementById('arp-check-access');
-  if(_chkBtn) _chkBtn.addEventListener('click', function(){ _arpCheckAccess(); });
 
   // Event delegation for toggle switches — attached to the list container
   var listEl = document.getElementById('adv-role-list');
@@ -9170,8 +8922,6 @@ function _renderAdvancedAdminRolePanel(){
       if(!uid) return;
       if(inp.dataset.toggle === 'passkeyrequired'){
         _arpTogglePasskeyRequired(uid, name, inp.checked);
-      } else if(inp.dataset.toggle === 'passkeyoffer'){
-        _arpTogglePasskeyOffer(uid, name, inp.checked);
       } else {
         _arpToggleRole(uid, name, inp.checked);
       }
@@ -9311,82 +9061,10 @@ window._arpFilterCards = function(users){
     html += '<label class="arp-switch"><input type="checkbox" data-toggle="passkeyrequired"' + (isPkRequired ? ' checked' : '') + '>';
     html += '<span class="arp-slider"></span></label>';
     html += '</div>';
-    var isPkOffer = u.passkeyOffer === true;
-    html += '<div class="arp-toggle-row">';
-    html += '<div><div class="arp-toggle-label">Offer Passkey (optional)</div>';
-    html += '<div class="arp-toggle-sub">' + (isPkOffer ? 'Skippable offer shown at sign-in' : 'Off (default) — no prompt') + '</div></div>';
-    html += '<label class="arp-switch"><input type="checkbox" data-toggle="passkeyoffer"' + (isPkOffer ? ' checked' : '') + '>';
-    html += '<span class="arp-slider"></span></label>';
-    html += '</div>';
     html += '</div>';
   });
   html += '</div>';
   container.innerHTML = html;
-};
-
-window._arpTogglePasskeyOffer = async function(uid, name, on){
-  var toggle = document.querySelector('#arp-card-' + uid + ' input[data-toggle="passkeyoffer"]');
-  try{
-    await window._fb.updateDoc(window._fb.doc(firestoreDb, 'users', uid), { passkeyOffer: on });
-    notify('Passkey offer ' + (on ? 'enabled' : 'disabled') + ' for <strong>' + name + '</strong>.', 'success', 5000);
-  } catch(e){
-    notify('Error updating passkey offer: ' + e.message, 'error');
-    if(toggle) toggle.checked = !on;
-  }
-};
-
-/** Adds every active Advanced Admin ('admin') and Teacher/admin-role user ('staff')
- *  to RTDB /staff, and removes disabled users. Requires your own /staff entry
- *  to be 'admin' (set once in the Firebase console). */
-window._arpSyncStaff = async function(){
-  var out = document.getElementById('arp-access-out');
-  var ok = await showConfirm('Sync staff access', 'Add all active Advanced Admins and Teachers to the database staff list, and remove disabled users?', 'Sync', 'Sync staff', 'btn-orange');
-  if(!ok) return;
-  try{
-    var snap = await window._fb.getDocs(window._fb.collection(firestoreDb, 'users'));
-    var updates = {}, nAdmin = 0, nStaff = 0, nRemoved = 0;
-    snap.forEach(function(d){
-      var u = d.data(), role = String(u.role || '').toLowerCase();
-      if(u.disabled === true){ updates['staff/' + d.id] = null; nRemoved++; }
-      else if(u.Advancedadmin === true){ updates['staff/' + d.id] = 'admin'; nAdmin++; }
-      else if(role === 'teacher' || role === 'admin'){ updates['staff/' + d.id] = 'staff'; nStaff++; }
-    });
-    await window._fb.update(window._fb.ref(db), updates);
-    var msg = nAdmin + ' admin, ' + nStaff + ' staff added; ' + nRemoved + ' removed.';
-    if(out) out.innerHTML = '✅ ' + msg;
-    notify('Staff list synced — ' + msg, 'success', 6000);
-    logActivity('Staff access synced: ' + msg, 'act-orange', currentAdminName, { category: 'system' });
-  } catch(e){
-    var m = (e && e.code === 'PERMISSION_DENIED') || /permission/i.test(e && e.message || '')
-      ? 'Permission denied. Add your own UID once in the Firebase console: Realtime Database → staff → ' + (auth && auth.currentUser ? auth.currentUser.uid : '<your uid>') + ' = "admin".'
-      : (e && e.message || 'Unknown error');
-    if(out) out.innerHTML = '❌ ' + m;
-    notify('Sync failed: ' + m, 'error', 9000);
-  }
-};
-
-/** Read-only probe of what the signed-in account can read in the Realtime Database. */
-window._arpCheckAccess = async function(){
-  var out = document.getElementById('arp-access-out');
-  if(out) out.innerHTML = 'Checking…';
-  var uid = auth && auth.currentUser ? auth.currentUser.uid : null;
-  var paths = ['students','teachers','staff','announcements','lunch','audit_logs','roles','messages','submissions','fines'];
-  var lines = [];
-  if(uid){
-    try{
-      var me = await window._fb.get(window._fb.ref(db, 'staff/' + uid));
-      lines.push('Your staff entry: <b>' + (me.exists() ? me.val() : 'none') + '</b>');
-    }catch(e){ lines.push('Your staff entry: ❌ cannot read'); }
-  }
-  for(var i = 0; i < paths.length; i++){
-    try{
-      await window._fb.get(window._fb.query(window._fb.ref(db, paths[i]), window._fb.limitToFirst(1)));
-      lines.push('✅ read ' + paths[i]);
-    }catch(e){
-      lines.push('❌ read ' + paths[i] + ' — PERMISSION_DENIED');
-    }
-  }
-  if(out) out.innerHTML = lines.join('<br>');
 };
 
 window._arpToggleRole = async function(uid, name, grantAccess){

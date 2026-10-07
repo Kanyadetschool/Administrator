@@ -183,6 +183,100 @@
     #lb .x{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer}
     .more{display:flex;margin:16px auto 0}.more[hidden]{display:none}
     .state .icon-btn{margin:0 auto}
+
+    /* access denied: show only the lock card */
+    body.denied #cache,body.denied .chips,body.denied .dq,body.denied .toolbar,body.denied .result-line,body.denied .more{display:none!important}
+
+    /* ═══ CLAYMORPHISM · soft, puffy, pastel 3D (same system as index.html) ═══
+       NB: highlight token is --chl here because --ch is already the per-card grade hue */
+    @media screen{
+    html[data-theme="light"]{--cs:rgba(110,90,50,.30);--chl:rgba(255,255,255,.9);--cl:rgba(120,100,60,.17);--base:#fff7e8;--cbg:#f1e8d6;--ink:#2b3445;--p1:#cfe8ff;--p2:#ffe0bd;--p3:#d4f3cc;--p4:#e8d6ff;--p5:#ffd3df;--p6:#fff0a8}
+    html[data-theme="dark"]{--cs:rgba(0,0,0,.55);--chl:rgba(255,255,255,.07);--cl:rgba(0,0,0,.42);--base:#1b2a40;--cbg:#0f1a2b;--ink:#eaf1fb;--p1:#27456b;--p2:#5a4228;--p3:#2a5236;--p4:#47336b;--p5:#6a3045;--p6:#5c5322}
+    html{--CL:14px 14px 28px var(--cs),-8px -8px 20px var(--chl),inset -7px -7px 14px var(--cl),inset 7px 7px 14px var(--chl);--CM:8px 8px 18px var(--cs),-5px -5px 12px var(--chl),inset -4px -4px 9px var(--cl),inset 4px 4px 9px var(--chl);--CS:5px 5px 12px var(--cs),-3px -3px 8px var(--chl),inset -3px -3px 7px var(--cl),inset 3px 3px 7px var(--chl);--CD:inset 5px 5px 11px var(--cl),inset -5px -5px 11px var(--chl);--CB:linear-gradient(145deg,#74b9ff,#3d7de0);--CBS:6px 6px 14px rgba(40,80,160,.42),-3px -3px 9px var(--chl),inset -4px -4px 9px rgba(20,50,130,.35),inset 4px 4px 9px rgba(255,255,255,.5);--card-shadow:var(--CM);--border:transparent}
+    body{background:var(--cbg)}
+    body::before{background:radial-gradient(circle at 8% 6%,var(--p1),transparent 30%),radial-gradient(circle at 94% 40%,var(--p5),transparent 26%),radial-gradient(circle at 20% 98%,var(--p6),transparent 28%);opacity:.7}
+    body::after{display:none}
+    ::-webkit-scrollbar-thumb{background:var(--cl)}
+
+    /* shell */
+    .topbar{background:var(--base);border:0;border-radius:0 0 30px 30px;box-shadow:var(--CM);-webkit-backdrop-filter:none;backdrop-filter:none}
+    .tb-logo,.auth-logo,.em-badge{background:var(--CB);border-radius:50%;box-shadow:var(--CBS)}
+    .icon-btn,.pdfb{background:var(--base);border:0;border-radius:99px;box-shadow:var(--CS);color:var(--ink)}
+    .icon-btn:hover,.pdfb:hover{background:var(--base);color:var(--ink);transform:translateY(-2px);box-shadow:var(--CM)}
+    .icon-btn:active,.pdfb:active{transform:scale(.95);box-shadow:var(--CD)}
+    .pdfb{color:#1d4a9a}
+    [data-theme="dark"] .pdfb{color:#8ec5ff}
+    .pdfb:disabled{opacity:.55}
+    label.icon-btn:has(input:checked){background:var(--p3);box-shadow:var(--CD)}
+    label.icon-btn input{accent-color:#3d7de0}
+    .user-chip{color:var(--ink);opacity:.75}
+    .cache i{box-shadow:0 0 0 3px var(--base),var(--CS)}
+
+    /* header + filters */
+    .head h1{color:var(--ink)}
+    .toolbar{background:var(--base);border:0;border-radius:32px;box-shadow:var(--CL);padding:12px}
+    .search input{background:var(--base);border:0;border-radius:99px;box-shadow:var(--CD);color:var(--text)}
+    .search input:focus{box-shadow:var(--CD),0 0 0 3px var(--blue-glow)}
+    select.sel{background:var(--base);border:0;border-radius:99px;box-shadow:var(--CD);padding:.68rem 1rem;color:var(--text)}
+    select.sel:focus{box-shadow:var(--CD),0 0 0 3px var(--blue-glow)}
+    .seg{background:var(--base);border:0;border-radius:99px;box-shadow:var(--CD);padding:4px}
+    .seg button{border-radius:99px}
+    .seg button.on{background:var(--CB);color:#fff;box-shadow:3px 3px 8px rgba(40,80,160,.4),inset -2px -2px 6px rgba(20,50,130,.35),inset 2px 2px 6px rgba(255,255,255,.5)}
+
+    /* grade chips */
+    .chips{padding:6px 6px 16px}
+    .chip{border:0;background:var(--base);color:var(--ink);box-shadow:var(--CS);padding:.55rem 1rem}
+    .chip em{color:var(--text2)}
+    .chip:hover{transform:translateY(-2px);box-shadow:var(--CM)}
+    .chip:active{transform:scale(.95);box-shadow:var(--CD)}
+    .chip.on{background:var(--CB);color:#fff;box-shadow:var(--CBS)}
+    .chip.on em{color:rgba(255,255,255,.8)}
+
+    /* notices + states */
+    .dq{border:0;border-radius:26px;background:var(--p6);color:var(--ink);box-shadow:var(--CM);padding:12px 16px}
+    .dq button{border:0;background:var(--base);color:var(--ink);box-shadow:var(--CS)}
+    .dq button:hover{transform:translateY(-1px)}
+    .dq button.on{background:#ffd86b;color:#5a3d00;box-shadow:inset -4px -4px 9px rgba(200,140,0,.4),inset 4px 4px 9px rgba(255,255,255,.7),4px 4px 10px rgba(20,50,130,.25)}
+    .result-line{color:var(--text2)}
+    .state{background:var(--base);border:0;border-radius:36px;box-shadow:var(--CL)}
+    .state.lock{background:var(--p5)}
+    .skeleton{border-radius:30px;background:linear-gradient(90deg,var(--base),var(--p1),var(--base));background-size:200% 100%;box-shadow:var(--CD)}
+
+    /* learner cards */
+    .g-card{background:var(--base);border:0;border-radius:30px;padding:14px 16px;box-shadow:var(--CM)}
+    .g-card:hover{border:0;transform:translateY(-4px);box-shadow:var(--CL)}
+    .g-card::before{left:7px;top:22px;bottom:22px;width:6px;border-radius:6px;background:hsl(var(--ch,210) 80% 74%);box-shadow:inset 1px 1px 2px var(--cs),inset -1px -1px 2px var(--chl)}
+    .g-card{padding-left:22px}
+    .g-name{color:var(--ink)}
+    .g-no{color:var(--text2)}
+    .g-av{border-radius:50%;box-shadow:var(--CBS)}
+    .g-av.f{background:linear-gradient(145deg,#ffb36b,#e8743b);box-shadow:6px 6px 14px rgba(200,90,30,.4),-3px -3px 9px var(--chl),inset -4px -4px 9px rgba(150,50,10,.35),inset 4px 4px 9px rgba(255,255,255,.5)}
+    .g-av.ph{background:none;box-shadow:0 0 0 3px var(--base),var(--CM)}
+    .tag{border:0;background:var(--base);color:var(--ink);box-shadow:var(--CS);padding:3px 10px}
+    .tag.m{background:var(--p1);color:var(--ink)}
+    .tag.f{background:var(--p2);color:var(--ink)}
+    .view-list .g-card{border-radius:99px;padding:10px 18px 10px 26px}
+    .view-list .g-card::before{top:16px;bottom:16px}
+
+    /* photo lightbox */
+    #lb img{border:0;border-radius:36px;box-shadow:0 0 0 8px var(--base),18px 18px 40px rgba(0,0,0,.5)}
+    #lb .x{border:0;background:var(--base);color:var(--ink);box-shadow:var(--CS)}
+
+    /* sign-in + popups */
+    .auth-card,.em-sheet{background:var(--base);border:0;border-radius:40px;box-shadow:18px 18px 40px var(--cs),-10px -10px 26px var(--chl),inset -8px -8px 16px var(--cl),inset 8px 8px 16px var(--chl)}
+    .em-close{background:var(--base);box-shadow:var(--CS)}
+    .em-input input{background:var(--base);border:0;border-radius:99px;box-shadow:var(--CD);color:var(--text)}
+    .em-input input:focus{box-shadow:var(--CD),0 0 0 3px var(--blue-glow)}
+    .em-eye{border-radius:50%}
+    .auth-err{border-radius:20px}
+    .auth-btn{border:0;border-radius:99px;box-shadow:var(--CS)}
+    .auth-btn-primary{background:var(--CB);color:#fff;box-shadow:var(--CBS)}
+    .auth-btn-google{background:linear-gradient(145deg,#4a6fa5,#1a3a68);color:#fff;box-shadow:6px 6px 14px rgba(10,30,70,.45),-3px -3px 9px var(--chl),inset -4px -4px 9px rgba(5,20,50,.45),inset 4px 4px 9px rgba(255,255,255,.3)}
+    .auth-btn-email{background:var(--base);color:var(--text);border:0;box-shadow:var(--CM)}
+    .auth-btn-email:hover{box-shadow:var(--CL)}
+    .auth-btn:active{transform:scale(.97)}
+    .toast{border-radius:99px;box-shadow:8px 8px 18px rgba(0,0,0,.35),inset -3px -3px 8px rgba(0,0,0,.35),inset 3px 3px 8px rgba(255,255,255,.12)}
+    }
   </style>
 </head>
 <body>
@@ -287,7 +381,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getDatabase, ref, get, update } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+import { getDatabase, ref, get, update, query, limitToFirst } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 import * as CFG from './js/config.js';
 const FIREBASE_CONFIG = CFG.FIREBASE_CONFIG, PATHS = CFG.PATHS || {};
 
@@ -390,13 +484,14 @@ $('btn-google').addEventListener('click', async ()=>{
   catch(e){ showAuthErr(friendlyErr(e)); }
 });
 $('btn-signout').addEventListener('click', ()=>signOut(auth));
+$('list').addEventListener('click', e => { if(e.target.closest('#btn-denied-out')) signOut(auth); });
 
 /* ── student records: one DB read, then served from an on-device cache ── */
 // Same path formula as the Active and Deleted Students pages (they fall back to 'default-app-id').
 const APP = (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id').replace(/\./g, '_');
 const SCOPE_PATH = { active: `artifacts/${APP}/students`, deleted: `Deletedstudents/${APP}/artifacts` };
 const CACHE_TTL = 24*60*60*1000, PAGE = 60;   // refetch at most once a day (or on Refresh)
-const ckey = sc => `students-v4-${APP}-${sc}`;
+const ckey = sc => `students-v5-${APP}-${auth.currentUser ? auth.currentUser.uid : 'anon'}-${sc}`;   // cache belongs to one account
 
 const idb = () => new Promise((res, rej) => { const r = indexedDB.open('kss-cache', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
 async function cacheGet(sc){
@@ -407,11 +502,9 @@ async function cachePut(sc, v){
   try{ const db = await idb(); await new Promise((res, rej) => { const t = db.transaction('kv','readwrite'); t.objectStore('kv').put(v, ckey(sc)); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
   catch(e){ try{ localStorage.setItem('kss-'+ckey(sc), JSON.stringify(v)); }catch(x){} }
 }
-async function cacheClear(){
-  for(const sc of Object.keys(SCOPE_PATH)){
-    try{ const db = await idb(); db.transaction('kv','readwrite').objectStore('kv').delete(ckey(sc)); }catch(e){}
-    try{ localStorage.removeItem('kss-'+ckey(sc)); }catch(e){}
-  }
+async function cacheClear(){   // wipes every saved copy on this device (sign-out, or the rules said no)
+  try{ const db = await idb(); db.transaction('kv','readwrite').objectStore('kv').clear(); }catch(e){}
+  try{ Object.keys(localStorage).filter(k => k.startsWith('kss-')).forEach(k => localStorage.removeItem(k)); }catch(e){}
 }
 
 const clean = v => { v = String(v ?? '').trim(); return /^(-+|n\/?a|nil|none)\.?$/i.test(v) ? '' : v; };   // '', '---', 'N/A' all mean blank
@@ -447,14 +540,31 @@ async function fetchFresh(sc){
   const raw = snap.exists() ? snap.val() : {}, rec = { ts: Date.now(), kb: Math.round(JSON.stringify(raw).length / 1024), rows: normalize(raw, sc) };
   await cachePut(sc, rec); return rec;
 }
+/* ── access gate: the database rules decide who may read students (Advanced Admin only).
+   A 1-record probe runs BEFORE any saved copy is shown, so a cached list is never handed to an account the rules refuse. ── */
+const isDenied = e => /permission.denied/i.test((e && (e.code || e.message)) || '');
+async function probe(sc){
+  try{ await get(query(ref(rtdb, SCOPE_PATH[sc]), limitToFirst(1))); return true; }
+  catch(e){ return !isDenied(e); }   // offline/other errors fall through to this account's own saved copy
+}
+function showDenied(sc){
+  ALL = []; VIEW = []; delete DATA[sc]; cacheClear();
+  document.body.classList.add('denied');
+  const who = auth.currentUser ? (auth.currentUser.email || auth.currentUser.displayName || '') : '';
+  $('list').innerHTML = `<div class="state lock" style="grid-column:1/-1"><div class="big">🔒</div><h3>Advanced Admin access only</h3><p>Student records are confidential and can only be viewed by an Advanced Admin.${who ? ' You are signed in as <b>' + esc(who) + '</b>.' : ''}</p><button class="icon-btn" id="btn-denied-out" type="button">Sign out</button></div>`;
+  $('result-count').textContent = ''; $('gsplit').textContent = '';
+}
 async function init(force){
   const sc = SCOPE;
+  document.body.classList.remove('denied');
   if(DATA[sc] && !force){ apply(DATA[sc]); return; }                       // already in memory → no read at all
   ALL = []; $('list').innerHTML = Array.from({length:9}, () => '<div class="skeleton"></div>').join('');
+  if(!(await probe(sc))){ if(sc === SCOPE) showDenied(sc); return; }
   const cached = force ? null : await cacheGet(sc);
   if(cached && Array.isArray(cached.rows)){ DATA[sc] = cached; if(sc === SCOPE) apply(cached); if(Date.now() - cached.ts < CACHE_TTL) return; }   // fresh cache → zero database reads
   try{ const rec = await fetchFresh(sc); DATA[sc] = rec; if(sc === SCOPE) apply(rec); if(force) toast('Records refreshed.', 'ok'); }
   catch(e){
+    if(isDenied(e)){ if(sc === SCOPE) showDenied(sc); return; }
     if(ALL.length) toast('Could not refresh — showing the saved copy.', 'err');
     else if(sc === SCOPE) $('list').innerHTML = `<div class="state" style="grid-column:1/-1"><div class="big">⚠️</div><h3>Couldn't load student records</h3><p>${/permission.denied/i.test((e && (e.code || e.message)) || '') ? 'Your account is not allowed to read these records. Ask an administrator for access.' : esc(e && e.message || 'Check your connection and try again.')}</p><button class="icon-btn" id="btn-retry" type="button">Try again</button></div>`;
   }

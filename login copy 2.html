@@ -183,51 +183,6 @@
     .toast{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;color:var(--text);box-shadow:0 10px 30px rgba(0,0,0,.15);animation:fadeUp .25s ease}
     .toast.ok{border-left-color:var(--green)}
     .toast.err{border-left-color:var(--red)}
-    /* ═══ CLAYMORPHISM LAYER ═══ (overrides only; remove this block to revert) */
-    :root{
-      --radius-xl:32px; --radius-lg:26px; --radius-md:18px; --radius-sm:12px;
-      --clay-hi:rgba(255,255,255,.9); --clay-lo:rgba(120,95,40,.22);
-      --clay-out:10px 12px 24px var(--clay-lo), -8px -8px 20px var(--clay-hi);
-      --clay-out-sm:5px 6px 12px var(--clay-lo), -4px -4px 10px var(--clay-hi);
-      --clay-in:inset 6px 6px 12px rgba(120,95,40,.18), inset -6px -6px 12px var(--clay-hi);
-      --clay-edge:inset -4px -5px 10px rgba(120,95,40,.12), inset 4px 4px 9px var(--clay-hi);
-      --transition:all .22s cubic-bezier(.34,1.4,.64,1);
-    }
-    [data-theme="dark"]{
-      --clay-hi:rgba(120,170,230,.10); --clay-lo:rgba(0,0,0,.55);
-      --clay-edge:inset -4px -5px 10px rgba(0,0,0,.35), inset 4px 4px 9px rgba(120,170,230,.12);
-      --clay-in:inset 6px 6px 12px rgba(0,0,0,.5), inset -5px -5px 10px rgba(120,170,230,.08);
-      --bg:#0f1c31; --bg2:#0c1525; --surface:#15294a; --surface2:#1a3157; --surface3:#1f3a66; --border:transparent;
-    }
-    [data-theme="light"]{
-      --bg:#efe6d2; --bg2:#e8dcc0; --surface:#f6eedc; --surface2:#f9f3e5; --surface3:#ebe0c6; --border:transparent; --border-strong:rgba(211,164,55,.35);
-    }
-    body::before,body::after,#auth-gate::before{display:none}
-    .auth-card{border:none;box-shadow:var(--clay-out),var(--clay-edge);border-radius:var(--radius-xl)}
-    .auth-logo,.em-badge{border-radius:22px;box-shadow:var(--clay-out-sm),inset -4px -5px 10px rgba(0,0,0,.22),inset 4px 4px 9px rgba(255,255,255,.35)}
-    .auth-field input{border:none;border-radius:var(--radius-md);background:var(--surface3);box-shadow:var(--clay-in)}
-    .auth-field input:focus{border:none;box-shadow:var(--clay-in),0 0 0 3px var(--blue-glow)}
-    .auth-btn{border-radius:var(--radius-md);box-shadow:var(--clay-out-sm),inset -3px -4px 8px rgba(0,0,0,.2),inset 3px 3px 7px rgba(255,255,255,.35)}
-    .auth-btn-primary,.auth-btn-google{box-shadow:var(--clay-out-sm),inset -3px -4px 8px rgba(0,0,0,.25),inset 3px 3px 7px rgba(255,255,255,.28)}
-    .auth-btn:hover{transform:translateY(-2px) scale(1.02)}
-    .auth-btn:active{transform:translateY(1px) scale(.98);box-shadow:var(--clay-in)}
-    .auth-btn-email{background:var(--surface);border:none;box-shadow:var(--clay-out-sm),var(--clay-edge)}
-    .auth-btn-email:hover{border:none;box-shadow:var(--clay-out-sm),var(--clay-edge)}
-    .auth-btn-email:active{box-shadow:var(--clay-in)}
-    .portal-link{border:none;border-radius:var(--radius-md);background:var(--surface);box-shadow:var(--clay-out-sm),var(--clay-edge)}
-    .portal-link:hover,.portal-link:focus-visible{border:none;transform:translateY(-3px) scale(1.02);box-shadow:var(--clay-out),var(--clay-edge)}
-    .portal-link:active{box-shadow:var(--clay-in)}
-    .portal-ico{border-radius:14px;box-shadow:var(--clay-out-sm),inset -3px -3px 7px rgba(0,0,0,.22),inset 3px 3px 6px rgba(255,255,255,.35)}
-    .em-sheet{border:none;border-radius:var(--radius-xl);box-shadow:16px 20px 50px var(--clay-lo),-10px -10px 30px var(--clay-hi),var(--clay-edge)}
-    .em-close,.em-eye{background:var(--surface);box-shadow:var(--clay-out-sm),var(--clay-edge)}
-    .em-close:active,.em-eye:active{box-shadow:var(--clay-in)}
-    .em-back:hover{background:var(--surface);box-shadow:var(--clay-out-sm)}
-    #pwa-install-btn{border:none;border-radius:var(--radius-md);background:var(--surface);box-shadow:var(--clay-out-sm),var(--clay-edge)}
-    .auth-err,.auth-notice{border:none;border-radius:var(--radius-md);box-shadow:var(--clay-in)}
-    .toast{border:none;border-left:4px solid var(--blue);border-radius:var(--radius-md);box-shadow:var(--clay-out)}
-    .toast.ok{border-left-color:var(--green)} .toast.err{border-left-color:var(--red)}
-    @media(max-width:520px){.em-sheet{border-radius:var(--radius-xl) var(--radius-xl) 0 0}}
-    @media(min-width:901px){.auth-card{box-shadow:none;border:none;background:transparent}}
   </style>
 </head>
 <body>

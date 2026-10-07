@@ -385,84 +385,10 @@ dialog::backdrop{background:rgba(40,25,70,.45)}
   .cell:hover{transform:none}
 }
 
-/* Combined sheet: every class on one table, a row per class for each exam day, a column per period */
-.cbOpts{display:flex;gap:8px 16px;flex-wrap:wrap;margin-bottom:10px;font-weight:700;align-items:center}
-.cbOpts label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
-.cbOpts input[type=text]{border:2px solid var(--line);border-radius:12px;padding:6px 10px;font:inherit;width:150px;background:var(--card);color:var(--text)}
-#cbTitleIn{width:100%;border:2px solid var(--line);border-radius:14px;padding:10px 12px;font:inherit;font-weight:700;margin-bottom:12px;background:var(--card);color:var(--text)}
-table.combo{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
-.combo th,.combo td{border:1px solid var(--line);padding:6px 8px;text-align:center;vertical-align:middle}
-.combo th{background:var(--band);font-weight:800}
-.combo th small,.combo td.cd small{display:block;font-size:11px;font-weight:700;color:var(--muted)}
-.combo td.cd,.combo td.cc{font-weight:800;background:var(--band)}
-.combo tr.dstart td{border-top:2px solid var(--muted)}
-.combo td.cb{background:var(--tint,transparent);color:var(--ink,inherit)}
-.combo .cs{display:block;font-weight:900;font-size:14px}
-.combo .ci{display:block;font-size:12px;font-weight:700;opacity:.85}
-.combo .cn{display:inline-block;font-size:11px;font-weight:800;padding:0 7px;border-radius:9px;background:rgba(255,255,255,.7)}
-.combo td.cx{color:var(--muted)}
-#comboPrint{display:none}
-/* Advanced analytics */
-.anKpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-@media (max-width:760px){.anKpis{grid-template-columns:repeat(2,1fr)}}
-.kpi{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--band)}
-.kpi.good{background:var(--t2);color:var(--i2)}.kpi.warn{background:var(--t3);color:var(--i3)}.kpi.bad{background:var(--t1);color:var(--i1)}
-.kpi .lb{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;opacity:.8}
-.kpi .v{font-size:25px;font-weight:900;line-height:1.15}
-.kpi .sb{font-size:11.5px;font-weight:700;opacity:.8}
-.anIns{display:grid;gap:6px;margin:0 0 14px;padding:0;list-style:none}
-.anIns li{display:flex;gap:9px;align-items:flex-start;font-size:13px;font-weight:700;padding:8px 10px;border-radius:10px;background:var(--band)}
-.anIns li i{width:10px;height:10px;border-radius:50%;margin-top:4px;flex:none;background:var(--accent)}
-.anIns .good i{background:var(--ok)}.anIns .warn i{background:#D9A400}.anIns .bad i{background:#C0392B}
-.anH{font-size:13px;font-weight:900;margin:16px 0 8px;color:var(--accent-ink)}
-.anCols{display:flex;align-items:stretch;gap:8px;height:190px;overflow-x:auto;padding-top:4px}
-.anCol{flex:1;min-width:40px;max-width:76px;display:flex;flex-direction:column;align-items:center;height:100%;gap:3px;font-size:11px;font-weight:800;text-align:center}
-.anCol .plot{flex:1;width:100%;display:flex;align-items:flex-end}
-.anCol .stack{width:100%;display:flex;flex-direction:column-reverse;border-radius:7px 7px 0 0;overflow:hidden}
-.anCol .stack i{display:block;width:100%}
-.anCol small{font-size:10.5px;color:var(--muted);line-height:1.2}.anCol small.st{font-size:10px}
-table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
-.anT th,.anT td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-.anT th{background:var(--band);font-weight:800;font-size:11.5px}
-.anT .num{text-align:right}
-.anT .track{display:block;height:10px;border-radius:99px;background:var(--band);overflow:hidden}.anT .track i{display:block;height:100%;border-radius:99px}
-.anChip{display:inline-block;padding:1px 9px;border-radius:99px;font-size:11px;font-weight:800;background:var(--band)}
-.anChip.good{background:var(--t2);color:var(--i2)}.anChip.warn{background:var(--t3);color:var(--i3)}.anChip.bad{background:var(--t1);color:var(--i1)}
-.anOk{font-weight:800;color:var(--ok)}
-#anBody .heatCell,#analyticsPrint .heatCell{aspect-ratio:auto;height:34px;min-height:0}
-#analyticsPrint .heatCell{height:22px}
-#analyticsPrint .heatGrid{max-width:620px}
-.anInc{display:flex;align-items:center;gap:6px;font-weight:800;font-size:12.5px;color:var(--muted);cursor:pointer}.anInc input{width:auto;margin:0}
-#analyticsPrint{display:none}
 @page{size:A4 landscape;margin:12mm}
 @media print{
   body{background:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .side,.top,.stats,.right,.pair,.weeknav,.empty-note,.seg,.notice,.gate,#analytics,.examTitleRow,#combo{display:none !important}
-  body.combo-print .app{display:none !important}
-  body.an-inc #analyticsPrint{display:block;color:#2F2647;break-before:page}
-  #analyticsPrint .anpg{break-after:page;padding-top:2px}
-  #analyticsPrint .anpg.last{break-after:auto}
-  #analyticsPrint .cbHead{text-align:center;margin-bottom:8px}
-  #analyticsPrint .cbHead h2{font-size:18px;font-weight:900}
-  #analyticsPrint .cbHead p{font-size:13px;font-weight:700}
-  #analyticsPrint .anKpis{grid-template-columns:repeat(4,1fr);gap:8px}
-  #analyticsPrint .kpi .v{font-size:20px}
-  #analyticsPrint .anTwo{display:grid;grid-template-columns:1.7fr 1fr;gap:18px}
-  #analyticsPrint .anCols{height:150px;overflow:visible}
-  #analyticsPrint table.anT{font-size:10.5px}
-  #analyticsPrint .anT tr{break-inside:avoid}
-  #analyticsPrint .anT th,#analyticsPrint .anT td{padding:4px 6px}
-  #analyticsPrint .anIns li{font-size:11.5px;padding:5px 8px}
-  #analyticsPrint .chartRow{margin-bottom:6px}
-  #analyticsPrint .histBars{height:110px}
-  #analyticsPrint .heatCell{min-height:20px}
-  #analyticsPrint .anH{margin:10px 0 6px}
-  #analyticsPrint .anH,#analyticsPrint .heatGrid{break-after:avoid}
-  body.combo-print #comboPrint{display:block;color:#2F2647}
-  #comboPrint .cbHead{text-align:center;margin-bottom:10px}
-  #comboPrint .cbHead h2{font-size:20px;font-weight:900}
-  #comboPrint .cbHead p{font-size:14px;font-weight:700}
-  #comboPrint table.combo{font-size:12px}
+  .side,.top,.stats,.right,.pair,.weeknav,.empty-note,.seg,.notice,.gate,#analytics,.examTitleRow{display:none !important}
   .app{display:block;padding:0}
   .cols{display:block}
   .card{box-shadow:none;padding:0;background:#fff}
@@ -491,7 +417,6 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
     <nav class="nav" aria-label="Sections">
       <a href="#top" class="on"><span aria-hidden="true">🏠</span>Dashboard</a>
       <a href="#timetable"><span aria-hidden="true">🗓️</span>Timetable</a>
-      <a href="#combo"><span aria-hidden="true">🧾</span>Combined sheet</a>
       <a href="#calendar"><span aria-hidden="true">📅</span>Calendar</a>
       <a href="#teachers"><span aria-hidden="true">👩‍🏫</span>Invigilators</a>
       <a href="#planning"><span aria-hidden="true">🌱</span>Other exam weeks</a>
@@ -559,28 +484,8 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
           </div>
           <div class="seg" id="sections" role="group" aria-label="Section"></div>
           <div id="emptyNote"></div>
-          <div id="mergeBar"></div>
           <div id="findElsewhere"></div>
           <div class="tt-scroll"><div class="tt-grid" id="grid"></div></div>
-        </section>
-
-        <section class="card" id="combo" aria-labelledby="cbTitle">
-          <div class="card-h"><h2 id="cbTitle">Combined sheet</h2><span class="sub">Day × class</span></div>
-          <p class="muted" style="margin-bottom:12px">Every class on one sheet: a row per class for each exam day, a column per period. Exam days that carry on into next week are included in the same sheet.</p>
-          <div class="cbOpts" id="cbSecs" role="group" aria-label="Classes on the sheet"></div>
-          <div class="cbOpts">
-            <label><input type="checkbox" id="cbNext"> Include the following week</label>
-            <label><input type="checkbox" id="cbSep"> Invigilator in its own column</label>
-          </div>
-          <div class="cbOpts" id="cbNames" role="group" aria-label="Period names"></div>
-          <input id="cbTitleIn" type="text" placeholder="Sheet title, e.g. END TERM 3 – 2026 ASSESSMENT" maxlength="120" aria-label="Title printed on the combined sheet">
-          <p id="cbTitleHint" class="an-hint" style="color:var(--warn);font-weight:800;margin:-6px 0 10px" hidden>⚠ No exam title yet. Enter it first in the exam title box above the timetable; it is then used here automatically.</p>
-          <div class="btns" style="margin-bottom:14px">
-            <button class="btn primary" id="cbPrintBtn" type="button">🖨️ Print combined sheet</button>
-            <button class="btn" id="cbPdfBtn" type="button">Download PDF</button>
-            <label class="anInc"><input type="checkbox" class="anIncCk" checked> Include analytics</label>
-          </div>
-          <div class="tt-scroll" id="cbPreview"></div>
         </section>
 
         <div class="pair">
@@ -648,7 +553,6 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn primary" id="printBtn">Print exam timetable</button>
               <button class="btn" id="pdfBtn" type="button">Download PDF</button>
-              <label class="anInc"><input type="checkbox" class="anIncCk" checked> Include analytics</label>
             </div>
           </div>
           <div class="big" aria-hidden="true">🖨️</div>
@@ -694,9 +598,6 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
     <div class="err" id="gErr" role="alert"></div>
   </div>
 </div>
-
-<div id="comboPrint" aria-hidden="true"></div>
-<div id="analyticsPrint" aria-hidden="true"></div>
 
 <dialog id="lessonDlg" aria-labelledby="lTitle">
   <form class="dlg" id="lessonForm" novalidate>
@@ -978,8 +879,7 @@ const S = {
   weeks: {},
   roster: [], subjects: [], gradeSubjects: {}, gradeSubjectsResults: {}, learners: null, learnerRoster: {}, learnersPending: false, peers: {}, gaps: [],
   sel: null, calMonth: null, weekAnchor: null, query: '', focusTeacher: null,
-  anView: 'overview', printDayOnly: null, mergePrint: false,
-  combo: Object.assign({auto:true, secs:[], next:true, sep:false, title:'', names:{}}, (() => { try { return JSON.parse(localStorage.getItem('tt_v1_combo')||'{}') || {}; } catch(e){ return {}; } })(), {auto:true, secs:[], title:''}), examTitles: {},   // keyed by section — each timetable's own title
+  anView: 'workload', printDayOnly: null, examTitles: {},   // keyed by section — each timetable's own title
   notify: false
 };
 const examTitleOf = section => (S.examTitles && S.examTitles[section]) || '';
@@ -1470,134 +1370,23 @@ function renderSections(){
     return '<button type="button" data-section="'+esc(s)+'" aria-pressed="'+(s===S.section)+'">'+esc(s)+(gl && gl !== s ? ' <small>'+esc(gl)+'</small>' : '')+'</button>'; }).join('');
 }
 
-/* ---------- Combined sheet: all classes on one table (row per class per exam day, column per period) ---------- */
-const cbSave = () => lsSet('tt_v1_combo', {next:S.combo.next, sep:S.combo.sep, names:S.combo.names});
-function cbSections(){                          // the ticked classes; until the user ticks any, the classes in this class's stage family
-  const c = S.combo;
-  if (!c.auto) return S.sections.filter(x => c.secs.includes(x));
-  const fam = STAGE_FAMILIES.find(f => gradesOf(S.section).some(g => f.grades.includes(g)));
-  const same = fam ? S.sections.filter(x => gradesOf(x).some(g => fam.grades.includes(g))) : [];
-  return same.length ? same : [S.section];
-}
-const cbName = (j, n) => (S.combo.names[j] || '').trim() || (n === 3 ? ['Morning','Mid Morning','Afternoon'][j] : n === 2 ? ['Morning','Mid Morning'][j] : 'Period '+(j+1));
-function cbData(){
-  const c = S.combo, secs = cbSections(), k1 = iso(S.sel), keys = c.next ? [k1, iso(addDays(S.sel,7))] : [k1];
-  const idx = {}; let ncol = 0;
-  secs.forEach(sec => { const sl = slotsOf(sec); idx[sec] = sl.map((x,i) => i).filter(i => !sl[i].brk); ncol = Math.max(ncol, idx[sec].length); });
-  const days = [];
-  keys.forEach(k => {
-    const mon = parseIso(k);
-    for (let d = 0; d < 7; d++){
-      const rows = secs.map(sec => { const wk = weeksOf(sec)[k]; return {sec, cells: idx[sec].map(si => (wk && wk[d] && wk[d][si]) || null)}; });
-      if (rows.some(r => r.cells.some(Boolean))) days.push({d, date:addDays(mon,d), rows});
-    }
-  });
-  const times = Array.from({length:ncol}, (_, j) => {
-    const set = new Set(secs.filter(sec => idx[sec][j] !== undefined).map(sec => { const sl = slotsOf(sec)[idx[sec][j]]; return fmtTime(sl.start)+' – '+fmtTime(sl.end); }));
-    return set.size === 1 ? Array.from(set)[0] : '';
-  });
-  const gs = Array.from(new Set(secs.reduce((a,x) => a.concat(gradesOf(x)), []))).sort((a,b) => a-b);
-  const label = days.length ? rangeLabel(days[0].date, days[days.length-1].date) : '';
-  return {secs, days, ncol, times, label, classes: gs.length ? gradeLabel(gs) : secs.join(', ')};
-}
-function cbTable(dt){
-  const sep = S.combo.sep, n = dt.ncol, rs = sep ? ' rowspan="2"' : '';
-  let h = '<table class="combo"><thead><tr><th'+rs+'>Day</th><th'+rs+'>Class</th>';
-  for (let j = 0; j < n; j++) h += '<th'+(sep ? ' colspan="2"' : '')+'>'+esc(cbName(j,n))+(dt.times[j] ? '<small>'+esc(dt.times[j])+'</small>' : '')+'</th>';
-  h += '</tr>';
-  if (sep){ h += '<tr>'; for (let j = 0; j < n; j++) h += '<th>Subject</th><th>Invigilator</th>'; h += '</tr>'; }
-  h += '</thead><tbody>';
-  dt.days.forEach(day => day.rows.forEach((r, ri) => {
-    h += '<tr'+(ri === 0 ? ' class="dstart"' : '')+'>';
-    if (ri === 0) h += '<td class="cd" rowspan="'+day.rows.length+'"><b>'+DAYS[day.d].toUpperCase()+'</b><small>'+day.date.getDate()+'/'+(day.date.getMonth()+1)+'</small></td>';
-    h += '<td class="cc">'+esc(r.sec)+'</td>';
-    for (let j = 0; j < n; j++){
-      const l = r.cells[j];
-      if (!l){ h += '<td class="cx"'+(sep ? ' colspan="2"' : '')+'>—</td>'; continue; }
-      const note = l.note ? '<span class="cn">'+esc(l.note)+'</span>' : '';
-      if (sep) h += '<td class="cb c'+hue(l.subject)+'"><span class="cs">'+esc(l.subject)+'</span>'+note+'</td><td>'+esc(l.teacher || '—')+'</td>';
-      else h += '<td class="cb c'+hue(l.subject)+'"><span class="cs">'+esc(l.subject)+'</span>'+(l.teacher ? '<span class="ci">'+esc(l.teacher)+'</span>' : '')+note+'</td>';
-    }
-    h += '</tr>';
-  }));
-  return h+'</tbody></table>';
-}
-const cbTitleRaw = () => (S.combo.title || '').trim() || (examTitleCur() || '').trim() || cbSections().map(examTitleOf).map(t => (t||'').trim()).find(Boolean) || '';   // sheet title, else the exam title entered above, else any ticked class's
-const cbTitleText = () => cbTitleRaw() || 'EXAMINATION TIMETABLE';
-function cbNeedTitle(){                          // true (and points the user at the title box) when no exam title has been entered anywhere
-  if (cbTitleRaw()) return false;
-  toast('Enter the examination title first, in the exam title box above the timetable.', 6000);
-  const inp = $('#examTitleInput'); if (inp){ try { inp.scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){} setTimeout(() => { try { inp.focus(); } catch(e){} }, 350); }
-  return true;
-}
-function renderCombo(){
-  const c = S.combo, on = new Set(cbSections());
-  $('#cbSecs').innerHTML = S.sections.map(x => '<label><input type="checkbox" data-cbsec="'+esc(x)+'"'+(on.has(x) ? ' checked' : '')+'> '+esc(x)+'</label>').join('');
-  $('#cbNext').checked = !!c.next; $('#cbSep').checked = !!c.sep;
-  const dt = cbData(), namesBox = $('#cbNames');
-  if (!namesBox.contains(document.activeElement)){
-    namesBox.innerHTML = dt.ncol ? '<span class="muted">Period names:</span>'+Array.from({length:dt.ncol}, (_, j) => '<input type="text" data-cbname="'+j+'" value="'+esc(cbName(j, dt.ncol))+'" aria-label="Name of period '+(j+1)+'">').join('') : '';
-  }
-  const ti = $('#cbTitleIn'); if (document.activeElement !== ti){ ti.value = c.title || ''; ti.placeholder = cbTitleRaw() ? 'Using the exam title: '+cbTitleRaw()+' (type here only to override)' : 'Enter the exam title in the box above the timetable first'; }
-  const hint = $('#cbTitleHint'); if (hint){ hint.hidden = !!cbTitleRaw(); }
-  $('#cbPreview').innerHTML = dt.days.length ? cbTable(dt) : '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(c.next ? ' or the following week' : '')+'.</p>';
-}
-function printCombo(){
-  if (cbNeedTitle()) return;
-  const dt = cbData();
-  if (!dt.days.length){ toast('No exams to print yet for these classes.'); return; }
-  $('#comboPrint').innerHTML = '<div class="cbHead"><h2>Kanyadet Primary &amp; Junior School</h2><p>'+esc(cbTitleText())+'</p><p>'+esc(dt.classes+' · '+dt.label)+'</p></div>'+cbTable(dt);
-  document.body.classList.add('combo-print');
-  setTimeout(() => { try { window.print(); } catch(e){ toast('Printing is not available here'); } }, 60);
-}
-
-/* ---------- Merge a timetable that runs into the following week into one sheet (print / PDF only) ---------- */
-function rangeLabel(a, b){
-  if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) return a.getDate()+'–'+b.getDate()+' '+MS[a.getMonth()]+' '+b.getFullYear();
-  return a.getDate()+' '+MS[a.getMonth()]+' – '+b.getDate()+' '+MS[b.getMonth()]+' '+b.getFullYear();
-}
-function mergedCols(key){                       // this week + the next one as one run of days; null unless both weeks have exams
-  const k2 = iso(addDays(parseIso(key),7)), w1 = getWeek(key), w2 = getWeek(k2);
-  if (!countLessons(w1) || !countLessons(w2)) return null;
-  const offs = activeDayOffsets().slice().sort((a,b) => a-b), has = (wk,o) => (wk[o]||[]).some(Boolean);
-  const first = offs.find(o => has(w1,o)), last = offs.slice().reverse().find(o => has(w2,o));
-  if (first === undefined || last === undefined) return null;
-  const o1 = others(key), o2 = others(k2);
-  const mk = (wk,k,o,oth) => ({label:DAYS[o], di:o, date:addDays(parseIso(k),o), wk, oth});
-  const cols = offs.filter(o => o >= first).map(o => mk(w1,key,o,o1)).concat(offs.filter(o => o <= last).map(o => mk(w2,k2,o,o2)));
-  return {cols, keys:[key,k2], label:rangeLabel(cols[0].date, cols[cols.length-1].date)};
-}
-function renderMergeBar(){
-  const box = $('#mergeBar'), mg = mergedCols(iso(S.sel));
-  if (!mg){ box.innerHTML = ''; return; }
-  box.innerHTML = '<div class="empty-note"><span>🗓️ This timetable continues into next week. Print or save '+esc(mg.label)+' as one timetable.</span>'+
-    '<span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary sm" id="mergePrintBtn" type="button">🖨️ Merge &amp; print</button><button class="btn sm" id="mergePdfBtn" type="button">Merged PDF</button></span></div>';
-}
-function printMerged(){
-  if (!mergedCols(iso(S.sel))){ toast('Both weeks need exams before they can be merged.'); return; }
-  S.mergePrint = true; renderGrid();
-  setTimeout(() => { try { window.print(); } catch(e){ toast('Printing is not available here'); } }, 60);
-}
-
 function renderGrid(){
   const key = iso(S.sel), wk = getWeek(key), q = S.query.trim().toLowerCase(), todayKey = iso(S.now), oth = others(key);
   const pdays = S.printDayOnly ? S.days.filter(d => d.key === S.printDayOnly) : S.days;
-  const mg = S.mergePrint ? mergedCols(key) : null;
-  const cols = mg ? mg.cols : pdays.map(day => { const di = WEEKDAY_OFFSET[day.key]; return {label:day.label, di, date:addDays(S.sel,di), wk, oth}; });
   $('#weekLbl').textContent = weekLabel(S.sel, true);
   const gl = gradeLabel(gradesOf(S.section));
-  $('#printWeek').textContent = S.section+(gl && gl !== S.section ? ' ('+gl+')' : '')+' examination timetable, '+(mg ? mg.label : weekLabel(S.sel, true))+
+  $('#printWeek').textContent = S.section+(gl && gl !== S.section ? ' ('+gl+')' : '')+' examination timetable, '+weekLabel(S.sel, true)+
     (S.printDayOnly ? ' — '+(DAYS_LONG[WEEKDAY_OFFSET[S.printDayOnly]] || S.printDayOnly) : '');
   document.body.classList.toggle('ro', !S.canEdit);
   $('#examTitleInput').disabled = !S.canEdit;
   const etInp = $('#examTitleInput'); if (etInp && document.activeElement !== etInp) etInp.value = examTitleCur();
   $('#printExamTitle').textContent = examTitleCur();
   const grid = $('#grid');
-  grid.style.gridTemplateColumns = '80px repeat('+Math.max(cols.length,1)+',minmax(0,1fr))';
+  grid.style.gridTemplateColumns = '80px repeat('+Math.max(pdays.length,1)+',minmax(0,1fr))';
   let h = '<div></div>';
-  cols.forEach(col => {
-    const d = col.date;
-    h += '<div class="dh'+(iso(d)===todayKey?' today':'')+'"><span>'+esc(col.label)+(mg ? ' '+MS[d.getMonth()] : '')+'</span><b>'+d.getDate()+'</b></div>';
+  pdays.forEach(day => {
+    const off = WEEKDAY_OFFSET[day.key], d = addDays(S.sel,off);
+    h += '<div class="dh'+(iso(d)===todayKey?' today':'')+'"><span>'+esc(day.label)+'</span><b>'+d.getDate()+'</b></div>';
   });
   S.slots.forEach((s,si) => {
     h += '<button class="tl" data-slot="'+si+'" aria-label="'+(S.canEdit?'Change exam period time, currently ':'Exam period time ')+fmtTime(s.start)+' to '+fmtTime(s.end)+(s.brk?' (break)':'')+'"><b>'+fmtTime(s.start)+'</b><span>'+fmtTime(s.end)+'</span></button>';
@@ -1605,13 +1394,13 @@ function renderGrid(){
       h += '<div class="cell" style="grid-column:2 / -1;min-height:44px;background:var(--band)" aria-hidden="true"><span class="sub">Break</span></div>';
       return;
     }
-    cols.forEach(col => {
-      const di = col.di, les = col.wk[di] && col.wk[di][si], when = (DAYS_LONG[di]||col.label)+', '+fmtTime(s.start);
+    pdays.forEach(day => {
+      const di = WEEKDAY_OFFSET[day.key], les = wk[di] && wk[di][si], when = (DAYS_LONG[di]||day.label)+', '+fmtTime(s.start);
       if (les){
         const hit = (!q || (les.subject+' '+les.teacher+' '+les.note).toLowerCase().includes(q)) && (!S.focusTeacher || normName(les.teacher) === S.focusTeacher.key);
-        const st = slotState(col.date, s);
-        const left = st==='live' ? fmtDur(slotWindow(col.date, s).endAt - S.now) : '';
-        const cl = clashes(di, si, les.teacher, col.oth), rc = roomClashes(di, si, les.note, col.oth);
+        const st = slotState(addDays(S.sel, di), s);
+        const left = st==='live' ? fmtDur(slotWindow(addDays(S.sel,di), s).endAt - S.now) : '';
+        const cl = clashes(di, si, les.teacher, oth), rc = roomClashes(di, si, les.note, oth);
         const clTxt = cl.length ? 'Also in '+Array.from(new Set(cl.map(o => o.section))).join(', ') : '';
         const rcTxt = rc.length ? 'Room also used by '+Array.from(new Set(rc.map(o => o.section))).join(', ') : '';
         h += '<button class="cell c'+hue(les.subject)+(hit?'':' dim')+((cl.length||rc.length)?' clash':'')+(st==='done'?' done':st==='live'?' live':'')+'" data-d="'+di+'" data-s="'+si+'" aria-label="'+when+': '+esc(les.subject)+(les.teacher?' with '+esc(les.teacher):(st==='done'?'':'. No invigilator assigned'))+(clTxt?'. Invigilator clash. '+esc(clTxt):'')+(rcTxt?'. '+esc(rcTxt):'')+(st==='done'?'. Finished':st==='live'?'. In progress now, '+left+' left':'')+(S.canEdit?'. Edit exam':'')+'">'+
@@ -1642,7 +1431,6 @@ function renderGrid(){
     }
   }
   $('#emptyNote').innerHTML = note;
-  renderMergeBar();
   $('#copyNext').hidden = !S.canEdit;
   $('#manageBtn').hidden = !S.canEdit;
   $('#batchBtn').hidden = !S.canEdit;
@@ -1793,17 +1581,12 @@ function renderUpcoming(){
 
 /* ---------- Analytics: workload, coverage, week-over-week history ---------- */
 const ROW_ORDER = [0,1,2,3,5,6,7,8,4];
-const anSecs = () => cbSections();                       // analytics follow the combined sheet's ticked classes
-const anKeys = () => S.combo.next ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)];
-function workloadRows(){
-  const map = {};
-  anSecs().forEach(sec => anKeys().forEach(k => {
-    const wk = weeksOf(sec)[k]; if (!wk) return;
-    wk.forEach(day => (day||[]).forEach(l => {
-      if (!l || !l.teacher) return;
-      const nk = normName(l.teacher), t = map[nk] || (map[nk] = {name:l.teacher, n:0});
-      t.n++;
-    }));
+function workloadRows(key){
+  const wk = getWeek(key || iso(S.sel)), map = {};
+  wk.forEach(day => day.forEach(l => {
+    if (!l || !l.teacher) return;
+    const k = normName(l.teacher), t = map[k] || (map[k] = {name:l.teacher, n:0});
+    t.n++;
   }));
   return Object.keys(map).map(k => map[k]).sort((a,b) => b.n-a.n || a.name.localeCompare(b.name));
 }
@@ -1816,389 +1599,50 @@ function renderWorkloadChart(){
     return '<div class="chartRow"><span class="lb" title="'+esc(t.name)+'">'+esc(t.name)+'</span>'+
       '<span class="track"><i style="width:'+Math.max(6,Math.round(t.n/max*100))+'%;background:var(--i'+c+')"></i></span>'+
       '<span class="val">'+t.n+'</span></div>';
-  }).join('') + '<p class="an-hint">Exams invigilated across '+anSecs().join(', ')+(S.combo.next ? ' for '+weekLabel(S.sel,true)+' and the following week' : ', '+weekLabel(S.sel,true))+'.'+(LOAD.week ? ' Heavy load starts at '+LOAD.week+' exams in a week.' : '')+'</p>';
+  }).join('') + '<p class="an-hint">Exams invigilated this week, '+weekLabel(S.sel,true)+'.'+(LOAD.week ? ' Heavy load starts at '+LOAD.week+' exams in a week.' : '')+'</p>';
 }
 function renderCoverageChart(){
-  const dt = cbData();
-  if (!dt.ncol) return '<p class="muted">No exam periods set up yet.</p>';
-  if (!dt.days.length) return '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(S.combo.next ? ' or the following week' : '')+'.</p>';
-  const nCls = dt.secs.length; let filled = 0, total = 0;
-  let h = '<div class="heatGrid" style="grid-template-columns:64px repeat('+dt.days.length+',1fr)">';
-  h += '<div></div>' + dt.days.map(d => '<div style="text-align:center;font-weight:800;font-size:12px;color:var(--muted)">'+esc(DAYS[d.d])+'<br><small>'+d.date.getDate()+'/'+(d.date.getMonth()+1)+'</small></div>').join('');
-  for (let j = 0; j < dt.ncol; j++){
-    h += '<div style="font-size:11px;font-weight:800;color:var(--muted);display:flex;align-items:center">'+esc(cbName(j, dt.ncol))+'</div>';
-    dt.days.forEach(day => {
-      const have = day.rows.filter(r => r.cells[j]).length, cap = day.rows.filter(r => j < r.cells.length).length;
-      filled += have; total += cap;
-      const cls = have && have === cap ? 'full' : 'empty', style = have && have < cap ? ' style="background:var(--accent);color:var(--accent-fg);opacity:.55"' : '';
-      h += '<div class="heatCell '+cls+'"'+style+' title="'+esc(DAYS[day.d])+' '+esc(cbName(j, dt.ncol))+': '+have+' of '+cap+' classes have an exam">'+(have ? (nCls > 1 ? have : '✓') : '')+'</div>';
+  const key = iso(S.sel), wk = getWeek(key), slots = lessonSlotIdxs();
+  if (!slots.length || !S.days.length) return '<p class="muted">No exam periods set up yet.</p>';
+  let filled = 0, total = 0;
+  let h = '<div class="heatGrid" style="grid-template-columns:64px repeat('+S.days.length+',1fr)">';
+  h += '<div></div>' + S.days.map(d => '<div style="text-align:center;font-weight:800;font-size:12px;color:var(--muted)">'+esc(d.label)+'</div>').join('');
+  slots.forEach(si => {
+    h += '<div style="font-size:11px;font-weight:800;color:var(--muted);display:flex;align-items:center">'+fmtTime(S.slots[si].start)+'</div>';
+    S.days.forEach(day => {
+      const di = WEEKDAY_OFFSET[day.key], les = wk[di] && wk[di][si];
+      total++; if (les) filled++;
+      h += '<div class="heatCell '+(les?'full':'empty')+'" title="'+esc(day.label)+' '+fmtTime(S.slots[si].start)+(les?': '+esc(les.subject):': empty slot')+'">'+(les?'✓':'')+'</div>';
     });
-  }
+  });
   h += '</div>';
   const pct = total ? Math.round(filled/total*100) : 0;
-  h += '<div class="heatLegend"><span><i class="swatch" style="background:var(--accent)"></i>All classes</span><span><i class="swatch" style="background:var(--accent);opacity:.55"></i>Some classes</span><span><i class="swatch" style="background:var(--band);border:1px solid var(--line)"></i>None</span><span><b>'+filled+' of '+total+'</b> class slots filled ('+pct+'%) on the combined sheet</span></div>';
+  h += '<div class="heatLegend"><span><i class="swatch" style="background:var(--accent)"></i>Filled</span><span><i class="swatch" style="background:var(--band);border:1px solid var(--line)"></i>Empty</span><span><b>'+filled+' of '+total+'</b> slots filled ('+pct+'%) this week</span></div>';
   return h;
 }
-function historyWeeks(n, scope){
-  // Weeks that really have exams (any ticked class), plus the selected week; spill-over weeks are planned weeks too.
-  const secs = scope ? scope.secs : anSecs(), total = activeDayOffsets().length*lessonSlotIdxs().length*secs.length, selKey = scope ? scope.keys[0] : iso(S.sel);
-  const cnt = k => secs.reduce((a,sec) => a + (weeksOf(sec)[k] ? countLessons(weeksOf(sec)[k]) : 0), 0);
-  const keys = new Set([selKey]);
-  secs.forEach(sec => Object.keys(weeksOf(sec)).forEach(k => { if (cnt(k) > 0) keys.add(k); }));
-  const limit = scope ? scope.keys[scope.keys.length-1] : (S.combo.next ? iso(addDays(S.sel,7)) : selKey);
-  let list = Array.from(keys).sort();
-  const upto = list.filter(k => k <= limit), after = list.filter(k => k > limit);
-  list = upto.slice(-n);
-  if (list.length < n) list = list.concat(after.slice(0, n - list.length));
-  return list.map(k => ({k, m:parseIso(k), filled:cnt(k), total}));
-}
-function renderHistoryChart(scope){
-  const rows = historyWeeks(8, scope), max = Math.max(1, rows[0].total, ...rows.map(r => r.filled));
-  const curKey = scope ? scope.keys[0] : iso(S.sel);
-  const bars = rows.map(r => {
-    const h = Math.max(r.filled ? 4 : 0, Math.round(r.filled/max*100));
-    return '<button type="button" class="col" data-week="'+r.k+'" aria-label="Open '+weekLabel(r.m,true)+', '+r.filled+' of '+r.total+' slots filled'+(r.k===curKey?' (selected week)':'')+'"><b>'+r.filled+'</b><i class="'+(r.k===curKey?'cur':'')+'" style="height:'+h+'%"></i><small>'+weekLabel(r.m,false)+'</small></button>';
-  }).join('');
-  const si = Math.max(0, rows.findIndex(r => r.k === curKey)), last = rows[si].filled, prev = si>0 ? rows[si-1].filled : last, diff = last-prev;
-  const cmp = diff === 0 ? 'the same number of exams as the previous planned week.' : (diff>0 ? diff+' more exam'+(diff===1?'':'s')+' than the previous planned week.' : Math.abs(diff)+' fewer exam'+(Math.abs(diff)===1?'':'s')+' than the previous planned week.');
-  return '<div class="histBars">'+bars+'</div><p class="an-hint">The selected week has '+cmp+' Bars show weeks with exams (of up to '+rows[0].total+' slots) — tap a bar to open that week.</p>';
-}
-/* ---------- Advanced analytics: one model feeds the screen, the print sheet and every PDF ---------- */
-const AN_VIEWS = [['overview','📊 Overview'],['workload','👩‍🏫 Invigilators'],['daily','📅 Days & periods'],['classes','🏫 Classes'],['subjects','📚 Subjects'],['coverage','🗓️ Coverage'],['history','📈 History'],['issues','⚠️ Issues']];
-const anPct = (a,b) => b ? Math.round(a/b*100) : 0;
-const anScope = () => ({secs: anSecs(), keys: anKeys()});
-const anShortDate = d => DAYS[(d.getDay()+6)%7]+' '+d.getDate()+' '+MS[d.getMonth()];
-const anHrs = h => (Math.round(h*10)/10).toString().replace(/\.0$/,'')+'h';
-
-function anModel(scope){
-  scope = scope || anScope();
-  const secs = scope.secs, keys = scope.keys, ex = [], secN = {};
-  secs.forEach(sec => {
-    const sl = slotsOf(sec), idx = sl.map((x,i) => i).filter(i => !sl[i].brk);
-    secN[sec] = idx.length;
-    keys.forEach(k => {
-      const wk = weeksOf(sec)[k], mon = parseIso(k); if (!wk) return;
-      wk.forEach((day,d) => (day||[]).forEach((l,si) => {
-        if (!l || !sl[si] || sl[si].brk) return;
-        const date = addDays(mon,d);
-        ex.push({sec, key:k, d, si, j:idx.indexOf(si), date, dk:iso(date), l, s:toMin(sl[si].start), e:toMin(sl[si].end), t0:sl[si].start, t1:sl[si].end});
-      }));
-    });
-  });
-  const usedKeys = keys.filter(k => ex.some(x => x.key === k)), nKeys = (usedKeys.length || keys.length || 1);
-  const ncol = secs.reduce((a,s) => Math.max(a, secN[s]||0), 0);
-  const T = {}, D = {}, P = {}, C = {}, SUB = {};
-  secs.forEach(sec => { C[sec] = {sec, n:0, un:0, days:new Set(), teachers:new Set(), subjects:new Set(), first:null, last:null, cap:activeDayOffsets().length*(secN[sec]||0)*nKeys}; });
-  ex.forEach(x => {
-    const c = C[x.sec]; c.n++; c.days.add(x.dk); c.subjects.add(x.l.subject.trim().toLowerCase());
-    if (!c.first || x.date < c.first) c.first = x.date; if (!c.last || x.date > c.last) c.last = x.date;
-    const dd = D[x.dk] || (D[x.dk] = {dk:x.dk, date:x.date, d:x.d, n:0, staff:new Set(), classes:new Set(), un:0, per:{}});
-    dd.n++; dd.classes.add(x.sec); dd.per[x.j] = (dd.per[x.j]||0)+1; P[x.j] = (P[x.j]||0)+1;
-    const sk = x.l.subject.trim().toLowerCase(), sb = SUB[sk] || (SUB[sk] = {name:x.l.subject.trim(), n:0, classes:new Set(), days:new Set()});
-    sb.n++; sb.classes.add(x.sec); sb.days.add(x.dk);
-    if (!x.l.teacher){ c.un++; dd.un++; x.un = true; return; }
-    const k = normName(x.l.teacher), t = T[k] || (T[k] = {name:x.l.teacher, n:0, mins:0, days:{}, classes:new Set(), subjects:new Set(), wk:{}});
-    t.n++; t.mins += x.e - x.s; t.days[x.dk] = (t.days[x.dk]||0)+1; t.classes.add(x.sec); t.subjects.add(x.l.subject); t.wk[x.key] = (t.wk[x.key]||0)+1;
-    c.teachers.add(k); dd.staff.add(k);
-  });
-  /* clashes: same invigilator or same venue, overlapping on the same date */
-  const clash = [], venue = [], byDay = {}; let peak = 0, peakAt = null;
-  ex.forEach(x => (byDay[x.dk] = byDay[x.dk] || []).push(x));
-  Object.keys(byDay).forEach(dk => {
-    const a = byDay[dk];
-    a.forEach(u => { const c = a.filter(v => u.s < v.e && v.s < u.e).length; if (c > peak){ peak = c; peakAt = u; } });
-    for (let i = 0; i < a.length; i++) for (let q = i+1; q < a.length; q++){
-      const u = a[i], v = a[q]; if (!(u.s < v.e && v.s < u.e)) continue;
-      if (u.l.teacher && v.l.teacher && normName(u.l.teacher) === normName(v.l.teacher)) clash.push({who:u.l.teacher, date:u.date, a:u, b:v});
-      else if (u.sec !== v.sec && u.l.note && v.l.note && normName(u.l.note) === normName(v.l.note)) venue.push({room:u.l.note, date:u.date, a:u, b:v});
-    }
-  });
-  const tl = Object.keys(T).map(k => {
-    const t = T[k]; t.maxDay = Math.max.apply(null, [0].concat(Object.values(t.days))); t.maxWk = Math.max.apply(null, [0].concat(Object.values(t.wk)));
-    t.hours = t.mins/60; t.nd = Object.keys(t.days).length;
-    t.heavy = !!((LOAD.week && t.maxWk >= LOAD.week) || (LOAD.day && t.maxDay >= LOAD.day));
-    return t;
-  }).sort((a,b) => b.n-a.n || a.name.localeCompare(b.name));
-  const counts = tl.map(t => t.n), sum = counts.reduce((a,b) => a+b, 0), sq = counts.reduce((a,b) => a+b*b, 0);
-  const mean = counts.length ? sum/counts.length : 0, jain = counts.length && sq ? Math.round(sum*sum/(counts.length*sq)*100) : 100;
-  const sorted = counts.slice().sort((a,b) => a-b), median = sorted.length ? (sorted.length%2 ? sorted[(sorted.length-1)/2] : (sorted[sorted.length/2-1]+sorted[sorted.length/2])/2) : 0;
-  tl.forEach(t => { t.status = t.heavy ? 'Heavy' : (mean && t.n < mean*0.5 ? 'Light' : 'Balanced'); });
-  const days = Object.keys(D).sort().map(k => D[k]);
-  const subjects = Object.keys(SUB).map(k => SUB[k]).sort((a,b) => b.n-a.n || a.name.localeCompare(b.name));
-  const classes = secs.map(s => C[s]);
-  const capTotal = classes.reduce((a,c) => a+c.cap, 0), unassigned = ex.filter(x => x.un);
-  const roster = (S.roster||[]).filter(r => r && r.name), idle = roster.filter(r => !T[normName(r.name)]);
-  const hoursTotal = tl.reduce((a,t) => a+t.hours, 0);
-  const m = {secs, keys, exams:ex, secN, ncol, days, teachers:tl, periods:P, classes, subjects, clash, venue, unassigned, idle, rosterN:roster.length,
-    peak, peakAt, mean, median, jain, capTotal, hoursTotal, max:counts.length ? sorted[sorted.length-1] : 0, min:counts.length ? sorted[0] : 0,
-    heavy: tl.filter(t => t.heavy), range: days.length ? rangeLabel(days[0].date, days[days.length-1].date) : ''};
-  m.issues = clash.length + venue.length + unassigned.length;
-  m.insights = anInsights(m);
-  return m;
-}
-function anInsights(m){
-  const out = [], add = (tone, text) => out.push({tone, text});
-  if (!m.exams.length) return out;
-  const bd = m.days.slice().sort((a,b) => b.n-a.n || a.date-b.date)[0];
-  add('info', 'Busiest day is '+anShortDate(bd.date)+' with '+bd.n+(bd.n===1?' exam':' exams')+' across '+bd.classes.size+(bd.classes.size===1?' class':' classes')+' and '+bd.staff.size+(bd.staff.size===1?' invigilator.':' invigilators.'));
-  if (m.peak && m.peakAt) add('info', 'Peak staffing: '+m.peak+(m.peak===1?' invigilator is':' invigilators are')+' needed at once on '+anShortDate(m.peakAt.date)+' ('+fmtTime(m.peakAt.t0)+' to '+fmtTime(m.peakAt.t1)+').');
-  if (m.teachers.length){
-    const top = m.teachers[0], low = m.teachers[m.teachers.length-1];
-    if (m.jain >= 85) add('good', 'Invigilation is evenly shared (balance score '+m.jain+'%). Average '+(Math.round(m.mean*10)/10)+' exams each.');
-    else add(m.jain >= 65 ? 'warn' : 'bad', 'Invigilation is uneven (balance score '+m.jain+'%): '+top.name+' has '+top.n+' exams while '+low.name+' has '+low.n+'.');
-    if (m.heavy.length) add('warn', m.heavy.length+(m.heavy.length===1?' invigilator is':' invigilators are')+' at or above the heavy-load limit ('+LOAD.day+' a day or '+LOAD.week+' a week): '+m.heavy.slice(0,4).map(t => t.name).join(', ')+(m.heavy.length>4?' and others':'')+'.');
-  } else add('warn', 'No invigilators have been assigned yet.');
-  add(m.clash.length ? 'bad' : 'good', m.clash.length ? m.clash.length+(m.clash.length===1?' invigilator clash':' invigilator clashes')+': the same person is down for overlapping exams.' : 'No invigilator clashes.');
-  if (m.venue.length) add('warn', m.venue.length+(m.venue.length===1?' venue conflict':' venue conflicts')+': the same room is used by two classes at the same time.');
-  add(m.unassigned.length ? 'warn' : 'good', m.unassigned.length ? m.unassigned.length+(m.unassigned.length===1?' exam has':' exams have')+' no invigilator yet.' : 'Every exam has an invigilator.');
-  if (m.idle.length && m.rosterN) add('info', m.idle.length+' of '+m.rosterN+' staff on the roster have no exam duty and could take on load.');
-  const fill = anPct(m.exams.length, m.capTotal);
-  if (m.capTotal && fill < 100) add('info', 'Timetable is '+fill+'% full: '+(m.capTotal-m.exams.length)+' slots are still empty.');
+function historyWeeks(n){
+  const base = baseMonday(), total = activeDayOffsets().length*lessonSlotIdxs().length, out = [];
+  for (let i=n-1; i>=0; i--){
+    const m = addDays(base,-7*i), k = iso(m), filled = countLessons(getWeek(k));
+    out.push({k, m, filled, total});
+  }
   return out;
 }
-function anKpis(m){
-  const tone = (bad, warn) => bad ? 'bad' : warn ? 'warn' : 'good';
-  const fill = anPct(m.exams.length, m.capTotal);
-  return [
-    {lb:'Exams scheduled', v:m.exams.length, sb:m.classes.length+(m.classes.length===1?' class':' classes')+' · '+m.days.length+(m.days.length===1?' day':' days'), tone:'n'},
-    {lb:'Exam days', v:m.days.length, sb:m.range || 'none yet', tone:'n'},
-    {lb:'Invigilators', v:m.teachers.length, sb:'avg '+(Math.round(m.mean*10)/10)+' exams each', tone:'n'},
-    {lb:'Slots filled', v:fill+'%', sb:m.exams.length+' of '+m.capTotal+' slots', tone:fill >= 95 ? 'good' : fill >= 60 ? 'warn' : 'bad'},
-    {lb:'Workload balance', v:m.jain+'%', sb:'most '+m.max+' · fewest '+m.min, tone:tone(m.jain < 65, m.jain < 85)},
-    {lb:'Peak staffing', v:m.peak, sb:'invigilators needed at once', tone:'n'},
-    {lb:'Invigilation hours', v:anHrs(m.hoursTotal), sb:m.teachers.length ? 'avg '+anHrs(m.hoursTotal/m.teachers.length)+' each' : 'no invigilators', tone:'n'},
-    {lb:'Issues', v:m.issues, sb:m.clash.length+' clashes · '+m.unassigned.length+' unassigned', tone:tone(m.clash.length > 0, m.issues > 0)}
-  ];
-}
-/* ---- screen / print renderers ---- */
-function anKpiHtml(m){ return '<div class="anKpis">'+anKpis(m).map(c => '<div class="kpi '+c.tone+'"><div class="lb">'+esc(c.lb)+'</div><div class="v">'+esc(String(c.v))+'</div><div class="sb">'+esc(c.sb)+'</div></div>').join('')+'</div>'; }
-function anInsightsHtml(m){ return m.insights.length ? '<ul class="anIns">'+m.insights.map(i => '<li class="'+i.tone+'"><i></i><span>'+esc(i.text)+'</span></li>').join('')+'</ul>' : ''; }
-function anDailyHtml(m){
-  if (!m.days.length) return '<p class="muted">No exams planned yet.</p>';
-  const max = Math.max.apply(null, m.days.map(d => d.n)) || 1, n = m.ncol;
-  const cols = m.days.map(d => {
-    const segs = Array.from({length:n}, (_, j) => d.per[j] ? '<i style="flex:'+d.per[j]+' 1 0;background:var(--i'+ROW_ORDER[j % ROW_ORDER.length]+')" title="'+esc(cbName(j,n))+': '+d.per[j]+'"></i>' : '').join('');
-    return '<div class="anCol" title="'+esc(anShortDate(d.date))+': '+d.n+' exams, '+d.staff.size+' invigilators"><b>'+d.n+'</b><div class="plot"><div class="stack" style="height:'+Math.max(6,Math.round(d.n/max*100))+'%">'+segs+'</div></div><small>'+DAYS[d.d]+'<br>'+d.date.getDate()+'/'+(d.date.getMonth()+1)+'</small><small class="st">'+d.staff.size+' staff</small></div>';
+function renderHistoryChart(){
+  const rows = historyWeeks(8), max = Math.max(1, rows[0].total, ...rows.map(r => r.filled));
+  const curKey = iso(baseMonday());
+  const bars = rows.map(r => {
+    const h = Math.max(r.filled ? 4 : 0, Math.round(r.filled/max*100));
+    return '<button type="button" class="col" data-week="'+r.k+'" aria-label="Open '+weekLabel(r.m,true)+', '+r.filled+' of '+r.total+' slots filled'+(r.k===curKey?' (this week)':'')+'"><b>'+r.filled+'</b><i class="'+(r.k===curKey?'cur':'')+'" style="height:'+h+'%"></i><small>'+weekLabel(r.m,false)+'</small></button>';
   }).join('');
-  const leg = Array.from({length:n}, (_, j) => '<span><i class="swatch" style="background:var(--i'+ROW_ORDER[j % ROW_ORDER.length]+')"></i>'+esc(cbName(j,n))+'</span>').join('');
-  return '<div class="anCols">'+cols+'</div><div class="heatLegend">'+leg+'</div>';
-}
-function anPeriodHtml(m){
-  if (!m.ncol) return '';
-  const tot = m.exams.length || 1;
-  return Array.from({length:m.ncol}, (_, j) => {
-    const v = m.periods[j] || 0, c = ROW_ORDER[j % ROW_ORDER.length];
-    return '<div class="chartRow"><span class="lb">'+esc(cbName(j,m.ncol))+'</span><span class="track"><i style="width:'+Math.max(v ? 4 : 0, anPct(v,tot))+'%;background:var(--i'+c+')"></i></span><span class="val" style="width:70px">'+v+' · '+anPct(v,tot)+'%</span></div>';
-  }).join('');
-}
-function anWorkloadHtml(m){
-  if (!m.teachers.length) return '<p class="muted">No invigilators assigned yet. Add exams with an invigilator to see the workload analysis.</p>';
-  const max = m.teachers[0].n || 1;
-  let h = '<table class="anT"><thead><tr><th>#</th><th>Invigilator</th><th class="num">Exams</th><th class="num">Hours</th><th class="num">Days</th><th class="num">Classes</th><th class="num">Max / day</th><th>Status</th><th style="width:22%">Load</th></tr></thead><tbody>';
-  m.teachers.forEach((t,i) => {
-    const c = ROW_ORDER[i % ROW_ORDER.length], st = t.status === 'Heavy' ? 'bad' : t.status === 'Light' ? 'warn' : 'good';
-    h += '<tr><td>'+(i+1)+'</td><td><b>'+esc(t.name)+'</b></td><td class="num">'+t.n+'</td><td class="num">'+anHrs(t.hours)+'</td><td class="num">'+t.nd+'</td><td class="num">'+t.classes.size+'</td><td class="num">'+t.maxDay+'</td><td><span class="anChip '+st+'">'+t.status+'</span></td><td><span class="track"><i style="width:'+Math.max(6,Math.round(t.n/max*100))+'%;background:var(--i'+c+')"></i></span></td></tr>';
-  });
-  h += '</tbody></table><p class="an-hint">Average '+(Math.round(m.mean*10)/10)+' exams, median '+m.median+', most '+m.max+', fewest '+m.min+'. Balance score '+m.jain+'% (100% means everyone has the same load). Heavy starts at '+LOAD.day+' exams in a day or '+LOAD.week+' in a week.</p>';
-  if (m.idle.length) h += '<p class="an-hint"><b>Available, no duty yet ('+m.idle.length+'):</b> '+esc(m.idle.slice(0,14).map(r => r.name).join(', '))+(m.idle.length>14 ? ' and '+(m.idle.length-14)+' more' : '')+'.</p>';
-  return h;
-}
-function anDaysTableHtml(m){
-  if (!m.days.length) return '<p class="muted">No exams planned yet.</p>';
-  let h = '<table class="anT"><thead><tr><th>Day</th><th class="num">Exams</th><th class="num">Classes</th><th class="num">Invigilators</th>'+Array.from({length:m.ncol}, (_, j) => '<th class="num">'+esc(cbName(j,m.ncol))+'</th>').join('')+'<th class="num">No invigilator</th></tr></thead><tbody>';
-  m.days.forEach(d => { h += '<tr><td><b>'+esc(anShortDate(d.date))+'</b></td><td class="num">'+d.n+'</td><td class="num">'+d.classes.size+'</td><td class="num">'+d.staff.size+'</td>'+Array.from({length:m.ncol}, (_, j) => '<td class="num">'+(d.per[j]||0)+'</td>').join('')+'<td class="num">'+(d.un ? '<span class="anChip warn">'+d.un+'</span>' : '0')+'</td></tr>'; });
-  return h+'</tbody></table>';
-}
-function anClassesHtml(m){
-  if (!m.classes.length) return '';
-  let h = '<table class="anT"><thead><tr><th>Class</th><th class="num">Exams</th><th class="num">Filled</th><th class="num">Exam days</th><th class="num">Subjects</th><th class="num">Invigilators</th><th>From</th><th>To</th><th class="num">No invigilator</th></tr></thead><tbody>';
-  m.classes.forEach(c => { h += '<tr><td><b>'+esc(c.sec)+'</b></td><td class="num">'+c.n+'</td><td class="num">'+anPct(c.n,c.cap)+'%</td><td class="num">'+c.days.size+'</td><td class="num">'+c.subjects.size+'</td><td class="num">'+c.teachers.size+'</td><td>'+(c.first ? esc(anShortDate(c.first)) : '-')+'</td><td>'+(c.last ? esc(anShortDate(c.last)) : '-')+'</td><td class="num">'+(c.un ? '<span class="anChip warn">'+c.un+'</span>' : '0')+'</td></tr>'; });
-  return h+'</tbody></table>';
-}
-function anSubjectsHtml(m){
-  if (!m.subjects.length) return '<p class="muted">No exams planned yet.</p>';
-  const list = m.subjects.slice(0,14), max = list[0].n || 1;
-  return list.map((s,i) => '<div class="chartRow"><span class="lb" title="'+esc(s.name)+'">'+esc(s.name)+'</span><span class="track"><i style="width:'+Math.max(6,Math.round(s.n/max*100))+'%;background:var(--i'+ROW_ORDER[i % ROW_ORDER.length]+')"></i></span><span class="val" style="width:96px">'+s.n+' · '+s.classes.size+(s.classes.size===1?' class':' classes')+'</span></div>').join('')+(m.subjects.length>14 ? '<p class="an-hint">Showing the 14 most examined of '+m.subjects.length+' subjects.</p>' : '');
-}
-function anCoverageHtml(m){
-  if (!m.days.length || !m.ncol) return '<p class="muted">No exams planned yet.</p>';
-  let filled = 0, total = 0;
-  let h = '<div class="heatGrid" style="grid-template-columns:78px repeat('+m.days.length+',1fr)"><div></div>'+m.days.map(d => '<div style="text-align:center;font-weight:800;font-size:12px;color:var(--muted)">'+DAYS[d.d]+'<br><small>'+d.date.getDate()+'/'+(d.date.getMonth()+1)+'</small></div>').join('');
-  for (let j = 0; j < m.ncol; j++){
-    h += '<div style="font-size:11px;font-weight:800;color:var(--muted);display:flex;align-items:center">'+esc(cbName(j,m.ncol))+'</div>';
-    m.days.forEach(d => {
-      const have = d.per[j]||0, cap = m.secs.filter(s => m.secN[s] > j).length;
-      filled += have; total += cap;
-      const cls = have && have >= cap ? 'full' : 'empty', st = have && have < cap ? ' style="background:var(--accent);color:var(--accent-fg);opacity:.55"' : '';
-      h += '<div class="heatCell '+cls+'"'+st+' title="'+have+' of '+cap+' classes">'+(have ? (m.secs.length > 1 ? have : 'Y') : '')+'</div>';
-    });
-  }
-  return h+'</div><div class="heatLegend"><span><i class="swatch" style="background:var(--accent)"></i>All classes</span><span><i class="swatch" style="background:var(--accent);opacity:.55"></i>Some classes</span><span><i class="swatch" style="background:var(--band);border:1px solid var(--line)"></i>None</span><span><b>'+filled+' of '+total+'</b> class slots filled ('+anPct(filled,total)+'%)</span></div>';
-}
-function anIssuesHtml(m){
-  const rows = [];
-  const ex = x => esc(x.sec+' '+x.l.subject+' ('+fmtTime(x.t0)+' to '+fmtTime(x.t1)+')');
-  m.clash.forEach(c => rows.push(['bad','Invigilator clash','<b>'+esc(c.who)+'</b> on '+esc(anShortDate(c.date))+': '+ex(c.a)+' overlaps '+ex(c.b)]));
-  m.venue.forEach(c => rows.push(['warn','Venue conflict','<b>'+esc(c.room)+'</b> on '+esc(anShortDate(c.date))+': '+ex(c.a)+' overlaps '+ex(c.b)]));
-  m.unassigned.slice(0,25).forEach(x => rows.push(['warn','No invigilator', esc(anShortDate(x.date))+', '+ex(x)]));
-  if (m.unassigned.length > 25) rows.push(['warn','No invigilator','and '+(m.unassigned.length-25)+' more exams without an invigilator']);
-  m.heavy.forEach(t => rows.push(['warn','Heavy load','<b>'+esc(t.name)+'</b>: '+t.n+' exams, up to '+t.maxDay+' in one day ('+anHrs(t.hours)+' in total)']));
-  if (!rows.length) return '<p class="anOk">No clashes, venue conflicts, unassigned exams or heavy loads. The timetable is clean.</p>';
-  return '<table class="anT"><thead><tr><th style="width:150px">Issue</th><th>Details</th></tr></thead><tbody>'+rows.map(r => '<tr><td><span class="anChip '+r[0]+'">'+r[1]+'</span></td><td>'+r[2]+'</td></tr>').join('')+'</tbody></table>';
-}
-function anPrintHtml(scope, title, sub){
-  const m = anModel(scope);
-  const head = '<div class="cbHead"><h2>Kanyadet Primary &amp; Junior School</h2><p>'+esc(title)+' - Examination analytics</p><p>'+esc(sub)+'</p></div>';
-  if (!m.exams.length) return '<div class="anp"><div class="anpg last">'+head+'<p>No exams to analyse yet.</p></div></div>';
-  const pg = (h, last) => '<div class="anpg'+(last ? ' last' : '')+'">'+h+'</div>';
-  return '<div class="anp">'+
-    pg(head+anKpiHtml(m)+'<h3 class="anH">Key insights</h3>'+anInsightsHtml(m)+'<div class="anTwo"><div><h3 class="anH">Daily load</h3>'+anDailyHtml(m)+'</div><div><h3 class="anH">Period mix</h3>'+anPeriodHtml(m)+'</div></div>')+
-    pg('<h3 class="anH">Invigilator workload</h3>'+anWorkloadHtml(m)+'<h3 class="anH">Issues to resolve</h3>'+anIssuesHtml(m))+
-    pg('<h3 class="anH">Days and periods</h3>'+anDaysTableHtml(m)+'<h3 class="anH">Classes</h3>'+anClassesHtml(m)+'<h3 class="anH">Subjects</h3>'+anSubjectsHtml(m))+
-    pg('<h3 class="anH">Slot coverage</h3>'+anCoverageHtml(m)+'<h3 class="anH">Week history</h3>'+renderHistoryChart(scope), true)+'</div>';
+  const last = rows[rows.length-1].filled, prev = rows.length>1 ? rows[rows.length-2].filled : last, diff = last-prev;
+  const cmp = diff === 0 ? 'the same number of exams as last week.' : (diff>0 ? diff+' more exam'+(diff===1?'':'s')+' than last week.' : Math.abs(diff)+' fewer exam'+(Math.abs(diff)===1?'':'s')+' than last week.');
+  return '<div class="histBars">'+bars+'</div><p class="an-hint">This week has '+cmp+' Bars show exams scheduled per week (of up to '+rows[0].total+' slots) — tap a bar to open that week.</p>';
 }
 function renderAnalytics(){
   const box = $('#anBody'); if (!box) return;
-  const m = anModel(), v = AN_VIEWS.some(x => x[0] === S.anView) ? S.anView : 'overview';
-  const sub = document.querySelector('#analytics .card-h .sub'); if (sub) sub.textContent = m.secs.join(', ')+(m.range ? ' · '+m.range : '');
-  $('#anTabs').innerHTML = AN_VIEWS.map(x => '<button type="button" data-an="'+x[0]+'" aria-pressed="'+(x[0] === v)+'">'+x[1]+(x[0] === 'issues' && m.issues ? ' <span class="anChip bad">'+m.issues+'</span>' : '')+'</button>').join('');
-  let h;
-  if (!m.exams.length && v !== 'history') h = '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(S.combo.next ? ' or the following week' : '')+'. Analytics appear as soon as exams are added.</p>';
-  else if (v === 'overview') h = anKpiHtml(m)+'<h3 class="anH">Key insights</h3>'+anInsightsHtml(m)+'<h3 class="anH">Daily load by period</h3>'+anDailyHtml(m)+'<h3 class="anH">Period mix</h3>'+anPeriodHtml(m);
-  else if (v === 'workload') h = anWorkloadHtml(m);
-  else if (v === 'daily') h = '<h3 class="anH">Daily load by period</h3>'+anDailyHtml(m)+'<h3 class="anH">Day by day</h3><div class="tt-scroll">'+anDaysTableHtml(m)+'</div><h3 class="anH">Period mix</h3>'+anPeriodHtml(m);
-  else if (v === 'classes') h = '<div class="tt-scroll">'+anClassesHtml(m)+'</div>';
-  else if (v === 'subjects') h = anSubjectsHtml(m);
-  else if (v === 'coverage') h = anCoverageHtml(m);
-  else if (v === 'issues') h = anIssuesHtml(m);
-  else h = renderHistoryChart();
-  box.innerHTML = h;
-}
-/* ---- PDF pages (appended to the timetable PDF, the combined-sheet PDF, and the standalone analytics PDF) ---- */
-function anAppendPdf(doc, X, scope){
-  const m = anModel(scope), W = X.W, H = X.H, bottom = H-24, BLUE = PDF_BLUE;
-  let fresh = !!X.fresh;
-  const page = title => { if (fresh) fresh = false; else doc.addPage(); X.paint(title); return 43; };
-  if (!m.exams.length){ const y = page('EXAMINATION ANALYTICS'); doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(110,110,110); doc.text('No exams are planned yet, so there is nothing to analyse.', W/2, y+10, {align:'center'}); return; }
-  const FILL = {n:[234,242,250], good:[221,243,226], warn:[255,240,196], bad:[253,226,234]}, DOT = {good:[44,117,68], warn:[217,164,0], bad:[192,57,43], info:BLUE};
-  const heads = {fillColor:BLUE, textColor:[255,255,255], fontStyle:'bold'};
-  const tbl = o => doc.autoTable(Object.assign({theme:'grid', margin:{top:25,right:10,bottom:25,left:10}, styles:{fontSize:8.5,cellPadding:2,lineColor:[210,218,228],lineWidth:0.3,valign:'middle',textColor:[60,60,60]}, headStyles:heads, alternateRowStyles:{fillColor:[245,248,252]}, didDrawPage:X.overflow}, o));
-  const sec = (t, y, x) => { doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...BLUE); doc.text(t, x || 10, y); return y+3; };
-  const after = (gap) => doc.lastAutoTable.finalY + (gap||8);
-  const need = (y, h, title) => (y + h > bottom) ? page(title) : y;
-
-  /* 1. Summary: KPI cards, insights, charts */
-  let y = page('EXAMINATION ANALYTICS - SUMMARY');
-  const cards = anKpis(m), cw = (W-20-15)/4, ch = 20;
-  cards.forEach((c,i) => {
-    const x = 10 + (i%4)*(cw+5), yy = y + Math.floor(i/4)*(ch+4);
-    doc.setFillColor(...FILL[c.tone]); doc.roundedRect(x, yy, cw, ch, 2, 2, 'F');
-    doc.setDrawColor(...BLUE); doc.setLineWidth(0.2); doc.roundedRect(x, yy, cw, ch, 2, 2, 'S');
-    doc.setTextColor(90,90,90); doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.text(c.lb.toUpperCase(), x+4, yy+5.5);
-    doc.setTextColor(...BLUE); doc.setFontSize(16); doc.text(String(c.v), x+4, yy+13.5);
-    doc.setTextColor(100,100,100); doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.text(doc.splitTextToSize(c.sb, cw-8)[0], x+4, yy+18);
-  });
-  y += 2*(ch+4) + 4;
-  y = sec('Key insights', y) + 3;
-  doc.setFontSize(9);
-  m.insights.slice(0,7).forEach(i => {
-    const lines = doc.splitTextToSize(i.text, W-34);
-    doc.setFillColor(...DOT[i.tone]); doc.circle(13, y-1.1, 1.2, 'F');
-    doc.setFont('helvetica','normal'); doc.setTextColor(50,50,50); doc.text(lines, 17, y);
-    y += lines.length*4.2 + 1.4;
-  });
-  y += 1;
-  y = need(y, 48, 'EXAMINATION ANALYTICS - LOAD CHARTS');
-  const titleY = y; y = sec('Daily load by period', y) + 6;
-  const plotH = 26, base = y + plotH + 1, areaW = 175, nd = m.days.length, maxN = Math.max.apply(null, m.days.map(d => d.n)) || 1;
-  const bw = Math.min(16, areaW/nd - 3);
-  doc.setDrawColor(190,190,190); doc.setLineWidth(0.2); doc.line(10, base, 10+areaW, base);
-  m.days.forEach((d,i) => {
-    const x = 12 + i*(areaW/nd); let top = base;
-    for (let j = 0; j < m.ncol; j++){
-      const c = d.per[j]||0; if (!c) continue;
-      const hh = c/maxN*plotH; doc.setFillColor(...PDF_INK[j % PDF_INK.length]); doc.rect(x, top-hh, bw, hh, 'F'); top -= hh;
-    }
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(60,60,60); doc.text(String(d.n), x+bw/2, top-1.2, {align:'center'});
-    doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.text(DAYS[d.d]+' '+d.date.getDate()+'/'+(d.date.getMonth()+1), x+bw/2, base+3.5, {align:'center'});
-    doc.setTextColor(130,130,130); doc.text(d.staff.size+' staff', x+bw/2, base+6.6, {align:'center'});
-  });
-  let lx = 10; doc.setFontSize(7); 
-  for (let j = 0; j < m.ncol; j++){ doc.setFillColor(...PDF_INK[j % PDF_INK.length]); doc.rect(lx, base+9, 3, 3, 'F'); doc.setTextColor(80,80,80); const nm = cbName(j, m.ncol); doc.text(nm, lx+4.5, base+11.4); lx += 10 + doc.getTextWidth(nm); }
-  const px = 10 + areaW + 14, pw = W - 10 - px;
-  sec('Period mix', titleY, px);
-  const tot = m.exams.length || 1;
-  for (let j = 0; j < m.ncol; j++){
-    const v = m.periods[j]||0, yy = y + 2 + j*10;
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(60,60,60); doc.text(cbName(j, m.ncol), px, yy);
-    doc.setFillColor(230,236,247); doc.rect(px, yy+1.5, pw, 3.2, 'F');
-    doc.setFillColor(...PDF_INK[j % PDF_INK.length]); doc.rect(px, yy+1.5, Math.max(v ? 1.5 : 0, pw*v/tot), 3.2, 'F');
-    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.text(v+' exams ('+anPct(v,tot)+'%)', px+pw, yy, {align:'right'});
-  }
-
-  /* 2. Invigilator workload */
-  y = page('INVIGILATOR WORKLOAD');
-  if (m.teachers.length){
-    const mx = m.teachers[0].n || 1;
-    tbl({startY:y, head:[['#','INVIGILATOR','EXAMS','HOURS','DAYS','CLASSES','MAX / DAY','STATUS','LOAD']],
-      body:m.teachers.map((t,i) => [String(i+1), t.name, String(t.n), anHrs(t.hours), String(t.nd), String(t.classes.size), String(t.maxDay), t.status, '']),
-      columnStyles:{0:{cellWidth:10,halign:'center'},1:{fontStyle:'bold'},2:{halign:'center',cellWidth:18},3:{halign:'center',cellWidth:18},4:{halign:'center',cellWidth:16},5:{halign:'center',cellWidth:20},6:{halign:'center',cellWidth:22},7:{halign:'center',cellWidth:24},8:{cellWidth:62}},
-      didParseCell: d => { if (d.section === 'body' && d.column.index === 7){ const s = d.cell.raw; d.cell.styles.textColor = s === 'Heavy' ? [192,57,43] : s === 'Light' ? [160,110,0] : [44,117,68]; d.cell.styles.fontStyle = 'bold'; } },
-      didDrawCell: d => { if (d.section !== 'body' || d.column.index !== 8) return; const t = m.teachers[d.row.index];
-        doc.setFillColor(230,236,247); doc.rect(d.cell.x+2, d.cell.y+d.cell.height/2-1.6, d.cell.width-4, 3.2, 'F');
-        doc.setFillColor(...(t.heavy ? [192,57,43] : BLUE)); doc.rect(d.cell.x+2, d.cell.y+d.cell.height/2-1.6, Math.max(2,(d.cell.width-4)*t.n/mx), 3.2, 'F'); },
-      didDrawPage:X.overflow});
-    y = after(6);
-    y = need(y, 16, 'INVIGILATOR WORKLOAD (CONTINUED)');
-    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(80,80,80);
-    const note = 'Average '+(Math.round(m.mean*10)/10)+' exams, median '+m.median+', most '+m.max+', fewest '+m.min+'. Balance score '+m.jain+'% (100% = everyone has the same load). Heavy = '+LOAD.day+'+ exams a day or '+LOAD.week+'+ a week.';
-    const nl = doc.splitTextToSize(note, W-20); doc.text(nl, 10, y); y += nl.length*4 + 3;
-    if (m.idle.length){ const il = doc.splitTextToSize('Available, no duty yet ('+m.idle.length+'): '+m.idle.slice(0,18).map(r => r.name).join(', ')+(m.idle.length>18 ? ' and '+(m.idle.length-18)+' more' : '')+'.', W-20); doc.text(il, 10, y); }
-  } else { doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(120,120,120); doc.text('No invigilators have been assigned yet.', 10, y+6); }
-
-  /* 3. Days, periods and coverage */
-  y = page('DAILY AND PERIOD LOAD');
-  tbl({startY:y, head:[['DAY','EXAMS','CLASSES','INVIGILATORS'].concat(Array.from({length:m.ncol}, (_, j) => cbName(j,m.ncol).toUpperCase()), ['NO INVIGILATOR'])],
-    body:m.days.map(d => [anShortDate(d.date), String(d.n), String(d.classes.size), String(d.staff.size)].concat(Array.from({length:m.ncol}, (_, j) => String(d.per[j]||0)), [String(d.un)])),
-    styles:{fontSize:8.5,cellPadding:2,lineColor:[210,218,228],lineWidth:0.3,halign:'center',valign:'middle',textColor:[60,60,60]}, columnStyles:{0:{halign:'left',fontStyle:'bold'}}});
-  y = after(10); y = need(y, 40, 'SLOT COVERAGE');
-  y = sec('Slot coverage (classes with an exam in each period)', y) + 2;
-  tbl({startY:y, head:[['PERIOD'].concat(m.days.map(d => DAYS[d.d].toUpperCase()+' '+d.date.getDate()+'/'+(d.date.getMonth()+1)))],
-    body:Array.from({length:m.ncol}, (_, j) => [cbName(j,m.ncol)].concat(m.days.map(d => { const have = d.per[j]||0, cap = m.secs.filter(s => m.secN[s] > j).length; return have+'/'+cap; }))),
-    styles:{fontSize:8.5,cellPadding:2.4,lineColor:[210,218,228],lineWidth:0.3,halign:'center',valign:'middle',textColor:[60,60,60]}, columnStyles:{0:{halign:'left',fontStyle:'bold'}},
-    didParseCell: d => { if (d.section !== 'body' || d.column.index === 0) return; const p = String(d.cell.raw).split('/'), a = +p[0], b = +p[1];
-      d.cell.styles.fillColor = !a ? [246,246,246] : a >= b ? [221,243,226] : [255,240,196]; d.cell.styles.textColor = !a ? [175,175,175] : a >= b ? [44,117,68] : [127,93,14]; }});
-
-  /* 4. Classes and subjects */
-  y = page('CLASSES AND SUBJECTS');
-  tbl({startY:y, head:[['CLASS','EXAMS','FILLED','EXAM DAYS','SUBJECTS','INVIGILATORS','FROM','TO','NO INVIGILATOR']],
-    body:m.classes.map(c => [c.sec, String(c.n), anPct(c.n,c.cap)+'%', String(c.days.size), String(c.subjects.size), String(c.teachers.size), c.first ? anShortDate(c.first) : '-', c.last ? anShortDate(c.last) : '-', String(c.un)]),
-    styles:{fontSize:8.5,cellPadding:2,lineColor:[210,218,228],lineWidth:0.3,halign:'center',valign:'middle',textColor:[60,60,60]}, columnStyles:{0:{halign:'left',fontStyle:'bold'}}});
-  y = after(10); y = need(y, 30, 'CLASSES AND SUBJECTS (CONTINUED)');
-  y = sec('Subjects examined', y) + 2;
-  tbl({startY:y, head:[['SUBJECT','EXAMS','CLASSES','EXAM DAYS','SHARE']], body:m.subjects.slice(0,20).map(s => [s.name, String(s.n), String(s.classes.size), String(s.days.size), anPct(s.n, m.exams.length)+'%']),
-    styles:{fontSize:8.5,cellPadding:2,lineColor:[210,218,228],lineWidth:0.3,halign:'center',valign:'middle',textColor:[60,60,60]}, columnStyles:{0:{halign:'left',fontStyle:'bold'}}});
-
-  /* 5. Issues and history */
-  y = page('ISSUES AND WEEK HISTORY');
-  const ex = x => x.sec+' '+x.l.subject+' ('+fmtTime(x.t0)+' - '+fmtTime(x.t1)+')', irows = [];
-  m.clash.forEach(c => irows.push(['Invigilator clash', c.who+' on '+anShortDate(c.date)+': '+ex(c.a)+' overlaps '+ex(c.b)]));
-  m.venue.forEach(c => irows.push(['Venue conflict', c.room+' on '+anShortDate(c.date)+': '+ex(c.a)+' overlaps '+ex(c.b)]));
-  m.unassigned.slice(0,25).forEach(x => irows.push(['No invigilator', anShortDate(x.date)+', '+ex(x)]));
-  if (m.unassigned.length > 25) irows.push(['No invigilator', 'and '+(m.unassigned.length-25)+' more exams without an invigilator']);
-  m.heavy.forEach(t => irows.push(['Heavy load', t.name+': '+t.n+' exams, up to '+t.maxDay+' in one day ('+anHrs(t.hours)+' in total)']));
-  y = sec('Issues to resolve', y) + 2;
-  if (irows.length){
-    tbl({startY:y, head:[['ISSUE','DETAILS']], body:irows, columnStyles:{0:{cellWidth:38,fontStyle:'bold'}},
-      didParseCell: d => { if (d.section === 'body' && d.column.index === 0) d.cell.styles.textColor = d.cell.raw === 'Invigilator clash' ? [192,57,43] : [160,110,0]; }});
-    y = after(10);
-  } else { doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(44,117,68); doc.text('No clashes, venue conflicts, unassigned exams or heavy loads. The timetable is clean.', 10, y+4); y += 14; }
-  y = need(y, 40, 'ISSUES AND WEEK HISTORY (CONTINUED)');
-  y = sec('Week history (weeks with exams)', y) + 2;
-  const hist = historyWeeks(8, scope), selK = scope.keys[0];
-  tbl({startY:y, head:[['WEEK','EXAMS SCHEDULED','FILL RATE']], body:hist.map(r => [weekLabel(r.m,true)+(r.k === selK ? '  (this timetable)' : ''), r.filled+' of '+r.total, anPct(r.filled,r.total)+'%']),
-    styles:{fontSize:8.5,cellPadding:2,lineColor:[210,218,228],lineWidth:0.3,valign:'middle',textColor:[60,60,60]},
-    didParseCell: d => { if (d.section === 'body' && hist[d.row.index].k === selK) d.cell.styles.fillColor = [234,242,250]; }});
+  box.innerHTML = S.anView === 'coverage' ? renderCoverageChart() : S.anView === 'history' ? renderHistoryChart() : renderWorkloadChart();
+  $('#anTabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.an === S.anView)));
 }
 function renderDayPrintSelect(){
   const sel = $('#dpDay'), cur = sel.value;
@@ -2229,7 +1673,7 @@ function render(){
   S.now = now0();
   applyStage(); rebuildHues();
   renderHeader(); renderStats(); renderSections(); renderInsights(); renderGrid(); renderFindElsewhere(); renderTeachers(); renderWeeks(); renderCal(); renderUpcoming(); renderUser(); renderFocusChip(); renderTermProgress();
-  renderAnalytics(); renderDayPrintSelect(); renderCombo();
+  renderAnalytics(); renderDayPrintSelect();
 }
 
 /* ---------- Data access: one Store, two backends ---------- */
@@ -2314,15 +1758,6 @@ function subscribeWeeks(){
     S.weeks = weeksFromVal(snap.val());
     lsSet(kCache(), S.weeks);
     setSync('live', 'Live, synced with school database');
-    if (!S.autoWeekDone && Object.keys(S.weeks).length){
-      S.autoWeekDone = true;
-      const curKey = iso(baseMonday());
-      if (!(S.weeks[curKey] && countLessons(S.weeks[curKey]) > 0)){
-        const planned = Object.keys(S.weeks).filter(k => countLessons(S.weeks[k]) > 0).sort();
-        const next = planned.find(k => k >= curKey), pick = next || planned[planned.length-1];
-        if (pick){ S.sel = parseIso(pick); S.calMonth = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); }
-      }
-    }
     render();
   }, err => { setSync('off', 'Can\'t read timetable'); toast('Could not read the timetable: '+(err && err.message || err), 5000); });
 }
@@ -3067,8 +2502,6 @@ document.addEventListener('click', e => {
   if (t.classList.contains('tl')){ if (guard()) openSlot(+t.dataset.slot); return; }
   if (t.id === 'copyPrev'){ copyWeek(iso(addDays(S.sel,-7)), iso(S.sel)); return; }
   if (t.id === 'loadSeed'){ loadSeed(); return; }
-  if (t.id === 'mergePrintBtn'){ printMerged(); return; }
-  if (t.id === 'mergePdfBtn'){ exportPdf(true); return; }
   if (t.dataset.suggest !== undefined){ pickSuggested(+t.dataset.suggest); return; }
   if (t.dataset.teacherFilter !== undefined){ toggleFocusTeacher(t.dataset.teacherFilter); return; }
   if (t.dataset.teacherWa !== undefined){
@@ -3365,12 +2798,12 @@ async function pdfAssets(){
   return { logo: pdfToPng(logo, true), mark: pdfToPng(mark, false) };
 }
 
-async function buildPdf(key, wk, mg){
+async function buildPdf(key, wk){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
   const A = await pdfAssets();
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-  const gl = gradeLabel(gradesOf(S.section)), week = mg ? mg.label : weekLabel(S.sel, true);
+  const gl = gradeLabel(gradesOf(S.section)), week = weekLabel(S.sel, true);
   const printed = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
 
   /* Faint ministry watermark, laid over the finished page (as in Results.html) */
@@ -3423,8 +2856,7 @@ async function buildPdf(key, wk, mg){
   };
 
   /* ---- Page 1: the timetable grid ---- */
-  const days = mg ? mg.cols.map(c => ({ di:c.di, name:DAYS_LONG[c.di] || c.label, date:c.date, wk:c.wk }))
-    : S.days.map(day => { const off = WEEKDAY_OFFSET[day.key]; return { di:off, name:DAYS_LONG[off] || day.label, date:addDays(S.sel, off), wk }; });
+  const days = S.days.map(day => { const off = WEEKDAY_OFFSET[day.key]; return { di:off, name:DAYS_LONG[off] || day.label, date:addDays(S.sel, off) }; });
   const timeW = 30, dayW = (W - 20 - timeW) / Math.max(days.length, 1);
   const rowH = Math.max(18, Math.min(38, (H - 43 - 25 - 12) / Math.max(S.slots.length, 1)));
   const head = [['TIME'].concat(days.map(d => d.name.toUpperCase() + '\n' + d.date.getDate() + ' ' + MS[d.date.getMonth()]))];
@@ -3432,7 +2864,7 @@ async function buildPdf(key, wk, mg){
     const time = { content: fmtTime(s.start) + '\n' + fmtTime(s.end), styles: s.brk ? { minCellHeight:12 } : {} };
     if (s.brk) return [time, { content:'BREAK', colSpan:days.length, styles:{ fillColor:[236,240,245], textColor:[110,110,110], fontStyle:'bold', minCellHeight:12 } }];
     return [time].concat(days.map(d => {
-      const les = d.wk[d.di] && d.wk[d.di][si];
+      const les = wk[d.di] && wk[d.di][si];
       return les ? { content:'', les } : { content:'\u2014', styles:{ textColor:[190,190,190] } };
     }));
   });
@@ -3483,7 +2915,7 @@ async function buildPdf(key, wk, mg){
   /* ---- Last page: who invigilates what ---- */
   const duty = {};
   days.forEach(d => S.slots.forEach((s, si) => {
-    const l = !s.brk && d.wk[d.di] && d.wk[d.di][si];
+    const l = !s.brk && wk[d.di] && wk[d.di][si];
     if (!l || !l.teacher) return;
     const k = normName(l.teacher), t = duty[k] || (duty[k] = { name:l.teacher, items:[] });
     t.items.push(DAYS[d.di] + ' ' + d.date.getDate() + ' ' + MS[d.date.getMonth()] + ',  ' + fmtTime(s.start) + ' - ' + fmtTime(s.end) + '   ' + l.subject + (l.note ? ' (' + l.note + ')' : ''));
@@ -3494,7 +2926,7 @@ async function buildPdf(key, wk, mg){
     doc.addPage();
     paint('INVIGILATION ROSTER');
     doc.autoTable({
-      head:[['INVIGILATOR', 'EXAMS', mg ? 'DUTIES' : 'DUTIES THIS WEEK']], body:rows, startY:43, theme:'grid',
+      head:[['INVIGILATOR', 'EXAMS', 'DUTIES THIS WEEK']], body:rows, startY:43, theme:'grid',
       margin:{ top:25, right:10, bottom:25, left:10 },
       styles:{ fontSize:9, cellPadding:2.5, lineColor:[210,218,228], lineWidth:0.3, valign:'middle', textColor:[60,60,60] },
       headStyles:{ fillColor:PDF_BLUE, textColor:[255,255,255], fontStyle:'bold', halign:'center' },
@@ -3504,143 +2936,24 @@ async function buildPdf(key, wk, mg){
     });
   }
 
-  if (S.anInclude){
-    const k2 = iso(addDays(S.sel,7));
-    anAppendPdf(doc, {W, H, paint, overflow}, {secs:[S.section], keys: mg ? [key, k2] : [key]});
-  }
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
   doc.save((S.section + ' Exam Timetable ' + week).replace(/[^\w\-]+/g, '_') + '.pdf');
 }
 /* PDF-EXPORT-END */
 
-async function exportPdf(merged){
+async function exportPdf(){
   if (!(window.jspdf && window.jspdf.jsPDF)){ toast('The PDF tools did not load. Check your connection and try again.'); return; }
-  const key = iso(S.sel), wk = getWeek(key), mg = merged === true ? mergedCols(key) : null;
-  if (merged === true && !mg){ toast('Both weeks need exams before they can be merged.'); return; }
+  const key = iso(S.sel), wk = getWeek(key);
   if (!countLessons(wk)){ toast('This week has no exams yet, so there is nothing to export.'); return; }
   const btn = $('#pdfBtn'), label = btn.textContent;
   btn.disabled = true; btn.textContent = 'Building PDF\u2026';
-  try { await buildPdf(key, wk, mg); toast('PDF downloaded'); }
+  try { await buildPdf(key, wk); toast('PDF downloaded'); }
   catch(e){ console.error('[PDF Export]', e); toast('Could not build the PDF. Please try again.'); }
   finally { btn.disabled = false; btn.textContent = label; }
 }
 
-$('#pdfBtn').addEventListener('click', () => exportPdf());
-
-/* ---------- Combined sheet PDF (same look as the timetable PDF) ---------- */
-async function buildComboPdf(dt){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
-  const A = await pdfAssets();
-  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-  const printed = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-  const sep = S.combo.sep, n = dt.ncol;
-  const drawMark = () => {
-    if (!A.mark) return;
-    try { const m = 80, r = A.mark.ratio, w = r >= 1 ? m : m*r, h = r >= 1 ? m/r : m;
-      doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity:0.08 })); doc.addImage(A.mark.url, 'PNG', (W-w)/2, (H-h)/2, w, h); doc.restoreGraphicsState(); } catch(e){}
-  };
-  const drawChrome = () => {
-    doc.setFillColor(...PDF_BLUE); doc.rect(0, 0, W, 20, 'F');
-    let tx = 14;
-    if (A.logo){ try { const lh = 15, lw = lh*A.logo.ratio; doc.addImage(A.logo.url, 'PNG', 14, 2.5, lw, lh); tx = 14 + lw + 5; } catch(e){} }
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(16);
-    doc.text('KANYADET PRI & JUNIOR SCHOOL', tx, 10);
-    doc.setFontSize(12); doc.text('P O BOX 45 - 40139, AKALA, KENYA', tx, 16);
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text('Date: ' + printed, W-14, 8, { align:'right' });
-    doc.text(dt.classes, W-14, 13, { align:'right' });
-    doc.text('Exam days: ' + dt.label, W-14, 18, { align:'right' });
-  };
-  const drawFooter = (pageNo, total) => {
-    const y = H - 15;
-    doc.setFillColor(245,245,245); doc.rect(0, y-5, W, 20, 'F');
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.3); doc.line(0, y-5, W, y-5);
-    doc.setTextColor(60,60,60); doc.setFontSize(8);
-    doc.setFont('helvetica','bold'); doc.text('Prepared by:', 14, y);
-    doc.setFont('helvetica','normal'); doc.text('Automated Online School System', 14, y+4);
-    doc.setFontSize(7); doc.text('Ict Dept - Digital Signature \u00A9' + new Date().getFullYear(), 14, y+8);
-    doc.setFontSize(9); doc.text('Page ' + pageNo + ' of ' + total, W/2, y+2, { align:'center' });
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text('Verified by:', W-14, y, { align:'right' });
-    doc.setFont('helvetica','normal'); doc.text('_________________', W-14, y+4, { align:'right' });
-    doc.setFontSize(7); doc.text('Signature & Stamp', W-14, y+8, { align:'right' });
-  };
-  const chromed = new Set();
-  const overflow = () => { const p = doc.internal.getCurrentPageInfo().pageNumber; if (!chromed.has(p)){ drawChrome(); chromed.add(p); } };
-  drawChrome(); chromed.add(1);
-  doc.setTextColor(...PDF_BLUE); doc.setFont('helvetica','bold'); doc.setFontSize(13);
-  doc.text(cbTitleText().toUpperCase(), W/2, 30, { align:'center' });
-  doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.5); doc.line(10, 32.5, W-10, 32.5);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90);
-  doc.text(dt.classes + '  |  ' + dt.label, W/2, 38, { align:'center' });
-
-  const head = [['DAY','CLASS'].concat(Array.from({length:n}, (_, j) => ({ content:(cbName(j,n)+(dt.times[j] ? '\n'+dt.times[j] : '')).toUpperCase(), colSpan: sep ? 2 : 1 })))];
-  if (sep) head.push([{content:'',colSpan:2}].concat(Array.from({length:n}, () => ['SUBJECT','INVIGILATOR']).reduce((a,b) => a.concat(b), [])));
-  const body = [];
-  dt.days.forEach(day => day.rows.forEach((r, ri) => {
-    const row = [];
-    if (ri === 0) row.push({ content: DAYS[day.d].toUpperCase()+'\n'+day.date.getDate()+'/'+(day.date.getMonth()+1), rowSpan: day.rows.length, styles:{ fillColor:[234,242,250], textColor:PDF_BLUE, fontStyle:'bold' } });
-    row.push({ content:r.sec, styles:{ fontStyle:'bold', fillColor:[234,242,250], textColor:PDF_BLUE } });
-    for (let j = 0; j < n; j++){
-      const l = r.cells[j];
-      if (!l){ row.push({ content:'\u2014', colSpan: sep ? 2 : 1, styles:{ textColor:[190,190,190] } }); continue; }
-      row.push({ content:'', les:l });
-      if (sep) row.push({ content:l.teacher || '\u2014' });
-    }
-    body.push(row);
-  }));
-  const rowH = Math.max(14, Math.min(26, (H - 43 - 25 - 24) / Math.max(body.length, 1)));
-  doc.autoTable({
-    head, body, startY:43, theme:'grid',
-    margin:{ top:25, right:10, bottom:25, left:10 },
-    styles:{ fontSize:9, cellPadding:2, lineColor:[210,218,228], lineWidth:0.3, halign:'center', valign:'middle', textColor:[60,60,60] },
-    headStyles:{ fillColor:PDF_BLUE, textColor:[255,255,255], fontStyle:'bold', fontSize:8.5 },
-    bodyStyles:{ minCellHeight:rowH },
-    didParseCell: d => { const les = d.section === 'body' && d.cell.raw && d.cell.raw.les; if (les) d.cell.styles.fillColor = PDF_TINT[hue(les.subject)]; },
-    didDrawCell: d => {
-      const les = d.section === 'body' && d.cell.raw && d.cell.raw.les; if (!les) return;
-      const ink = PDF_INK[hue(les.subject)], cx = d.cell.x + d.cell.width/2, maxW = d.cell.width - 3;
-      doc.setFont('helvetica','bold'); doc.setFontSize(10);
-      const subj = doc.splitTextToSize(les.subject, maxW).slice(0, 2);
-      doc.setFont('helvetica','normal'); doc.setFontSize(8);
-      const who = !sep && les.teacher ? doc.splitTextToSize(les.teacher, maxW).slice(0, 1) : [];
-      const total = subj.length*4.4 + who.length*3.8 + (les.note ? 5 : 0);
-      let y = d.cell.y + (d.cell.height - total)/2 + 3.2;
-      doc.setTextColor(...ink); doc.setFont('helvetica','bold'); doc.setFontSize(10);
-      subj.forEach(line => { doc.text(line, cx, y, { align:'center' }); y += 4.4; });
-      doc.setFont('helvetica','normal'); doc.setFontSize(8);
-      who.forEach(line => { doc.text(line, cx, y - 0.4, { align:'center' }); y += 3.8; });
-      if (les.note){ doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.text(les.note, cx, y + 0.6, { align:'center' }); }
-    },
-    didDrawPage: overflow
-  });
-  if (S.anInclude){
-    const paintC = title => {
-      drawChrome();
-      doc.setTextColor(...PDF_BLUE); doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.text(title, W/2, 30, { align:'center' });
-      doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.5); doc.line(10, 32.5, W-10, 32.5);
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90); doc.text(dt.classes + '  |  ' + dt.label, W/2, 38, { align:'center' });
-      chromed.add(doc.internal.getCurrentPageInfo().pageNumber);
-    };
-    anAppendPdf(doc, {W, H, paint:paintC, overflow}, {secs:dt.secs, keys: S.combo.next ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]});
-  }
-  const total = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
-  doc.save((cbTitleText() + ' ' + dt.classes + ' ' + dt.label).replace(/[^\w\-]+/g, '_') + '.pdf');
-}
-async function exportComboPdf(){
-  if (cbNeedTitle()) return;
-  if (!(window.jspdf && window.jspdf.jsPDF)){ toast('The PDF tools did not load. Check your connection and try again.'); return; }
-  const dt = cbData();
-  if (!dt.days.length){ toast('No exams to export yet for these classes.'); return; }
-  const btn = $('#cbPdfBtn'), label = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Building PDF\u2026';
-  try { await buildComboPdf(dt); toast('PDF downloaded'); }
-  catch(e){ console.error('[Combined PDF]', e); toast('Could not build the PDF. Please try again.'); }
-  finally { btn.disabled = false; btn.textContent = label; }
-}
-
+$('#pdfBtn').addEventListener('click', exportPdf);
 
 /* ---------- Duty roster PDF: one page per invigilator, for printing and handing out individually ---------- */
 async function buildDutyPdf(key, wk){
@@ -3727,29 +3040,37 @@ async function exportDutyPdf(){
 $('#dutyPdfBtn').addEventListener('click', exportDutyPdf);
 
 /* ---------- Analytics PDF: workload, coverage and week-history summary ---------- */
-async function buildAnalyticsPdf(){
+async function buildAnalyticsPdf(key, wk){
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
   const A = await pdfAssets();
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-  const scope = anScope(), m = anModel(scope), classesTxt = scope.secs.join(', ');
+  const gl = gradeLabel(gradesOf(S.section)), week = weekLabel(S.sel, true);
   const printed = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
   const drawMark = () => {
     if (!A.mark) return;
-    try { const mm = 80, r = A.mark.ratio, w = r >= 1 ? mm : mm*r, h = r >= 1 ? mm/r : mm;
-      doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity:0.08 })); doc.addImage(A.mark.url, 'PNG', (W-w)/2, (H-h)/2, w, h); doc.restoreGraphicsState(); } catch(e){}
+    try {
+      const m = 70, r = A.mark.ratio, w = r >= 1 ? m : m*r, h = r >= 1 ? m/r : m;
+      doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity:0.08 }));
+      doc.addImage(A.mark.url, 'PNG', (W-w)/2, (H-h)/2, w, h);
+      doc.restoreGraphicsState();
+    } catch(e){}
   };
   const drawChrome = () => {
     doc.setFillColor(...PDF_BLUE); doc.rect(0, 0, W, 20, 'F');
     let tx = 14;
     if (A.logo){ try { const lh = 15, lw = lh*A.logo.ratio; doc.addImage(A.logo.url, 'PNG', 14, 2.5, lw, lh); tx = 14 + lw + 5; } catch(e){} }
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(16);
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
     doc.text('KANYADET PRI & JUNIOR SCHOOL', tx, 10);
-    doc.setFontSize(12); doc.text('P O BOX 45 - 40139, AKALA, KENYA', tx, 16);
+    doc.setFontSize(11); doc.text('P O BOX 45 - 40139, AKALA, KENYA', tx, 16);
     doc.setFontSize(9); doc.setFont('helvetica','normal');
     doc.text('Date: ' + printed, W-14, 8, { align:'right' });
-    doc.text(doc.splitTextToSize(classesTxt, 120)[0], W-14, 13, { align:'right' });
-    doc.text('Exam days: ' + (m.range || weekLabel(S.sel, true)), W-14, 18, { align:'right' });
+    doc.text(S.section + (gl && gl !== S.section ? ' | ' + gl : ''), W-14, 13, { align:'right' });
+    doc.text('Exam week: ' + week, W-14, 18, { align:'right' });
+    doc.setTextColor(...PDF_BLUE); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text('EXAMINATION ANALYTICS', W/2, 30, { align:'center' });
+    if (examTitleCur()){ doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,90,90); doc.text(examTitleCur(), W/2, 35, { align:'center' }); }
+    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.5); doc.line(10, 37, W-10, 37);
   };
   const drawFooter = (pageNo, total) => {
     const y = H - 15;
@@ -3758,34 +3079,85 @@ async function buildAnalyticsPdf(){
     doc.setTextColor(60,60,60); doc.setFontSize(8);
     doc.setFont('helvetica','bold'); doc.text('Prepared by:', 14, y);
     doc.setFont('helvetica','normal'); doc.text('Automated Online School System', 14, y+4);
-    doc.setFontSize(7); doc.text('Ict Dept - Digital Signature \u00A9' + new Date().getFullYear(), 14, y+8);
     doc.setFontSize(9); doc.text('Page ' + pageNo + ' of ' + total, W/2, y+2, { align:'center' });
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text('Verified by:', W-14, y, { align:'right' });
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text('Signature:', W-14, y, { align:'right' });
     doc.setFont('helvetica','normal'); doc.text('_________________', W-14, y+4, { align:'right' });
-    doc.setFontSize(7); doc.text('Signature & Stamp', W-14, y+8, { align:'right' });
   };
-  const chromed = new Set();
-  const paint = title => {
-    drawChrome();
-    doc.setTextColor(...PDF_BLUE); doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.text(title, W/2, 30, { align:'center' });
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.5); doc.line(10, 32.5, W-10, 32.5);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90);
-    doc.text((examTitleCur() ? examTitleCur() + '  |  ' : '') + classesTxt + '  |  ' + (m.range || weekLabel(S.sel, true)), W/2, 38, { align:'center' });
-    chromed.add(doc.internal.getCurrentPageInfo().pageNumber);
-  };
-  const overflow = () => { const p = doc.internal.getCurrentPageInfo().pageNumber; if (!chromed.has(p)){ drawChrome(); chromed.add(p); } };
-  anAppendPdf(doc, {W, H, paint, overflow, fresh:true}, scope);
+  const sectionTitle = (text, y) => { doc.setFont('helvetica','bold'); doc.setFontSize(11.5); doc.setTextColor(...PDF_BLUE); doc.text(text, 14, y); };
+  drawChrome();
+  let y = 45;
+
+  /* Invigilator workload */
+  sectionTitle('Invigilator workload', y); y += 4;
+  const rows = workloadRows(key);
+  if (rows.length){
+    const maxN = rows[0].n;
+    doc.autoTable({
+      startY:y, head:[['Invigilator','Exams this week','Load']], body: rows.map(r => [r.name, String(r.n), '']),
+      theme:'grid', margin:{left:14,right:14}, styles:{fontSize:9,cellPadding:2.6,valign:'middle'},
+      headStyles:{fillColor:PDF_BLUE,textColor:[255,255,255],fontStyle:'bold'},
+      columnStyles:{2:{cellWidth:60}},
+      didDrawCell: d => {
+        if (d.row.section !== 'body' || d.column.index !== 2) return;
+        const n = rows[d.row.index].n, bw = (d.cell.width-4) * (n/maxN);
+        doc.setFillColor(230,236,247); doc.rect(d.cell.x+2, d.cell.y+d.cell.height/2-1.6, d.cell.width-4, 3.2, 'F');
+        doc.setFillColor(...PDF_BLUE); doc.rect(d.cell.x+2, d.cell.y+d.cell.height/2-1.6, Math.max(2,bw), 3.2, 'F');
+      }
+    });
+    y = doc.lastAutoTable.finalY + 8;
+  } else {
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(120,120,120);
+    doc.text('No invigilators assigned yet this week.', 14, y+5); y += 14;
+  }
+
+  /* Slot coverage */
+  if (y > H - 70){ doc.addPage(); drawChrome(); y = 45; }
+  sectionTitle('Slot / period coverage', y); y += 4;
+  const slots = lessonSlotIdxs();
+  let filled = 0, total = 0;
+  const covBody = slots.map(si => {
+    const row = [fmtTime(S.slots[si].start)];
+    S.days.forEach(day => { const di = WEEKDAY_OFFSET[day.key], les = wk[di] && wk[di][si]; total++; if (les) filled++; row.push(les ? '\u2713' : '\u2014'); });
+    return row;
+  });
+  doc.autoTable({
+    startY:y, head:[['Period'].concat(S.days.map(d => d.label))], body:covBody, theme:'grid',
+    margin:{left:14,right:14}, styles:{fontSize:9,cellPadding:2.6,halign:'center',valign:'middle'},
+    headStyles:{fillColor:PDF_BLUE,textColor:[255,255,255],fontStyle:'bold'},
+    didParseCell: d => {
+      if (d.row.section !== 'body' || d.column.index === 0) return;
+      const on = d.cell.raw === '\u2713';
+      d.cell.styles.fillColor = on ? [221,243,226] : [246,246,246];
+      d.cell.styles.textColor = on ? [44,117,68] : [175,175,175];
+    }
+  });
+  y = doc.lastAutoTable.finalY + 6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(90,90,90);
+  doc.text(filled+' of '+total+' slots filled ('+(total?Math.round(filled/total*100):0)+'%) this week.', 14, y); y += 12;
+
+  /* Week-over-week history */
+  if (y > H - 70){ doc.addPage(); drawChrome(); y = 45; }
+  sectionTitle('Week-over-week history', y); y += 4;
+  const hist = historyWeeks(8);
+  doc.autoTable({
+    startY:y, head:[['Week','Exams scheduled','Fill rate']],
+    body: hist.map(r => [weekLabel(r.m,true)+(r.k===key?'  (this week)':''), r.filled+' of '+r.total, (r.total?Math.round(r.filled/r.total*100):0)+'%']),
+    theme:'grid', margin:{left:14,right:14}, styles:{fontSize:9,cellPadding:2.6},
+    headStyles:{fillColor:PDF_BLUE,textColor:[255,255,255],fontStyle:'bold'},
+    didParseCell: d => { if (d.row.section==='body' && hist[d.row.index].k===key) d.cell.styles.fillColor = [234,242,250]; }
+  });
+
   const totalPages = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++){ doc.setPage(i); drawMark(); drawFooter(i, totalPages); }
-  doc.save(('Exam Analytics ' + classesTxt + ' ' + (m.range || weekLabel(S.sel, true))).replace(/[^\w\-]+/g, '_') + '.pdf');
+  doc.save((S.section + ' Exam Analytics ' + week).replace(/[^\w\-]+/g, '_') + '.pdf');
   return true;
 }
 async function exportAnalyticsPdf(){
   if (!(window.jspdf && window.jspdf.jsPDF)){ toast('The PDF tools did not load. Check your connection and try again.'); return; }
-  if (!anModel().exams.length){ toast('No exams are planned yet for the ticked classes, so there is nothing to analyse.'); return; }
+  const key = iso(S.sel), wk = getWeek(key);
   const btn = $('#anPdfBtn'), label = btn.textContent;
   btn.disabled = true; btn.textContent = 'Building PDF…';
-  try { await buildAnalyticsPdf(); toast('Analytics PDF downloaded'); }
+  try { await buildAnalyticsPdf(key, wk); toast('Analytics PDF downloaded'); }
   catch(e){ console.error('[Analytics PDF]', e); toast('Could not build the PDF. Please try again.'); }
   finally { btn.disabled = false; btn.textContent = label; }
 }
@@ -3950,49 +3322,7 @@ $('#dpPrintBtn').addEventListener('click', () => {
   S.printDayOnly = $('#dpDay').value; renderGrid();
   setTimeout(() => { try { window.print(); } catch(e){ toast('Printing is not available here'); } }, 60);
 });
-$('#cbPrintBtn').addEventListener('click', printCombo);
-$('#cbPdfBtn').addEventListener('click', exportComboPdf);
-$('#combo').addEventListener('change', e => {
-  const t = e.target, c = S.combo;
-  if (t.dataset.cbsec !== undefined){
-    if (c.auto){ c.secs = cbSections().slice(); c.auto = false; }
-    c.secs = t.checked ? Array.from(new Set(c.secs.concat(t.dataset.cbsec))) : c.secs.filter(x => x !== t.dataset.cbsec);
-    renderCombo(); return;
-  }
-  if (t.id === 'cbNext'){ c.next = t.checked; cbSave(); renderCombo(); return; }
-  if (t.id === 'cbSep'){ c.sep = t.checked; cbSave(); renderCombo(); return; }
-});
-$('#combo').addEventListener('input', e => {
-  const t = e.target;
-  if (t.dataset.cbname !== undefined){ S.combo.names[+t.dataset.cbname] = t.value; cbSave(); $('#cbPreview').innerHTML = cbTable(cbData()); return; }
-  if (t.id === 'cbTitleIn'){ S.combo.title = t.value; }
-});
-
-/* Include analytics: one switch shared by the print and PDF buttons, remembered on this device */
-S.anInclude = lsGet('tt_v1_an_inc', true) !== false;
-document.querySelectorAll('.anIncCk').forEach(ck => {
-  ck.checked = S.anInclude;
-  ck.addEventListener('change', () => { S.anInclude = ck.checked; lsSet('tt_v1_an_inc', S.anInclude); document.querySelectorAll('.anIncCk').forEach(o => { o.checked = S.anInclude; }); });
-});
-window.addEventListener('beforeprint', () => {
-  const box = $('#analyticsPrint'); if (!box) return;
-  document.body.classList.remove('an-inc'); box.innerHTML = '';
-  if (!S.anInclude || S.printDayOnly) return;
-  try {
-    let scope, title, sub;
-    if (document.body.classList.contains('combo-print')){
-      const dt = cbData(); scope = {secs:dt.secs, keys: S.combo.next ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]};
-      title = cbTitleText(); sub = dt.classes+' · '+dt.label;
-    } else {
-      const key = iso(S.sel); scope = {secs:[S.section], keys: S.mergePrint ? [key, iso(addDays(S.sel,7))] : [key]};
-      title = examTitleCur() || 'EXAMINATION TIMETABLE'; sub = S.section+' · '+weekLabel(S.sel, true);
-    }
-    if (!anModel(scope).exams.length) return;
-    box.innerHTML = anPrintHtml(scope, title, sub); document.body.classList.add('an-inc');
-  } catch(e){ console.warn('[analytics print]', e); }
-});
-window.addEventListener('afterprint', () => { document.body.classList.remove('an-inc'); const b = $('#analyticsPrint'); if (b) b.innerHTML = ''; });
-window.addEventListener('afterprint', () => { document.body.classList.remove('combo-print'); if (S.printDayOnly || S.mergePrint){ S.printDayOnly = null; S.mergePrint = false; renderGrid(); } });
+window.addEventListener('afterprint', () => { if (S.printDayOnly){ S.printDayOnly = null; renderGrid(); } });
 
 /* Click outside a dialog to close it (only when the press and the click both land on the backdrop) */
 document.querySelectorAll('dialog').forEach(dlg => {
