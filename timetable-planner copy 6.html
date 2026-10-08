@@ -402,70 +402,6 @@ table.combo{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
 .combo .cn{display:inline-block;font-size:11px;font-weight:800;padding:0 7px;border-radius:9px;background:rgba(255,255,255,.7)}
 .combo td.cx{color:var(--muted)}
 #comboPrint{display:none}
-/* Live exam report */
-.liveFab{position:fixed;right:16px;bottom:16px;z-index:40;display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:10px 16px;font:inherit;font-weight:900;box-shadow:0 8px 24px rgba(40,20,90,.25);cursor:pointer}
-.liveFab .dot,#lvSync .dot{width:10px;height:10px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px}
-.liveFab .dot{margin:0}
-.liveFab.on{border-color:var(--ok)}.liveFab.on .dot{background:var(--ok);animation:lvPing 1.6s ease-out infinite}
-.liveFab .n{font-weight:800;color:var(--muted);font-size:12.5px}
-#lvSync .dot.ok{background:var(--ok)}#lvSync .dot.pv{background:#D9A400}#lvSync .dot.off{background:#C0392B}
-@keyframes lvPing{0%{box-shadow:0 0 0 0 rgba(44,150,90,.55)}100%{box-shadow:0 0 0 10px rgba(44,150,90,0)}}
-@keyframes lvPulse{0%,100%{outline-color:var(--accent)}50%{outline-color:transparent}}
-@media (prefers-reduced-motion:reduce){.liveFab.on .dot,.blk.live{animation:none!important}}
-#liveDlg{width:min(1120px,calc(100vw - 20px));max-height:94vh;border-radius:22px;overflow:hidden}
-#liveDlg .lv{display:flex;flex-direction:column;max-height:94vh}
-#liveDlg.lvTvMode{width:100vw;max-width:100vw;max-height:100vh;height:100vh;border-radius:0}
-#liveDlg.lvTvMode .lv{max-height:100vh;height:100vh}
-#liveDlg.lvTvMode #lvBody{font-size:112%}
-.lvHead{display:grid;grid-template-columns:1fr auto;gap:8px 18px;align-items:center;padding:14px 20px;border-bottom:1.5px solid var(--line);background:var(--card)}
-.lvHead h2{margin:0;font-size:21px}.lvHead p{margin:2px 0 0;font-size:12.5px;font-weight:700;color:var(--muted)}
-.lvClock{text-align:right}.lvClock b{display:block;font-size:30px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums}.lvClock span{font-size:12.5px;font-weight:800;color:var(--muted)}
-.lvTools{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-#lvSync{font-size:12px;font-weight:800;color:var(--muted);margin-right:auto}
-.lvAt{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--muted)}.lvAt input{font:inherit;font-weight:700;border:2px solid var(--line);border-radius:10px;padding:5px 8px;background:var(--card);color:var(--text)}
-#lvBody{overflow:auto;padding:14px 20px 22px}
-.anKpis.lvK{grid-template-columns:repeat(5,1fr)}
-@media (max-width:760px){.anKpis.lvK{grid-template-columns:repeat(2,1fr)}.lvClock b{font-size:24px}}
-.lvTl{position:relative;border:1.5px solid var(--line);border-radius:16px;padding:8px 12px 6px;background:var(--card)}
-.lvTl .axis{position:relative;height:16px;margin:0 0 4px 104px;font-size:10.5px;font-weight:800;color:var(--muted)}
-.lvTl .axis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
-.lvTl .row{display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:center;margin:4px 0}
-.lvTl .nm{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lvTl .lane{position:relative;height:32px;background:var(--band);border-radius:9px}
-.lvTl .blk{position:absolute;top:3px;bottom:3px;border-radius:7px;border-left:4px solid;padding:0 6px;font-size:11px;font-weight:800;display:flex;align-items:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;box-sizing:border-box}
-.lvTl .blk.done{opacity:.4}.lvTl .blk.live{outline:2.5px solid var(--accent);outline-offset:1px;animation:lvPulse 2s ease-in-out infinite}
-.lvTl .ov{position:absolute;left:116px;right:12px;top:22px;bottom:34px;pointer-events:none}
-.lvTl .needle{position:absolute;top:0;bottom:0;width:2px;background:#E5484D;margin-left:-1px}
-.lvTl .needle b{position:absolute;top:-17px;left:50%;transform:translateX(-50%);background:#E5484D;color:#fff;border-radius:6px;padding:0 5px;font-size:10.5px;white-space:nowrap}
-.lvTlNote{margin:6px 0 0;font-size:11.5px;font-weight:700;color:var(--muted)}
-.lvTwo{display:grid;grid-template-columns:1.1fr 1fr;gap:6px 22px}
-@media (max-width:860px){.lvTwo{grid-template-columns:1fr}}
-.lvCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
-.lvCard{border:1.5px solid var(--line);border-left:6px solid var(--c);border-radius:14px;padding:10px 12px;background:var(--ct)}
-.lvCard .top{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;color:var(--c)}.lvCard .top b{font-size:14px}
-.lvCard .sub{font-size:17px;font-weight:900;margin:2px 0;color:var(--text)}
-.lvCard .who{font-size:12.5px;font-weight:800;color:var(--text)}.lvCard .rm{margin-left:6px;color:var(--muted)}
-.lvCard .bar{height:7px;border-radius:99px;background:rgba(255,255,255,.65);margin:8px 0 4px;overflow:hidden}.lvCard .bar i{display:block;height:100%;background:var(--c);border-radius:99px}
-.lvCard .end{font-size:11.5px;font-weight:800;color:var(--c)}
-.lvList{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-.lvList li{display:grid;grid-template-columns:78px 1fr auto;gap:8px;align-items:center;padding:7px 10px;border-radius:10px;background:var(--band);font-size:13px}
-.lvList .when{font-weight:900;font-variant-numeric:tabular-nums}.lvList .when small{display:block;font-size:10.5px;font-weight:800;color:var(--muted)}
-.lvList .by{font-weight:800;color:var(--muted);text-align:right}.lvList .more{display:block;color:var(--muted);font-weight:800}
-.lvFeed{list-style:none;margin:0;padding:0;display:grid;gap:5px}
-.lvFeed li{display:flex;gap:10px;font-size:12.5px;font-weight:700;padding-left:10px;border-left:3px solid var(--line)}.lvFeed li.live{border-color:var(--ok)}.lvFeed time{font-weight:900;color:var(--muted);min-width:64px}
-.lvBoard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-@media (max-width:900px){.lvBoard{grid-template-columns:repeat(2,1fr)}}
-.lvCol{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px}
-.lvCol h4{margin:0 0 8px;font-size:13px}.lvCol h4 em{font-style:normal;color:var(--muted);margin-left:4px}
-.lvCol.on{border-color:var(--ok)}.lvCol.nx{border-color:#D9A400}
-.lvCol .ppl{display:grid;gap:6px}
-.lvPerson{display:block;border-radius:10px;background:var(--band);padding:5px 9px;font-size:12.5px}.lvPerson small{display:block;font-weight:700;color:var(--muted);font-size:11px}
-@media print{.liveFab,#liveDlg{display:none!important}}
-
-#importDlg [hidden]{display:none!important}
-#importDlg .anInc{display:flex;flex-direction:row;justify-content:flex-start;align-items:center;text-align:left;gap:8px}
-#importDlg .anInc input{width:auto;flex:none}
-#importDlg select{width:100%;font:inherit;font-weight:700;border:2px solid var(--line);border-radius:12px;padding:9px 10px;background:var(--card);color:var(--text)}
 /* Advanced analytics */
 .anKpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 @media (max-width:760px){.anKpis{grid-template-columns:repeat(2,1fr)}}
@@ -619,7 +555,6 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
               <button class="btn sm" id="manageBtn" type="button">🏗️ Manage</button>
               <button class="btn sm" id="batchBtn" type="button">➕ Add several</button>
               <button class="btn sm" id="autoBtn" type="button">🪄 Auto-fill</button>
-              <button class="btn sm" id="importBtn" type="button">📥 Import previous</button>
             </div>
           </div>
           <div class="seg" id="sections" role="group" aria-label="Section"></div>
@@ -643,8 +578,6 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
           <div class="btns" style="margin-bottom:14px">
             <button class="btn primary" id="cbPrintBtn" type="button">🖨️ Print combined sheet</button>
             <button class="btn" id="cbPdfBtn" type="button">Download PDF</button>
-            <button class="btn" id="cbDutyBtn" type="button">🖨️ Duty roster for this sheet</button>
-            <label class="anInc" title="Leave unticked so teachers who teach more than one level appear once, with every duty across all levels"><input type="checkbox" id="cbDutyTicked"> Ticked classes only</label>
             <label class="anInc"><input type="checkbox" class="anIncCk" checked> Include analytics</label>
           </div>
           <div class="tt-scroll" id="cbPreview"></div>
@@ -764,58 +697,6 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
 
 <div id="comboPrint" aria-hidden="true"></div>
 <div id="analyticsPrint" aria-hidden="true"></div>
-
-<button class="liveFab" id="liveBtn" type="button" aria-label="Open live exam report"><i class="dot"></i><span>Live report</span><span class="n">live</span></button>
-<dialog id="liveDlg" aria-labelledby="lvTitle">
-  <div class="lv">
-    <header class="lvHead">
-      <div><h2 id="lvTitle">Live exam report</h2><p id="lvSub"></p></div>
-      <div class="lvClock"><b id="lvClock">--:--:--</b><span id="lvDate"></span></div>
-      <div class="lvTools">
-        <span id="lvSync"></span>
-        <label class="lvAt">Preview another time <input type="datetime-local" id="lvAt"></label>
-        <button class="btn" id="lvLiveBtn" type="button" hidden>Back to live</button>
-        <button class="btn" id="lvCopy" type="button">Copy for WhatsApp</button>
-        <button class="btn" id="lvWa" type="button">Send on WhatsApp</button>
-        <button class="btn" id="lvTv" type="button">Full screen</button>
-        <button class="btn primary" id="lvClose" type="button">Close</button>
-      </div>
-    </header>
-    <div id="lvBody"></div>
-  </div>
-</dialog>
-
-<dialog id="importDlg" aria-labelledby="imTitle">
-  <form class="dlg" id="importForm" novalidate>
-    <h2 id="imTitle">Import a previous timetable</h2>
-    <p class="muted">Copy an earlier timetable into <b id="imTarget"></b>. Choose the day it starts on; the exam days follow in the same order.</p>
-    <label>Copy from
-      <select id="imSrc"></select>
-    </label>
-    <label id="imNextRow" hidden class="anInc" style="margin:4px 0 8px"><input type="checkbox" id="imNextWk"> Bring the following week too (that timetable continues into it)</label>
-    <label>Start on
-      <select id="imStart"></select>
-    </label>
-    <label>Day order
-      <select id="imMode">
-        <option value="keep">Keep the same gaps between exam days</option>
-        <option value="pack">Pack exam days one after another</option>
-      </select>
-    </label>
-    <label>If a slot already has an exam
-      <select id="imOver">
-        <option value="replace">Replace it on the days being imported</option>
-        <option value="fill">Keep it, only fill empty slots</option>
-      </select>
-    </label>
-    <label class="anInc" style="margin:4px 0 8px"><input type="checkbox" id="imTeach" checked> Keep the invigilators</label>
-    <div class="empty-note" id="imPreview" role="status" style="display:block"></div>
-    <div class="acts">
-      <button type="button" class="btn" id="imCancel">Cancel</button>
-      <button type="submit" class="btn primary" id="imGo">Import</button>
-    </div>
-  </form>
-</dialog>
 
 <dialog id="lessonDlg" aria-labelledby="lTitle">
   <form class="dlg" id="lessonForm" novalidate>
@@ -1590,7 +1471,7 @@ function renderSections(){
 }
 
 /* ---------- Combined sheet: all classes on one table (row per class per exam day, column per period) ---------- */
-const cbSave = () => lsSet('tt_v1_combo', {next:S.combo.next, nextSet:S.combo.nextSet, sep:S.combo.sep, names:S.combo.names});
+const cbSave = () => lsSet('tt_v1_combo', {next:S.combo.next, sep:S.combo.sep, names:S.combo.names});
 function cbSections(){                          // the ticked classes; until the user ticks any, the classes in this class's stage family
   const c = S.combo;
   if (!c.auto) return S.sections.filter(x => c.secs.includes(x));
@@ -1600,7 +1481,7 @@ function cbSections(){                          // the ticked classes; until the
 }
 const cbName = (j, n) => (S.combo.names[j] || '').trim() || (n === 3 ? ['Morning','Mid Morning','Afternoon'][j] : n === 2 ? ['Morning','Mid Morning'][j] : 'Period '+(j+1));
 function cbData(){
-  const c = S.combo, secs = cbSections(), k1 = iso(S.sel), keys = cbNext() ? [k1, iso(addDays(S.sel,7))] : [k1];
+  const c = S.combo, secs = cbSections(), k1 = iso(S.sel), keys = c.next ? [k1, iso(addDays(S.sel,7))] : [k1];
   const idx = {}; let ncol = 0;
   secs.forEach(sec => { const sl = slotsOf(sec); idx[sec] = sl.map((x,i) => i).filter(i => !sl[i].brk); ncol = Math.max(ncol, idx[sec].length); });
   const days = [];
@@ -1652,14 +1533,14 @@ function cbNeedTitle(){                          // true (and points the user at
 function renderCombo(){
   const c = S.combo, on = new Set(cbSections());
   $('#cbSecs').innerHTML = S.sections.map(x => '<label><input type="checkbox" data-cbsec="'+esc(x)+'"'+(on.has(x) ? ' checked' : '')+'> '+esc(x)+'</label>').join('');
-  $('#cbNext').checked = cbNext(); $('#cbSep').checked = !!c.sep;
+  $('#cbNext').checked = !!c.next; $('#cbSep').checked = !!c.sep;
   const dt = cbData(), namesBox = $('#cbNames');
   if (!namesBox.contains(document.activeElement)){
     namesBox.innerHTML = dt.ncol ? '<span class="muted">Period names:</span>'+Array.from({length:dt.ncol}, (_, j) => '<input type="text" data-cbname="'+j+'" value="'+esc(cbName(j, dt.ncol))+'" aria-label="Name of period '+(j+1)+'">').join('') : '';
   }
   const ti = $('#cbTitleIn'); if (document.activeElement !== ti){ ti.value = c.title || ''; ti.placeholder = cbTitleRaw() ? 'Using the exam title: '+cbTitleRaw()+' (type here only to override)' : 'Enter the exam title in the box above the timetable first'; }
   const hint = $('#cbTitleHint'); if (hint){ hint.hidden = !!cbTitleRaw(); }
-  $('#cbPreview').innerHTML = dt.days.length ? cbTable(dt) : '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(cbNext() ? ' or the following week' : '')+'.</p>';
+  $('#cbPreview').innerHTML = dt.days.length ? cbTable(dt) : '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(c.next ? ' or the following week' : '')+'.</p>';
 }
 function printCombo(){
   if (cbNeedTitle()) return;
@@ -1674,31 +1555,6 @@ function printCombo(){
 function rangeLabel(a, b){
   if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) return a.getDate()+'–'+b.getDate()+' '+MS[a.getMonth()]+' '+b.getFullYear();
   return a.getDate()+' '+MS[a.getMonth()]+' – '+b.getDate()+' '+MS[b.getMonth()]+' '+b.getFullYear();
-}
-/* A timetable that runs into next week: rosters, share texts, calendar, cards and analytics all cover both weeks */
-function spanKeys(key){
-  key = key || iso(S.sel);
-  const k2 = iso(addDays(parseIso(key),7));
-  return (countLessons(getWeek(key)) && countLessons(getWeek(k2)) && examGap([S.section], key)) ? [key, k2] : [key];
-}
-/* Next week only counts as a continuation when the exams run straight on (at most a weekend, or a day either side, between the last exam
-   of this week and the first of the next). A later, separate exam series is never pulled into this one. */
-function examGap(secs, key){
-  const k2 = iso(addDays(parseIso(key),7));
-  return secs.some(sec => {
-    const a = weeksOf(sec)[key], b = weeksOf(sec)[k2]; if (!a || !b) return false;
-    let last = -1, first = 99;
-    a.forEach((day,d) => { if ((day||[]).some(Boolean)) last = d; });
-    b.forEach((day,d) => { if ((day||[]).some(Boolean) && d < first) first = d; });
-    return last >= 0 && first !== 99 && (7 + first) - last <= 4;
-  });
-}
-const cbNext = () => { const c = S.combo; if (!c.next) return false; return c.nextSet ? true : examGap(cbSections(), iso(S.sel)); };
-function spanLabel(key){
-  const ks = spanKeys(key);
-  if (ks.length < 2) return weekLabel(parseIso(ks[0]), true);
-  const offs = activeDayOffsets(), lastOff = offs.length ? Math.max.apply(null, offs) : 4;
-  return rangeLabel(parseIso(ks[0]), addDays(parseIso(ks[1]), lastOff));
 }
 function mergedCols(key){                       // this week + the next one as one run of days; null unless both weeks have exams
   const k2 = iso(addDays(parseIso(key),7)), w1 = getWeek(key), w2 = getWeek(k2);
@@ -1782,7 +1638,7 @@ function renderGrid(){
     } else {
       note = '<div class="empty-note"><span>This week has no exams yet. '+
         (S.canEdit ? (hasPrev ? 'Copy last week to start, or tap a slot to add one.' : 'Tap a slot to add the first exam.') : 'Check back once it has been planned.')+'</span>'+
-        (S.canEdit && hasPrev ? '<button class="btn primary sm" id="copyPrev">Copy last week</button> ' : '')+(S.canEdit ? '<button class="btn sm" id="importBtn2" type="button">Import previous…</button>' : '')+'</div>';
+        (S.canEdit && hasPrev ? '<button class="btn primary sm" id="copyPrev">Copy last week</button>' : '')+'</div>';
     }
   }
   $('#emptyNote').innerHTML = note;
@@ -1814,16 +1670,12 @@ function renderFindElsewhere(){
     '<button type="button" class="linklike" data-week="'+h.key+'">'+esc(h.lesson.subject)+' \u2014 '+weekLabel(parseIso(h.key),false)+' ('+(DAYS_LONG[h.d]||'')+')</button>').join(', ')+'</p>';
 }
 function renderTeachers(){
-  const map = {};
-  spanKeys(iso(S.sel)).forEach(key => {
-    const wk = getWeek(key), oth = others(key);
-    wk.forEach((day,d) => day.forEach((l,si) => {
-      if (!l || !l.teacher) return;
-      const k = normName(l.teacher), t = map[k] || (map[k] = {name:l.teacher, n:0, subs:{}, clash:0, elsewhere:0, wks:{}});
-      if (!t.wks[key]){ t.wks[key] = 1; t.elsewhere += oth.filter(o => normName(o.lesson.teacher) === k).length; }
-      t.n++; t.subs[l.subject] = 1; if (clashes(d, si, l.teacher, oth).length) t.clash++;
-    }));
-  });
+  const key = iso(S.sel), wk = getWeek(key), map = {}, oth = others(key);
+  wk.forEach((day,d) => day.forEach((l,si) => {
+    if (!l || !l.teacher) return;
+    const k = normName(l.teacher), t = map[k] || (map[k] = {name:l.teacher, n:0, subs:{}, clash:0, elsewhere:oth.filter(o => normName(o.lesson.teacher) === k).length});
+    t.n++; t.subs[l.subject] = 1; if (clashes(d, si, l.teacher, oth).length) t.clash++;
+  }));
   const list = Object.keys(map).map(k => map[k]).sort((a,b) => b.n-a.n || a.name.localeCompare(b.name));
   if (!list.length){ $('#teacherList').innerHTML = '<p class="muted">No invigilators yet. Add an exam to see who is invigilating.</p>'; return; }
   const max = list[0].n, order = [0,1,2,3,5,6,7,8,4];
@@ -1942,7 +1794,7 @@ function renderUpcoming(){
 /* ---------- Analytics: workload, coverage, week-over-week history ---------- */
 const ROW_ORDER = [0,1,2,3,5,6,7,8,4];
 const anSecs = () => cbSections();                       // analytics follow the combined sheet's ticked classes
-const anKeys = () => cbNext() ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)];
+const anKeys = () => S.combo.next ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)];
 function workloadRows(){
   const map = {};
   anSecs().forEach(sec => anKeys().forEach(k => {
@@ -1964,12 +1816,12 @@ function renderWorkloadChart(){
     return '<div class="chartRow"><span class="lb" title="'+esc(t.name)+'">'+esc(t.name)+'</span>'+
       '<span class="track"><i style="width:'+Math.max(6,Math.round(t.n/max*100))+'%;background:var(--i'+c+')"></i></span>'+
       '<span class="val">'+t.n+'</span></div>';
-  }).join('') + '<p class="an-hint">Exams invigilated across '+anSecs().join(', ')+(cbNext() ? ' for '+weekLabel(S.sel,true)+' and the following week' : ', '+weekLabel(S.sel,true))+'.'+(LOAD.week ? ' Heavy load starts at '+LOAD.week+' exams in a week.' : '')+'</p>';
+  }).join('') + '<p class="an-hint">Exams invigilated across '+anSecs().join(', ')+(S.combo.next ? ' for '+weekLabel(S.sel,true)+' and the following week' : ', '+weekLabel(S.sel,true))+'.'+(LOAD.week ? ' Heavy load starts at '+LOAD.week+' exams in a week.' : '')+'</p>';
 }
 function renderCoverageChart(){
   const dt = cbData();
   if (!dt.ncol) return '<p class="muted">No exam periods set up yet.</p>';
-  if (!dt.days.length) return '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(cbNext() ? ' or the following week' : '')+'.</p>';
+  if (!dt.days.length) return '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(S.combo.next ? ' or the following week' : '')+'.</p>';
   const nCls = dt.secs.length; let filled = 0, total = 0;
   let h = '<div class="heatGrid" style="grid-template-columns:64px repeat('+dt.days.length+',1fr)">';
   h += '<div></div>' + dt.days.map(d => '<div style="text-align:center;font-weight:800;font-size:12px;color:var(--muted)">'+esc(DAYS[d.d])+'<br><small>'+d.date.getDate()+'/'+(d.date.getMonth()+1)+'</small></div>').join('');
@@ -1993,7 +1845,7 @@ function historyWeeks(n, scope){
   const cnt = k => secs.reduce((a,sec) => a + (weeksOf(sec)[k] ? countLessons(weeksOf(sec)[k]) : 0), 0);
   const keys = new Set([selKey]);
   secs.forEach(sec => Object.keys(weeksOf(sec)).forEach(k => { if (cnt(k) > 0) keys.add(k); }));
-  const limit = scope ? scope.keys[scope.keys.length-1] : (cbNext() ? iso(addDays(S.sel,7)) : selKey);
+  const limit = scope ? scope.keys[scope.keys.length-1] : (S.combo.next ? iso(addDays(S.sel,7)) : selKey);
   let list = Array.from(keys).sort();
   const upto = list.filter(k => k <= limit), after = list.filter(k => k > limit);
   list = upto.slice(-n);
@@ -2211,7 +2063,7 @@ function renderAnalytics(){
   const sub = document.querySelector('#analytics .card-h .sub'); if (sub) sub.textContent = m.secs.join(', ')+(m.range ? ' · '+m.range : '');
   $('#anTabs').innerHTML = AN_VIEWS.map(x => '<button type="button" data-an="'+x[0]+'" aria-pressed="'+(x[0] === v)+'">'+x[1]+(x[0] === 'issues' && m.issues ? ' <span class="anChip bad">'+m.issues+'</span>' : '')+'</button>').join('');
   let h;
-  if (!m.exams.length && v !== 'history') h = '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(cbNext() ? ' or the following week' : '')+'. Analytics appear as soon as exams are added.</p>';
+  if (!m.exams.length && v !== 'history') h = '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(S.combo.next ? ' or the following week' : '')+'. Analytics appear as soon as exams are added.</p>';
   else if (v === 'overview') h = anKpiHtml(m)+'<h3 class="anH">Key insights</h3>'+anInsightsHtml(m)+'<h3 class="anH">Daily load by period</h3>'+anDailyHtml(m)+'<h3 class="anH">Period mix</h3>'+anPeriodHtml(m);
   else if (v === 'workload') h = anWorkloadHtml(m);
   else if (v === 'daily') h = '<h3 class="anH">Daily load by period</h3>'+anDailyHtml(m)+'<h3 class="anH">Day by day</h3><div class="tt-scroll">'+anDaysTableHtml(m)+'</div><h3 class="anH">Period mix</h3>'+anPeriodHtml(m);
@@ -2378,7 +2230,6 @@ function render(){
   applyStage(); rebuildHues();
   renderHeader(); renderStats(); renderSections(); renderInsights(); renderGrid(); renderFindElsewhere(); renderTeachers(); renderWeeks(); renderCal(); renderUpcoming(); renderUser(); renderFocusChip(); renderTermProgress();
   renderAnalytics(); renderDayPrintSelect(); renderCombo();
-  LV.dataAt = Date.now(); try { lvRefresh(); lvFab(); } catch(e){}
 }
 
 /* ---------- Data access: one Store, two backends ---------- */
@@ -3214,7 +3065,6 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button, a'); if (!t) return;
   if (t.classList.contains('cell')){ if (guard()) openLesson(+t.dataset.d, +t.dataset.s); return; }
   if (t.classList.contains('tl')){ if (guard()) openSlot(+t.dataset.slot); return; }
-  if (t.id === 'importBtn2'){ openImport(); return; }
   if (t.id === 'copyPrev'){ copyWeek(iso(addDays(S.sel,-7)), iso(S.sel)); return; }
   if (t.id === 'loadSeed'){ loadSeed(); return; }
   if (t.id === 'mergePrintBtn'){ printMerged(); return; }
@@ -3385,41 +3235,35 @@ $('#batchForm').addEventListener('submit', async e => {
 
 /* ---------- Share as text (WhatsApp friendly) ---------- */
 function shareText(key, wk){
-  const gl = gradeLabel(gradesOf(S.section)), keys = spanKeys(key);
-  const lines = ['*Kanyadet Primary & Junior School*', '*'+S.section+(gl && gl !== S.section ? ' ('+gl+')' : '')+' examination timetable*', spanLabel(key)];
-  keys.forEach(k => {
-    const w = getWeek(k), mon = parseIso(k);
-    S.days.forEach(day => {
-      const di = WEEKDAY_OFFSET[day.key], rows = [];
-      S.slots.forEach((sl,si) => {
-        const l = w[di] && w[di][si]; if (!l || sl.brk) return;
-        rows.push(fmtTime(sl.start)+' – '+fmtTime(sl.end)+': '+l.subject+(l.note ? ' '+l.note : '')+' ('+(l.teacher || 'invigilator to be confirmed')+')');
-      });
-      if (!rows.length) return;
-      const dt = addDays(mon, di);
-      lines.push('', '*'+DAYS_LONG[di]+' '+dt.getDate()+' '+MS[dt.getMonth()]+'*');
-      rows.forEach(r => lines.push(r));
+  const gl = gradeLabel(gradesOf(S.section));
+  const lines = ['*Kanyadet Primary & Junior School*', '*'+S.section+(gl && gl !== S.section ? ' ('+gl+')' : '')+' examination timetable*', weekLabel(S.sel, true)];
+  S.days.forEach(day => {
+    const di = WEEKDAY_OFFSET[day.key], rows = [];
+    S.slots.forEach((sl,si) => {
+      const l = wk[di] && wk[di][si]; if (!l || sl.brk) return;
+      rows.push(fmtTime(sl.start)+' – '+fmtTime(sl.end)+': '+l.subject+(l.note ? ' '+l.note : '')+' ('+(l.teacher || 'invigilator to be confirmed')+')');
     });
+    if (!rows.length) return;
+    const dt = addDays(S.sel, di);
+    lines.push('', '*'+DAYS_LONG[di]+' '+dt.getDate()+' '+MS[dt.getMonth()]+'*');
+    rows.forEach(r => lines.push(r));
   });
   return lines.join('\n');
 }
 function shareTextForTeacher(key, wk, teacherName){
   const gl = gradeLabel(gradesOf(S.section)), k = normName(teacherName), lines = [];
-  spanKeys(key).forEach(wkKey => {
-    const w = getWeek(wkKey), mon = parseIso(wkKey);
-    S.days.forEach(day => {
-      const di = WEEKDAY_OFFSET[day.key], rows = [];
-      S.slots.forEach((sl,si) => {
-        const l = w[di] && w[di][si]; if (!l || sl.brk || normName(l.teacher) !== k) return;
-        rows.push(fmtTime(sl.start)+' – '+fmtTime(sl.end)+': '+l.subject+(l.note ? ' '+l.note : ''));
-      });
-      if (!rows.length) return;
-      const dt = addDays(mon, di);
-      lines.push('', '*'+DAYS_LONG[di]+' '+dt.getDate()+' '+MS[dt.getMonth()]+'*'); rows.forEach(r => lines.push(r));
+  S.days.forEach(day => {
+    const di = WEEKDAY_OFFSET[day.key], rows = [];
+    S.slots.forEach((sl,si) => {
+      const l = wk[di] && wk[di][si]; if (!l || sl.brk || normName(l.teacher) !== k) return;
+      rows.push(fmtTime(sl.start)+' – '+fmtTime(sl.end)+': '+l.subject+(l.note ? ' '+l.note : ''));
     });
+    if (!rows.length) return;
+    const dt = addDays(S.sel, di);
+    lines.push('', '*'+DAYS_LONG[di]+' '+dt.getDate()+' '+MS[dt.getMonth()]+'*'); rows.forEach(r => lines.push(r));
   });
   if (!lines.length) return '';
-  return ['*Kanyadet Primary & Junior School*', '*'+teacherName+' — invigilation, '+S.section+(gl && gl !== S.section ? ' ('+gl+')' : '')+'*', spanLabel(key)].concat(lines).join('\n');
+  return ['*Kanyadet Primary & Junior School*', '*'+teacherName+' — invigilation, '+S.section+(gl && gl !== S.section ? ' ('+gl+')' : '')+'*', weekLabel(S.sel, true)].concat(lines).join('\n');
 }
 async function copyText(text){
   try { await navigator.clipboard.writeText(text); return true; } catch(e){}
@@ -3491,7 +3335,7 @@ function exportIcs(keys){
   downloadFile('exam-timetable-'+slugOf(S.section)+'-'+span+'.ics', buildIcs(keys), 'text/calendar;charset=utf-8');
   toast('Calendar file downloaded. Open it to add the exams to your calendar.', 3600);
 }
-$('#icsBtn').addEventListener('click', () => exportIcs(spanKeys(iso(S.sel))));
+$('#icsBtn').addEventListener('click', () => exportIcs([iso(S.sel)]));
 $('#icsAllBtn').addEventListener('click', () => exportIcs(Object.keys(S.weeks).sort()));
 /* ---------- PDF export (same look as the Results report) ---------- */
 /* PDF-EXPORT-START */
@@ -3637,23 +3481,20 @@ async function buildPdf(key, wk, mg){
   });
 
   /* ---- Last page: who invigilates what ---- */
-  const duty = {}, rkeys = spanKeys(key);
-  rkeys.forEach(rk => {
-    const rwk = getWeek(rk), mon = parseIso(rk);
-    activeDayOffsets().slice().sort((a,b) => a-b).forEach(di => S.slots.forEach((s, si) => {
-      const l = !s.brk && rwk[di] && rwk[di][si], date = addDays(mon, di);
-      if (!l || !l.teacher) return;
-      const k = normName(l.teacher), t = duty[k] || (duty[k] = { name:l.teacher, items:[] });
-      t.items.push(DAYS[di] + ' ' + date.getDate() + ' ' + MS[date.getMonth()] + ',  ' + fmtTime(s.start) + ' - ' + fmtTime(s.end) + '   ' + l.subject + (l.note ? ' (' + l.note + ')' : ''));
-    }));
-  });
+  const duty = {};
+  days.forEach(d => S.slots.forEach((s, si) => {
+    const l = !s.brk && d.wk[d.di] && d.wk[d.di][si];
+    if (!l || !l.teacher) return;
+    const k = normName(l.teacher), t = duty[k] || (duty[k] = { name:l.teacher, items:[] });
+    t.items.push(DAYS[d.di] + ' ' + d.date.getDate() + ' ' + MS[d.date.getMonth()] + ',  ' + fmtTime(s.start) + ' - ' + fmtTime(s.end) + '   ' + l.subject + (l.note ? ' (' + l.note + ')' : ''));
+  }));
   const rows = Object.keys(duty).map(k => duty[k]).sort((a, b) => a.name.localeCompare(b.name))
     .map(t => [t.name, String(t.items.length), t.items.join('\n')]);
   if (rows.length){
     doc.addPage();
     paint('INVIGILATION ROSTER');
     doc.autoTable({
-      head:[['INVIGILATOR', 'EXAMS', rkeys.length > 1 ? 'DUTIES (BOTH WEEKS)' : 'DUTIES THIS WEEK']], body:rows, startY:43, theme:'grid',
+      head:[['INVIGILATOR', 'EXAMS', mg ? 'DUTIES' : 'DUTIES THIS WEEK']], body:rows, startY:43, theme:'grid',
       margin:{ top:25, right:10, bottom:25, left:10 },
       styles:{ fontSize:9, cellPadding:2.5, lineColor:[210,218,228], lineWidth:0.3, valign:'middle', textColor:[60,60,60] },
       headStyles:{ fillColor:PDF_BLUE, textColor:[255,255,255], fontStyle:'bold', halign:'center' },
@@ -3665,7 +3506,7 @@ async function buildPdf(key, wk, mg){
 
   if (S.anInclude){
     const k2 = iso(addDays(S.sel,7));
-    anAppendPdf(doc, {W, H, paint, overflow}, {secs:[S.section], keys: spanKeys(key)});
+    anAppendPdf(doc, {W, H, paint, overflow}, {secs:[S.section], keys: mg ? [key, k2] : [key]});
   }
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
@@ -3782,7 +3623,7 @@ async function buildComboPdf(dt){
       doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90); doc.text(dt.classes + '  |  ' + dt.label, W/2, 38, { align:'center' });
       chromed.add(doc.internal.getCurrentPageInfo().pageNumber);
     };
-    anAppendPdf(doc, {W, H, paint:paintC, overflow}, {secs:dt.secs, keys: cbNext() ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]});
+    anAppendPdf(doc, {W, H, paint:paintC, overflow}, {secs:dt.secs, keys: S.combo.next ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]});
   }
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
@@ -3807,7 +3648,7 @@ async function buildDutyPdf(key, wk){
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
   const A = await pdfAssets();
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-  const gl = gradeLabel(gradesOf(S.section)), week = spanLabel(key);
+  const gl = gradeLabel(gradesOf(S.section)), week = weekLabel(S.sel, true);
   const printed = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
   const drawMark = () => {
     if (!A.mark) return;
@@ -3846,15 +3687,12 @@ async function buildDutyPdf(key, wk){
     doc.setFont('helvetica','normal'); doc.text('_________________', W-14, y+4, { align:'right' });
   };
   const duty = {};
-  spanKeys(key).forEach(rk => {
-    const rwk = getWeek(rk), mon = parseIso(rk);
-    S.days.forEach(day => {
-      const di = WEEKDAY_OFFSET[day.key], date = addDays(mon, di);
-      S.slots.forEach((sl,si) => {
-        const l = !sl.brk && rwk[di] && rwk[di][si]; if (!l || !l.teacher) return;
-        const k = normName(l.teacher), t = duty[k] || (duty[k] = {name:l.teacher, rows:[]});
-        t.rows.push([DAYS_LONG[di]+' '+date.getDate()+' '+MS[date.getMonth()], fmtTime(sl.start)+' - '+fmtTime(sl.end), l.subject, l.note||'']);
-      });
+  S.days.forEach(day => {
+    const di = WEEKDAY_OFFSET[day.key], date = addDays(S.sel, di);
+    S.slots.forEach((sl,si) => {
+      const l = !sl.brk && wk[di] && wk[di][si]; if (!l || !l.teacher) return;
+      const k = normName(l.teacher), t = duty[k] || (duty[k] = {name:l.teacher, rows:[]});
+      t.rows.push([DAYS_LONG[di]+' '+date.getDate()+' '+MS[date.getMonth()], fmtTime(sl.start)+' - '+fmtTime(sl.end), l.subject, l.note||'']);
     });
   });
   const names = Object.keys(duty).sort((a,b) => duty[a].name.localeCompare(duty[b].name));
@@ -3887,116 +3725,6 @@ async function exportDutyPdf(){
   finally { btn.disabled = false; btn.textContent = label; }
 }
 $('#dutyPdfBtn').addEventListener('click', exportDutyPdf);
-/* ---------- Duty roster for the combined sheet: every invigilator across all ticked classes (and the next week when included) ---------- */
-async function buildCombinedDutyPdf(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  const A = await pdfAssets();
-  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-  const dt = cbData(), title = cbTitleText(), printed = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-  /* The master roster cuts across levels: a teacher who invigilates Upper Primary and Junior School appears once, with every duty.
-     Unless "Ticked classes only" is on, it reads every timetable in the school for the same days as the combined sheet. */
-  const onlyTicked = !!($('#cbDutyTicked') && $('#cbDutyTicked').checked);
-  const secs = onlyTicked ? dt.secs : S.sections.slice();
-  const keys = cbNext() ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)];
-  const levelOf = sec => { const st = stageOfGrades(gradesOf(sec)); return st && st.name ? st.name : sec; };
-  const duty = {}, unassigned = []; let first = null, last = null;
-  secs.forEach(sec => {
-    const sl = slotsOf(sec), idx = sl.map((x,i) => i).filter(i => !sl[i].brk), lvl = levelOf(sec);
-    keys.forEach(k => {
-      const wk = weeksOf(sec)[k], mon = parseIso(k); if (!wk) return;
-      for (let d = 0; d < 7; d++) idx.forEach(si => {
-        const l = wk[d] && wk[d][si]; if (!l) return;
-        const slot = sl[si], date = addDays(mon, d);
-        if (!first || date < first) first = date; if (!last || date > last) last = date;
-        const item = {date, d, sec, lvl, start:toMin(slot.start), end:toMin(slot.end), t:fmtTime(slot.start)+' - '+fmtTime(slot.end), subject:l.subject, note:l.note||''};
-        if (!l.teacher){ unassigned.push(item); return; }
-        const nk = normName(l.teacher), t = duty[nk] || (duty[nk] = {name:l.teacher, items:[]});
-        t.items.push(item);
-      });
-    });
-  });
-  const rangeTxt = first ? rangeLabel(first, last) : dt.label;
-  const scopeTxt = onlyTicked ? dt.classes : 'All classes and levels';
-  const names = Object.keys(duty).sort((a,b) => duty[a].name.localeCompare(duty[b].name));
-  if (!names.length) return false;
-  names.forEach(k => {
-    const it = duty[k].items.sort((a,b) => a.date - b.date || a.start - b.start);
-    it.forEach((x,i) => { x.clash = it.filter((y,q) => q !== i && y.date.getTime() === x.date.getTime() && x.start < y.end && y.start < x.end).map(y => y.sec).join(', '); });
-  });
-  const dayTxt = x => DAYS_LONG[x.d]+' '+x.date.getDate()+' '+MS[x.date.getMonth()];
-  const drawMark = () => {
-    if (!A.mark) return;
-    try { const m = 70, r = A.mark.ratio, w = r >= 1 ? m : m*r, h = r >= 1 ? m/r : m;
-      doc.saveGraphicsState(); doc.setGState(new doc.GState({ opacity:0.08 })); doc.addImage(A.mark.url, 'PNG', (W-w)/2, (H-h)/2, w, h); doc.restoreGraphicsState(); } catch(e){}
-  };
-  const chromed = new Set();
-  const drawChrome = (head, sub) => {
-    doc.setFillColor(...PDF_BLUE); doc.rect(0, 0, W, 20, 'F');
-    let tx = 14;
-    if (A.logo){ try { const lh = 15, lw = lh*A.logo.ratio; doc.addImage(A.logo.url, 'PNG', 14, 2.5, lw, lh); tx = 14 + lw + 5; } catch(e){} }
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text('KANYADET PRI & JUNIOR SCHOOL', tx, 10);
-    doc.setFontSize(11); doc.text('P O BOX 45 - 40139, AKALA, KENYA', tx, 16);
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text('Date: ' + printed, W-14, 8, { align:'right' });
-    doc.text(doc.splitTextToSize(scopeTxt, 70)[0], W-14, 13, { align:'right' });
-    doc.text('Exam days: ' + rangeTxt, W-14, 18, { align:'right' });
-    doc.setTextColor(...PDF_BLUE); doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.text(head, W/2, 30, { align:'center' });
-    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,90,90); doc.text(sub || title, W/2, 35, { align:'center' });
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.5); doc.line(10, 37, W-10, 37);
-    chromed.add(doc.internal.getCurrentPageInfo().pageNumber);
-  };
-  const overflow = () => { const p = doc.internal.getCurrentPageInfo().pageNumber; if (!chromed.has(p)) drawChrome('INVIGILATION ROSTER (CONTINUED)'); };
-  const drawFooter = (pageNo, total) => {
-    const y = H - 15;
-    doc.setFillColor(245,245,245); doc.rect(0, y-5, W, 20, 'F');
-    doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.3); doc.line(0, y-5, W, y-5);
-    doc.setTextColor(60,60,60); doc.setFontSize(8);
-    doc.setFont('helvetica','bold'); doc.text('Prepared by:', 14, y);
-    doc.setFont('helvetica','normal'); doc.text('Automated Online School System', 14, y+4);
-    doc.setFontSize(9); doc.text('Page ' + pageNo + ' of ' + total, W/2, y+2, { align:'center' });
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.text('Signature:', W-14, y, { align:'right' });
-    doc.setFont('helvetica','normal'); doc.text('_________________', W-14, y+4, { align:'right' });
-  };
-  const tableBase = { theme:'grid', margin:{top:25,right:12,bottom:25,left:12}, styles:{fontSize:9.5,cellPadding:2.6,lineColor:[210,218,228],lineWidth:0.3,valign:'middle',textColor:[60,60,60]},
-    headStyles:{fillColor:PDF_BLUE,textColor:[255,255,255],fontStyle:'bold',halign:'center'}, alternateRowStyles:{fillColor:[245,248,252]}, didDrawPage:overflow };
-  /* page 1: master roster for the whole sheet */
-  drawChrome('INVIGILATION ROSTER', title+'  |  '+scopeTxt);
-  doc.autoTable(Object.assign({}, tableBase, { startY:40,
-    head:[['INVIGILATOR','EXAMS','LEVELS','DUTIES']],
-    body:names.map(k => { const t = duty[k]; return [t.name, String(t.items.length), Array.from(new Set(t.items.map(x => x.lvl))).join('\n'), t.items.map(x => dayTxt(x).slice(0,3)+' '+x.date.getDate()+'/'+(x.date.getMonth()+1)+'  '+x.t+'  '+x.sec+' '+x.subject+(x.clash ? '  [CLASH with '+x.clash+']' : '')).join('\n')]; }),
-    columnStyles:{0:{cellWidth:34,fontStyle:'bold'},1:{cellWidth:20,halign:'center'},2:{cellWidth:30},3:{cellWidth:'auto',fontSize:8.5}} }));
-  if (unassigned.length){
-    let y = doc.lastAutoTable.finalY + 8; if (y > H-60){ doc.addPage(); drawChrome('EXAMS WITHOUT AN INVIGILATOR'); y = 42; }
-    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(192,57,43); doc.text('Exams without an invigilator ('+unassigned.length+')', 12, y);
-    doc.autoTable(Object.assign({}, tableBase, { startY:y+3, head:[['DAY','TIME','CLASS','SUBJECT']], body:unassigned.sort((a,b) => a.date - b.date || a.start - b.start).map(x => [dayTxt(x), x.t, x.sec+(x.lvl !== x.sec ? ' ('+x.lvl+')' : ''), x.subject]) }));
-  }
-  /* then one page per invigilator, covering every class they invigilate */
-  names.forEach(k => {
-    const t = duty[k];
-    doc.addPage(); drawChrome('INVIGILATION DUTY - '+t.name.toUpperCase(), title+'  |  '+Array.from(new Set(t.items.map(x => x.lvl))).join(' + '));
-    doc.autoTable(Object.assign({}, tableBase, { startY:40,
-      head:[['DAY','TIME','CLASS','SUBJECT','NOTE']], body:t.items.map(x => [dayTxt(x), x.t, x.sec+(x.lvl !== x.sec ? '\n('+x.lvl+')' : ''), x.subject, (x.note ? x.note+' ' : '')+(x.clash ? '(clash with '+x.clash+')' : '')]),
-      columnStyles:{0:{cellWidth:36},1:{cellWidth:36},2:{cellWidth:34}},
-      didParseCell: d => { if (d.section === 'body' && t.items[d.row.index].clash) d.cell.styles.textColor = [192,57,43]; } }));
-  });
-  const total = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
-  doc.save((title + ' Invigilation Roster ' + scopeTxt + ' ' + rangeTxt).replace(/[^\w\-]+/g, '_') + '.pdf');
-  return true;
-}
-async function exportCombinedDuty(){
-  if (!(window.jspdf && window.jspdf.jsPDF)){ toast('The PDF tools did not load. Check your connection and try again.'); return; }
-  if (cbNeedTitle()) return;
-  const dt = cbData(); if (!dt.days.length){ toast('The combined sheet has no exams yet, so there is no roster to print.'); return; }
-  const btn = $('#cbDutyBtn'), label = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Building PDF\u2026';
-  try { const ok = await buildCombinedDutyPdf(); toast(ok ? 'Duty roster for the combined sheet downloaded' : 'No invigilators are assigned on this sheet yet.', 3600); }
-  catch(e){ console.error('[Combined duty PDF]', e); toast('Could not build the PDF. Please try again.'); }
-  finally { btn.disabled = false; btn.textContent = label; }
-}
-$('#cbDutyBtn').addEventListener('click', exportCombinedDuty);
-
 
 /* ---------- Analytics PDF: workload, coverage and week-history summary ---------- */
 async function buildAnalyticsPdf(){
@@ -4068,13 +3796,11 @@ async function buildLearnerCardsPdf(count, roster){
   roster = roster || [];
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  const key = iso(S.sel), gl = gradeLabel(gradesOf(S.section)), week = spanLabel(key), exams = [], keys = spanKeys(key);
-  keys.forEach((k, wi) => {
-    const wk = getWeek(k), mon = parseIso(k);
-    S.days.forEach(day => {
-      const di = WEEKDAY_OFFSET[day.key], date = addDays(mon, di);
-      S.slots.forEach((sl,si) => { if (sl.brk) return; const l = wk[di] && wk[di][si]; if (l) exams.push({day:day.label, short:DAYS[di]+(keys.length > 1 ? ' '+date.getDate()+'/'+(date.getMonth()+1) : ''), dayIdx:wi*10+di, start:sl.start, end:sl.end, subject:l.subject, note:l.note||''}); });
-    });
+  const gl = gradeLabel(gradesOf(S.section)), week = weekLabel(S.sel, true);
+  const key = iso(S.sel), wk = getWeek(key), exams = [];
+  S.days.forEach(day => {
+    const di = WEEKDAY_OFFSET[day.key];
+    S.slots.forEach((sl,si) => { if (sl.brk) return; const l = wk[di] && wk[di][si]; if (l) exams.push({day:day.label, dayIdx:di, start:sl.start, end:sl.end, subject:l.subject, note:l.note||''}); });
   });
   if (!exams.length) return false;
   exams.sort((a,b) => a.dayIdx - b.dayIdx || toMin(a.start) - toMin(b.start));
@@ -4120,7 +3846,7 @@ async function buildLearnerCardsPdf(count, roster){
     doc.setFont('helvetica','normal'); doc.setFontSize(6.6); doc.setTextColor(60,60,60);
     const maxLines = Math.max(1, Math.floor((y+cardH-4-ty)/4.2));
     exams.slice(0, maxLines).forEach(ex => {
-      doc.setFont('helvetica','bold'); doc.text((ex.short || ex.day.slice(0,3))+' '+fmtTime(ex.start), x+3, ty);
+      doc.setFont('helvetica','bold'); doc.text(ex.day.slice(0,3)+' '+fmtTime(ex.start), x+3, ty);
       const label = ex.subject+(ex.note ? ' ('+ex.note+')' : ''), short = doc.splitTextToSize(label, cardW-27)[0];
       doc.setFont('helvetica','normal'); doc.text(short, x+25, ty);
       ty += 4.2;
@@ -4233,7 +3959,7 @@ $('#combo').addEventListener('change', e => {
     c.secs = t.checked ? Array.from(new Set(c.secs.concat(t.dataset.cbsec))) : c.secs.filter(x => x !== t.dataset.cbsec);
     renderCombo(); return;
   }
-  if (t.id === 'cbNext'){ c.next = t.checked; c.nextSet = true; cbSave(); renderCombo(); return; }
+  if (t.id === 'cbNext'){ c.next = t.checked; cbSave(); renderCombo(); return; }
   if (t.id === 'cbSep'){ c.sep = t.checked; cbSave(); renderCombo(); return; }
 });
 $('#combo').addEventListener('input', e => {
@@ -4241,338 +3967,6 @@ $('#combo').addEventListener('input', e => {
   if (t.dataset.cbname !== undefined){ S.combo.names[+t.dataset.cbname] = t.value; cbSave(); $('#cbPreview').innerHTML = cbTable(cbData()); return; }
   if (t.id === 'cbTitleIn'){ S.combo.title = t.value; }
 });
-
-/* ---------- Live exam report: a pop-up control room that follows the clock ---------- */
-const LV = {offset:0, timer:null, last:'', dataAt:Date.now(), preview:false};
-const lvNow = () => new Date(Date.now() + LV.offset);
-const lvPad = n => String(n).padStart(2,'0');
-const lvMin = m => { m = Math.max(0, Math.ceil(m - 1e-9)); if (m < 1) return 'under a minute'; if (m < 60) return m+' min'; const h = Math.floor(m/60), r = m%60; return h+' h'+(r ? ' '+r+' min' : ''); };
-const lvLeft = m => m < 1 ? 'under a minute' : lvMin(m);
-const lvDay = d => DAYS[(d.getDay()+6)%7]+' '+d.getDate()+' '+MS[d.getMonth()];
-const lvHM = t => fmtTime(t);
-
-function lvDayExams(at){
-  const key = iso(mondayOf(at)), d = (at.getDay()+6)%7, out = [];
-  S.sections.forEach(sec => {
-    const sl = slotsOf(sec), wk = weeksOf(sec)[key]; if (!wk || !wk[d]) return;
-    const idx = sl.map((x,i) => i).filter(i => !sl[i].brk);
-    wk[d].forEach((l,si) => {
-      if (!l || !sl[si] || sl[si].brk) return;
-      out.push({sec, si, j:Math.max(0, idx.indexOf(si)), n:idx.length, subject:(l.subject||'').trim(), teacher:(l.teacher||'').trim(), room:(l.note||'').trim(), t0:sl[si].start, t1:sl[si].end, s:toMin(sl[si].start), e:toMin(sl[si].end)});
-    });
-  });
-  return out.sort((a,b) => a.s-b.s || a.sec.localeCompare(b.sec));
-}
-function lvModel(at){
-  const nowM = at.getHours()*60 + at.getMinutes() + at.getSeconds()/60;
-  const ex = lvDayExams(at);
-  ex.forEach(x => { x.st = x.e <= nowM ? 'done' : x.s <= nowM ? 'live' : 'next'; x.pct = x.st === 'live' ? Math.min(100, Math.max(0, (nowM-x.s)/(x.e-x.s)*100)) : x.st === 'done' ? 100 : 0; });
-  const live = ex.filter(x => x.st === 'live'), next = ex.filter(x => x.st === 'next'), done = ex.filter(x => x.st === 'done');
-  /* invigilators */
-  const T = {};
-  ex.forEach(x => { if (!x.teacher) return; const k = normName(x.teacher), t = T[k] || (T[k] = {name:x.teacher, items:[]}); t.items.push(x); });
-  const duty = [], upnext = [], finished = [];
-  Object.keys(T).forEach(k => {
-    const t = T[k], lv = t.items.filter(x => x.st === 'live'), nx = t.items.filter(x => x.st === 'next');
-    t.live = lv[0]; t.next = nx[0]; t.n = t.items.length; t.doneN = t.items.filter(x => x.st === 'done').length;
-    if (lv.length) duty.push(t); else if (nx.length) upnext.push(t); else finished.push(t);
-  });
-  duty.sort((a,b) => a.live.e - b.live.e); upnext.sort((a,b) => a.next.s - b.next.s);
-  const dutyKeys = new Set(duty.map(t => normName(t.name)));
-  const roster = (S.roster||[]).filter(r => r && r.name), rosterKeys = new Set(roster.map(r => normName(r.name)));
-  const free = roster.filter(r => !dutyKeys.has(normName(r.name))).map(r => r.name);
-  const offToday = roster.filter(r => !T[normName(r.name)]).map(r => r.name);
-  /* alerts */
-  const alerts = [];
-  live.filter(x => !x.teacher).forEach(x => alerts.push({tone:'bad', text:x.sec+' '+x.subject+' is in progress with no invigilator.'}));
-  next.filter(x => !x.teacher && x.s - nowM <= 60).forEach(x => alerts.push({tone:x.s - nowM <= 15 ? 'bad' : 'warn', text:x.sec+' '+x.subject+' starts in '+lvMin(x.s-nowM)+' and has no invigilator yet.'}));
-  const cl = [];
-  for (let i = 0; i < ex.length; i++) for (let q = i+1; q < ex.length; q++){ const u = ex[i], v = ex[q]; if (u.teacher && v.teacher && normName(u.teacher) === normName(v.teacher) && u.s < v.e && v.s < u.e) cl.push([u,v]); }
-  cl.forEach(([u,v]) => alerts.push({tone:'bad', text:u.teacher+' is down for '+u.sec+' '+u.subject+' and '+v.sec+' '+v.subject+' at the same time.'}));
-  const rooms = {};
-  ex.forEach(x => { if (!x.room) return; (rooms[normName(x.room)] = rooms[normName(x.room)] || []).push(x); });
-  Object.keys(rooms).forEach(k => { const a = rooms[k]; for (let i = 0; i < a.length; i++) for (let q = i+1; q < a.length; q++){ if (a[i].sec !== a[q].sec && a[i].s < a[q].e && a[q].s < a[i].e) alerts.push({tone:'warn', text:'Room "'+a[i].room+'" is booked by '+a[i].sec+' and '+a[q].sec+' at the same time.'}); } });
-  Object.keys(T).forEach(k => { const t = T[k], it = t.items.slice().sort((a,b) => a.s-b.s); for (let i = 1; i < it.length; i++){ if (it[i].s === it[i-1].e && it[i].st !== 'done') { alerts.push({tone:'info', text:t.name+' invigilates back to back: '+it[i-1].sec+' '+it[i-1].subject+' then '+it[i].sec+' '+it[i].subject+' at '+lvHM(it[i].t0)+'.'}); break; } } });
-  Object.keys(T).forEach(k => { const t = T[k]; if (LOAD.day && t.n >= LOAD.day) alerts.push({tone:'warn', text:t.name+' has '+t.n+' exams to invigilate today (heavy-load limit is '+LOAD.day+').'}); });
-  /* week and next exam day */
-  let weekTotal = 0, weekDone = 0, weekLastDate = null;
-  const mon = mondayOf(at);
-  const span2 = [0,1,2,3,4,5,6].some(i => lvDayExams(addDays(mon, 7+i)).length > 0);
-  for (let i = 0; i < (span2 ? 14 : 7); i++){
-    const dt = addDays(mon, i), list = lvDayExams(dt); weekTotal += list.length;
-    list.forEach(x => { const endAt = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), 0, x.e); if (endAt <= at) weekDone++; });
-    if (list.length) weekLastDate = dt;
-  }
-  let following = null;
-  for (let i = 1; i <= 14 && !following; i++){ const dt = addDays(at, i), list = lvDayExams(dt); if (list.length) following = {date:dt, list, i}; }
-  /* peak concurrency today */
-  let peak = 0, peakAt = null;
-  ex.forEach(u => { const c = ex.filter(v => u.s < v.e && v.s < u.e).length; if (c > peak){ peak = c; peakAt = u; } });
-  /* recent activity (last 45 min) */
-  const feed = [];
-  ex.forEach(x => { if (x.s <= nowM && nowM - x.s <= 45) feed.push({at:x.s, text:x.sec+' '+x.subject+' started'+(x.teacher ? ' with '+x.teacher : ''), tone:'live'}); if (x.e <= nowM && nowM - x.e <= 45) feed.push({at:x.e, text:x.sec+' '+x.subject+' finished', tone:'done'}); });
-  feed.sort((a,b) => b.at - a.at);
-  const m = {span2, at, nowM, ex, live, next, done, duty, upnext, finished, free, offToday, rosterN:roster.length, alerts, weekTotal, weekDone, weekLastDate, following, peak, peakAt, feed, T};
-  m.insights = lvInsights(m);
-  return m;
-}
-function lvInsights(m){
-  const out = [], add = (tone, text) => out.push({tone, text}), n = m.nowM;
-  if (!m.ex.length){
-    add('info', 'No exams are scheduled for '+lvDay(m.at)+'.');
-    if (m.following) add('info', 'Next exam day is '+lvDay(m.following.date)+' with '+m.following.list.length+(m.following.list.length === 1 ? ' exam' : ' exams')+', first at '+lvHM(m.following.list[0].t0)+'.');
-    return out;
-  }
-  if (m.live.length){
-    const cls = new Set(m.live.map(x => x.sec)).size, inv = new Set(m.live.filter(x => x.teacher).map(x => normName(x.teacher))).size;
-    add('good', m.live.length+(m.live.length === 1 ? ' exam is' : ' exams are')+' running now across '+cls+(cls === 1 ? ' class' : ' classes')+' with '+inv+(inv === 1 ? ' invigilator' : ' invigilators')+' on duty.');
-    const soon = m.live.slice().sort((a,b) => a.e-b.e)[0];
-    add('info', soon.sec+' '+soon.subject+' is the first to finish, in '+lvLeft(soon.e-n)+' (at '+lvHM(soon.t1)+').');
-  } else if (m.next.length){
-    const nx = m.next[0]; add('info', 'No exam is running. Next up: '+nx.sec+' '+nx.subject+' at '+lvHM(nx.t0)+', in '+lvMin(nx.s-n)+'.');
-  } else add('good', 'All '+m.ex.length+' exams for today are finished.');
-  if (m.next.length && m.live.length){ const nx = m.next[0]; add('info', 'Next start: '+nx.sec+' '+nx.subject+' at '+lvHM(nx.t0)+', in '+lvMin(nx.s-n)+'.'); }
-  if (m.rosterN && m.live.length) add('info', m.free.length+' of '+m.rosterN+' rostered staff are free this minute'+(m.free.length ? ': '+m.free.slice(0,5).join(', ')+(m.free.length > 5 ? ' and '+(m.free.length-5)+' more' : '')+'.' : '.'));
-  const pct = anPct(m.done.length, m.ex.length);
-  add('info', 'Today is '+pct+'% complete: '+m.done.length+' finished, '+m.live.length+' running, '+m.next.length+' to go.');
-  if (m.peak > 1 && m.peakAt) add('info', 'The busiest moment today is '+lvHM(m.peakAt.t0)+', with '+m.peak+' exams at once.');
-  if (m.weekTotal) add('info', (m.span2 ? 'The two-week exam period' : 'This exam week')+' is '+anPct(m.weekDone, m.weekTotal)+'% complete ('+m.weekDone+' of '+m.weekTotal+' exams).'+(m.weekLastDate ? ' Last exam day: '+lvDay(m.weekLastDate)+'.' : ''));
-  if (!m.next.length && m.following){ const f = m.following; const un = f.list.filter(x => !x.teacher).length; add(un ? 'warn' : 'info', 'Next exam day is '+(f.i === 1 ? 'tomorrow' : lvDay(f.date))+': '+f.list.length+(f.list.length === 1 ? ' exam' : ' exams')+', first at '+lvHM(f.list[0].t0)+(un ? ', and '+un+' still '+(un === 1 ? 'has' : 'have')+' no invigilator.' : '.')); }
-  return out;
-}
-/* ---- rendering ---- */
-function lvTimeline(m){
-  const ex = m.ex; if (!ex.length) return '';
-  let a = Math.min.apply(null, ex.map(x => x.s)) - 20, b = Math.max.apply(null, ex.map(x => x.e)) + 20; a = Math.floor(a/10)*10; b = Math.ceil(b/10)*10;
-  const span = b - a, step = span > 420 ? 60 : span > 240 ? 30 : 15, pos = v => ((v-a)/span*100);
-  let ticks = ''; for (let t = Math.ceil(a/step)*step; t <= b; t += step) ticks += '<span style="left:'+pos(t)+'%">'+fmtTime(lvPad(Math.floor(t/60))+':'+lvPad(t%60)).replace(':00 ',' ')+'</span>';
-  const secs = S.sections.filter(sec => ex.some(x => x.sec === sec));
-  const rows = secs.map(sec => '<div class="row"><span class="nm" title="'+esc(sec)+'">'+esc(sec)+'</span><div class="lane">'+ex.filter(x => x.sec === sec).map(x => {
-    const c = ROW_ORDER[x.j % ROW_ORDER.length];
-    return '<div class="blk '+x.st+'" style="left:'+pos(x.s)+'%;width:'+(pos(x.e)-pos(x.s))+'%;background:var(--t'+c+');color:var(--i'+c+');border-color:var(--i'+c+')" title="'+esc(x.sec+' · '+x.subject+' · '+lvHM(x.t0)+' to '+lvHM(x.t1)+(x.teacher ? ' · '+x.teacher : ' · no invigilator')+(x.room ? ' · '+x.room : ''))+'">'+esc(x.subject)+(x.teacher ? '' : ' !')+'</div>';
-  }).join('')+'</div></div>').join('');
-  const inWin = m.nowM >= a && m.nowM <= b;
-  return '<div class="lvTl"><div class="axis">'+ticks+'</div>'+rows+(inWin ? '<div class="ov"><i class="needle" style="left:'+pos(m.nowM)+'%"><b>'+fmtTime(lvPad(m.at.getHours())+':'+lvPad(m.at.getMinutes()))+'</b></i></div>' : '')+
-    '<p class="lvTlNote">'+(m.nowM < a ? 'The first exam starts at '+lvHM(lvPadT(Math.min.apply(null, ex.map(x => x.s))))+'.' : m.nowM > b ? 'All exams for the day are over.' : 'The red line is now. Faded blocks are finished, outlined blocks are running, a "!" means no invigilator.')+'</p></div>';
-}
-const lvPadT = mins => lvPad(Math.floor(mins/60))+':'+lvPad(Math.round(mins%60));
-function lvLiveCards(m){
-  if (!m.live.length) return '<p class="muted">Nothing is running at this moment.</p>';
-  return '<div class="lvCards">'+m.live.map(x => {
-    const c = ROW_ORDER[x.j % ROW_ORDER.length];
-    return '<div class="lvCard" style="--c:var(--i'+c+');--ct:var(--t'+c+')"><div class="top"><b>'+esc(x.sec)+'</b><span>'+esc(lvHM(x.t0))+' to '+esc(lvHM(x.t1))+'</span></div><div class="sub">'+esc(x.subject)+'</div>'+
-      '<div class="who">'+(x.teacher ? '👩‍🏫 '+esc(x.teacher) : '<span class="anChip bad">No invigilator</span>')+(x.room ? ' <span class="rm">'+esc(x.room)+'</span>' : '')+'</div>'+
-      '<div class="bar"><i style="width:'+x.pct.toFixed(1)+'%"></i></div><div class="end">Ends in '+lvLeft(x.e-m.nowM)+'</div></div>';
-  }).join('')+'</div>';
-}
-function lvSoon(m){
-  const list = m.next.slice(0, 8); if (!list.length) return '<p class="muted">'+(m.ex.length ? 'No more exams today.' : 'No exams today.')+'</p>';
-  return '<ul class="lvList">'+list.map(x => '<li><span class="when">'+esc(lvHM(x.t0))+'<small>in '+esc(lvMin(x.s-m.nowM))+'</small></span><span class="what"><b>'+esc(x.sec)+'</b> '+esc(x.subject)+'</span><span class="by">'+(x.teacher ? esc(x.teacher) : '<span class="anChip bad">No invigilator</span>')+'</span></li>').join('')+(m.next.length > 8 ? '<li class="more">and '+(m.next.length-8)+' more later today</li>' : '')+'</ul>';
-}
-function lvBoard(m){
-  const chip = (t, extra, cls) => '<span class="lvPerson '+(cls||'')+'"><b>'+esc(t)+'</b>'+(extra ? '<small>'+esc(extra)+'</small>' : '')+'</span>';
-  const col = (title, cls, items, empty) => '<div class="lvCol '+cls+'"><h4>'+title+' <em>'+items.length+'</em></h4>'+(items.length ? '<div class="ppl">'+items.join('')+'</div>' : '<p class="muted">'+empty+'</p>')+'</div>';
-  return '<div class="lvBoard">'+
-    col('On duty now','on', m.duty.map(t => chip(t.name, t.live.sec+' · ends '+lvHM(t.live.t1))), 'Nobody is invigilating right now.')+
-    col('Up next','nx', m.upnext.map(t => chip(t.name, t.next.sec+' · '+lvHM(t.next.t0)+' (in '+lvMin(t.next.s-m.nowM)+')')), 'No one has a later exam today.')+
-    col(m.rosterN ? 'Free right now' : 'Not on duty right now','fr', (m.rosterN ? m.free : m.upnext.map(t => t.name).concat(m.finished.map(t => t.name))).slice(0,24).map(n => chip(n)), m.rosterN ? 'Everyone on the roster is on duty.' : 'Everyone is on duty.')+
-    col('Finished for today','dn', m.finished.map(t => chip(t.name, t.n+(t.n === 1 ? ' exam done' : ' exams done'))), 'Nobody has finished yet.')+'</div>';
-}
-function lvFeed(m){
-  if (!m.feed.length) return '<p class="muted">No exam has started or finished in the last 45 minutes.</p>';
-  return '<ul class="lvFeed">'+m.feed.slice(0,8).map(f => '<li class="'+f.tone+'"><time>'+esc(lvHM(lvPadT(f.at)))+'</time><span>'+esc(f.text)+'</span></li>').join('')+'</ul>';
-}
-function lvKpis(m){
-  const nx = m.next[0];
-  const k = [
-    {lb:'Running now', v:m.live.length, sb:(function(n){ return n+(n === 1 ? ' class' : ' classes'); })(new Set(m.live.map(x => x.sec)).size), tone:m.live.length ? 'good' : 'n'},
-    {lb:'Next start', v:nx ? lvMin(nx.s-m.nowM) : 'none', sb:nx ? nx.sec+' at '+lvHM(nx.t0) : 'nothing later today', tone:'n'},
-    {lb:'Finished today', v:m.done.length+' / '+m.ex.length, sb:anPct(m.done.length, m.ex.length)+'% complete', tone:'n'},
-    {lb:'Invigilators on duty', v:m.duty.length, sb:m.upnext.length+' more later', tone:'n'},
-    {lb:'Alerts', v:m.alerts.filter(a => a.tone !== 'info').length, sb:m.alerts.length ? m.alerts.length+' notes in total' : 'all clear', tone:m.alerts.some(a => a.tone === 'bad') ? 'bad' : m.alerts.some(a => a.tone === 'warn') ? 'warn' : 'good'}
-  ];
-  return '<div class="anKpis lvK">'+k.map(c => '<div class="kpi '+c.tone+'"><div class="lb">'+esc(c.lb)+'</div><div class="v">'+esc(String(c.v))+'</div><div class="sb">'+esc(c.sb)+'</div></div>').join('')+'</div>';
-}
-function lvHtml(m){
-  if (!S.sections.length) return '<p class="muted">No classes are set up yet.</p>';
-  let h = lvKpis(m);
-  h += '<ul class="anIns">'+m.insights.map(i => '<li class="'+i.tone+'"><i></i><span>'+esc(i.text)+'</span></li>').join('')+'</ul>';
-  if (m.alerts.length) h += '<h3 class="anH">Needs attention</h3><ul class="anIns">'+m.alerts.slice(0,8).map(i => '<li class="'+i.tone+'"><i></i><span>'+esc(i.text)+'</span></li>').join('')+'</ul>';
-  if (m.ex.length) h += '<h3 class="anH">Today on one line</h3>'+lvTimeline(m);
-  h += '<div class="lvTwo"><div><h3 class="anH">In progress now</h3>'+lvLiveCards(m)+'</div><div><h3 class="anH">Starting soon</h3>'+lvSoon(m)+'<h3 class="anH">Just happened</h3>'+lvFeed(m)+'</div></div>';
-  h += '<h3 class="anH">Invigilator board</h3>'+lvBoard(m);
-  if (m.following && (m.ex.length === 0 || !m.next.length)){ const f = m.following;
-    h += '<h3 class="anH">Coming up: '+esc(f.i === 1 ? 'tomorrow, '+lvDay(f.date) : lvDay(f.date))+'</h3><ul class="lvList">'+f.list.slice(0,8).map(x => '<li><span class="when">'+esc(lvHM(x.t0))+'</span><span class="what"><b>'+esc(x.sec)+'</b> '+esc(x.subject)+'</span><span class="by">'+(x.teacher ? esc(x.teacher) : '<span class="anChip warn">No invigilator yet</span>')+'</span></li>').join('')+(f.list.length > 8 ? '<li class="more">and '+(f.list.length-8)+' more</li>' : '')+'</ul>'; }
-  return h;
-}
-function lvText(m){
-  const t = cbTitleRaw() || examTitleCur() || 'EXAMINATION TIMETABLE', L = [];
-  L.push('*KANYADET PRI & JUNIOR SCHOOL*', '*'+t+'* - live exam report', lvDay(m.at)+', '+fmtTime(lvPad(m.at.getHours())+':'+lvPad(m.at.getMinutes())), '');
-  L.push('*In progress ('+m.live.length+')*'); if (!m.live.length) L.push('None right now');
-  m.live.forEach(x => L.push('- '+x.sec+' '+x.subject+' ('+lvHM(x.t0)+' to '+lvHM(x.t1)+') - '+(x.teacher || 'NO INVIGILATOR')+(x.room ? ' - '+x.room : '')+' - ends in '+lvLeft(x.e-m.nowM)));
-  L.push('', '*Up next ('+m.next.length+')*'); if (!m.next.length) L.push('Nothing later today');
-  m.next.slice(0,10).forEach(x => L.push('- '+lvHM(x.t0)+' '+x.sec+' '+x.subject+' - '+(x.teacher || 'NO INVIGILATOR')));
-  L.push('', '*Today:* '+m.done.length+' finished, '+m.live.length+' running, '+m.next.length+' to go');
-  const al = m.alerts.filter(a => a.tone !== 'info'); if (al.length){ L.push('', '*Needs attention*'); al.slice(0,6).forEach(a => L.push('- '+a.text)); }
-  if (!m.ex.length && m.following) L.push('', 'Next exam day: '+lvDay(m.following.date)+', first at '+lvHM(m.following.list[0].t0));
-  return L.join('\n');
-}
-function lvRefresh(force){
-  const dlg = $('#liveDlg'); if (!dlg || !dlg.open) return;
-  const at = lvNow(), m = lvModel(at);
-  $('#lvClock').textContent = lvPad(at.getHours())+':'+lvPad(at.getMinutes())+':'+lvPad(at.getSeconds());
-  $('#lvDate').textContent = lvDay(at)+(LV.preview ? ' (preview)' : '');
-  $('#lvSub').textContent = (cbTitleRaw() || examTitleCur() || 'Examination timetable')+' · all classes';
-  const ago = Math.max(0, Math.round((Date.now()-LV.dataAt)/1000));
-  $('#lvSync').innerHTML = '<i class="dot '+(LV.preview ? 'pv' : S.mode === 'live' ? 'ok' : 'off')+'"></i>'+(LV.preview ? 'Preview: clock runs from the time you picked' : S.mode === 'live' ? 'Live, synced with school database' : 'Offline, saved on this device')+' · data '+(ago < 5 ? 'just updated' : ago < 90 ? 'updated '+ago+' s ago' : 'updated '+Math.round(ago/60)+' min ago');
-  $('#lvLiveBtn').hidden = !LV.preview;
-  const html = lvHtml(m);
-  if (force || html !== LV.last){ const body = $('#lvBody'), top = body.scrollTop; body.innerHTML = html; body.scrollTop = top; LV.last = html; }
-  LV.model = m;
-}
-function lvFab(){
-  const b = $('#liveBtn'); if (!b) return;
-  try { const m = lvModel(lvNow()), n = m.live.length; b.querySelector('.n').textContent = n ? n+' running' : (m.next.length ? 'next in '+lvMin(m.next[0].s-m.nowM) : 'live'); b.classList.toggle('on', n > 0); } catch(e){}
-}
-function lvOpen(){
-  const dlg = $('#liveDlg'); if (!dlg.open) dlg.showModal();
-  LV.last = ''; lvRefresh(true);
-  clearInterval(LV.timer); LV.timer = setInterval(lvRefresh, 1000);
-}
-function lvClose(){ clearInterval(LV.timer); LV.timer = null; if (document.fullscreenElement) { try { document.exitFullscreen(); } catch(e){} } const d = $('#liveDlg'); if (d.open) d.close(); }
-$('#liveBtn').addEventListener('click', lvOpen);
-$('#lvClose').addEventListener('click', lvClose);
-$('#liveDlg').addEventListener('close', () => { clearInterval(LV.timer); LV.timer = null; });
-$('#lvAt').addEventListener('change', e => { const v = e.target.value; if (!v){ LV.offset = 0; LV.preview = false; } else { LV.offset = new Date(v).getTime() - Date.now(); LV.preview = true; } lvRefresh(true); lvFab(); });
-$('#lvLiveBtn').addEventListener('click', () => { LV.offset = 0; LV.preview = false; $('#lvAt').value = ''; lvRefresh(true); lvFab(); });
-$('#lvCopy').addEventListener('click', async () => {
-  const txt = lvText(LV.model || lvModel(lvNow()));
-  try { await navigator.clipboard.writeText(txt); toast('Live report copied. Paste it into WhatsApp.'); }
-  catch(e){ window.open('https://wa.me/?text='+encodeURIComponent(txt), '_blank', 'noopener'); }
-});
-$('#lvWa').addEventListener('click', () => window.open('https://wa.me/?text='+encodeURIComponent(lvText(LV.model || lvModel(lvNow()))), '_blank', 'noopener'));
-$('#lvTv').addEventListener('click', () => {
-  const d = $('#liveDlg'); d.classList.toggle('lvTvMode');
-  if (d.classList.contains('lvTvMode')){ try { d.requestFullscreen && d.requestFullscreen(); } catch(e){} } else if (document.fullscreenElement){ try { document.exitFullscreen(); } catch(e){} }
-  $('#lvTv').textContent = d.classList.contains('lvTvMode') ? 'Exit full screen' : 'Full screen';
-});
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement){ const d = $('#liveDlg'); d.classList.remove('lvTvMode'); $('#lvTv').textContent = 'Full screen'; } });
-setInterval(lvFab, 30000); setTimeout(lvFab, 1500);
-
-
-/* ---------- Import a previous timetable into the selected week, starting on any day ---------- */
-const IM = {list:[]};
-function imSources(){
-  const tk = iso(S.sel), out = [];
-  S.sections.forEach(sec => {
-    const ws = weeksOf(sec);
-    Object.keys(ws).forEach(k => {
-      if (!countLessons(ws[k]) || (sec === S.section && k === tk)) return;
-      out.push({sec, key:k, n:countLessons(ws[k]), cont:examGap([sec], k)});
-    });
-  });
-  return out.sort((a,b) => b.key.localeCompare(a.key) || a.sec.localeCompare(b.sec));
-}
-function imOffsets(srcWeeks){
-  const set = new Set(activeDayOffsets());
-  srcWeeks.forEach(w => w.wk.forEach((day,d) => { if ((day||[]).some(Boolean)) set.add(d); }));
-  return Array.from(set).sort((a,b) => a-b);
-}
-/* Work out where every source exam lands. Returns {placed:[{wi,d,j,lesson}], weeks:[keys touched], skipped, first, last, replaced} */
-function imPlan(opts){
-  const src = IM.list[opts.src]; if (!src) return null;
-  const srcWeeks = [{key:src.key, wk:weeksOf(src.sec)[src.key]}];
-  if (opts.nextWk && src.cont) srcWeeks.push({key:iso(addDays(parseIso(src.key),7)), wk:weeksOf(src.sec)[iso(addDays(parseIso(src.key),7))]});
-  const offs = imOffsets(srcWeeks), nA = offs.length;
-  const sSl = slotsOf(src.sec), sIdx = sSl.map((x,i) => i).filter(i => !sSl[i].brk);
-  const tIdx = S.slots.map((x,i) => i).filter(i => !S.slots[i].brk);
-  /* ordinal of each source exam day among school days, so weekends never count */
-  const days = [];
-  srcWeeks.forEach((w,wi) => (w.wk||[]).forEach((day,d) => { if ((day||[]).some(Boolean)) days.push({ord:wi*nA + offs.indexOf(d), wi, d}); }));
-  days.sort((a,b) => a.ord - b.ord);
-  if (!days.length) return null;
-  const startOrd = Math.max(0, offs.indexOf(opts.start)), base = days[0].ord;
-  const placed = [], touched = new Set(); let skipped = 0;
-  days.forEach((sd, rank) => {
-    const tord = opts.pack ? startOrd + rank : startOrd + (sd.ord - base);
-    const tw = Math.floor(tord / nA), td = offs[tord % nA], w = srcWeeks[sd.wi].wk[sd.d];
-    sIdx.forEach((si, j) => {
-      const l = w[si]; if (!l) return;
-      if (j >= tIdx.length){ skipped++; return; }
-      placed.push({tw, td, ts:tIdx[j], j, lesson:l, ord:tord});
-      touched.add(tw);
-    });
-  });
-  const dayKeys = Array.from(new Set(placed.map(x => x.tw+':'+x.td)));
-  const target0 = iso(S.sel), keyOf = tw => iso(addDays(parseIso(target0), 7*tw));
-  let replaced = 0;
-  placed.forEach(x => { const cur = S.weeks[keyOf(x.tw)]; if (cur && cur[x.td] && cur[x.td][x.ts]) replaced++; });
-  const ords = placed.map(x => x.ord), lo = placed.reduce((a,x) => x.ord < a.ord ? x : a, placed[0]), hi = placed.reduce((a,x) => x.ord > a.ord ? x : a, placed[0]);
-  const dateOf = x => addDays(parseIso(keyOf(x.tw)), x.td);
-  return {placed, keyOf, skipped, replaced, srcWeeks, nWeeks:Math.max.apply(null, placed.map(x => x.tw))+1, first:dateOf(lo), last:dateOf(hi), dayCount:dayKeys.length, src};
-}
-function imOpts(){
-  return {src:+$('#imSrc').value, nextWk:$('#imNextWk').checked, start:+$('#imStart').value, pack:$('#imMode').value === 'pack', over:$('#imOver').value, keepT:$('#imTeach').checked};
-}
-function imRefresh(){
-  const src = IM.list[+$('#imSrc').value], o = imOpts();
-  $('#imNextRow').hidden = !(src && src.cont);
-  if (!(src && src.cont)) $('#imNextWk').checked = false;
-  const pl = imPlan(Object.assign({}, o, {nextWk:$('#imNextWk').checked})), box = $('#imPreview'), go = $('#imGo');
-  if (!pl){ box.textContent = 'Pick a timetable to copy from.'; go.disabled = true; return; }
-  go.disabled = false;
-  let clashN = 0;
-  if (o.keepT) pl.placed.forEach(x => { if (x.lesson.teacher && clashes(x.td, x.ts, x.lesson.teacher, others(pl.keyOf(x.tw))).length) clashN++; });
-  const nEx = pl.placed.length, rng = pl.first.getTime() === pl.last.getTime() ? lvDay(pl.first) : lvDay(pl.first)+' to '+lvDay(pl.last);
-  box.innerHTML = '<b>'+nEx+(nEx === 1 ? ' exam' : ' exams')+'</b> over '+pl.dayCount+(pl.dayCount === 1 ? ' day' : ' days')+': '+esc(rng)+(pl.nWeeks > 1 ? '. It runs on into the following week.' : '.')+
-    (pl.replaced && o.over === 'replace' ? '<br>⚠ '+pl.replaced+' existing '+(pl.replaced === 1 ? 'exam' : 'exams')+' on those days will be replaced.' : '')+
-    (pl.replaced && o.over === 'fill' ? '<br>'+pl.replaced+' occupied '+(pl.replaced === 1 ? 'slot is' : 'slots are')+' kept as they are.' : '')+
-    (pl.skipped ? '<br>⚠ '+pl.skipped+' exams are left out because this timetable has fewer periods.' : '')+
-    (clashN ? '<br>⚠ '+clashN+' invigilator '+(clashN === 1 ? 'clash' : 'clashes')+' with other timetables. Review them after importing.' : '');
-}
-function openImport(){
-  if (!guard()) return;
-  IM.list = imSources();
-  if (!IM.list.length){ toast('There is no earlier timetable with exams to import yet.'); return; }
-  const tk = iso(S.sel);
-  let def = IM.list.findIndex(x => x.sec === S.section && x.key < tk); if (def < 0) def = IM.list.findIndex(x => x.key < tk); if (def < 0) def = 0;
-  /* for a series, offer its first week */
-  for (;;){   /* if that week is the tail of a series, start from the series' first week */
-    const prevKey = iso(addDays(parseIso(IM.list[def].key), -7)), at = IM.list.findIndex(x => x.sec === IM.list[def].sec && x.key === prevKey && x.cont);
-    if (at < 0) break; def = at;
-  }
-  $('#imTarget').textContent = S.section+' · '+weekLabel(S.sel, true);
-  $('#imSrc').innerHTML = IM.list.map((x,i) => '<option value="'+i+'">'+esc(x.sec+' · '+weekLabel(parseIso(x.key), true)+' · '+x.n+(x.n === 1 ? ' exam' : ' exams'))+'</option>').join('');
-  $('#imSrc').value = String(def);
-  const saved = lsGet('tt_v1_import', {}) || {};
-  $('#imStart').innerHTML = activeDayOffsets().slice().sort((a,b) => a-b).map(o => '<option value="'+o+'">'+DAYS_LONG[o]+'</option>').join('');
-  if (saved.start !== undefined && activeDayOffsets().includes(+saved.start)) $('#imStart').value = String(saved.start);
-  $('#imMode').value = saved.pack ? 'pack' : 'keep'; $('#imOver').value = saved.over || 'replace'; $('#imTeach').checked = saved.keepT !== false;
-  $('#imNextWk').checked = !!(IM.list[def] && IM.list[def].cont);
-  imRefresh(); $('#importDlg').showModal();
-}
-async function runImport(){
-  const o = imOpts(); o.nextWk = $('#imNextWk').checked;
-  const pl = imPlan(o); if (!pl || !guard()) return;
-  if (pl.replaced && o.over === 'replace' && !(await confirmBox('Replace exams?', pl.replaced+' existing '+(pl.replaced === 1 ? 'exam' : 'exams')+' on those days will be replaced by the imported timetable.', 'Replace'))) return;
-  lsSet('tt_v1_import', {start:o.start, pack:o.pack, over:o.over, keepT:o.keepT});
-  const weeks = {};
-  for (let tw = 0; tw < pl.nWeeks; tw++){ const k = pl.keyOf(tw); weeks[k] = S.weeks[k] ? JSON.parse(JSON.stringify(S.weeks[k])) : blankWeek(); }
-  if (o.over === 'replace'){ const cleared = new Set(); pl.placed.forEach(x => { const k = pl.keyOf(x.tw), id = k+':'+x.td; if (cleared.has(id)) return; cleared.add(id); weeks[k][x.td] = weeks[k][x.td].map(() => null); }); }
-  pl.placed.forEach(x => {
-    const k = pl.keyOf(x.tw); if (o.over === 'fill' && weeks[k][x.td][x.ts]) return;
-    const l = JSON.parse(JSON.stringify(x.lesson)); if (!o.keepT){ l.teacher = ''; l.teacherUid = ''; }
-    weeks[k][x.td][x.ts] = l;
-  });
-  const go = $('#imGo'); go.disabled = true;
-  try { for (const k of Object.keys(weeks)) await writeWeek(k, weeks[k]); $('#importDlg').close(); toast('Imported '+pl.placed.length+' exams: '+lvDay(pl.first)+' to '+lvDay(pl.last), 4200); }
-  catch(err){ toast('Could not import: '+(err && err.message || err), 5000); }
-  finally { go.disabled = false; }
-}
-$('#importBtn').addEventListener('click', openImport);
-$('#imCancel').addEventListener('click', () => $('#importDlg').close());
-$('#importForm').addEventListener('input', imRefresh);
-$('#importForm').addEventListener('submit', e => { e.preventDefault(); runImport(); });
 
 /* Include analytics: one switch shared by the print and PDF buttons, remembered on this device */
 S.anInclude = lsGet('tt_v1_an_inc', true) !== false;
@@ -4587,11 +3981,11 @@ window.addEventListener('beforeprint', () => {
   try {
     let scope, title, sub;
     if (document.body.classList.contains('combo-print')){
-      const dt = cbData(); scope = {secs:dt.secs, keys: cbNext() ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]};
+      const dt = cbData(); scope = {secs:dt.secs, keys: S.combo.next ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]};
       title = cbTitleText(); sub = dt.classes+' · '+dt.label;
     } else {
-      const key = iso(S.sel); scope = {secs:[S.section], keys: spanKeys(key)};
-      title = examTitleCur() || 'EXAMINATION TIMETABLE'; sub = S.section+' · '+spanLabel(key);
+      const key = iso(S.sel); scope = {secs:[S.section], keys: S.mergePrint ? [key, iso(addDays(S.sel,7))] : [key]};
+      title = examTitleCur() || 'EXAMINATION TIMETABLE'; sub = S.section+' · '+weekLabel(S.sel, true);
     }
     if (!anModel(scope).exams.length) return;
     box.innerHTML = anPrintHtml(scope, title, sub); document.body.classList.add('an-inc');

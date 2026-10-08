@@ -8,7 +8,6 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="stylesheet" href="./css/swalOnly.css">
 
-
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -709,7 +708,7 @@
     .back-to-top-btn svg{width:18px;height:18px;}
     .back-to-top-wrap.hidden{opacity:0;pointer-events:none;transform:translateY(10px);}
   </style>
-  <style id="clay-theme">
+  <!-- <style id="clay-theme">
     /* ═══════════ CLAYMORPHISM THEME (override layer) ═══════════
        Soft, puffy, rounded 3D surfaces: outer drop shadow + outer highlight + inner light/dark edges.
        Pressed / input states use inset shadows. Remove this block to restore the previous look. */
@@ -870,7 +869,7 @@
     .ghint{border-radius:20px;box-shadow:var(--clay-sm)}
     .auth-side-panel{box-shadow:var(--card-shadow)}
     @media (prefers-reduced-motion:reduce){.kpi-card:hover,.quick-tile:hover,.link-card:hover,.btn:hover:not(:disabled),.ql:hover,.icon-btn:hover{transform:none}}
-  </style>
+  </style> -->
 </head>
 <body>
   <div class="back-to-top-wrap hidden" id="backToTopWrap" aria-hidden="true">
@@ -2402,7 +2401,7 @@
 
   <script type="module">
     import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail, initializeRecaptchaConfig } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getDatabase, ref, get, set, push, update, remove, onValue, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     import { SessionManager } from './js/session-manager.js';
@@ -2428,6 +2427,7 @@
 
     const app = initializeApp(FB_CONFIG);
     const auth = getAuth(app);
+    initializeRecaptchaConfig(auth).catch(()=>{}); // Fraud Defense (reCAPTCHA Enterprise) for email/password flows
     const db = getDatabase(app);
     const fst = getFirestore(app);
 
@@ -3459,6 +3459,7 @@
         let secondaryApp = getApps().find(a => a.name === SECONDARY_APP_NAME);
         if(!secondaryApp) secondaryApp = initializeApp(FB_CONFIG, SECONDARY_APP_NAME);
         const secondaryAuth = getAuth(secondaryApp);
+        await initializeRecaptchaConfig(secondaryAuth).catch(()=>{});
         const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
         const uid = cred.user.uid;
         await secondaryAuth.signOut();

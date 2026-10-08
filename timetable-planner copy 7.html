@@ -462,10 +462,6 @@ table.combo{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
 .lvPerson{display:block;border-radius:10px;background:var(--band);padding:5px 9px;font-size:12.5px}.lvPerson small{display:block;font-weight:700;color:var(--muted);font-size:11px}
 @media print{.liveFab,#liveDlg{display:none!important}}
 
-#importDlg [hidden]{display:none!important}
-#importDlg .anInc{display:flex;flex-direction:row;justify-content:flex-start;align-items:center;text-align:left;gap:8px}
-#importDlg .anInc input{width:auto;flex:none}
-#importDlg select{width:100%;font:inherit;font-weight:700;border:2px solid var(--line);border-radius:12px;padding:9px 10px;background:var(--card);color:var(--text)}
 /* Advanced analytics */
 .anKpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 @media (max-width:760px){.anKpis{grid-template-columns:repeat(2,1fr)}}
@@ -619,7 +615,6 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
               <button class="btn sm" id="manageBtn" type="button">🏗️ Manage</button>
               <button class="btn sm" id="batchBtn" type="button">➕ Add several</button>
               <button class="btn sm" id="autoBtn" type="button">🪄 Auto-fill</button>
-              <button class="btn sm" id="importBtn" type="button">📥 Import previous</button>
             </div>
           </div>
           <div class="seg" id="sections" role="group" aria-label="Section"></div>
@@ -644,7 +639,6 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
             <button class="btn primary" id="cbPrintBtn" type="button">🖨️ Print combined sheet</button>
             <button class="btn" id="cbPdfBtn" type="button">Download PDF</button>
             <button class="btn" id="cbDutyBtn" type="button">🖨️ Duty roster for this sheet</button>
-            <label class="anInc" title="Leave unticked so teachers who teach more than one level appear once, with every duty across all levels"><input type="checkbox" id="cbDutyTicked"> Ticked classes only</label>
             <label class="anInc"><input type="checkbox" class="anIncCk" checked> Include analytics</label>
           </div>
           <div class="tt-scroll" id="cbPreview"></div>
@@ -783,38 +777,6 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
     </header>
     <div id="lvBody"></div>
   </div>
-</dialog>
-
-<dialog id="importDlg" aria-labelledby="imTitle">
-  <form class="dlg" id="importForm" novalidate>
-    <h2 id="imTitle">Import a previous timetable</h2>
-    <p class="muted">Copy an earlier timetable into <b id="imTarget"></b>. Choose the day it starts on; the exam days follow in the same order.</p>
-    <label>Copy from
-      <select id="imSrc"></select>
-    </label>
-    <label id="imNextRow" hidden class="anInc" style="margin:4px 0 8px"><input type="checkbox" id="imNextWk"> Bring the following week too (that timetable continues into it)</label>
-    <label>Start on
-      <select id="imStart"></select>
-    </label>
-    <label>Day order
-      <select id="imMode">
-        <option value="keep">Keep the same gaps between exam days</option>
-        <option value="pack">Pack exam days one after another</option>
-      </select>
-    </label>
-    <label>If a slot already has an exam
-      <select id="imOver">
-        <option value="replace">Replace it on the days being imported</option>
-        <option value="fill">Keep it, only fill empty slots</option>
-      </select>
-    </label>
-    <label class="anInc" style="margin:4px 0 8px"><input type="checkbox" id="imTeach" checked> Keep the invigilators</label>
-    <div class="empty-note" id="imPreview" role="status" style="display:block"></div>
-    <div class="acts">
-      <button type="button" class="btn" id="imCancel">Cancel</button>
-      <button type="submit" class="btn primary" id="imGo">Import</button>
-    </div>
-  </form>
 </dialog>
 
 <dialog id="lessonDlg" aria-labelledby="lTitle">
@@ -1600,7 +1562,7 @@ function cbSections(){                          // the ticked classes; until the
 }
 const cbName = (j, n) => (S.combo.names[j] || '').trim() || (n === 3 ? ['Morning','Mid Morning','Afternoon'][j] : n === 2 ? ['Morning','Mid Morning'][j] : 'Period '+(j+1));
 function cbData(){
-  const c = S.combo, secs = cbSections(), k1 = iso(S.sel), keys = cbNext() ? [k1, iso(addDays(S.sel,7))] : [k1];
+  const c = S.combo, secs = cbSections(), k1 = iso(S.sel), keys = c.next ? [k1, iso(addDays(S.sel,7))] : [k1];
   const idx = {}; let ncol = 0;
   secs.forEach(sec => { const sl = slotsOf(sec); idx[sec] = sl.map((x,i) => i).filter(i => !sl[i].brk); ncol = Math.max(ncol, idx[sec].length); });
   const days = [];
@@ -1652,14 +1614,14 @@ function cbNeedTitle(){                          // true (and points the user at
 function renderCombo(){
   const c = S.combo, on = new Set(cbSections());
   $('#cbSecs').innerHTML = S.sections.map(x => '<label><input type="checkbox" data-cbsec="'+esc(x)+'"'+(on.has(x) ? ' checked' : '')+'> '+esc(x)+'</label>').join('');
-  $('#cbNext').checked = cbNext(); $('#cbSep').checked = !!c.sep;
+  $('#cbNext').checked = !!c.next; $('#cbSep').checked = !!c.sep;
   const dt = cbData(), namesBox = $('#cbNames');
   if (!namesBox.contains(document.activeElement)){
     namesBox.innerHTML = dt.ncol ? '<span class="muted">Period names:</span>'+Array.from({length:dt.ncol}, (_, j) => '<input type="text" data-cbname="'+j+'" value="'+esc(cbName(j, dt.ncol))+'" aria-label="Name of period '+(j+1)+'">').join('') : '';
   }
   const ti = $('#cbTitleIn'); if (document.activeElement !== ti){ ti.value = c.title || ''; ti.placeholder = cbTitleRaw() ? 'Using the exam title: '+cbTitleRaw()+' (type here only to override)' : 'Enter the exam title in the box above the timetable first'; }
   const hint = $('#cbTitleHint'); if (hint){ hint.hidden = !!cbTitleRaw(); }
-  $('#cbPreview').innerHTML = dt.days.length ? cbTable(dt) : '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(cbNext() ? ' or the following week' : '')+'.</p>';
+  $('#cbPreview').innerHTML = dt.days.length ? cbTable(dt) : '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(c.next ? ' or the following week' : '')+'.</p>';
 }
 function printCombo(){
   if (cbNeedTitle()) return;
@@ -1679,21 +1641,8 @@ function rangeLabel(a, b){
 function spanKeys(key){
   key = key || iso(S.sel);
   const k2 = iso(addDays(parseIso(key),7));
-  return (countLessons(getWeek(key)) && countLessons(getWeek(k2)) && examGap([S.section], key)) ? [key, k2] : [key];
+  return (countLessons(getWeek(key)) && countLessons(getWeek(k2))) ? [key, k2] : [key];
 }
-/* Next week only counts as a continuation when the exams run straight on (at most a weekend, or a day either side, between the last exam
-   of this week and the first of the next). A later, separate exam series is never pulled into this one. */
-function examGap(secs, key){
-  const k2 = iso(addDays(parseIso(key),7));
-  return secs.some(sec => {
-    const a = weeksOf(sec)[key], b = weeksOf(sec)[k2]; if (!a || !b) return false;
-    let last = -1, first = 99;
-    a.forEach((day,d) => { if ((day||[]).some(Boolean)) last = d; });
-    b.forEach((day,d) => { if ((day||[]).some(Boolean) && d < first) first = d; });
-    return last >= 0 && first !== 99 && (7 + first) - last <= 4;
-  });
-}
-const cbNext = () => { const c = S.combo; if (!c.next) return false; return c.nextSet ? true : examGap(cbSections(), iso(S.sel)); };
 function spanLabel(key){
   const ks = spanKeys(key);
   if (ks.length < 2) return weekLabel(parseIso(ks[0]), true);
@@ -1782,7 +1731,7 @@ function renderGrid(){
     } else {
       note = '<div class="empty-note"><span>This week has no exams yet. '+
         (S.canEdit ? (hasPrev ? 'Copy last week to start, or tap a slot to add one.' : 'Tap a slot to add the first exam.') : 'Check back once it has been planned.')+'</span>'+
-        (S.canEdit && hasPrev ? '<button class="btn primary sm" id="copyPrev">Copy last week</button> ' : '')+(S.canEdit ? '<button class="btn sm" id="importBtn2" type="button">Import previous…</button>' : '')+'</div>';
+        (S.canEdit && hasPrev ? '<button class="btn primary sm" id="copyPrev">Copy last week</button>' : '')+'</div>';
     }
   }
   $('#emptyNote').innerHTML = note;
@@ -1942,7 +1891,7 @@ function renderUpcoming(){
 /* ---------- Analytics: workload, coverage, week-over-week history ---------- */
 const ROW_ORDER = [0,1,2,3,5,6,7,8,4];
 const anSecs = () => cbSections();                       // analytics follow the combined sheet's ticked classes
-const anKeys = () => cbNext() ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)];
+const anKeys = () => S.combo.next ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)];
 function workloadRows(){
   const map = {};
   anSecs().forEach(sec => anKeys().forEach(k => {
@@ -1964,12 +1913,12 @@ function renderWorkloadChart(){
     return '<div class="chartRow"><span class="lb" title="'+esc(t.name)+'">'+esc(t.name)+'</span>'+
       '<span class="track"><i style="width:'+Math.max(6,Math.round(t.n/max*100))+'%;background:var(--i'+c+')"></i></span>'+
       '<span class="val">'+t.n+'</span></div>';
-  }).join('') + '<p class="an-hint">Exams invigilated across '+anSecs().join(', ')+(cbNext() ? ' for '+weekLabel(S.sel,true)+' and the following week' : ', '+weekLabel(S.sel,true))+'.'+(LOAD.week ? ' Heavy load starts at '+LOAD.week+' exams in a week.' : '')+'</p>';
+  }).join('') + '<p class="an-hint">Exams invigilated across '+anSecs().join(', ')+(S.combo.next ? ' for '+weekLabel(S.sel,true)+' and the following week' : ', '+weekLabel(S.sel,true))+'.'+(LOAD.week ? ' Heavy load starts at '+LOAD.week+' exams in a week.' : '')+'</p>';
 }
 function renderCoverageChart(){
   const dt = cbData();
   if (!dt.ncol) return '<p class="muted">No exam periods set up yet.</p>';
-  if (!dt.days.length) return '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(cbNext() ? ' or the following week' : '')+'.</p>';
+  if (!dt.days.length) return '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(S.combo.next ? ' or the following week' : '')+'.</p>';
   const nCls = dt.secs.length; let filled = 0, total = 0;
   let h = '<div class="heatGrid" style="grid-template-columns:64px repeat('+dt.days.length+',1fr)">';
   h += '<div></div>' + dt.days.map(d => '<div style="text-align:center;font-weight:800;font-size:12px;color:var(--muted)">'+esc(DAYS[d.d])+'<br><small>'+d.date.getDate()+'/'+(d.date.getMonth()+1)+'</small></div>').join('');
@@ -1993,7 +1942,7 @@ function historyWeeks(n, scope){
   const cnt = k => secs.reduce((a,sec) => a + (weeksOf(sec)[k] ? countLessons(weeksOf(sec)[k]) : 0), 0);
   const keys = new Set([selKey]);
   secs.forEach(sec => Object.keys(weeksOf(sec)).forEach(k => { if (cnt(k) > 0) keys.add(k); }));
-  const limit = scope ? scope.keys[scope.keys.length-1] : (cbNext() ? iso(addDays(S.sel,7)) : selKey);
+  const limit = scope ? scope.keys[scope.keys.length-1] : (S.combo.next ? iso(addDays(S.sel,7)) : selKey);
   let list = Array.from(keys).sort();
   const upto = list.filter(k => k <= limit), after = list.filter(k => k > limit);
   list = upto.slice(-n);
@@ -2211,7 +2160,7 @@ function renderAnalytics(){
   const sub = document.querySelector('#analytics .card-h .sub'); if (sub) sub.textContent = m.secs.join(', ')+(m.range ? ' · '+m.range : '');
   $('#anTabs').innerHTML = AN_VIEWS.map(x => '<button type="button" data-an="'+x[0]+'" aria-pressed="'+(x[0] === v)+'">'+x[1]+(x[0] === 'issues' && m.issues ? ' <span class="anChip bad">'+m.issues+'</span>' : '')+'</button>').join('');
   let h;
-  if (!m.exams.length && v !== 'history') h = '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(cbNext() ? ' or the following week' : '')+'. Analytics appear as soon as exams are added.</p>';
+  if (!m.exams.length && v !== 'history') h = '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(S.combo.next ? ' or the following week' : '')+'. Analytics appear as soon as exams are added.</p>';
   else if (v === 'overview') h = anKpiHtml(m)+'<h3 class="anH">Key insights</h3>'+anInsightsHtml(m)+'<h3 class="anH">Daily load by period</h3>'+anDailyHtml(m)+'<h3 class="anH">Period mix</h3>'+anPeriodHtml(m);
   else if (v === 'workload') h = anWorkloadHtml(m);
   else if (v === 'daily') h = '<h3 class="anH">Daily load by period</h3>'+anDailyHtml(m)+'<h3 class="anH">Day by day</h3><div class="tt-scroll">'+anDaysTableHtml(m)+'</div><h3 class="anH">Period mix</h3>'+anPeriodHtml(m);
@@ -3214,7 +3163,6 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button, a'); if (!t) return;
   if (t.classList.contains('cell')){ if (guard()) openLesson(+t.dataset.d, +t.dataset.s); return; }
   if (t.classList.contains('tl')){ if (guard()) openSlot(+t.dataset.slot); return; }
-  if (t.id === 'importBtn2'){ openImport(); return; }
   if (t.id === 'copyPrev'){ copyWeek(iso(addDays(S.sel,-7)), iso(S.sel)); return; }
   if (t.id === 'loadSeed'){ loadSeed(); return; }
   if (t.id === 'mergePrintBtn'){ printMerged(); return; }
@@ -3782,7 +3730,7 @@ async function buildComboPdf(dt){
       doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,90,90); doc.text(dt.classes + '  |  ' + dt.label, W/2, 38, { align:'center' });
       chromed.add(doc.internal.getCurrentPageInfo().pageNumber);
     };
-    anAppendPdf(doc, {W, H, paint:paintC, overflow}, {secs:dt.secs, keys: cbNext() ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]});
+    anAppendPdf(doc, {W, H, paint:paintC, overflow}, {secs:dt.secs, keys: S.combo.next ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]});
   }
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
@@ -3894,30 +3842,19 @@ async function buildCombinedDutyPdf(){
   const A = await pdfAssets();
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
   const dt = cbData(), title = cbTitleText(), printed = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-  /* The master roster cuts across levels: a teacher who invigilates Upper Primary and Junior School appears once, with every duty.
-     Unless "Ticked classes only" is on, it reads every timetable in the school for the same days as the combined sheet. */
-  const onlyTicked = !!($('#cbDutyTicked') && $('#cbDutyTicked').checked);
-  const secs = onlyTicked ? dt.secs : S.sections.slice();
-  const keys = cbNext() ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)];
-  const levelOf = sec => { const st = stageOfGrades(gradesOf(sec)); return st && st.name ? st.name : sec; };
-  const duty = {}, unassigned = []; let first = null, last = null;
-  secs.forEach(sec => {
-    const sl = slotsOf(sec), idx = sl.map((x,i) => i).filter(i => !sl[i].brk), lvl = levelOf(sec);
-    keys.forEach(k => {
-      const wk = weeksOf(sec)[k], mon = parseIso(k); if (!wk) return;
-      for (let d = 0; d < 7; d++) idx.forEach(si => {
-        const l = wk[d] && wk[d][si]; if (!l) return;
-        const slot = sl[si], date = addDays(mon, d);
-        if (!first || date < first) first = date; if (!last || date > last) last = date;
-        const item = {date, d, sec, lvl, start:toMin(slot.start), end:toMin(slot.end), t:fmtTime(slot.start)+' - '+fmtTime(slot.end), subject:l.subject, note:l.note||''};
-        if (!l.teacher){ unassigned.push(item); return; }
-        const nk = normName(l.teacher), t = duty[nk] || (duty[nk] = {name:l.teacher, items:[]});
-        t.items.push(item);
-      });
+  /* gather duties from the same days and classes as the combined sheet */
+  const duty = {}, unassigned = [];
+  dt.days.forEach(day => day.rows.forEach(r => {
+    const sl = slotsOf(r.sec), idx = sl.map((x,i) => i).filter(i => !sl[i].brk);
+    r.cells.forEach((l, j) => {
+      if (!l) return;
+      const slot = sl[idx[j]], start = toMin(slot.start), end = toMin(slot.end);
+      const item = {date:day.date, d:day.d, sec:r.sec, start, end, t:fmtTime(slot.start)+' - '+fmtTime(slot.end), subject:l.subject, note:l.note||''};
+      if (!l.teacher){ unassigned.push(item); return; }
+      const k = normName(l.teacher), t = duty[k] || (duty[k] = {name:l.teacher, items:[]});
+      t.items.push(item);
     });
-  });
-  const rangeTxt = first ? rangeLabel(first, last) : dt.label;
-  const scopeTxt = onlyTicked ? dt.classes : 'All classes and levels';
+  }));
   const names = Object.keys(duty).sort((a,b) => duty[a].name.localeCompare(duty[b].name));
   if (!names.length) return false;
   names.forEach(k => {
@@ -3939,8 +3876,8 @@ async function buildCombinedDutyPdf(){
     doc.setFontSize(11); doc.text('P O BOX 45 - 40139, AKALA, KENYA', tx, 16);
     doc.setFontSize(9); doc.setFont('helvetica','normal');
     doc.text('Date: ' + printed, W-14, 8, { align:'right' });
-    doc.text(doc.splitTextToSize(scopeTxt, 70)[0], W-14, 13, { align:'right' });
-    doc.text('Exam days: ' + rangeTxt, W-14, 18, { align:'right' });
+    doc.text(doc.splitTextToSize(dt.classes, 70)[0], W-14, 13, { align:'right' });
+    doc.text('Exam days: ' + dt.label, W-14, 18, { align:'right' });
     doc.setTextColor(...PDF_BLUE); doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.text(head, W/2, 30, { align:'center' });
     doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,90,90); doc.text(sub || title, W/2, 35, { align:'center' });
     doc.setDrawColor(...PDF_BLUE); doc.setLineWidth(0.5); doc.line(10, 37, W-10, 37);
@@ -3961,28 +3898,28 @@ async function buildCombinedDutyPdf(){
   const tableBase = { theme:'grid', margin:{top:25,right:12,bottom:25,left:12}, styles:{fontSize:9.5,cellPadding:2.6,lineColor:[210,218,228],lineWidth:0.3,valign:'middle',textColor:[60,60,60]},
     headStyles:{fillColor:PDF_BLUE,textColor:[255,255,255],fontStyle:'bold',halign:'center'}, alternateRowStyles:{fillColor:[245,248,252]}, didDrawPage:overflow };
   /* page 1: master roster for the whole sheet */
-  drawChrome('INVIGILATION ROSTER', title+'  |  '+scopeTxt);
+  drawChrome('INVIGILATION ROSTER', title+'  |  '+dt.classes);
   doc.autoTable(Object.assign({}, tableBase, { startY:40,
-    head:[['INVIGILATOR','EXAMS','LEVELS','DUTIES']],
-    body:names.map(k => { const t = duty[k]; return [t.name, String(t.items.length), Array.from(new Set(t.items.map(x => x.lvl))).join('\n'), t.items.map(x => dayTxt(x).slice(0,3)+' '+x.date.getDate()+'/'+(x.date.getMonth()+1)+'  '+x.t+'  '+x.sec+' '+x.subject+(x.clash ? '  [CLASH with '+x.clash+']' : '')).join('\n')]; }),
-    columnStyles:{0:{cellWidth:34,fontStyle:'bold'},1:{cellWidth:20,halign:'center'},2:{cellWidth:30},3:{cellWidth:'auto',fontSize:8.5}} }));
+    head:[['INVIGILATOR','EXAMS','CLASSES','DUTIES']],
+    body:names.map(k => { const t = duty[k]; return [t.name, String(t.items.length), Array.from(new Set(t.items.map(x => x.sec))).join(', '), t.items.map(x => dayTxt(x).slice(0,3)+' '+x.date.getDate()+'/'+(x.date.getMonth()+1)+'  '+x.t+'  '+x.sec+' '+x.subject+(x.clash ? '  [CLASH]' : '')).join('\n')]; }),
+    columnStyles:{0:{cellWidth:36,fontStyle:'bold'},1:{cellWidth:20,halign:'center'},2:{cellWidth:30},3:{cellWidth:'auto',fontSize:8.5}} }));
   if (unassigned.length){
     let y = doc.lastAutoTable.finalY + 8; if (y > H-60){ doc.addPage(); drawChrome('EXAMS WITHOUT AN INVIGILATOR'); y = 42; }
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(192,57,43); doc.text('Exams without an invigilator ('+unassigned.length+')', 12, y);
-    doc.autoTable(Object.assign({}, tableBase, { startY:y+3, head:[['DAY','TIME','CLASS','SUBJECT']], body:unassigned.sort((a,b) => a.date - b.date || a.start - b.start).map(x => [dayTxt(x), x.t, x.sec+(x.lvl !== x.sec ? ' ('+x.lvl+')' : ''), x.subject]) }));
+    doc.autoTable(Object.assign({}, tableBase, { startY:y+3, head:[['DAY','TIME','CLASS','SUBJECT']], body:unassigned.sort((a,b) => a.date - b.date || a.start - b.start).map(x => [dayTxt(x), x.t, x.sec, x.subject]) }));
   }
   /* then one page per invigilator, covering every class they invigilate */
   names.forEach(k => {
     const t = duty[k];
-    doc.addPage(); drawChrome('INVIGILATION DUTY - '+t.name.toUpperCase(), title+'  |  '+Array.from(new Set(t.items.map(x => x.lvl))).join(' + '));
+    doc.addPage(); drawChrome('INVIGILATION DUTY - '+t.name.toUpperCase(), title+'  |  '+dt.classes);
     doc.autoTable(Object.assign({}, tableBase, { startY:40,
-      head:[['DAY','TIME','CLASS','SUBJECT','NOTE']], body:t.items.map(x => [dayTxt(x), x.t, x.sec+(x.lvl !== x.sec ? '\n('+x.lvl+')' : ''), x.subject, (x.note ? x.note+' ' : '')+(x.clash ? '(clash with '+x.clash+')' : '')]),
-      columnStyles:{0:{cellWidth:36},1:{cellWidth:36},2:{cellWidth:34}},
+      head:[['DAY','TIME','CLASS','SUBJECT','NOTE']], body:t.items.map(x => [dayTxt(x), x.t, x.sec, x.subject, (x.note ? x.note+' ' : '')+(x.clash ? '(clash with '+x.clash+')' : '')]),
+      columnStyles:{0:{cellWidth:38},1:{cellWidth:38},2:{cellWidth:26}},
       didParseCell: d => { if (d.section === 'body' && t.items[d.row.index].clash) d.cell.styles.textColor = [192,57,43]; } }));
   });
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
-  doc.save((title + ' Invigilation Roster ' + scopeTxt + ' ' + rangeTxt).replace(/[^\w\-]+/g, '_') + '.pdf');
+  doc.save((title + ' Invigilation Roster ' + dt.classes + ' ' + dt.label).replace(/[^\w\-]+/g, '_') + '.pdf');
   return true;
 }
 async function exportCombinedDuty(){
@@ -4459,121 +4396,6 @@ $('#lvTv').addEventListener('click', () => {
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement){ const d = $('#liveDlg'); d.classList.remove('lvTvMode'); $('#lvTv').textContent = 'Full screen'; } });
 setInterval(lvFab, 30000); setTimeout(lvFab, 1500);
 
-
-/* ---------- Import a previous timetable into the selected week, starting on any day ---------- */
-const IM = {list:[]};
-function imSources(){
-  const tk = iso(S.sel), out = [];
-  S.sections.forEach(sec => {
-    const ws = weeksOf(sec);
-    Object.keys(ws).forEach(k => {
-      if (!countLessons(ws[k]) || (sec === S.section && k === tk)) return;
-      out.push({sec, key:k, n:countLessons(ws[k]), cont:examGap([sec], k)});
-    });
-  });
-  return out.sort((a,b) => b.key.localeCompare(a.key) || a.sec.localeCompare(b.sec));
-}
-function imOffsets(srcWeeks){
-  const set = new Set(activeDayOffsets());
-  srcWeeks.forEach(w => w.wk.forEach((day,d) => { if ((day||[]).some(Boolean)) set.add(d); }));
-  return Array.from(set).sort((a,b) => a-b);
-}
-/* Work out where every source exam lands. Returns {placed:[{wi,d,j,lesson}], weeks:[keys touched], skipped, first, last, replaced} */
-function imPlan(opts){
-  const src = IM.list[opts.src]; if (!src) return null;
-  const srcWeeks = [{key:src.key, wk:weeksOf(src.sec)[src.key]}];
-  if (opts.nextWk && src.cont) srcWeeks.push({key:iso(addDays(parseIso(src.key),7)), wk:weeksOf(src.sec)[iso(addDays(parseIso(src.key),7))]});
-  const offs = imOffsets(srcWeeks), nA = offs.length;
-  const sSl = slotsOf(src.sec), sIdx = sSl.map((x,i) => i).filter(i => !sSl[i].brk);
-  const tIdx = S.slots.map((x,i) => i).filter(i => !S.slots[i].brk);
-  /* ordinal of each source exam day among school days, so weekends never count */
-  const days = [];
-  srcWeeks.forEach((w,wi) => (w.wk||[]).forEach((day,d) => { if ((day||[]).some(Boolean)) days.push({ord:wi*nA + offs.indexOf(d), wi, d}); }));
-  days.sort((a,b) => a.ord - b.ord);
-  if (!days.length) return null;
-  const startOrd = Math.max(0, offs.indexOf(opts.start)), base = days[0].ord;
-  const placed = [], touched = new Set(); let skipped = 0;
-  days.forEach((sd, rank) => {
-    const tord = opts.pack ? startOrd + rank : startOrd + (sd.ord - base);
-    const tw = Math.floor(tord / nA), td = offs[tord % nA], w = srcWeeks[sd.wi].wk[sd.d];
-    sIdx.forEach((si, j) => {
-      const l = w[si]; if (!l) return;
-      if (j >= tIdx.length){ skipped++; return; }
-      placed.push({tw, td, ts:tIdx[j], j, lesson:l, ord:tord});
-      touched.add(tw);
-    });
-  });
-  const dayKeys = Array.from(new Set(placed.map(x => x.tw+':'+x.td)));
-  const target0 = iso(S.sel), keyOf = tw => iso(addDays(parseIso(target0), 7*tw));
-  let replaced = 0;
-  placed.forEach(x => { const cur = S.weeks[keyOf(x.tw)]; if (cur && cur[x.td] && cur[x.td][x.ts]) replaced++; });
-  const ords = placed.map(x => x.ord), lo = placed.reduce((a,x) => x.ord < a.ord ? x : a, placed[0]), hi = placed.reduce((a,x) => x.ord > a.ord ? x : a, placed[0]);
-  const dateOf = x => addDays(parseIso(keyOf(x.tw)), x.td);
-  return {placed, keyOf, skipped, replaced, srcWeeks, nWeeks:Math.max.apply(null, placed.map(x => x.tw))+1, first:dateOf(lo), last:dateOf(hi), dayCount:dayKeys.length, src};
-}
-function imOpts(){
-  return {src:+$('#imSrc').value, nextWk:$('#imNextWk').checked, start:+$('#imStart').value, pack:$('#imMode').value === 'pack', over:$('#imOver').value, keepT:$('#imTeach').checked};
-}
-function imRefresh(){
-  const src = IM.list[+$('#imSrc').value], o = imOpts();
-  $('#imNextRow').hidden = !(src && src.cont);
-  if (!(src && src.cont)) $('#imNextWk').checked = false;
-  const pl = imPlan(Object.assign({}, o, {nextWk:$('#imNextWk').checked})), box = $('#imPreview'), go = $('#imGo');
-  if (!pl){ box.textContent = 'Pick a timetable to copy from.'; go.disabled = true; return; }
-  go.disabled = false;
-  let clashN = 0;
-  if (o.keepT) pl.placed.forEach(x => { if (x.lesson.teacher && clashes(x.td, x.ts, x.lesson.teacher, others(pl.keyOf(x.tw))).length) clashN++; });
-  const nEx = pl.placed.length, rng = pl.first.getTime() === pl.last.getTime() ? lvDay(pl.first) : lvDay(pl.first)+' to '+lvDay(pl.last);
-  box.innerHTML = '<b>'+nEx+(nEx === 1 ? ' exam' : ' exams')+'</b> over '+pl.dayCount+(pl.dayCount === 1 ? ' day' : ' days')+': '+esc(rng)+(pl.nWeeks > 1 ? '. It runs on into the following week.' : '.')+
-    (pl.replaced && o.over === 'replace' ? '<br>⚠ '+pl.replaced+' existing '+(pl.replaced === 1 ? 'exam' : 'exams')+' on those days will be replaced.' : '')+
-    (pl.replaced && o.over === 'fill' ? '<br>'+pl.replaced+' occupied '+(pl.replaced === 1 ? 'slot is' : 'slots are')+' kept as they are.' : '')+
-    (pl.skipped ? '<br>⚠ '+pl.skipped+' exams are left out because this timetable has fewer periods.' : '')+
-    (clashN ? '<br>⚠ '+clashN+' invigilator '+(clashN === 1 ? 'clash' : 'clashes')+' with other timetables. Review them after importing.' : '');
-}
-function openImport(){
-  if (!guard()) return;
-  IM.list = imSources();
-  if (!IM.list.length){ toast('There is no earlier timetable with exams to import yet.'); return; }
-  const tk = iso(S.sel);
-  let def = IM.list.findIndex(x => x.sec === S.section && x.key < tk); if (def < 0) def = IM.list.findIndex(x => x.key < tk); if (def < 0) def = 0;
-  /* for a series, offer its first week */
-  for (;;){   /* if that week is the tail of a series, start from the series' first week */
-    const prevKey = iso(addDays(parseIso(IM.list[def].key), -7)), at = IM.list.findIndex(x => x.sec === IM.list[def].sec && x.key === prevKey && x.cont);
-    if (at < 0) break; def = at;
-  }
-  $('#imTarget').textContent = S.section+' · '+weekLabel(S.sel, true);
-  $('#imSrc').innerHTML = IM.list.map((x,i) => '<option value="'+i+'">'+esc(x.sec+' · '+weekLabel(parseIso(x.key), true)+' · '+x.n+(x.n === 1 ? ' exam' : ' exams'))+'</option>').join('');
-  $('#imSrc').value = String(def);
-  const saved = lsGet('tt_v1_import', {}) || {};
-  $('#imStart').innerHTML = activeDayOffsets().slice().sort((a,b) => a-b).map(o => '<option value="'+o+'">'+DAYS_LONG[o]+'</option>').join('');
-  if (saved.start !== undefined && activeDayOffsets().includes(+saved.start)) $('#imStart').value = String(saved.start);
-  $('#imMode').value = saved.pack ? 'pack' : 'keep'; $('#imOver').value = saved.over || 'replace'; $('#imTeach').checked = saved.keepT !== false;
-  $('#imNextWk').checked = !!(IM.list[def] && IM.list[def].cont);
-  imRefresh(); $('#importDlg').showModal();
-}
-async function runImport(){
-  const o = imOpts(); o.nextWk = $('#imNextWk').checked;
-  const pl = imPlan(o); if (!pl || !guard()) return;
-  if (pl.replaced && o.over === 'replace' && !(await confirmBox('Replace exams?', pl.replaced+' existing '+(pl.replaced === 1 ? 'exam' : 'exams')+' on those days will be replaced by the imported timetable.', 'Replace'))) return;
-  lsSet('tt_v1_import', {start:o.start, pack:o.pack, over:o.over, keepT:o.keepT});
-  const weeks = {};
-  for (let tw = 0; tw < pl.nWeeks; tw++){ const k = pl.keyOf(tw); weeks[k] = S.weeks[k] ? JSON.parse(JSON.stringify(S.weeks[k])) : blankWeek(); }
-  if (o.over === 'replace'){ const cleared = new Set(); pl.placed.forEach(x => { const k = pl.keyOf(x.tw), id = k+':'+x.td; if (cleared.has(id)) return; cleared.add(id); weeks[k][x.td] = weeks[k][x.td].map(() => null); }); }
-  pl.placed.forEach(x => {
-    const k = pl.keyOf(x.tw); if (o.over === 'fill' && weeks[k][x.td][x.ts]) return;
-    const l = JSON.parse(JSON.stringify(x.lesson)); if (!o.keepT){ l.teacher = ''; l.teacherUid = ''; }
-    weeks[k][x.td][x.ts] = l;
-  });
-  const go = $('#imGo'); go.disabled = true;
-  try { for (const k of Object.keys(weeks)) await writeWeek(k, weeks[k]); $('#importDlg').close(); toast('Imported '+pl.placed.length+' exams: '+lvDay(pl.first)+' to '+lvDay(pl.last), 4200); }
-  catch(err){ toast('Could not import: '+(err && err.message || err), 5000); }
-  finally { go.disabled = false; }
-}
-$('#importBtn').addEventListener('click', openImport);
-$('#imCancel').addEventListener('click', () => $('#importDlg').close());
-$('#importForm').addEventListener('input', imRefresh);
-$('#importForm').addEventListener('submit', e => { e.preventDefault(); runImport(); });
-
 /* Include analytics: one switch shared by the print and PDF buttons, remembered on this device */
 S.anInclude = lsGet('tt_v1_an_inc', true) !== false;
 document.querySelectorAll('.anIncCk').forEach(ck => {
@@ -4587,7 +4409,7 @@ window.addEventListener('beforeprint', () => {
   try {
     let scope, title, sub;
     if (document.body.classList.contains('combo-print')){
-      const dt = cbData(); scope = {secs:dt.secs, keys: cbNext() ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]};
+      const dt = cbData(); scope = {secs:dt.secs, keys: S.combo.next ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)]};
       title = cbTitleText(); sub = dt.classes+' · '+dt.label;
     } else {
       const key = iso(S.sel); scope = {secs:[S.section], keys: spanKeys(key)};

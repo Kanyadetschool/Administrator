@@ -378,7 +378,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithCredential, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithCredential, GoogleAuthProvider, signOut, initializeRecaptchaConfig } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     import { GoogleOneTap } from './js/google-one-tap.js';
     import { SessionManager } from './js/session-manager.js';
@@ -388,6 +388,7 @@
 
     const app = initializeApp(FIREBASE_CONFIG);
     const auth = getAuth(app);
+    initializeRecaptchaConfig(auth).catch(()=>{}); // Fraud Defense (reCAPTCHA Enterprise) for email/password sign-in
     const fst = getFirestore(app);
 
     function $(id){ return document.getElementById(id); }
