@@ -466,6 +466,19 @@ table.combo{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
 #importDlg .anInc{display:flex;flex-direction:row;justify-content:flex-start;align-items:center;text-align:left;gap:8px}
 #importDlg .anInc input{width:auto;flex:none}
 #importDlg select{width:100%;font:inherit;font-weight:700;border:2px solid var(--line);border-radius:12px;padding:9px 10px;background:var(--card);color:var(--text)}
+/* Cover / swap, now strip */
+#dutyDlg [hidden]{display:none!important}
+#dutyDlg select{width:100%;font:inherit;font-weight:700;border:2px solid var(--line);border-radius:12px;padding:9px 10px;background:var(--card);color:var(--text)}
+#dutyDlg{width:min(620px,calc(100vw - 24px))}
+.dtRow{display:grid;gap:4px;margin:8px 0}.dtRow .lb{font-size:12.5px;font-weight:800;color:var(--muted)}
+#dtDone{margin:10px 0}#dtDone .btn{margin:4px 6px 4px 0}
+.nowStrip{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:2px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:9px 14px;margin:0 0 10px;font:inherit;font-size:13.5px;cursor:pointer}
+.nowStrip[hidden]{display:none}
+.nowStrip b{font-weight:900}.nowStrip span{font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nowStrip em{font-style:normal;color:#C0392B;font-weight:900}
+.nowStrip u{text-decoration:none;font-weight:900;color:var(--accent)}
+.nowStrip .dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+.nowStrip.on{border-color:var(--ok)}.nowStrip.on .dot{background:var(--ok);animation:lvPing 1.6s ease-out infinite}
+@media print{.nowStrip{display:none!important}}
 /* Advanced analytics */
 .anKpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 @media (max-width:760px){.anKpis{grid-template-columns:repeat(2,1fr)}}
@@ -571,6 +584,7 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
   <main class="main" id="top">
     <header class="top">
       <div>
+        <button type="button" class="nowStrip" id="nowStrip" hidden></button>
         <h1 id="greet">Good morning!</h1>
         <p id="subgreet"></p>
         <p id="termProgress" class="termProgress" hidden></p>
@@ -620,6 +634,8 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
               <button class="btn sm" id="batchBtn" type="button">➕ Add several</button>
               <button class="btn sm" id="autoBtn" type="button">🪄 Auto-fill</button>
               <button class="btn sm" id="importBtn" type="button">📥 Import previous</button>
+              <button class="btn sm" id="dutyBtn" type="button">🔁 Cover / swap</button>
+              <button class="btn sm" id="undoBtn" type="button" hidden>↩ Undo</button>
             </div>
           </div>
           <div class="seg" id="sections" role="group" aria-label="Section"></div>
@@ -686,9 +702,7 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
             <button class="btn" id="anPdfBtn" type="button">📊 Export analytics PDF</button>
             <button class="btn" id="cardsBtn" type="button">🎫 Exam cards for learners</button>
             <button class="btn ghost" id="autoFillBtn" type="button">✨ Auto-assign invigilators</button>
-            <label style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:12.5px;color:var(--muted);cursor:pointer">
-              <input type="checkbox" id="afLevelPref" checked style="width:auto;margin:0"> Require invigilators authorized for this level
-            </label>
+            <span class="muted" style="font-size:12.5px;font-weight:800">Only teachers of this class's level are used.</span>
           </div>
         </section>
       </div>
@@ -813,6 +827,30 @@ table.anT{width:100%;border-collapse:collapse;font-size:12.5px}
     <div class="acts">
       <button type="button" class="btn" id="imCancel">Cancel</button>
       <button type="submit" class="btn primary" id="imGo">Import</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dutyDlg" aria-labelledby="dtTitle">
+  <form class="dlg" id="dutyForm" novalidate>
+    <h2 id="dtTitle">Cover or swap invigilators</h2>
+    <label>What do you need?
+      <select id="dtMode"><option value="cover">Cover for an absent invigilator</option><option value="swap">Swap two invigilators</option></select>
+    </label>
+    <div id="dtCover">
+      <label>Absent invigilator <select id="dtWho"></select></label>
+      <label>Which day <select id="dtDay"></select></label>
+      <div id="dtRows"></div>
+    </div>
+    <div id="dtSwap" hidden>
+      <label>First exam <select id="dtA"></select></label>
+      <label>Second exam <select id="dtB"></select></label>
+    </div>
+    <div class="empty-note" id="dtNote" role="status" style="display:block"></div>
+    <div id="dtDone" hidden></div>
+    <div class="acts">
+      <button type="button" class="btn" id="dtCancel">Cancel</button>
+      <button type="submit" class="btn primary" id="dtGo">Apply</button>
     </div>
   </form>
 </dialog>
@@ -1165,6 +1203,21 @@ function gradeLabel(g){
   }
   return (g.length === 1 ? 'Grade ' : 'Grades ')+parts.join(', ');
 }
+/* Level rule: an invigilator must teach the level (stage) of the class, e.g. a Lower Primary teacher never invigilates Junior School. */
+const CBC_LEVELS = [[1,3,'Lower Primary'],[4,6,'Upper Primary'],[7,9,'Junior School'],[10,12,'Senior School']];   // used when the stage settings list one grade per stage
+const stageWide = g => STAGES.find(st => st.grades.includes(+g) && st.grades.length > 1);
+const cbcOf = g => CBC_LEVELS.find(x => g >= x[0] && g <= x[1]);
+const stageKey = g => { const st = stageWide(g); if (st) return 's:'+st.name; const c = cbcOf(+g); return c ? 'c:'+c[2] : 'g'+g; };
+const levelNameOfGrade = g => { const st = stageWide(g); if (st) return st.name; const c = cbcOf(+g); return c ? c[2] : 'Grade '+g; };
+const levelSet = gr => new Set(Array.from(gr || []).map(Number).filter(g => g > 0).map(stageKey));
+function teachesLevel(t, sec){            // true / false, or null when we don't know which levels this teacher teaches
+  const tg = t && t.grades ? Array.from(t.grades) : [], sg = gradesOf(sec || S.section);
+  if (!tg.length || !sg.length) return null;
+  const a = levelSet(tg); return Array.from(levelSet(sg)).some(x => a.has(x));
+}
+const teacherLevelsTxt = t => Array.from(new Set((t && t.grades ? Array.from(t.grades) : []).map(Number).filter(g => g > 0).map(levelNameOfGrade))).join(' and ');
+const classLevelTxt = sec => { const g = gradesOf(sec); return g.length ? Array.from(new Set(g.map(levelNameOfGrade))).join(' / ') : sec; };
+const wrongLevelFor = (name, sec) => { const info = teacherInfo(name); return !!(info && teachesLevel(info, sec) === false); };
 function stageOfGrades(g){
   let best = null, top = 0;
   STAGES.forEach(st => { const n = st.grades.filter(x => g.includes(x)).length; if (n > top){ top = n; best = st; } });
@@ -1251,9 +1304,8 @@ function checkLesson(d, si, les, oth, pending){ // everything worth a warning fo
     if (e){ out.weekN = e.week; out.dayN = e.day[d] || 0; }
     const info = teacherInfo(les.teacher);
     if (info){
-      out.ownSubject = !!(les.subject && sameSubject(info.subject, les.subject));
-      const secGrades = gradesOf(S.section);
-      out.levelMismatch = !!(secGrades.length && Array.isArray(info.grades) && info.grades.length && !secGrades.some(g => info.grades.includes(g)));
+      out.ownSubject = !!(les.subject && teachesSubjectIn(info, les.subject, S.section));
+      out.levelMismatch = teachesLevel(info, S.section) === false;
     }
   }
   out.room = roomClashes(d, si, les.note, oth);
@@ -2012,7 +2064,7 @@ function renderHistoryChart(scope){
   return '<div class="histBars">'+bars+'</div><p class="an-hint">The selected week has '+cmp+' Bars show weeks with exams (of up to '+rows[0].total+' slots) — tap a bar to open that week.</p>';
 }
 /* ---------- Advanced analytics: one model feeds the screen, the print sheet and every PDF ---------- */
-const AN_VIEWS = [['overview','📊 Overview'],['workload','👩‍🏫 Invigilators'],['daily','📅 Days & periods'],['classes','🏫 Classes'],['subjects','📚 Subjects'],['coverage','🗓️ Coverage'],['history','📈 History'],['issues','⚠️ Issues']];
+const AN_VIEWS = [['overview','📊 Overview'],['workload','👩‍🏫 Invigilators'],['daily','📅 Days & periods'],['classes','🏫 Classes'],['subjects','📚 Subjects'],['coverage','🗓️ Coverage'],['history','📈 History'],['series','🗂️ Series'],['issues','⚠️ Issues']];
 const anPct = (a,b) => b ? Math.round(a/b*100) : 0;
 const anScope = () => ({secs: anSecs(), keys: anKeys()});
 const anShortDate = d => DAYS[(d.getDay()+6)%7]+' '+d.getDate()+' '+MS[d.getMonth()];
@@ -2035,7 +2087,7 @@ function anModel(scope){
   });
   const usedKeys = keys.filter(k => ex.some(x => x.key === k)), nKeys = (usedKeys.length || keys.length || 1);
   const ncol = secs.reduce((a,s) => Math.max(a, secN[s]||0), 0);
-  const T = {}, D = {}, P = {}, C = {}, SUB = {};
+  const T = {}, D = {}, P = {}, C = {}, SUB = {}, wrongLevel = [];
   secs.forEach(sec => { C[sec] = {sec, n:0, un:0, days:new Set(), teachers:new Set(), subjects:new Set(), first:null, last:null, cap:activeDayOffsets().length*(secN[sec]||0)*nKeys}; });
   ex.forEach(x => {
     const c = C[x.sec]; c.n++; c.days.add(x.dk); c.subjects.add(x.l.subject.trim().toLowerCase());
@@ -2045,6 +2097,7 @@ function anModel(scope){
     const sk = x.l.subject.trim().toLowerCase(), sb = SUB[sk] || (SUB[sk] = {name:x.l.subject.trim(), n:0, classes:new Set(), days:new Set()});
     sb.n++; sb.classes.add(x.sec); sb.days.add(x.dk);
     if (!x.l.teacher){ c.un++; dd.un++; x.un = true; return; }
+    if (wrongLevelFor(x.l.teacher, x.sec)) wrongLevel.push(x);
     const k = normName(x.l.teacher), t = T[k] || (T[k] = {name:x.l.teacher, n:0, mins:0, days:{}, classes:new Set(), subjects:new Set(), wk:{}});
     t.n++; t.mins += x.e - x.s; t.days[x.dk] = (t.days[x.dk]||0)+1; t.classes.add(x.sec); t.subjects.add(x.l.subject); t.wk[x.key] = (t.wk[x.key]||0)+1;
     c.teachers.add(k); dd.staff.add(k);
@@ -2079,8 +2132,8 @@ function anModel(scope){
   const hoursTotal = tl.reduce((a,t) => a+t.hours, 0);
   const m = {secs, keys, exams:ex, secN, ncol, days, teachers:tl, periods:P, classes, subjects, clash, venue, unassigned, idle, rosterN:roster.length,
     peak, peakAt, mean, median, jain, capTotal, hoursTotal, max:counts.length ? sorted[sorted.length-1] : 0, min:counts.length ? sorted[0] : 0,
-    heavy: tl.filter(t => t.heavy), range: days.length ? rangeLabel(days[0].date, days[days.length-1].date) : ''};
-  m.issues = clash.length + venue.length + unassigned.length;
+    wrongLevel, heavy: tl.filter(t => t.heavy), range: days.length ? rangeLabel(days[0].date, days[days.length-1].date) : ''};
+  m.issues = clash.length + venue.length + unassigned.length + wrongLevel.length;
   m.insights = anInsights(m);
   return m;
 }
@@ -2096,6 +2149,7 @@ function anInsights(m){
     else add(m.jain >= 65 ? 'warn' : 'bad', 'Invigilation is uneven (balance score '+m.jain+'%): '+top.name+' has '+top.n+' exams while '+low.name+' has '+low.n+'.');
     if (m.heavy.length) add('warn', m.heavy.length+(m.heavy.length===1?' invigilator is':' invigilators are')+' at or above the heavy-load limit ('+LOAD.day+' a day or '+LOAD.week+' a week): '+m.heavy.slice(0,4).map(t => t.name).join(', ')+(m.heavy.length>4?' and others':'')+'.');
   } else add('warn', 'No invigilators have been assigned yet.');
+  if (m.wrongLevel.length) add('bad', m.wrongLevel.length+(m.wrongLevel.length === 1 ? ' exam is' : ' exams are')+' invigilated by a teacher of a different level, e.g. '+m.wrongLevel[0].l.teacher+' ('+teacherLevelsTxt(teacherInfo(m.wrongLevel[0].l.teacher))+') at '+classLevelTxt(m.wrongLevel[0].sec)+'.');
   add(m.clash.length ? 'bad' : 'good', m.clash.length ? m.clash.length+(m.clash.length===1?' invigilator clash':' invigilator clashes')+': the same person is down for overlapping exams.' : 'No invigilator clashes.');
   if (m.venue.length) add('warn', m.venue.length+(m.venue.length===1?' venue conflict':' venue conflicts')+': the same room is used by two classes at the same time.');
   add(m.unassigned.length ? 'warn' : 'good', m.unassigned.length ? m.unassigned.length+(m.unassigned.length===1?' exam has':' exams have')+' no invigilator yet.' : 'Every exam has an invigilator.');
@@ -2115,7 +2169,7 @@ function anKpis(m){
     {lb:'Workload balance', v:m.jain+'%', sb:'most '+m.max+' · fewest '+m.min, tone:tone(m.jain < 65, m.jain < 85)},
     {lb:'Peak staffing', v:m.peak, sb:'invigilators needed at once', tone:'n'},
     {lb:'Invigilation hours', v:anHrs(m.hoursTotal), sb:m.teachers.length ? 'avg '+anHrs(m.hoursTotal/m.teachers.length)+' each' : 'no invigilators', tone:'n'},
-    {lb:'Issues', v:m.issues, sb:m.clash.length+' clashes · '+m.unassigned.length+' unassigned', tone:tone(m.clash.length > 0, m.issues > 0)}
+    {lb:'Issues', v:m.issues, sb:m.clash.length+' clashes · '+m.unassigned.length+' unassigned'+(m.wrongLevel.length ? ' · '+m.wrongLevel.length+' wrong level' : ''), tone:tone(m.clash.length > 0, m.issues > 0)}
   ];
 }
 /* ---- screen / print renderers ---- */
@@ -2187,6 +2241,7 @@ function anIssuesHtml(m){
   const rows = [];
   const ex = x => esc(x.sec+' '+x.l.subject+' ('+fmtTime(x.t0)+' to '+fmtTime(x.t1)+')');
   m.clash.forEach(c => rows.push(['bad','Invigilator clash','<b>'+esc(c.who)+'</b> on '+esc(anShortDate(c.date))+': '+ex(c.a)+' overlaps '+ex(c.b)]));
+  m.wrongLevel.forEach(x => rows.push(['bad','Wrong level','<b>'+esc(x.l.teacher)+'</b> teaches '+esc(teacherLevelsTxt(teacherInfo(x.l.teacher)))+' but is invigilating '+esc(x.sec)+' '+esc(x.l.subject)+' ('+esc(classLevelTxt(x.sec))+') on '+esc(anShortDate(x.date))]));
   m.venue.forEach(c => rows.push(['warn','Venue conflict','<b>'+esc(c.room)+'</b> on '+esc(anShortDate(c.date))+': '+ex(c.a)+' overlaps '+ex(c.b)]));
   m.unassigned.slice(0,25).forEach(x => rows.push(['warn','No invigilator', esc(anShortDate(x.date))+', '+ex(x)]));
   if (m.unassigned.length > 25) rows.push(['warn','No invigilator','and '+(m.unassigned.length-25)+' more exams without an invigilator']);
@@ -2211,7 +2266,7 @@ function renderAnalytics(){
   const sub = document.querySelector('#analytics .card-h .sub'); if (sub) sub.textContent = m.secs.join(', ')+(m.range ? ' · '+m.range : '');
   $('#anTabs').innerHTML = AN_VIEWS.map(x => '<button type="button" data-an="'+x[0]+'" aria-pressed="'+(x[0] === v)+'">'+x[1]+(x[0] === 'issues' && m.issues ? ' <span class="anChip bad">'+m.issues+'</span>' : '')+'</button>').join('');
   let h;
-  if (!m.exams.length && v !== 'history') h = '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(cbNext() ? ' or the following week' : '')+'. Analytics appear as soon as exams are added.</p>';
+  if (!m.exams.length && v !== 'history' && v !== 'series') h = '<p class="muted">No exams are planned yet for the ticked classes in '+esc(weekLabel(S.sel, true))+(cbNext() ? ' or the following week' : '')+'. Analytics appear as soon as exams are added.</p>';
   else if (v === 'overview') h = anKpiHtml(m)+'<h3 class="anH">Key insights</h3>'+anInsightsHtml(m)+'<h3 class="anH">Daily load by period</h3>'+anDailyHtml(m)+'<h3 class="anH">Period mix</h3>'+anPeriodHtml(m);
   else if (v === 'workload') h = anWorkloadHtml(m);
   else if (v === 'daily') h = '<h3 class="anH">Daily load by period</h3>'+anDailyHtml(m)+'<h3 class="anH">Day by day</h3><div class="tt-scroll">'+anDaysTableHtml(m)+'</div><h3 class="anH">Period mix</h3>'+anPeriodHtml(m);
@@ -2219,6 +2274,7 @@ function renderAnalytics(){
   else if (v === 'subjects') h = anSubjectsHtml(m);
   else if (v === 'coverage') h = anCoverageHtml(m);
   else if (v === 'issues') h = anIssuesHtml(m);
+  else if (v === 'series') h = anSeriesHtml();
   else h = renderHistoryChart();
   box.innerHTML = h;
 }
@@ -2331,6 +2387,7 @@ function anAppendPdf(doc, X, scope){
   y = page('ISSUES AND WEEK HISTORY');
   const ex = x => x.sec+' '+x.l.subject+' ('+fmtTime(x.t0)+' - '+fmtTime(x.t1)+')', irows = [];
   m.clash.forEach(c => irows.push(['Invigilator clash', c.who+' on '+anShortDate(c.date)+': '+ex(c.a)+' overlaps '+ex(c.b)]));
+  m.wrongLevel.forEach(x => irows.push(['Wrong level', x.l.teacher+' teaches '+teacherLevelsTxt(teacherInfo(x.l.teacher))+' but invigilates '+x.sec+' '+x.l.subject+' ('+classLevelTxt(x.sec)+') on '+anShortDate(x.date)]));
   m.venue.forEach(c => irows.push(['Venue conflict', c.room+' on '+anShortDate(c.date)+': '+ex(c.a)+' overlaps '+ex(c.b)]));
   m.unassigned.slice(0,25).forEach(x => irows.push(['No invigilator', anShortDate(x.date)+', '+ex(x)]));
   if (m.unassigned.length > 25) irows.push(['No invigilator', 'and '+(m.unassigned.length-25)+' more exams without an invigilator']);
@@ -2338,7 +2395,7 @@ function anAppendPdf(doc, X, scope){
   y = sec('Issues to resolve', y) + 2;
   if (irows.length){
     tbl({startY:y, head:[['ISSUE','DETAILS']], body:irows, columnStyles:{0:{cellWidth:38,fontStyle:'bold'}},
-      didParseCell: d => { if (d.section === 'body' && d.column.index === 0) d.cell.styles.textColor = d.cell.raw === 'Invigilator clash' ? [192,57,43] : [160,110,0]; }});
+      didParseCell: d => { if (d.section === 'body' && d.column.index === 0) d.cell.styles.textColor = (d.cell.raw === 'Invigilator clash' || d.cell.raw === 'Wrong level') ? [192,57,43] : [160,110,0]; }});
     y = after(10);
   } else { doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(44,117,68); doc.text('No clashes, venue conflicts, unassigned exams or heavy loads. The timetable is clean.', 10, y+4); y += 14; }
   y = need(y, 40, 'ISSUES AND WEEK HISTORY (CONTINUED)');
@@ -2734,6 +2791,44 @@ $('#structDlg').addEventListener('change', e => {
   else if (t.dataset.periodEnd) commitPeriodTime(+t.dataset.periodEnd, 'end', t.value);
   else if (t.dataset.periodBrk) commitPeriodBrk(+t.dataset.periodBrk, t.checked);
 });
+/* How the Results portal records what a teacher teaches (users/{uid}): assignedGrades = ['Grade 7', ...] (older accounts: assignedGrade, '__NONE__' = none),
+   assignedSubjects = {'Grade 7': ['Maths', ...]}, classTeacherGrades = ['Grade 7']. Grades are TEXT ("Grade 7"), so the number is read out of it. */
+const gradeNum = v => { const m = String(v == null ? '' : v).match(/(\d+)/); return m ? +m[1] : 0; };
+function rosterFromUser(uid, x, gradeSubjects){
+  if (x.Advancedadmin === true) return null;
+  if (String(x.role||'').trim().toLowerCase() === 'admin') return null;
+  const asg = (x.assignedSubjects && typeof x.assignedSubjects === 'object') ? x.assignedSubjects : {};
+  const grades = new Set(), subjectsByGrade = {}, all = new Set();
+  if (Array.isArray(x.assignedGrades) && x.assignedGrades.length) x.assignedGrades.forEach(g => { const n = gradeNum(g); if (n) grades.add(n); });
+  else if (x.assignedGrade && String(x.assignedGrade) !== '__NONE__'){ const n = gradeNum(x.assignedGrade); if (n) grades.add(n); }
+  Object.keys(asg).forEach(g => {
+    const n = gradeNum(g), list = (Array.isArray(asg[g]) ? asg[g] : []).map(v => String(v||'').trim()).filter(Boolean);
+    if (!n || !list.length) return;
+    list.forEach(sub => {
+      all.add(sub);
+      (subjectsByGrade[n] || (subjectsByGrade[n] = new Set())).add(sub);
+      if (gradeSubjects) (gradeSubjects[n] || (gradeSubjects[n] = new Set())).add(sub);
+    });
+  });
+  if (!grades.size) Object.keys(subjectsByGrade).forEach(n => grades.add(+n));     // no grade list saved: fall back to the grades they have subjects in
+  const classGrades = (Array.isArray(x.classTeacherGrades) ? x.classTeacherGrades : []).map(gradeNum).filter(Boolean);
+  const subject = all.size ? Array.from(all).join(', ') : String(x.subject||'').trim();
+  return {uid, name:String(x.name||x.displayName||x.fullName||'').trim(), subject, subjectsByGrade, grades:Array.from(grades).sort((a,b) => a-b), classGrades,
+    photo:x.photo||x.photoURL||x.photoUrl||'', phone:String(x.phoneNumber||x.phone||'').trim()};
+}
+/* The subjects a teacher is assigned in this class's grade(s), exactly as ticked in the Results portal. */
+function subjectsInClass(t, sec){
+  const by = t && t.subjectsByGrade, out = new Set();
+  if (by) gradesOf(sec || S.section).forEach(g => { if (by[g]) by[g].forEach(v => out.add(v)); });
+  return Array.from(out);
+}
+/* Does this teacher actually teach this subject in this class (its grade)? Falls back to the single legacy "subject" field when no per-grade subjects are recorded. */
+function teachesSubjectIn(t, subject, sec){
+  if (!t || !subject) return false;
+  const by = t.subjectsByGrade, gs = gradesOf(sec || S.section);
+  if (by && Object.keys(by).length) return gs.some(g => by[g] && Array.from(by[g]).some(v => sameSubject(v, subject)));
+  return sameSubject(t.subject, subject);
+}
 async function loadRoster(){
   /* Same "genuine teacher account" rule the Results portal uses everywhere it lists teachers
      (add-teacher panel, grade assignments, exam reminders): Advanced Admins and role:"admin"
@@ -2742,23 +2837,10 @@ async function loadRoster(){
   try {
     const {F} = fb, snap = await F.getDocs(F.collection(fb.fs, P.users));
     const gradeSubjects = {};
-    S.roster = snap.docs.map(d => {
-      const x = d.data() || {};
-      if (x.Advancedadmin === true) return null;
-      if (String(x.role||'').trim().toLowerCase() === 'admin') return null;
-      const asg = x.assignedSubjects || {}, subs = new Set();
-      Object.keys(asg).forEach(g => (Array.isArray(asg[g]) ? asg[g] : []).forEach(s => {
-        if (!s) return;
-        subs.add(s);
-        const gn = +g; if (Number.isInteger(gn) && gn > 0) (gradeSubjects[gn] || (gradeSubjects[gn] = new Set())).add(String(s).trim());
-      }));
-      const subject = subs.size ? Array.from(subs).join(', ') : String(x.subject||'').trim();
-      const grades = Object.keys(asg).map(Number).filter(g => Number.isInteger(g) && g > 0);
-      return {uid:d.id, name:String(x.name||x.displayName||x.fullName||'').trim(), subject, grades, photo:x.photo||x.photoURL||x.photoUrl||'', phone:String(x.phoneNumber||x.phone||'').trim()};
-    }).filter(t => t && t.name);
+    S.roster = snap.docs.map(d => rosterFromUser(d.id, d.data() || {}, gradeSubjects)).filter(t => t && t.name);
     S.gradeSubjects = gradeSubjects;   // {grade: Set(subject names)}, from Results Portal's own per-grade assignments
     const names = S.roster.map(t => t.name).sort((a,b) => a.localeCompare(b));
-    $('#teacherOpts').innerHTML = names.map(n => '<option value="'+esc(n)+'">').join('');
+    S._allTeacherNames = names; fillTeacherOpts();
   } catch(e){ console.warn('users', e); }
 }
 /* This stage's own subjects. Best source: the actual column headers on that grade's results
@@ -2952,7 +3034,7 @@ function fillSubjects(){
   $('#subjectList').innerHTML = Array.from(seen.values()).map(v => '<option value="'+esc(v.name)+'"'+(v.where ? ' label="'+esc(v.where)+'"' : '')+'>').join('');
   if (S.mode !== 'live'){
     const t = new Set(); Object.values(S.weeks).forEach(wk => wk.forEach(day => (day||[]).forEach(l => { if (l && l.teacher) t.add(l.teacher); })));
-    $('#teacherOpts').innerHTML = Array.from(t).sort().map(s => '<option value="'+esc(s)+'">').join('');
+    S._allTeacherNames = Array.from(t).sort(); fillTeacherOpts();
   }
 }
 function openLesson(d, s){
@@ -2991,30 +3073,36 @@ function teacherPool(){
     if (seen) e.seen.add(String(seen).trim().toLowerCase());
     (grades||[]).forEach(g => e.grades.add(g));
   };
-  S.roster.forEach(t => put(t.name, t.subject, null, t.grades));
+  S.roster.forEach(t => { put(t.name, t.subject, null, t.grades); pool.get(normName(t.name)).info = t; });
   S.sections.forEach(sec => Object.values(weeksOf(sec)).forEach(wk => wk.forEach(day => (day||[]).forEach(l => { if (l && l.teacher) put(l.teacher, '', l.subject); }))));
   return pool;
 }
 let suggestList = [];
+function fillTeacherOpts(){
+  const all = S._allTeacherNames || [];
+  $('#teacherOpts').innerHTML = all.filter(n => !wrongLevelFor(n, S.section)).map(n => '<option value="'+esc(n)+'">').join('');
+}
 function renderSuggest(){
+  fillTeacherOpts();
   const box = $('#tSuggest');
   if (!editing || !S.canEdit){ box.hidden = true; suggestList = []; return; }
   const key = iso(S.sel), d = editing.d, si = editing.s, sub = $('#fSubject').value.trim(), cur = normName($('#fTeacher').value);
   const oth = others(key), loads = teacherLoads(key, {d, s:si}), list = [], secGrades = gradesOf(S.section);
   teacherPool().forEach((p,k) => {
     if (k === cur || clashes(d, si, p.name, oth).length) return;       // already chosen, or busy in another timetable at that time
-    const teaches = sameSubject(p.subject, sub);
+    const teaches = teachesSubjectIn(p.info || {subject:p.subject}, sub, S.section);
     if (teaches) return;                                               // never suggest the subject's own teacher — conflict of interest
-    if (p.grades.size && secGrades.length && !secGrades.some(g => p.grades.has(g))) return;   // must be authorized for this level
+    const lvl = teachesLevel(p, S.section);
+    if (lvl === false) return;   // must teach this level: never a teacher of another level
     const ld = loads.get(k) || {week:0, day:{}}, dayN = ld.day[d] || 0;
     const before = Array.from(p.seen).some(x => sameSubject(x, sub));
-    list.push({name:p.name, subject:p.subject, teaches, before, week:ld.week, score:(before ? 2 : 0) - ld.week*0.5 - dayN*1.5});
+    list.push({name:p.name, subject:p.subject, mine:subjectsInClass(p.info, S.section), teaches, before, unknown:lvl === null, week:ld.week, score:(before ? 2 : 0) - ld.week*0.5 - dayN*1.5 - (lvl === null ? 100 : 0)});   // staff whose level is not recorded come last
   });
   list.sort((a,b) => b.score - a.score || a.week - b.week || a.name.localeCompare(b.name));
   suggestList = list.slice(0, 6);
   box.hidden = !suggestList.length;
   $('#tChips').innerHTML = suggestList.map((s,i) => '<button type="button" class="chip'+(s.teaches ? ' match' : '')+'" data-suggest="'+i+'">'+esc(s.name)+
-    '<small>'+esc([s.teaches ? 'teaches '+s.subject : s.before ? 'has done it' : '', s.week ? s.week+(s.week === 1 ? ' exam' : ' exams')+' this week' : 'free this week'].filter(Boolean).join(' · '))+'</small></button>').join('');
+    '<small>'+esc([s.unknown ? 'level not recorded' : (s.mine.length ? 'teaches '+s.mine.slice(0,2).join(', ')+(s.mine.length > 2 ? '…' : '')+' here' : 'teaches this level'), s.teaches ? 'teaches '+s.subject : s.before ? 'has done it' : '', s.week ? s.week+(s.week === 1 ? ' exam' : ' exams')+' this week' : 'free this week'].filter(Boolean).join(' · '))+'</small></button>').join('');
 }
 function pickSuggested(i){
   const s = suggestList[i]; if (!s) return;
@@ -3050,8 +3138,8 @@ function planAutoFill(subjects, opts){
       const loads = teacherLoads(key, null, pending), pool = [];
       teacherPool().forEach((p,k) => {
         if (clashes(d, si, p.name, oth).length) return;          // busy in another timetable at that time
-        if (p.grades.size && !targetGrades.some(g => p.grades.has(g))) return;   // must actually be authorized to teach at this grade level
-        if (sameSubject(p.subject, subject)) return;              // never the subject's own teacher — conflict of interest
+        if (teachesLevel(p, S.section) === false) return;   // must teach this level
+        if (teachesSubjectIn(p.info || {subject:p.subject}, subject, S.section)) return;   // never the subject's own teacher in this class — conflict of interest
         const ld = loads.get(k) || {week:0, day:{}}, dayN = ld.day[d] || 0;
         const before = Array.from(p.seen).some(x => sameSubject(x, subject));
         pool.push({name:p.name, score:(before?2:0)-ld.week*0.5-dayN*1.5});
@@ -3149,6 +3237,10 @@ $('#lessonForm').addEventListener('submit', async e => {
   if (checkLesson(d, si, lesson0, others(key)).clash.length){                 // final guard — never save over a real double-booking
     $('#lErr').textContent = teacher+' is already invigilating another exam at that time. Change the invigilator or the time.';
     return;
+  }
+  if (teacher && wrongLevelFor(teacher, S.section)){
+    $('#lErr').textContent = teacher+' teaches '+teacherLevelsTxt(teacherInfo(teacher))+', not '+classLevelTxt(S.section)+'. Choose an invigilator who teaches this level.';
+    $('#fTeacher').focus(); return;
   }
   const info = teacherInfo(teacher), prev = (getWeek(key)[d] || [])[si] || null;
   const lesson = {...lesson0, teacherUid:info ? info.uid : ''};
@@ -3899,7 +3991,7 @@ async function buildCombinedDutyPdf(){
   const onlyTicked = !!($('#cbDutyTicked') && $('#cbDutyTicked').checked);
   const secs = onlyTicked ? dt.secs : S.sections.slice();
   const keys = cbNext() ? [iso(S.sel), iso(addDays(S.sel,7))] : [iso(S.sel)];
-  const levelOf = sec => { const st = stageOfGrades(gradesOf(sec)); return st && st.name ? st.name : sec; };
+  const levelOf = sec => classLevelTxt(sec);
   const duty = {}, unassigned = []; let first = null, last = null;
   secs.forEach(sec => {
     const sl = slotsOf(sec), idx = sl.map((x,i) => i).filter(i => !sl[i].brk), lvl = levelOf(sec);
@@ -3909,7 +4001,7 @@ async function buildCombinedDutyPdf(){
         const l = wk[d] && wk[d][si]; if (!l) return;
         const slot = sl[si], date = addDays(mon, d);
         if (!first || date < first) first = date; if (!last || date > last) last = date;
-        const item = {date, d, sec, lvl, start:toMin(slot.start), end:toMin(slot.end), t:fmtTime(slot.start)+' - '+fmtTime(slot.end), subject:l.subject, note:l.note||''};
+        const item = {date, d, sec, lvl, start:toMin(slot.start), end:toMin(slot.end), t:fmtTime(slot.start)+' - '+fmtTime(slot.end), subject:l.subject, note:l.note||'', wrong:!!(l.teacher && wrongLevelFor(l.teacher, sec))};
         if (!l.teacher){ unassigned.push(item); return; }
         const nk = normName(l.teacher), t = duty[nk] || (duty[nk] = {name:l.teacher, items:[]});
         t.items.push(item);
@@ -3964,7 +4056,7 @@ async function buildCombinedDutyPdf(){
   drawChrome('INVIGILATION ROSTER', title+'  |  '+scopeTxt);
   doc.autoTable(Object.assign({}, tableBase, { startY:40,
     head:[['INVIGILATOR','EXAMS','LEVELS','DUTIES']],
-    body:names.map(k => { const t = duty[k]; return [t.name, String(t.items.length), Array.from(new Set(t.items.map(x => x.lvl))).join('\n'), t.items.map(x => dayTxt(x).slice(0,3)+' '+x.date.getDate()+'/'+(x.date.getMonth()+1)+'  '+x.t+'  '+x.sec+' '+x.subject+(x.clash ? '  [CLASH with '+x.clash+']' : '')).join('\n')]; }),
+    body:names.map(k => { const t = duty[k]; return [t.name, String(t.items.length), Array.from(new Set(t.items.map(x => x.lvl))).join('\n'), t.items.map(x => dayTxt(x).slice(0,3)+' '+x.date.getDate()+'/'+(x.date.getMonth()+1)+'  '+x.t+'  '+x.sec+' '+x.subject+(x.clash ? '  [CLASH with '+x.clash+']' : '')+(x.wrong ? '  [OTHER LEVEL]' : '')).join('\n')]; }),
     columnStyles:{0:{cellWidth:34,fontStyle:'bold'},1:{cellWidth:20,halign:'center'},2:{cellWidth:30},3:{cellWidth:'auto',fontSize:8.5}} }));
   if (unassigned.length){
     let y = doc.lastAutoTable.finalY + 8; if (y > H-60){ doc.addPage(); drawChrome('EXAMS WITHOUT AN INVIGILATOR'); y = 42; }
@@ -3976,9 +4068,9 @@ async function buildCombinedDutyPdf(){
     const t = duty[k];
     doc.addPage(); drawChrome('INVIGILATION DUTY - '+t.name.toUpperCase(), title+'  |  '+Array.from(new Set(t.items.map(x => x.lvl))).join(' + '));
     doc.autoTable(Object.assign({}, tableBase, { startY:40,
-      head:[['DAY','TIME','CLASS','SUBJECT','NOTE']], body:t.items.map(x => [dayTxt(x), x.t, x.sec+(x.lvl !== x.sec ? '\n('+x.lvl+')' : ''), x.subject, (x.note ? x.note+' ' : '')+(x.clash ? '(clash with '+x.clash+')' : '')]),
+      head:[['DAY','TIME','CLASS','SUBJECT','NOTE']], body:t.items.map(x => [dayTxt(x), x.t, x.sec+(x.lvl !== x.sec ? '\n('+x.lvl+')' : ''), x.subject, (x.note ? x.note+' ' : '')+(x.clash ? '(clash with '+x.clash+') ' : '')+(x.wrong ? '(teaches a different level)' : '')]),
       columnStyles:{0:{cellWidth:36},1:{cellWidth:36},2:{cellWidth:34}},
-      didParseCell: d => { if (d.section === 'body' && t.items[d.row.index].clash) d.cell.styles.textColor = [192,57,43]; } }));
+      didParseCell: d => { if (d.section === 'body' && (t.items[d.row.index].clash || t.items[d.row.index].wrong)) d.cell.styles.textColor = [192,57,43]; } }));
   });
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++){ doc.setPage(i); drawMark(); drawFooter(i, total); }
@@ -4162,7 +4254,7 @@ $('#cardsForm').addEventListener('submit', async e => {
 });
 
 /* ---------- Conflict-free auto-suggest: fill exams that are missing an invigilator ---------- */
-function bestInvigilatorFor(d, si, oth, loads, exclude, sectionGrades, requireLevel, subject){
+function bestInvigilatorFor(d, si, oth, loads, exclude, sectionGrades, requireLevel, subject, series){
   const candidates = new Map();
   (S.roster||[]).forEach(t => { if (t.name) candidates.set(normName(t.name), t); });
   loads.forEach(e => { const k = normName(e.name); if (!candidates.has(k)) candidates.set(k, {name:e.name, grades:[]}); });
@@ -4170,37 +4262,41 @@ function bestInvigilatorFor(d, si, oth, loads, exclude, sectionGrades, requireLe
   candidates.forEach((t,k) => {
     if (!k || (exclude && exclude.has(k))) return;
     if (clashes(d, si, t.name, oth).length) return;                 // never suggest a clash
-    if (subject && sameSubject(t.subject, subject)) return;          // never the subject's own teacher — conflict of interest
-    const teachesLevel = sectionGrades.length && Array.isArray(t.grades) && t.grades.some(g => sectionGrades.includes(g));
-    const knownOtherLevel = sectionGrades.length && Array.isArray(t.grades) && t.grades.length && !teachesLevel;
-    if (requireLevel && knownOtherLevel) return;                     // must be authorized to teach at this level, when we actually know their level
+    if (subject && teachesSubjectIn(teacherInfo(t.name) || t, subject, S.section)) return;   // never the subject's own teacher in this class — conflict of interest
+    const lv = teachesLevel(teacherInfo(t.name) || t, S.section);
+    if (lv === false) return;                                        // never someone who teaches a different level (e.g. Lower Primary at Junior School)
     const e = loads.get(k), dayN = e ? (e.day[d]||0) : 0, weekN = e ? e.week : 0;
     if (dayN >= LOAD.day || weekN >= LOAD.week) return;            // don't push anyone into a heavy load
-    const score = weekN*10 + dayN;
+    const score = weekN*10 + dayN + (series ? (series.get(k)||0)*2 : 0) + (lv === null ? 60 : 0);   // across a two-week series, spread duty over both weeks; staff whose level is unknown come last
     if (score < bestScore){ bestScore = score; best = t.name; }
   });
   return best;
 }
 async function autoAssignInvigilators(){
   if (!guard()) return;
-  const key = iso(S.sel), wk = getWeek(key), oth = others(key), loads = teacherLoads(key);
-  const sectionGrades = gradesOf(S.section), requireLevel = $('#afLevelPref').checked;
-  const targets = []; wk.forEach((day,d) => day.forEach((l,s) => { if (l && !l.teacher) targets.push({d,s,l}); }));
+  const keys = spanKeys(iso(S.sel)), sectionGrades = gradesOf(S.section), requireLevel = true;
+  const loadsBy = {}, series = new Map();
+  keys.forEach(k => { loadsBy[k] = teacherLoads(k); loadsBy[k].forEach((e,nk) => series.set(nk, (series.get(nk)||0)+e.week)); });
+  const targets = [];
+  keys.forEach(key => getWeek(key).forEach((day,d) => day.forEach((l,s) => { if (l && !l.teacher) targets.push({key,d,s,l}); })));
   if (!targets.length){ toast('Every exam already has an invigilator.'); return; }
-  const pickedToday = {}, cells = [];
-  targets.forEach(({d,s,l}) => {
-    const exclude = pickedToday[d] || new Set();
-    const name = bestInvigilatorFor(d, s, oth, loads, exclude, sectionGrades, requireLevel, l.subject);
+  const pickedToday = {}, cellsBy = {}; let n = 0, unknownN = 0;
+  targets.forEach(({key,d,s,l}) => {
+    const pk = key+':'+d, exclude = pickedToday[pk] || new Set(), loads = loadsBy[key];
+    const name = bestInvigilatorFor(d, s, others(key), loads, exclude, sectionGrades, requireLevel, l.subject, series);
     if (!name) return;
-    cells.push({d, s, lesson:{...l, teacher:name}});
-    if (!pickedToday[d]) pickedToday[d] = new Set();
-    pickedToday[d].add(normName(name));
-    const e = loads.get(normName(name)) || {name, week:0, day:{}};
-    e.week++; e.day[d] = (e.day[d]||0) + 1; loads.set(normName(name), e);
+    if (teachesLevel(teacherInfo(name), S.section) === null) unknownN++;
+    (cellsBy[key] = cellsBy[key] || []).push({d, s, lesson:{...l, teacher:name, teacherUid:(teacherInfo(name)||{}).uid || l.teacherUid || ''}}); n++;
+    (pickedToday[pk] = pickedToday[pk] || new Set()).add(normName(name));
+    const nk = normName(name), e = loads.get(nk) || {name, week:0, day:{}};
+    e.week++; e.day[d] = (e.day[d]||0) + 1; loads.set(nk, e); series.set(nk, (series.get(nk)||0)+1);
   });
-  if (!cells.length){ toast('No conflict-free invigilator was found. Add more names to the staff list and try again.'); return; }
-  await writeCells(key, cells);
-  toast('Assigned '+cells.length+' invigilator'+(cells.length===1?'':'s')+(cells.length<targets.length ? '; '+(targets.length-cells.length)+' left unassigned (no authorized, conflict-free option).' : '.'));
+  if (!n){ toast('No conflict-free invigilator was found. Add more names to the staff list and try again.'); return; }
+  undoPush('auto-assign', Object.keys(cellsBy));
+  for (const k of Object.keys(cellsBy)) await writeCells(k, cellsBy[k]);
+  const counts = []; series.forEach(v => { if (v > 0) counts.push(v); });
+  const sum = counts.reduce((a,b) => a+b, 0), sq = counts.reduce((a,b) => a+b*b, 0), bal = counts.length && sq ? Math.round(sum*sum/(counts.length*sq)*100) : 100;
+  toast('Assigned '+n+' invigilator'+(n===1?'':'s')+(keys.length > 1 ? ' across both weeks' : '')+(n < targets.length ? '; '+(targets.length-n)+' left unassigned (no authorized, conflict-free option)' : '')+(unknownN ? '; '+unknownN+' went to staff whose level is not recorded, so check them' : '')+'. Workload balance '+bal+'%.', 6000);
 }
 $('#autoFillBtn').addEventListener('click', autoAssignInvigilators);
 $('#printBtn').addEventListener('click', () => { try { window.print(); } catch(e){ toast('Printing is not available here'); } });
@@ -4286,6 +4382,7 @@ function lvModel(at){
   const alerts = [];
   live.filter(x => !x.teacher).forEach(x => alerts.push({tone:'bad', text:x.sec+' '+x.subject+' is in progress with no invigilator.'}));
   next.filter(x => !x.teacher && x.s - nowM <= 60).forEach(x => alerts.push({tone:x.s - nowM <= 15 ? 'bad' : 'warn', text:x.sec+' '+x.subject+' starts in '+lvMin(x.s-nowM)+' and has no invigilator yet.'}));
+  ex.filter(x => x.teacher && wrongLevelFor(x.teacher, x.sec)).forEach(x => alerts.push({tone:'bad', text:x.teacher+' teaches '+teacherLevelsTxt(teacherInfo(x.teacher))+' but is invigilating '+x.sec+' '+x.subject+' ('+classLevelTxt(x.sec)+').'}));
   const cl = [];
   for (let i = 0; i < ex.length; i++) for (let q = i+1; q < ex.length; q++){ const u = ex[i], v = ex[q]; if (u.teacher && v.teacher && normName(u.teacher) === normName(v.teacher) && u.s < v.e && v.s < u.e) cl.push([u,v]); }
   cl.forEach(([u,v]) => alerts.push({tone:'bad', text:u.teacher+' is down for '+u.sec+' '+u.subject+' and '+v.sec+' '+v.subject+' at the same time.'}));
@@ -4432,7 +4529,7 @@ function lvRefresh(force){
 }
 function lvFab(){
   const b = $('#liveBtn'); if (!b) return;
-  try { const m = lvModel(lvNow()), n = m.live.length; b.querySelector('.n').textContent = n ? n+' running' : (m.next.length ? 'next in '+lvMin(m.next[0].s-m.nowM) : 'live'); b.classList.toggle('on', n > 0); } catch(e){}
+  try { const m = lvModel(lvNow()), n = m.live.length; nowStripUpdate(m); b.querySelector('.n').textContent = n ? n+' running' : (m.next.length ? 'next in '+lvMin(m.next[0].s-m.nowM) : 'live'); b.classList.toggle('on', n > 0); } catch(e){}
 }
 function lvOpen(){
   const dlg = $('#liveDlg'); if (!dlg.open) dlg.showModal();
@@ -4521,13 +4618,14 @@ function imRefresh(){
   const pl = imPlan(Object.assign({}, o, {nextWk:$('#imNextWk').checked})), box = $('#imPreview'), go = $('#imGo');
   if (!pl){ box.textContent = 'Pick a timetable to copy from.'; go.disabled = true; return; }
   go.disabled = false;
-  let clashN = 0;
+  let clashN = 0, lvlN = o.keepT ? pl.placed.filter(x => x.lesson.teacher && wrongLevelFor(x.lesson.teacher, S.section)).length : 0;
   if (o.keepT) pl.placed.forEach(x => { if (x.lesson.teacher && clashes(x.td, x.ts, x.lesson.teacher, others(pl.keyOf(x.tw))).length) clashN++; });
   const nEx = pl.placed.length, rng = pl.first.getTime() === pl.last.getTime() ? lvDay(pl.first) : lvDay(pl.first)+' to '+lvDay(pl.last);
   box.innerHTML = '<b>'+nEx+(nEx === 1 ? ' exam' : ' exams')+'</b> over '+pl.dayCount+(pl.dayCount === 1 ? ' day' : ' days')+': '+esc(rng)+(pl.nWeeks > 1 ? '. It runs on into the following week.' : '.')+
     (pl.replaced && o.over === 'replace' ? '<br>⚠ '+pl.replaced+' existing '+(pl.replaced === 1 ? 'exam' : 'exams')+' on those days will be replaced.' : '')+
     (pl.replaced && o.over === 'fill' ? '<br>'+pl.replaced+' occupied '+(pl.replaced === 1 ? 'slot is' : 'slots are')+' kept as they are.' : '')+
     (pl.skipped ? '<br>⚠ '+pl.skipped+' exams are left out because this timetable has fewer periods.' : '')+
+    (lvlN ? '<br>ℹ '+lvlN+(lvlN === 1 ? ' invigilator does' : ' invigilators do')+' not teach this level, so '+(lvlN === 1 ? 'that exam is' : 'those exams are')+' imported without an invigilator.' : '')+
     (clashN ? '<br>⚠ '+clashN+' invigilator '+(clashN === 1 ? 'clash' : 'clashes')+' with other timetables. Review them after importing.' : '');
 }
 function openImport(){
@@ -4561,11 +4659,11 @@ async function runImport(){
   if (o.over === 'replace'){ const cleared = new Set(); pl.placed.forEach(x => { const k = pl.keyOf(x.tw), id = k+':'+x.td; if (cleared.has(id)) return; cleared.add(id); weeks[k][x.td] = weeks[k][x.td].map(() => null); }); }
   pl.placed.forEach(x => {
     const k = pl.keyOf(x.tw); if (o.over === 'fill' && weeks[k][x.td][x.ts]) return;
-    const l = JSON.parse(JSON.stringify(x.lesson)); if (!o.keepT){ l.teacher = ''; l.teacherUid = ''; }
+    const l = JSON.parse(JSON.stringify(x.lesson)); if (!o.keepT || (l.teacher && wrongLevelFor(l.teacher, S.section))){ l.teacher = ''; l.teacherUid = ''; }
     weeks[k][x.td][x.ts] = l;
   });
   const go = $('#imGo'); go.disabled = true;
-  try { for (const k of Object.keys(weeks)) await writeWeek(k, weeks[k]); $('#importDlg').close(); toast('Imported '+pl.placed.length+' exams: '+lvDay(pl.first)+' to '+lvDay(pl.last), 4200); }
+  try { undoPush('import', Object.keys(weeks)); for (const k of Object.keys(weeks)) await writeWeek(k, weeks[k]); $('#importDlg').close(); toast('Imported '+pl.placed.length+' exams: '+lvDay(pl.first)+' to '+lvDay(pl.last), 4200); }
   catch(err){ toast('Could not import: '+(err && err.message || err), 5000); }
   finally { go.disabled = false; }
 }
@@ -4573,6 +4671,168 @@ $('#importBtn').addEventListener('click', openImport);
 $('#imCancel').addEventListener('click', () => $('#importDlg').close());
 $('#importForm').addEventListener('input', imRefresh);
 $('#importForm').addEventListener('submit', e => { e.preventDefault(); runImport(); });
+
+
+/* ---------- Undo: the last few bulk changes (import, auto-assign, cover, swap) can be rolled back ---------- */
+const UNDO = [];
+function undoPush(label, keys){
+  UNDO.push({label, section:S.section, snaps:keys.map(k => [k, S.weeks[k] ? JSON.parse(JSON.stringify(S.weeks[k])) : null])});
+  if (UNDO.length > 6) UNDO.shift(); undoShow();
+}
+function undoShow(){ const b = $('#undoBtn'); if (!b) return; b.hidden = !UNDO.length; if (UNDO.length) b.textContent = '↩ Undo '+UNDO[UNDO.length-1].label; }
+async function undoLast(){
+  const u = UNDO[UNDO.length-1]; if (!u || !guard()) return;
+  if (u.section !== S.section){ toast('Switch back to '+u.section+' to undo that change.'); return; }
+  try { for (const [k, wk] of u.snaps) await writeWeek(k, wk || blankWeek()); UNDO.pop(); undoShow(); toast('Undone: '+u.label, 3200); }
+  catch(e){ toast('Could not undo: '+(e && e.message || e), 5000); }
+}
+$('#undoBtn').addEventListener('click', undoLast);
+
+/* ---------- "Now running" strip on the main page ---------- */
+function nowStripUpdate(m){
+  const el = $('#nowStrip'); if (!el) return;
+  if (!m.ex.length){ el.hidden = true; return; }
+  let h, cls = 'nowStrip';
+  if (m.live.length){ const x = m.live.slice().sort((a,b) => a.e-b.e)[0]; cls += ' on';
+    h = '<i class="dot"></i><b>Running now</b><span>'+esc(x.sec+' · '+x.subject)+(x.teacher ? ' · '+esc(x.teacher) : ' · <em>no invigilator</em>')+' · ends in '+esc(lvLeft(x.e-m.nowM))+(m.live.length > 1 ? ' · +'+(m.live.length-1)+' more' : '')+'</span>'; }
+  else if (m.next.length){ const x = m.next[0]; h = '<i class="dot"></i><b>Next exam</b><span>'+esc(x.sec+' · '+x.subject)+' at '+esc(lvHM(x.t0))+' (in '+esc(lvMin(x.s-m.nowM))+')'+(x.teacher ? ' · '+esc(x.teacher) : ' · <em>no invigilator</em>')+'</span>'; }
+  else h = '<i class="dot"></i><b>Today</b><span>all '+m.ex.length+' exams are finished</span>';
+  el.className = cls; el.innerHTML = h+'<u>Live report</u>'; el.hidden = false;
+}
+$('#nowStrip').addEventListener('click', lvOpen);
+
+/* ---------- Cover for an absent invigilator, or swap two invigilators ---------- */
+const DT = {items:[], rows:[], pairs:[], done:false};
+function dtItems(){
+  const out = [];
+  spanKeys(iso(S.sel)).forEach(key => {
+    const mon = parseIso(key);
+    getWeek(key).forEach((day,d) => day.forEach((l,s) => {
+      if (!l || !S.slots[s] || S.slots[s].brk) return;
+      const date = addDays(mon, d);
+      out.push({key, d, s, l, date, label:anShortDate(date)+' · '+fmtTime(S.slots[s].start)+' to '+fmtTime(S.slots[s].end)+' · '+l.subject});
+    }));
+  });
+  return out.sort((a,b) => a.date - b.date || a.s - b.s);
+}
+function dtCandidates(){
+  const m = new Map(); (S.roster||[]).forEach(t => { if (t.name) m.set(normName(t.name), t.name); });
+  DT.items.forEach(x => { if (x.l.teacher) m.set(normName(x.l.teacher), x.l.teacher); });
+  return Array.from(m.values()).sort((a,b) => a.localeCompare(b));
+}
+function dtNotice(name, items, reason){
+  return ['*Kanyadet Primary & Junior School*', '*Invigilation '+reason+'*', 'Hello '+name+', please invigilate '+S.section+':'].concat(items.map(x => '- '+x.label)).concat(['', 'Thank you.']).join('\n');
+}
+function dtOpen(){
+  if (!guard()) return;
+  DT.items = dtItems(); DT.done = false;
+  const withT = DT.items.filter(x => x.l.teacher);
+  if (!withT.length){ toast('No exam in this timetable has an invigilator yet.'); return; }
+  const who = Array.from(new Map(withT.map(x => [normName(x.l.teacher), x.l.teacher])).values()).sort((a,b) => a.localeCompare(b));
+  $('#dtWho').innerHTML = who.map(n => '<option>'+esc(n)+'</option>').join('');
+  if (S.focusTeacher && who.some(n => normName(n) === S.focusTeacher.key)) $('#dtWho').value = who.find(n => normName(n) === S.focusTeacher.key);
+  const opts = DT.items.map((x,i) => x.l.teacher ? '<option value="'+i+'">'+esc(x.label+' · '+x.l.teacher)+'</option>' : '').join('');
+  $('#dtA').innerHTML = opts; $('#dtB').innerHTML = opts;
+  const idxs = DT.items.map((x,i) => x.l.teacher ? i : -1).filter(i => i >= 0); if (idxs.length > 1){ $('#dtA').value = String(idxs[0]); $('#dtB').value = String(idxs[1]); }
+  $('#dtMode').value = 'cover'; $('#dtDone').hidden = true; $('#dtGo').textContent = 'Apply'; $('#dtGo').type = 'submit';
+  dtDays(); dtRefresh(); $('#dutyDlg').showModal();
+}
+function dtDays(){
+  const k = normName($('#dtWho').value), days = new Map();
+  DT.items.filter(x => normName(x.l.teacher) === k).forEach(x => days.set(x.date.getTime(), anShortDate(x.date)));
+  $('#dtDay').innerHTML = '<option value="all">All their exams ('+DT.items.filter(x => normName(x.l.teacher) === k).length+')</option>'+Array.from(days.entries()).map(([t,l]) => '<option value="'+t+'">'+esc(l)+'</option>').join('');
+  const today = new Date(); today.setHours(0,0,0,0); if (days.has(today.getTime())) $('#dtDay').value = String(today.getTime());
+}
+function dtRefresh(){
+  const mode = $('#dtMode').value; $('#dtCover').hidden = mode !== 'cover'; $('#dtSwap').hidden = mode !== 'swap';
+  const note = $('#dtNote'), go = $('#dtGo'); if (DT.done) return;
+  if (mode === 'swap'){
+    const a = DT.items[+$('#dtA').value], b = DT.items[+$('#dtB').value];
+    if (!a || !b || a === b || normName(a.l.teacher) === normName(b.l.teacher)){ note.textContent = 'Pick two exams with different invigilators.'; go.disabled = true; return; }
+    if (wrongLevelFor(b.l.teacher, S.section) || wrongLevelFor(a.l.teacher, S.section)){ note.textContent = 'That swap would put a teacher of a different level on this class. Pick two invigilators who both teach this level.'; go.disabled = true; return; }
+    go.disabled = false;
+    const ca = clashes(a.d, a.s, b.l.teacher, others(a.key)).length, cb = clashes(b.d, b.s, a.l.teacher, others(b.key)).length;
+    note.innerHTML = '<b>'+esc(a.l.teacher)+'</b> will take '+esc(b.label)+' and <b>'+esc(b.l.teacher)+'</b> will take '+esc(a.label)+'.'+((ca || cb) ? '<br>⚠ That creates '+(ca+cb)+' clash'+(ca+cb === 1 ? '' : 'es')+' with other timetables.' : '');
+    return;
+  }
+  const who = $('#dtWho').value, wk = normName(who), day = $('#dtDay').value;
+  const mine = DT.items.filter(x => normName(x.l.teacher) === wk && (day === 'all' || String(x.date.getTime()) === day));
+  const loadsBy = {}, series = new Map(), picked = {}, names = dtCandidates().filter(n => normName(n) !== wk);
+  spanKeys(iso(S.sel)).forEach(k => { loadsBy[k] = teacherLoads(k); loadsBy[k].forEach((e,nk) => series.set(nk, (series.get(nk)||0)+e.week)); });
+  const grades = gradesOf(S.section), req = true;
+  DT.rows = mine.map(x => {
+    const oth = others(x.key), pk = x.key+':'+x.d, ex = new Set([wk].concat(Array.from(picked[pk] || [])));
+    const sug = bestInvigilatorFor(x.d, x.s, oth, loadsBy[x.key], ex, grades, req, x.l.subject, series) || '';
+    if (sug){ (picked[pk] = picked[pk] || new Set()).add(normName(sug)); const e = series.get(normName(sug)) || 0; series.set(normName(sug), e+1); }
+    const busy = {}; names.forEach(n => { busy[n] = clashes(x.d, x.s, n, oth).length > 0; });
+    return {x, sug, names, busy};
+  });
+  $('#dtRows').innerHTML = DT.rows.length ? DT.rows.map((r,i) => '<div class="dtRow"><div class="lb">'+esc(r.x.label)+'</div><select id="dtRow'+i+'" aria-label="Replacement for '+esc(r.x.label)+'"><option value="">Keep '+esc(who)+'</option>'+r.names.map(n => { const wl = wrongLevelFor(n, S.section); return '<option value="'+esc(n)+'"'+(wl ? ' disabled' : '')+(n === r.sug ? ' selected' : '')+'>'+esc(n)+(wl ? ' (other level)' : '')+(r.busy[n] ? ' (busy)' : '')+(n === r.sug ? ' · suggested' : '')+'</option>'; }).join('')+'</select></div>').join('') : '<p class="muted">No exams for that day.</p>';
+  const got = DT.rows.filter(r => r.sug).length;
+  note.textContent = DT.rows.length ? (got === DT.rows.length ? 'A free, conflict-free replacement was suggested for every exam. Change any you like.' : (DT.rows.length-got)+' of '+DT.rows.length+' exams have no free replacement. Pick someone manually or leave them.') : '';
+  go.disabled = !DT.rows.length;
+}
+async function dtApply(){
+  if (!guard()) return;
+  const mode = $('#dtMode').value, byKey = {}, notes = {};
+  const put = (x, name) => { (byKey[x.key] = byKey[x.key] || []).push({d:x.d, s:x.s, lesson:{...x.l, teacher:name, teacherUid:(teacherInfo(name)||{}).uid || ''}}); (notes[name] = notes[name] || []).push(x); };
+  let label;
+  if (mode === 'swap'){
+    const a = DT.items[+$('#dtA').value], b = DT.items[+$('#dtB').value]; if (!a || !b) return;
+    label = 'swap'; put(a, b.l.teacher); put(b, a.l.teacher);
+  } else {
+    const ch = DT.rows.map((r,i) => ({r, to:$('#dtRow'+i).value})).filter(c => c.to); if (!ch.length){ toast('Nothing to change.'); return; }
+    label = 'cover for '+$('#dtWho').value; ch.forEach(c => put(c.r.x, c.to));
+  }
+  try {
+    undoPush(label, Object.keys(byKey));
+    for (const k of Object.keys(byKey)) await writeCells(k, byKey[k]);
+  } catch(e){ toast('Could not save: '+(e && e.message || e), 5000); return; }
+  DT.done = true;
+  $('#dtCover').hidden = true; $('#dtSwap').hidden = true; $('#dtNote').textContent = '';
+  const reason = mode === 'swap' ? 'swap' : 'cover';
+  const names = Object.keys(notes);
+  $('#dtDone').innerHTML = '<p><b>Saved.</b> Let '+(names.length === 1 ? 'the invigilator' : 'the invigilators')+' know:</p>'+names.map((n,i) => '<button type="button" class="btn sm" data-dt-wa="'+esc(n)+'">💬 Tell '+esc(n)+' ('+notes[n].length+(notes[n].length === 1 ? ' exam' : ' exams')+')</button>').join(' ')+'<p class="an-hint">You can undo this from the ↩ Undo button above the timetable.</p>';
+  DT.notes = notes; DT.reason = reason;
+  $('#dtDone').hidden = false; $('#dtGo').textContent = 'Close'; $('#dtGo').type = 'button'; $('#dtGo').disabled = false;
+}
+$('#dutyBtn').addEventListener('click', dtOpen);
+$('#dtCancel').addEventListener('click', () => $('#dutyDlg').close());
+$('#dtGo').addEventListener('click', () => { if (DT.done) $('#dutyDlg').close(); });
+$('#dutyForm').addEventListener('submit', e => { e.preventDefault(); if (!DT.done) dtApply(); });
+$('#dtWho').addEventListener('change', () => { dtDays(); dtRefresh(); });
+$('#dutyForm').addEventListener('input', e => { if (e.target.id !== 'dtWho') dtRefresh(); });
+$('#dtDone').addEventListener('click', e => {
+  const b = e.target.closest('[data-dt-wa]'); if (!b) return;
+  const name = b.getAttribute('data-dt-wa'), items = (DT.notes || {})[name] || [], ph = waNormalizePhone((teacherInfo(name) || {}).phone);
+  window.open('https://wa.me/'+(ph || '')+'?text='+encodeURIComponent(dtNotice(name, items, DT.reason === 'swap' ? 'swap' : 'cover')), '_blank', 'noopener');
+});
+
+/* ---------- Exam series archive: every earlier and upcoming series, grouped, with its totals ---------- */
+function anSeries(secs){
+  const keys = new Set();
+  secs.forEach(sec => { const ws = weeksOf(sec); Object.keys(ws).forEach(k => { if (countLessons(ws[k])) keys.add(k); }); });
+  const sorted = Array.from(keys).sort(), series = [];
+  sorted.forEach(k => {
+    const last = series[series.length-1];
+    if (last && last.keys[last.keys.length-1] === iso(addDays(parseIso(k), -7)) && examGap(secs, last.keys[last.keys.length-1])) last.keys.push(k);
+    else series.push({keys:[k]});
+  });
+  const today = new Date(); today.setHours(0,0,0,0);
+  return series.map(sr => {
+    const m = anModel({secs, keys:sr.keys}), first = m.days.length ? m.days[0].date : parseIso(sr.keys[0]), lastD = m.days.length ? m.days[m.days.length-1].date : first;
+    return {keys:sr.keys, first, last:lastD, exams:m.exams.length, classes:m.classes.filter(c => c.n).length, teachers:m.teachers.length, jain:m.jain, un:m.unassigned.length, clash:m.clash.length,
+      state: lastD < today ? 'Completed' : first > today ? 'Upcoming' : 'In progress', fill:anPct(m.exams.length, m.capTotal)};
+  }).reverse();
+}
+function anSeriesHtml(){
+  const list = anSeries(anSecs());
+  if (!list.length) return '<p class="muted">No exam series yet.</p>';
+  return '<div class="tt-scroll"><table class="anT"><thead><tr><th>Exam series</th><th>Status</th><th class="num">Weeks</th><th class="num">Exams</th><th class="num">Classes</th><th class="num">Invigilators</th><th class="num">Balance</th><th class="num">Issues</th><th></th></tr></thead><tbody>'+
+    list.map(r => '<tr><td><b>'+esc(rangeLabel(r.first, r.last))+'</b></td><td><span class="anChip '+(r.state === 'Completed' ? '' : r.state === 'In progress' ? 'good' : 'warn')+'">'+r.state+'</span></td><td class="num">'+r.keys.length+'</td><td class="num">'+r.exams+'</td><td class="num">'+r.classes+'</td><td class="num">'+r.teachers+'</td><td class="num">'+r.jain+'%</td><td class="num">'+(r.un+r.clash ? '<span class="anChip warn">'+(r.un+r.clash)+'</span>' : '0')+'</td><td><button type="button" class="btn sm" data-series="'+r.keys[0]+'">Open</button></td></tr>').join('')+'</tbody></table></div>'+
+    '<p class="an-hint">A series is a run of exam weeks that continue straight on. Open one to jump to its first week.</p>';
+}
+$('#anBody').addEventListener('click', e => { const b = e.target.closest('[data-series]'); if (!b) return; S.sel = parseIso(b.getAttribute('data-series')); S.calMonth = new Date(S.sel.getFullYear(), S.sel.getMonth(), 1); render(); window.scrollTo({top:0, behavior:'smooth'}); });
 
 /* Include analytics: one switch shared by the print and PDF buttons, remembered on this device */
 S.anInclude = lsGet('tt_v1_an_inc', true) !== false;

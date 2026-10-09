@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kanyadet School — Sign In</title>
+  <link rel="icon" type="image/x-icon" href="./images/logo.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./PWA/pwa.css">
+  <script src="./PWA/pwa.js"></script>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    :root {
+      --blue:#2980b9; --blue-dk:#1a5276; --blue-lt:#5dade2; --blue-glow:rgba(41,128,185,.35);
+      --orange:#e67e22; --orange-dk:#d35400; --gold:#f39c12;
+      --green:#27ae60; --green-dk:#1d8a4e; --red:#e74c3c; --red-dk:#c0392b;
+      --purple:#8e44ad; --teal:#16a085;
+      --brand-1:#0f4c81; --brand-2:#3f8fc5; --brand-3:#ffb84d;
+      --radius-xl:24px; --radius-lg:18px; --radius-md:12px; --radius-sm:8px;
+      --transition:all .25s cubic-bezier(.4,0,.2,1);
+    }
+    [data-theme="dark"] {
+      --bg:#090f1a; --bg2:#0c1525; --surface:#111d2e; --surface2:#162438;
+      --surface3:#1c2e44; --border:rgba(41,128,185,.18); --border-strong:rgba(41,128,185,.4);
+      --text:#ddeeff; --text2:#7aaec9; --text3:#4a7a9b;
+      --card-shadow:0 8px 32px rgba(0,0,0,.4);
+      --input-bg:#0f1c30;
+    }
+    [data-theme="light"] {
+      --bg:linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%);
+      --bg2:#f7edd0; --surface:#ffffff; --surface2:#fdfaf2;
+      --surface3:#f8eed6; --border:rgba(211,164,55,.2); --border-strong:rgba(211,164,55,.45);
+      --text:#0c1e33; --text2:#5a5342; --text3:#a89b7a;
+      --card-shadow:0 4px 20px rgba(211,164,55,.14);
+      --input-bg:#fff;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(circle at 10% 10%, rgba(41,128,185,.20), transparent 26%),
+        radial-gradient(circle at 88% 92%, rgba(230,126,34,.20), transparent 24%),
+        linear-gradient(120deg, rgba(255,255,255,.08), transparent 60%);
+    }
+    body::after{
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:linear-gradient(rgba(41,128,185,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(41,128,185,.045) 1px, transparent 1px);
+      background-size:26px 26px;
+      mask-image:radial-gradient(circle at center, black 50%, transparent 92%);
+    }
+    a{color:inherit;text-decoration:none}
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:8px}
+
+    /* Auth — same warm cream/gold background as Teachers portal */
+    #auth-gate{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;overflow-y:auto;background:var(--bg)}
+    #auth-gate::before{
+      content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(ellipse 55% 45% at 90% 88%,rgba(243,156,18,.18) 0%,transparent 65%),
+        radial-gradient(ellipse 45% 40% at 10% 8%,rgba(211,164,55,.08) 0%,transparent 60%);
+      opacity:.6;
+    }
+    [data-theme="dark"] #auth-gate::before{
+      opacity:1;
+      background:radial-gradient(ellipse 60% 50% at 8% 10%,rgba(41,128,185,.12) 0%,transparent 65%),
+        radial-gradient(ellipse 50% 45% at 92% 90%,rgba(22,160,133,.08) 0%,transparent 60%);
+    }
+    .auth-card{position:relative;z-index:1;width:100%;max-width:380px;background:var(--surface);border-radius:28px;padding:2.3rem 2.1rem 2.1rem;box-shadow:0 30px 90px rgba(10,30,60,.28),0 0 0 1px rgba(41,128,185,.07);border:1px solid var(--border);text-align:left;animation:fadeUp .5s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes fadeUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .auth-logo{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));display:grid;place-items:center;font-size:24px;margin:0 auto 1.1rem;box-shadow:0 10px 26px var(--blue-glow)}
+    .auth-card h1{text-align:center;font-size:1.55rem;font-weight:900;letter-spacing:-.01em;color:var(--text);margin-bottom:.25rem}
+    .auth-card .auth-sub{text-align:center;font-size:.83rem;color:var(--text2);font-weight:500;margin-bottom:1.4rem}
+    .auth-err{background:rgba(231,76,60,.12);color:#e25b4b;border:1px solid rgba(231,76,60,.3);padding:9px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+    .auth-notice{background:rgba(41,128,185,.1);color:var(--blue-dk);border:1px solid rgba(41,128,185,.25);padding:9px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+    .auth-field{margin-bottom:.6rem}
+    .auth-field label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+    .auth-field input{width:100%;padding:.8rem .95rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);font-family:inherit;font-size:.85rem;color:var(--text);outline:none;transition:border-color .15s;box-sizing:border-box}
+    .auth-field input:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
+    .auth-btn{width:100%;padding:.95rem 1.5rem;border:none;border-radius:14px;font-family:inherit;font-size:.9rem;font-weight:800;cursor:pointer;transition:var(--transition);margin-top:.3rem;margin-bottom:.6rem;display:flex;align-items:center;justify-content:center;gap:.55rem}
+    .auth-btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
+    .auth-btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(20,40,70,.45)}
+    .auth-btn-google{background:linear-gradient(135deg,var(--blue-dk),#0c1e33);color:#fff;box-shadow:0 12px 28px rgba(20,40,70,.35)}
+    .auth-btn-google:hover{transform:translateY(-2px)}
+    .auth-divider{display:flex;align-items:center;gap:.6rem;margin:.9rem 0;font-size:.68rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    /* ── Portal quick links ── */
+    .auth-links{margin-top:.4rem}
+    .auth-links-title{display:flex;align-items:center;gap:.6rem;margin:.2rem 0 .8rem;font-size:.66rem;color:var(--text3);font-weight:800;text-transform:uppercase;letter-spacing:.09em}
+    .auth-links-title::before,.auth-links-title::after{content:'';flex:1;height:1px;background:var(--border)}
+    .portal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
+    .portal-link{--c:var(--blue);position:relative;display:flex;align-items:center;gap:.65rem;min-width:0;padding:.7rem .75rem;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);text-decoration:none;overflow:hidden;transition:var(--transition);-webkit-tap-highlight-color:transparent}
+    .portal-link::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--c),transparent 70%);opacity:0;transition:opacity .25s}
+    .portal-link:hover,.portal-link:focus-visible{transform:translateY(-2px);border-color:var(--c);box-shadow:0 8px 20px -8px var(--c);outline:none}
+    .portal-link:hover::before,.portal-link:focus-visible::before{opacity:.08}
+    .portal-link:active{transform:translateY(0) scale(.98)}
+    .portal-ico{position:relative;flex:0 0 auto;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 60%,#000));box-shadow:0 4px 10px -3px var(--c)}
+    .portal-ico svg{width:18px;height:18px}
+    .portal-txt{position:relative;display:flex;flex-direction:column;min-width:0;line-height:1.2}
+    .portal-txt strong{font-size:.78rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .portal-txt small{font-size:.64rem;color:var(--text3);font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .portal-arrow{position:relative;margin-left:auto;width:14px;height:14px;color:var(--text3);opacity:0;transform:translateX(-4px);transition:var(--transition);flex:0 0 auto}
+    .portal-link:hover .portal-arrow,.portal-link:focus-visible .portal-arrow{opacity:1;transform:none;color:var(--c)}
+    @media(max-width:360px){.portal-grid{grid-template-columns:1fr}}
+    @media(hover:none){.portal-arrow{display:none}}
+    /* ── Email button + modal ── */
+    .auth-btn-email{background:var(--surface2);color:var(--text);border:1.5px solid var(--border-strong,var(--border))}
+    .auth-btn-email:hover{transform:translateY(-2px);border-color:var(--blue-lt);box-shadow:0 10px 24px -10px var(--blue-glow)}
+    .em-overlay{position:fixed;inset:0;z-index:2100;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,20,38,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s linear .25s}
+    .em-overlay.open{opacity:1;visibility:visible;transition:opacity .25s ease}
+    .em-sheet{position:relative;width:100%;max-width:400px;max-height:calc(100dvh - 32px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:26px;padding:2rem 1.7rem 1.4rem;box-shadow:0 40px 100px rgba(6,18,36,.45);transform:translateY(18px) scale(.96);opacity:0;transition:transform .32s cubic-bezier(.2,.9,.3,1.15),opacity .25s ease}
+    .em-overlay.open .em-sheet{transform:none;opacity:1}
+    .em-grip{display:none;width:42px;height:4px;border-radius:4px;background:var(--border-strong,var(--border));margin:-.9rem auto 1rem}
+    .em-close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);display:grid;place-items:center;cursor:pointer;transition:var(--transition)}
+    .em-close:hover{background:var(--surface3);color:var(--text);transform:rotate(90deg)}
+    .em-head{text-align:center;margin-bottom:1.2rem}
+    .em-badge{width:54px;height:54px;margin:0 auto .9rem;border-radius:17px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue-dk));box-shadow:0 10px 26px var(--blue-glow)}
+    .em-head h2{font-size:1.3rem;font-weight:900;letter-spacing:-.01em;color:var(--text)}
+    .em-head p{font-size:.8rem;color:var(--text2);font-weight:500;margin-top:.25rem}
+    .em-input{position:relative}
+    .em-input input{padding-left:2.5rem;padding-right:2.6rem}
+    .em-lead{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;transition:color .15s}
+    .em-input:focus-within .em-lead{color:var(--blue-lt)}
+    .em-eye{position:absolute;right:.35rem;top:50%;transform:translateY(-50%);width:34px;height:34px;border:none;background:none;border-radius:10px;color:var(--text3);display:grid;place-items:center;cursor:pointer}
+    .em-eye:hover{color:var(--text);background:var(--surface3)}
+    .em-eye .eye-off{display:none}
+    .em-eye[aria-pressed="true"] .eye-on{display:none}
+    .em-eye[aria-pressed="true"] .eye-off{display:block}
+    .em-field input{font-size:16px}
+    .em-back{display:block;width:100%;margin-top:.2rem;padding:.6rem;border:none;background:none;font-family:inherit;font-size:.78rem;font-weight:700;color:var(--text2);cursor:pointer;border-radius:10px;transition:var(--transition)}
+    .em-back:hover{color:var(--blue-lt);background:var(--surface2)}
+    .em-sheet.shake{animation:emShake .4s}
+    @keyframes emShake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+    body.em-lock{overflow:hidden}
+    @media(max-width:520px){
+      .em-overlay{align-items:flex-end;padding:0}
+      .em-sheet{max-width:none;max-height:92dvh;border-radius:26px 26px 0 0;padding:1.6rem 1.3rem calc(1.2rem + env(safe-area-inset-bottom));transform:translateY(100%);opacity:1;transition:transform .35s cubic-bezier(.2,.9,.3,1)}
+      .em-overlay.open .em-sheet{transform:none}
+      .em-grip{display:block}
+    }
+    @media(prefers-reduced-motion:reduce){.em-overlay,.em-sheet{transition:none}.em-sheet.shake{animation:none}}
+    .boot-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    #pwa-install-btn{display:none;align-items:center;gap:8px;margin:0 auto 1rem;padding:.5rem .9rem;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer}
+    #pwa-install-btn.show{display:flex}
+
+    /* ── DESKTOP SIDE PANEL — irregular wave-divided blue panel ── */
+    .auth-cards-wrap{flex:1;min-width:0;display:flex;align-items:flex-start;justify-content:center;padding:20px;position:relative;}
+    @media(min-height:600px){.auth-cards-wrap{align-items:center;}}
+    .auth-side-panel{display:none;}
+    .auth-divider-wave{display:none;}
+    @media(min-width:901px){
+      #auth-gate{justify-content:flex-start;--auth-panel-w:min(42%,600px);--auth-wave-amp:72px;}
+      .auth-side-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;width:var(--auth-panel-w);flex-shrink:0;min-height:100vh;position:relative;overflow:hidden;padding:4rem 3rem;color:#fff;}
+      .auth-side-panel::before{content:'';position:absolute;top:0;bottom:0;left:0;right:var(--auth-wave-amp);background:linear-gradient(160deg,var(--blue-dk) 0%,#132a45 55%,#0a1c30 100%);}
+      .auth-side-panel .asp-blob{position:absolute;border-radius:50%;pointer-events:none;}
+      .auth-side-panel .asp-blob-1{width:360px;height:360px;top:-130px;right:-130px;background:rgba(255,255,255,.055);}
+      .auth-side-panel .asp-blob-2{width:280px;height:280px;bottom:-110px;left:-90px;background:rgba(93,173,226,.18);}
+      .auth-side-panel .asp-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.22);}
+      .auth-side-panel .asp-dot-1{width:14px;height:14px;top:16%;right:20%;}
+      .auth-side-panel .asp-dot-2{width:10px;height:10px;bottom:22%;left:14%;background:var(--blue-lt);opacity:.9;}
+      .auth-side-panel .asp-illustration{position:relative;z-index:1;width:100%;max-width:320px;margin:0 auto 2.4rem;}
+      .auth-side-panel .asp-illustration svg{width:100%;height:auto;display:block;}
+      .auth-side-panel .asp-brand{position:relative;z-index:1;text-align:center;}
+      .auth-side-panel .asp-brand-name{font-size:1.5rem;font-weight:900;margin-bottom:.6rem;letter-spacing:-.01em;}
+      .auth-side-panel .asp-brand-tag{font-size:.88rem;color:rgba(255,255,255,.72);font-weight:500;line-height:1.55;max-width:320px;margin:0 auto;min-height:2.7em;transition:opacity .35s ease;}
+      .auth-side-panel .asp-brand-tag.fading{opacity:0;}
+      .auth-side-panel .asp-tip-dots{display:flex;justify-content:center;gap:.4rem;margin-top:1.1rem;position:relative;z-index:1;}
+      .auth-side-panel .asp-tip-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28);transition:background .25s,width .25s;}
+      .auth-side-panel .asp-tip-dot.active{background:var(--blue-lt);width:18px;border-radius:3px;}
+      .auth-divider-wave{display:block;position:absolute;top:0;bottom:0;left:calc(var(--auth-panel-w) - var(--auth-wave-amp));width:calc(var(--auth-wave-amp) * 2);z-index:2;pointer-events:none;}
+      .auth-divider-wave svg{width:100%;height:100%;display:block;}
+      .auth-cards-wrap{flex:1;min-height:100vh;padding:40px 4vw;position:relative;z-index:1;}
+      .auth-card{box-shadow:none;border:none;background:transparent;max-width:400px;}
+    }
+
+    .toast-host{position:fixed;top:16px;right:16px;z-index:4000;display:flex;flex-direction:column;gap:8px}
+    .toast{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;color:var(--text);box-shadow:0 10px 30px rgba(0,0,0,.15);animation:fadeUp .25s ease}
+    .toast.ok{border-left-color:var(--green)}
+    .toast.err{border-left-color:var(--red)}
+    /* ═══ CLAYMORPHISM LAYER ═══ (overrides only; remove this block to revert) */
+    :root{
+      --radius-xl:32px; --radius-lg:26px; --radius-md:18px; --radius-sm:12px;
+      --clay-hi:rgba(255,255,255,.9); --clay-lo:rgba(120,95,40,.22);
+      --clay-out:10px 12px 24px var(--clay-lo), -8px -8px 20px var(--clay-hi);
+      --clay-out-sm:5px 6px 12px var(--clay-lo), -4px -4px 10px var(--clay-hi);
+      --clay-in:inset 6px 6px 12px rgba(120,95,40,.18), inset -6px -6px 12px var(--clay-hi);
+      --clay-edge:inset -4px -5px 10px rgba(120,95,40,.12), inset 4px 4px 9px var(--clay-hi);
+      --transition:all .22s cubic-bezier(.34,1.4,.64,1);
+    }
+    [data-theme="dark"]{
+      --clay-hi:rgba(120,170,230,.10); --clay-lo:rgba(0,0,0,.55);
+      --clay-edge:inset -4px -5px 10px rgba(0,0,0,.35), inset 4px 4px 9px rgba(120,170,230,.12);
+      --clay-in:inset 6px 6px 12px rgba(0,0,0,.5), inset -5px -5px 10px rgba(120,170,230,.08);
+      --bg:#0f1c31; --bg2:#0c1525; --surface:#15294a; --surface2:#1a3157; --surface3:#1f3a66; --border:transparent;
+    }
+    [data-theme="light"]{
+      --bg:#efe6d2; --bg2:#e8dcc0; --surface:#f6eedc; --surface2:#f9f3e5; --surface3:#ebe0c6; --border:transparent; --border-strong:rgba(211,164,55,.35);
+    }
+    body::before,body::after,#auth-gate::before{display:none}
+    .auth-card{border:none;box-shadow:var(--clay-out),var(--clay-edge);border-radius:var(--radius-xl)}
+    .auth-logo,.em-badge{border-radius:22px;box-shadow:var(--clay-out-sm),inset -4px -5px 10px rgba(0,0,0,.22),inset 4px 4px 9px rgba(255,255,255,.35)}
+    .auth-field input{border:none;border-radius:var(--radius-md);background:var(--surface3);box-shadow:var(--clay-in)}
+    .auth-field input:focus{border:none;box-shadow:var(--clay-in),0 0 0 3px var(--blue-glow)}
+    .auth-btn{border-radius:var(--radius-md);box-shadow:var(--clay-out-sm),inset -3px -4px 8px rgba(0,0,0,.2),inset 3px 3px 7px rgba(255,255,255,.35)}
+    .auth-btn-primary,.auth-btn-google{box-shadow:var(--clay-out-sm),inset -3px -4px 8px rgba(0,0,0,.25),inset 3px 3px 7px rgba(255,255,255,.28)}
+    .auth-btn:hover{transform:translateY(-2px) scale(1.02)}
+    .auth-btn:active{transform:translateY(1px) scale(.98);box-shadow:var(--clay-in)}
+    .auth-btn-email{background:var(--surface);border:none;box-shadow:var(--clay-out-sm),var(--clay-edge)}
+    .auth-btn-email:hover{border:none;box-shadow:var(--clay-out-sm),var(--clay-edge)}
+    .auth-btn-email:active{box-shadow:var(--clay-in)}
+    .portal-link{border:none;border-radius:var(--radius-md);background:var(--surface);box-shadow:var(--clay-out-sm),var(--clay-edge)}
+    .portal-link:hover,.portal-link:focus-visible{border:none;transform:translateY(-3px) scale(1.02);box-shadow:var(--clay-out),var(--clay-edge)}
+    .portal-link:active{box-shadow:var(--clay-in)}
+    .portal-ico{border-radius:14px;box-shadow:var(--clay-out-sm),inset -3px -3px 7px rgba(0,0,0,.22),inset 3px 3px 6px rgba(255,255,255,.35)}
+    .em-sheet{border:none;border-radius:var(--radius-xl);box-shadow:16px 20px 50px var(--clay-lo),-10px -10px 30px var(--clay-hi),var(--clay-edge)}
+    .em-close,.em-eye{background:var(--surface);box-shadow:var(--clay-out-sm),var(--clay-edge)}
+    .em-close:active,.em-eye:active{box-shadow:var(--clay-in)}
+    .em-back:hover{background:var(--surface);box-shadow:var(--clay-out-sm)}
+    #pwa-install-btn{border:none;border-radius:var(--radius-md);background:var(--surface);box-shadow:var(--clay-out-sm),var(--clay-edge)}
+    .auth-err,.auth-notice{border:none;border-radius:var(--radius-md);box-shadow:var(--clay-in)}
+    .toast{border:none;border-left:4px solid var(--blue);border-radius:var(--radius-md);box-shadow:var(--clay-out)}
+    .toast.ok{border-left-color:var(--green)} .toast.err{border-left-color:var(--red)}
+    @media(max-width:520px){.em-sheet{border-radius:var(--radius-xl) var(--radius-xl) 0 0}}
+    @media(min-width:901px){.auth-card{box-shadow:none;border:none;background:transparent}}
+  </style>
+</head>
+<body>
+  <!-- AUTH GATE — this page's only job is to authenticate an Advanced Admin
+       and hand off to index.html. No dashboard markup lives here. -->
+  <div id="auth-gate">
+
+    <!-- ── DESKTOP SIDE PANEL — hidden on mobile, fills the left side on wide screens ── -->
+    <div class="auth-side-panel" aria-hidden="true">
+      <div class="asp-blob asp-blob-1"></div>
+      <div class="asp-blob asp-blob-2"></div>
+      <div class="asp-dot asp-dot-1"></div>
+      <div class="asp-dot asp-dot-2"></div>
+      <div class="asp-illustration">
+        <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="160" cy="130" r="112" fill="rgba(255,255,255,.06)"/>
+          <rect x="96" y="30" width="128" height="200" rx="24" fill="rgba(255,255,255,.09)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+          <rect x="118" y="54" width="84" height="10" rx="5" fill="rgba(255,255,255,.35)"/>
+          <g transform="translate(160,136)">
+            <rect x="-34" y="-6" width="68" height="52" rx="12" fill="var(--blue-lt)"/>
+            <path d="M-22 -6 v-16 a22 22 0 0 1 44 0 v16" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="0" cy="18" r="7" fill="#0a1c30"/>
+            <rect x="-3.5" y="18" width="7" height="15" rx="3.5" fill="#0a1c30"/>
+          </g>
+          <rect x="118" y="196" width="84" height="10" rx="5" fill="rgba(255,255,255,.25)"/>
+          <circle cx="66" cy="52" r="18" fill="var(--blue-lt)" opacity=".45"/>
+          <circle cx="258" cy="204" r="14" fill="rgba(255,255,255,.2)"/>
+          <path d="M46 200 q16 -34 44 -10" stroke="var(--blue-lt)" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
+          <path d="M244 50 l14 -14 m0 14 l-14 -14" stroke="rgba(255,255,255,.5)" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="asp-brand">
+        <div class="asp-brand-name">Kanyadet PRI &amp; Junior School</div>
+        <div class="asp-brand-tag" id="asp-tip-text">Deep school-wide administration — audit trails, welfare, announcements and portal management, all in one secure place.</div>
+        <div class="asp-tip-dots" id="asp-tip-dots"></div>
+      </div>
+    </div>
+
+    <!-- ── IRREGULAR WAVE DIVIDER ── -->
+    <div class="auth-divider-wave" aria-hidden="true">
+      <svg viewBox="0 0 144 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="authWaveGrad" x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0%"  stop-color="#1a5276"/>
+            <stop offset="55%" stop-color="#132a45"/>
+            <stop offset="100%" stop-color="#0a1c30"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#authWaveGrad)" d="M88,0 L103.7,16 L101.8,32 L96.3,48 L100.9,64 L114.1,80 L120.3,96 L105.6,112 L73.2,128 L41.4,144 L27.7,160 L33.5,176 L44.2,192 L45.2,208 L37.4,224 L35.5,240 L52.7,256 L85.5,272 L115.6,288 L125.5,304 L114.7,320 L98.4,336 L91.9,352 L95.3,368 L94.4,384 L76.6,400 L45.2,416 L18.6,432 L13.5,448 L30,464 L51.8,480 L63,496 L62.6,512 L64.4,528 L81,544 L109.2,560 L131,576 L130.5,592 L108.4,608 L81.8,624 L67.4,640 L66.6,656 L65.7,672 L52.1,688 L28.6,704 L12.3,720 L18.5,736 L45.4,752 L75.5,768 L91.3,784 L91.5,800 L0,800 L0,0 Z"/>
+      </svg>
+    </div>
+
+    <div class="auth-cards-wrap">
+    <div class="auth-card" id="auth-card">
+      <div class="auth-logo">🏫</div>
+      <!-- ── INSTALL APP (PWA, standalone-only) — shown when browser deems the app installable ── -->
+      <button id="pwa-install-btn" type="button" onclick="installPwaApp()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+        Install App
+      </button>
+      <h1>Kanyadet School</h1>
+      <p class="auth-sub">Advanced Admin Portal — sign in to continue</p>
+      <div class="auth-notice" id="auth-notice"></div>
+      <div class="auth-err" id="auth-err"></div>
+      <div id="auth-loading" style="display:none">
+        <div class="boot-spinner"></div>
+        <p style="text-align:center;font-size:12px;color:var(--text2);margin-top:8px">Verifying access…</p>
+      </div>
+      <div id="auth-form">
+        <button class="auth-btn auth-btn-google" id="btn-google-login">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-divider">or</div>
+        <button class="auth-btn auth-btn-email" id="btn-open-email" type="button" aria-haspopup="dialog" aria-controls="email-modal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg>
+          Continue with Email
+        </button>
+        <div class="auth-links">
+          <div class="auth-links-title">Other portals</div>
+          <div class="portal-grid">
+          <a class="portal-link" style="--c:#e67e22" href="./Results-portal.html">
+            <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+            <span class="portal-txt"><strong>Results</strong><small>Scores &amp; rankings</small></span>
+            <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+          </a>
+          <a class="portal-link" style="--c:#27ae60" href="https://kanyadet-school-parents.web.app/">
+            <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <span class="portal-txt"><strong>Parents</strong><small>Follow your child</small></span>
+            <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+          </a>
+          <a class="portal-link" style="--c:#2980b9" href="https://kanyadet-school-portal.web.app">
+            <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></span>
+            <span class="portal-txt"><strong>Teachers</strong><small>Classes &amp; marks</small></span>
+            <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+          </a>
+          <a class="portal-link" style="--c:#8e44ad" href="https://kanyadet-school-admin.web.app">
+            <span class="portal-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
+            <span class="portal-txt"><strong>Admin</strong><small>School control</small></span>
+            <svg class="portal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+          </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ── Email sign-in modal ── -->
+  <div class="em-overlay" id="email-modal" role="dialog" aria-modal="true" aria-labelledby="em-title" aria-hidden="true">
+    <div class="em-sheet" id="em-sheet">
+      <span class="em-grip" aria-hidden="true"></span>
+      <button class="em-close" id="em-close" type="button" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="em-head">
+        <div class="em-badge"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg></div>
+        <h2 id="em-title">Sign in with email</h2>
+        <p>Enter your admin credentials to continue.</p>
+      </div>
+      <div class="auth-err" id="email-err" role="alert"></div>
+      <form id="email-form" autocomplete="on" onsubmit="event.preventDefault()">
+        <div class="auth-field em-field">
+          <label for="login-email">Email</label>
+          <div class="em-input">
+            <svg class="em-lead" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg>
+            <input type="email" id="login-email" autocomplete="username" placeholder="you@example.com" inputmode="email" autocapitalize="none" spellcheck="false" />
+          </div>
+        </div>
+        <div class="auth-field em-field">
+          <label for="login-password">Password</label>
+          <div class="em-input">
+            <svg class="em-lead" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <input type="password" id="login-password" autocomplete="current-password" placeholder="Your password" />
+            <button class="em-eye" id="em-eye" type="button" aria-label="Show password" aria-pressed="false">
+              <svg class="eye-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M1 1l22 22"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="auth-btn auth-btn-primary" id="btn-email-login" type="button">Sign In</button>
+      </form>
+      <button class="em-back" id="em-back" type="button">← Back to other options</button>
+    </div>
+  </div>
+
+  <div class="toast-host" id="toastHost"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithCredential, GoogleAuthProvider, signOut, initializeRecaptchaConfig, multiFactor, PhoneAuthProvider, PhoneMultiFactorGenerator, RecaptchaVerifier, getMultiFactorResolver, sendEmailVerification, TotpMultiFactorGenerator } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { GoogleOneTap } from './js/google-one-tap.js';
+    import { SessionManager } from './js/session-manager.js';
+
+    import { FIREBASE_CONFIG } from './js/config.js';
+    import { GOOGLE_CLIENT_ID } from './js/config.js';
+
+    const app = initializeApp(FIREBASE_CONFIG);
+    const auth = getAuth(app);
+    initializeRecaptchaConfig(auth).catch(()=>{}); // Fraud Defense (reCAPTCHA Enterprise) for email/password sign-in
+    const fst = getFirestore(app);
+
+    function $(id){ return document.getElementById(id); }
+    function toast(msg, type='info'){
+      const host = $('toastHost');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.textContent = msg;
+      host.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    /* ── Theme (matches whatever the dashboard was last set to) ── */
+    const savedTheme = localStorage.getItem('aap_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    /* ── Redirect target — go back to wherever the user was headed, else index.html ── */
+    const params = new URLSearchParams(location.search);
+    const redirectTo = params.get('redirect') || 'index.html';
+
+    /* ── Reason banner — index.html sends people back here with a reason ── */
+    (function showReasonNotice(){
+      const reason = params.get('reason');
+      if(!reason) return;
+      const messages = {
+        'session-expired': 'Your session ended. Please sign in again.',
+        'unauthorized': 'Access denied. Advanced Admin privileges are required.',
+        'error': 'Could not verify admin access. Please sign in again.'
+      };
+      const el = $('auth-notice');
+      el.textContent = messages[reason] || 'Please sign in to continue.';
+      el.style.display = 'block';
+    })();
+
+    /* ── Auth UI ── */
+    function showAuthErr(msg){
+      const el = $('auth-err');
+      el.textContent = msg;
+      el.style.display = msg ? 'block' : 'none';
+      const em = $('email-err');
+      em.textContent = msg;
+      em.style.display = msg ? 'block' : 'none';
+    }
+    function setAuthLoading(on){
+      if(on) closeEmailModal(true);
+      $('auth-loading').style.display = on ? 'block' : 'none';
+      $('auth-form').style.display = on ? 'none' : 'block';
+    }
+
+    async function verifyAdvancedAdmin(user){
+      const snap = await getDoc(doc(fst, 'users', user.uid));
+      if(!snap.exists()) return false;
+      const data = snap.data() || {};
+      if(data.disabled === true) throw new Error('Account disabled by an administrator.');
+      return data.Advancedadmin === true;
+    }
+
+    /* ── 2-step verification (Firebase MFA): SMS code or authenticator app ──
+       Sign-in: mfaRun(fn) runs a sign-in call; if Firebase says a second step is
+       needed it asks for the code and completes the sign-in.
+       Enforcement: requireMfa(user) blocks the app until a second factor is enrolled. ── */
+    const mfaSdk = () => ({ auth, signOut, multiFactor, PhoneAuthProvider, PhoneMultiFactorGenerator, TotpMultiFactorGenerator, RecaptchaVerifier, getMultiFactorResolver, sendEmailVerification });
+    const MFA_Z = 2147483000;
+    const mEsc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const mErr = (code, msg) => { const e = new Error(msg || code); e.code = code; return e; };
+    function mFriendly(e){
+      const c = e && e.code;
+      if(c === 'auth/invalid-verification-code') return 'That code is not correct. Check it and try again.';
+      if(c === 'auth/code-expired') return 'That code has expired. Request a new one.';
+      if(c === 'auth/invalid-phone-number') return 'Enter the number with country code, e.g. +254712345678.';
+      if(c === 'auth/too-many-requests') return 'Too many attempts. Please wait a few minutes and try again.';
+      if(c === 'auth/quota-exceeded') return 'SMS limit reached. Please try again later.';
+      if(c === 'auth/captcha-check-failed') return 'Security check failed. Refresh the page and try again.';
+      if(c === 'auth/operation-not-allowed') return 'This method is not enabled in Firebase yet (SMS: check the SMS region policy. Authenticator app: enable TOTP under Authentication → Sign-in method → Multi-factor).';
+      if(c === 'auth/second-factor-already-in-use') return 'This phone number is already added to your account.';
+      if(c === 'auth/network-request-failed') return 'Network problem. Check your connection and try again.';
+      return ((e && e.message) || 'Something went wrong.').replace('Firebase: ', '');
+    }
+    const M_INP = 'width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #d5dbe8;border-radius:10px;font-size:16px;outline:none;font-family:inherit';
+    const M_BTN1 = 'width:100%;padding:12px;border:0;border-radius:10px;background:#1a2a52;color:#fff;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit';
+    const M_BTN2 = 'width:100%;padding:10px;border:0;background:transparent;color:#5a6580;font-weight:700;font-size:12px;cursor:pointer;margin-top:6px;font-family:inherit';
+    const M_CODE = M_INP + ';text-align:center;letter-spacing:6px;font-weight:800';
+    function mfaModal(title, sub){
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:' + MFA_Z + ';background:rgba(10,18,38,.62);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit;overflow:auto';
+      wrap.innerHTML =
+        '<div style="background:#fff;color:#1a2238;width:min(400px,100%);border-radius:18px;padding:26px 24px;box-shadow:0 24px 60px rgba(0,0,0,.35);border-top:4px solid #c9a227;margin:auto">' +
+        '<div style="font-size:30px;line-height:1">🔐</div>' +
+        '<div class="mfa-title" style="font-size:18px;font-weight:800;margin-top:8px">' + mEsc(title) + '</div>' +
+        '<div class="mfa-sub" style="font-size:13px;color:#5a6580;margin-top:6px;line-height:1.55">' + sub + '</div>' +
+        '<div class="mfa-body" style="margin-top:16px"></div>' +
+        '<div class="mfa-msg" style="display:none;margin-top:12px;padding:9px 11px;border-radius:9px;font-size:12px;font-weight:600;background:rgba(220,53,69,.09);color:#b02a37"></div>' +
+        '<div class="mfa-rc" style="height:0;overflow:hidden"></div></div>';
+      document.body.appendChild(wrap);
+      const q = s => wrap.querySelector(s);
+      return {
+        wrap, body: q('.mfa-body'), rc: q('.mfa-rc'),
+        sub: h => { q('.mfa-sub').innerHTML = h; },
+        msg: t => { const el = q('.mfa-msg'); el.textContent = t || ''; el.style.display = t ? 'block' : 'none'; },
+        close: () => wrap.remove(),
+      };
+    }
+    let _mfaRv = null;
+    function mfaRecaptcha(m){
+      const S = mfaSdk();
+      try{ if(_mfaRv) _mfaRv.clear(); }catch(e){}
+      m.rc.innerHTML = '<div></div>';
+      _mfaRv = new S.RecaptchaVerifier(S.auth, m.rc.firstChild, { size: 'invisible' });
+      return _mfaRv;
+    }
+    function mfaClearRv(){ try{ if(_mfaRv) _mfaRv.clear(); }catch(e){} _mfaRv = null; }
+    function mfaLoadQr(){
+      if(window.QRCode) return Promise.resolve(true);
+      return new Promise(res => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+        s.onload = () => res(!!window.QRCode); s.onerror = () => res(false);
+        document.head.appendChild(s);
+      });
+    }
+
+    /* ── Sign-in challenge: SMS code or authenticator-app code ── */
+    function mfaChallenge(e){
+      const S = mfaSdk();
+      const resolver = S.getMultiFactorResolver(S.auth, e);
+      const phone = resolver.hints.find(h => h.factorId === 'phone');
+      const totp = resolver.hints.find(h => h.factorId === 'totp');
+      if(!phone && !totp) return Promise.reject(mErr('auth/unsupported-first-factor', 'No supported second factor on this account.'));
+      const m = mfaModal('Verify it\'s you', 'Preparing…');
+      return new Promise((resolve, reject) => {
+        let hint = phone || totp, verificationId = '', busy = false;
+        m.body.innerHTML =
+          '<input class="mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" style="' + M_CODE + '" disabled>' +
+          '<button class="mfa-ok" style="' + M_BTN1 + ';margin-top:12px" disabled>Verify</button>' +
+          '<button class="mfa-resend" style="' + M_BTN2 + '">Resend code</button>' +
+          '<button class="mfa-switch" style="' + M_BTN2 + ';display:none"></button>' +
+          '<button class="mfa-cancel" style="' + M_BTN2 + '">Cancel</button>';
+        const code = m.body.querySelector('.mfa-code'), ok = m.body.querySelector('.mfa-ok');
+        const resend = m.body.querySelector('.mfa-resend'), sw = m.body.querySelector('.mfa-switch');
+        const end = (fn, v) => { mfaClearRv(); m.close(); fn(v); };
+        async function send(){
+          m.msg(''); busy = true; code.disabled = true; ok.disabled = true;
+          m.sub('Sending a code to <b>' + mEsc(hint.phoneNumber || 'your phone') + '</b>…');
+          try{
+            verificationId = await new S.PhoneAuthProvider(S.auth).verifyPhoneNumber({ multiFactorHint: hint, session: resolver.session }, mfaRecaptcha(m));
+            m.sub('Enter the 6-digit code we texted to <b>' + mEsc(hint.phoneNumber || 'your phone') + '</b>.');
+            code.disabled = false; ok.disabled = false; code.focus();
+          }catch(x){ m.sub('Couldn\'t send the code.'); m.msg(mFriendly(x)); }
+          busy = false;
+        }
+        function setMode(h){
+          hint = h; m.msg(''); code.value = '';
+          const isTotp = h.factorId === 'totp';
+          resend.style.display = isTotp ? 'none' : 'block';
+          sw.style.display = (phone && totp) ? 'block' : 'none';
+          sw.textContent = isTotp ? 'Text me a code instead' : 'Use authenticator app instead';
+          if(isTotp){ m.sub('Open your <b>authenticator app</b> and enter the 6-digit code for this account.'); code.disabled = false; ok.disabled = false; code.focus(); }
+          else send();
+        }
+        async function verify(){
+          if(busy) return;
+          const v = (code.value || '').replace(/\D/g, '');
+          if(v.length !== 6){ m.msg('Enter the 6-digit code.'); return; }
+          busy = true; ok.disabled = true; ok.textContent = 'Verifying…'; m.msg('');
+          try{
+            const assertion = hint.factorId === 'totp'
+              ? S.TotpMultiFactorGenerator.assertionForSignIn(hint.uid, v)
+              : S.PhoneMultiFactorGenerator.assertion(S.PhoneAuthProvider.credential(verificationId, v));
+            end(resolve, await resolver.resolveSignIn(assertion));
+          }catch(x){
+            m.msg(mFriendly(x)); ok.disabled = false; ok.textContent = 'Verify'; busy = false;
+            if(x && x.code === 'auth/code-expired') code.value = '';
+          }
+        }
+        ok.onclick = verify;
+        code.addEventListener('keydown', ev => { if(ev.key === 'Enter') verify(); });
+        resend.onclick = () => { if(!busy) send(); };
+        sw.onclick = () => { if(!busy) setMode(hint.factorId === 'totp' ? phone : totp); };
+        m.body.querySelector('.mfa-cancel').onclick = () => end(reject, mErr('auth/mfa-cancelled', 'Verification cancelled.'));
+        setMode(hint);
+      });
+    }
+    async function mfaRun(fn){
+      try{ return await fn(); }
+      catch(e){
+        if(e && e.code === 'auth/multi-factor-auth-required') return await mfaChallenge(e);
+        throw e;
+      }
+    }
+
+    /* ── Enrolment: SMS or authenticator app. Resolves true when enrolled, false if cancelled (never when forced). ── */
+    function mfaEnroll(user, opts){
+      opts = opts || {};
+      const S = mfaSdk(), forced = !!opts.forced;
+      const m = mfaModal(forced ? 'Secure your account' : 'Add a second step',
+        (forced ? '2-step verification is <b>required</b> for all users. ' : '') + 'Choose how you want to get your sign-in codes.');
+      return new Promise(resolve => {
+        let verificationId = '', busy = false, reauthTries = 0;
+        const done = ok => { mfaClearRv(); m.close(); resolve(ok); };
+        const leave = async () => {
+          if(!forced){ done(false); return; }
+          try{ await S.signOut(S.auth); }catch(x){}
+          location.reload();
+        };
+        const intro = () => m.sub((forced ? '2-step verification is <b>required</b> for all users. ' : '') + 'Choose how you want to get your sign-in codes.');
+
+        async function handleErr(e, retry){
+          const c = e && e.code;
+          if(c === 'auth/requires-recent-login' && opts.recentLogin && reauthTries < 1){
+            reauthTries++;
+            try{ await opts.recentLogin(m, user); m.msg(''); await retry(); }
+            catch(x){
+              if(x && x.code === 'auth/mfa-cancelled'){ if(forced){ m.msg(''); stepChoose(); } else done(false); }
+              else { m.msg(mFriendly(x)); stepChoose(); }
+            }
+            return true;
+          }
+          if(c === 'auth/unverified-email'){
+            try{ await S.sendEmailVerification(user); }catch(x){}
+            m.sub('Verify your email first');
+            m.msg('We sent a verification link to ' + user.email + '. Open it, then come back and continue.');
+            m.body.innerHTML = '<button class="mfa-x" style="' + M_BTN1 + '">I\'ve verified — continue</button><button class="mfa-lv" style="' + M_BTN2 + '">' + (forced ? 'Sign out' : 'Cancel') + '</button>';
+            m.body.querySelector('.mfa-x').onclick = async () => { try{ await user.reload(); }catch(x){} m.msg(''); stepChoose(); };
+            m.body.querySelector('.mfa-lv').onclick = leave;
+            return true;
+          }
+          return false;
+        }
+
+        function stepChoose(){
+          intro();
+          m.body.innerHTML =
+            '<button class="mfa-sms" style="' + M_BTN1 + '">📱 Text message (SMS)</button>' +
+            '<button class="mfa-app" style="' + M_BTN1 + ';margin-top:10px;background:#c9a227;color:#1a2238">🔑 Authenticator app</button>' +
+            '<div style="font-size:11px;color:#5a6580;margin-top:10px;line-height:1.5">No SMS arriving? The authenticator app (Google Authenticator, Microsoft Authenticator, Authy) works offline and is free.</div>' +
+            '<button class="mfa-x" style="' + M_BTN2 + '">' + (forced ? 'Sign out' : 'Cancel') + '</button>';
+          m.body.querySelector('.mfa-sms').onclick = stepPhone;
+          m.body.querySelector('.mfa-app').onclick = stepTotp;
+          m.body.querySelector('.mfa-x').onclick = leave;
+        }
+
+        function stepPhone(){
+          m.msg(''); m.sub('Enter your mobile number with the country code. We\'ll text you a 6-digit code.');
+          m.body.innerHTML =
+            '<input class="mfa-phone" type="tel" placeholder="+254712345678" style="' + M_INP + '">' +
+            '<button class="mfa-send" style="' + M_BTN1 + ';margin-top:12px">Send code</button>' +
+            '<button class="mfa-x" style="' + M_BTN2 + '">Back</button>';
+          const ph = m.body.querySelector('.mfa-phone'); ph.focus();
+          const go = () => sendCode(ph.value.replace(/[\s-]/g, ''));
+          m.body.querySelector('.mfa-send').onclick = go;
+          ph.addEventListener('keydown', ev => { if(ev.key === 'Enter') go(); });
+          m.body.querySelector('.mfa-x').onclick = stepChoose;
+        }
+        async function sendCode(phone){
+          if(busy) return;
+          if(!/^\+\d{8,15}$/.test(phone)){ m.msg('Use international format, e.g. +254712345678.'); return; }
+          busy = true; m.msg('');
+          const btn = m.body.querySelector('.mfa-send'); if(btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
+          try{
+            const session = await S.multiFactor(user).getSession();
+            verificationId = await new S.PhoneAuthProvider(S.auth).verifyPhoneNumber({ phoneNumber: phone, session }, mfaRecaptcha(m));
+            busy = false; stepCode(phone);
+          }catch(e){
+            busy = false;
+            if(await handleErr(e, () => sendCode(phone))) return;
+            m.msg(mFriendly(e));
+            if(btn){ btn.disabled = false; btn.textContent = 'Send code'; }
+          }
+        }
+        function stepCode(phone){
+          m.sub('Enter the 6-digit code sent to <b>' + mEsc(phone) + '</b>. It can take a minute or two to arrive.');
+          m.body.innerHTML =
+            '<input class="mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" style="' + M_CODE + '">' +
+            '<button class="mfa-ok" style="' + M_BTN1 + ';margin-top:12px">Verify &amp; turn on</button>' +
+            '<button class="mfa-resend" style="' + M_BTN2 + '" disabled>Resend code</button>' +
+            '<button class="mfa-x" style="' + M_BTN2 + '">Use a different number</button>';
+          const code = m.body.querySelector('.mfa-code'); code.focus();
+          const ok = m.body.querySelector('.mfa-ok'), rs = m.body.querySelector('.mfa-resend');
+          let left = 30;
+          const tick = setInterval(() => {
+            if(!document.body.contains(rs)){ clearInterval(tick); return; }
+            left--;
+            if(left <= 0){ clearInterval(tick); rs.disabled = false; rs.textContent = 'Resend code'; }
+            else rs.textContent = 'Resend code (' + left + 's)';
+          }, 1000);
+          rs.textContent = 'Resend code (30s)';
+          rs.onclick = () => { m.msg(''); sendCode(phone); };
+          const go = async () => {
+            if(busy) return;
+            const v = code.value.replace(/\D/g, '');
+            if(v.length !== 6){ m.msg('Enter the 6-digit code.'); return; }
+            busy = true; ok.disabled = true; ok.textContent = 'Verifying…'; m.msg('');
+            try{
+              const cred = S.PhoneAuthProvider.credential(verificationId, v);
+              await S.multiFactor(user).enroll(S.PhoneMultiFactorGenerator.assertion(cred), 'Phone ' + phone.slice(-4));
+              done(true);
+            }catch(e){ busy = false; ok.disabled = false; ok.textContent = 'Verify & turn on'; m.msg(mFriendly(e)); }
+          };
+          ok.onclick = go;
+          code.addEventListener('keydown', ev => { if(ev.key === 'Enter') go(); });
+          m.body.querySelector('.mfa-x').onclick = stepPhone;
+        }
+
+        async function stepTotp(){
+          m.msg(''); m.sub('Setting up your authenticator app…');
+          m.body.innerHTML = '<div style="text-align:center;color:#5a6580;font-size:13px">Loading…</div>';
+          let secret;
+          try{
+            const session = await S.multiFactor(user).getSession();
+            secret = await S.TotpMultiFactorGenerator.generateSecret(session);
+          }catch(e){
+            if(await handleErr(e, stepTotp)) return;
+            m.sub('Couldn\'t start the setup.'); m.msg(mFriendly(e));
+            m.body.innerHTML = '<button class="mfa-x" style="' + M_BTN1 + '">Back</button>';
+            m.body.querySelector('.mfa-x').onclick = stepChoose;
+            return;
+          }
+          const url = secret.generateQrCodeUrl(user.email || 'admin', opts.issuer || 'Kanyadet School Admin');
+          m.sub('<b>1.</b> Scan the QR code with Google Authenticator, Microsoft Authenticator or Authy.<br><b>2.</b> Enter the 6-digit code it shows.');
+          m.body.innerHTML =
+            '<div class="mfa-qr" style="display:flex;justify-content:center;margin-bottom:10px;min-height:20px"></div>' +
+            '<div style="text-align:center;font-size:11px;color:#5a6580;margin-bottom:12px;line-height:1.7">Can\'t scan? <a href="' + mEsc(url) + '" style="color:#1a2a52;font-weight:700">Open in authenticator app</a><br>or type this key: <b style="user-select:all;letter-spacing:1px;word-break:break-all">' + mEsc(secret.secretKey) + '</b></div>' +
+            '<input class="mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code" style="' + M_CODE + '">' +
+            '<button class="mfa-ok" style="' + M_BTN1 + ';margin-top:12px">Verify &amp; turn on</button>' +
+            '<button class="mfa-x" style="' + M_BTN2 + '">Back</button>';
+          mfaLoadQr().then(okq => { const box = m.body.querySelector('.mfa-qr'); if(okq && box && !box.firstChild) new window.QRCode(box, { text: url, width: 150, height: 150 }); });
+          const code = m.body.querySelector('.mfa-code'), ok = m.body.querySelector('.mfa-ok');
+          const go = async () => {
+            if(busy) return;
+            const v = code.value.replace(/\D/g, '');
+            if(v.length !== 6){ m.msg('Enter the 6-digit code.'); return; }
+            busy = true; ok.disabled = true; ok.textContent = 'Verifying…'; m.msg('');
+            try{
+              await S.multiFactor(user).enroll(S.TotpMultiFactorGenerator.assertionForEnrollment(secret, v), 'Authenticator app');
+              done(true);
+            }catch(e){ busy = false; ok.disabled = false; ok.textContent = 'Verify & turn on'; m.msg(mFriendly(e)); }
+          };
+          ok.onclick = go;
+          code.addEventListener('keydown', ev => { if(ev.key === 'Enter') go(); });
+          m.body.querySelector('.mfa-x').onclick = stepChoose;
+        }
+
+        if(opts.method === 'phone') stepPhone();
+        else if(opts.method === 'totp') stepTotp();
+        else stepChoose();
+      });
+    }
+
+    async function requireMfa(user){
+      try{ await user.reload(); }catch(e){}
+      if((multiFactor(user).enrolledFactors || []).length) return;
+      const ok = await mfaEnroll(user, {
+        forced: true,
+        // A stale session can't enrol a factor — send them back to sign in fresh.
+        recentLogin: async () => {
+          try{ await signOut(auth); }catch(x){}
+          location.href = 'login.html?reason=session-expired' + (params.get('redirect') ? '&redirect=' + encodeURIComponent(params.get('redirect')) : '');
+          return new Promise(() => {});
+        },
+      });
+      if(ok) toast('2-step verification is on.', 'success');
+    }
+
+    async function handleAuthed(user){
+      setAuthLoading(true);
+      showAuthErr('');
+      try{
+        const ok = await verifyAdvancedAdmin(user);
+        if(!ok){
+          await signOut(auth);
+          setAuthLoading(false);
+          showAuthErr('Access denied. Advanced Admin privileges required.');
+          return;
+        }
+        // Verified — start the hard 15-minute session clock, then hand off to the protected app.
+        new SessionManager({
+          onExpire: () => { location.href = 'login.html?reason=session-expired'; }
+        }).start();
+        location.href = redirectTo;
+      }catch(err){
+        console.error(err);
+        await signOut(auth).catch(()=>{});
+        setAuthLoading(false);
+        showAuthErr(err.message || 'Could not verify admin access.');
+      }
+    }
+
+    /* ── Google One Tap — the widget only decodes the Google ID token client-side;
+       it doesn't sign anyone into Firebase by itself. We take that ID token and
+       exchange it for a real Firebase session, same as the "Continue with Google"
+       button does. ── */
+    async function handleOneTapProfile(profile){
+      // profile.raw is the *response object* GIS handed back (see
+      // google-one-tap.js: toProfile(idToken, raw) stores raw=response),
+      // not the token itself — the JWT lives at response.credential.
+      const idToken = profile?.raw?.credential || profile?.credential || profile?.idToken || profile?.id_token;
+      if(!idToken){
+        console.error('One Tap: no ID token found on profile', profile);
+        return;
+      }
+      setAuthLoading(true); showAuthErr('');
+      try{
+        const credential = GoogleAuthProvider.credential(idToken);
+        await mfaRun(() => signInWithCredential(auth, credential));
+        // onAuthStateChanged fires from here and calls handleAuthed().
+      }catch(err){
+        setAuthLoading(false);
+        showAuthErr(err.message?.replace('Firebase: ','') || 'One Tap sign-in failed.');
+      }
+    }
+
+    const oneTap = new GoogleOneTap({
+      clientId: GOOGLE_CLIENT_ID,
+      autoSilentPrompt: true,
+      onSuccess: handleOneTapProfile,
+      onUnavailable: () => { /* manual form below still works */ },
+      onSuppressed: (reason) => console.log('One Tap silent prompt suppressed:', reason),
+      onError: (err) => console.error(err),
+    });
+    oneTap.init();
+
+    /* ── Email modal ── */
+    let emLastFocus = null;
+    function openEmailModal(){
+      const m = $('email-modal');
+      emLastFocus = document.activeElement;
+      m.classList.add('open'); m.setAttribute('aria-hidden','false');
+      document.body.classList.add('em-lock');
+      setTimeout(() => ($('login-email').value ? $('login-password') : $('login-email')).focus(), 120);
+    }
+    function closeEmailModal(silent){
+      const m = $('email-modal');
+      if(!m.classList.contains('open')) return;
+      m.classList.remove('open'); m.setAttribute('aria-hidden','true');
+      document.body.classList.remove('em-lock');
+      if(!silent && emLastFocus) emLastFocus.focus();
+    }
+    $('btn-open-email').addEventListener('click', () => { showAuthErr(''); openEmailModal(); });
+    $('em-close').addEventListener('click', () => closeEmailModal());
+    $('em-back').addEventListener('click', () => closeEmailModal());
+    $('email-modal').addEventListener('mousedown', e => { if(e.target === e.currentTarget) closeEmailModal(); });
+    document.addEventListener('keydown', e => {
+      const m = $('email-modal');
+      if(!m.classList.contains('open')) return;
+      if(e.key === 'Escape'){ closeEmailModal(); return; }
+      if(e.key === 'Tab'){
+        const f = [...m.querySelectorAll('button,input')].filter(x => x.offsetParent !== null);
+        const first = f[0], last = f[f.length-1];
+        if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+        else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+      }
+    });
+    $('em-eye').addEventListener('click', () => {
+      const pw = $('login-password'), b = $('em-eye');
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      b.setAttribute('aria-pressed', show); b.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      pw.focus();
+    });
+    $('login-email').addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); $('login-password').focus(); } });
+    function emailFail(){
+      openEmailModal();
+      const sh = $('em-sheet'); sh.classList.remove('shake'); void sh.offsetWidth; sh.classList.add('shake');
+    }
+
+    $('btn-email-login').addEventListener('click', async () => {
+      const email = $('login-email').value.trim();
+      const password = $('login-password').value;
+      if(!email || !password){ showAuthErr('Enter email and password.'); emailFail(); return; }
+      setAuthLoading(true); showAuthErr('');
+      try{
+        await mfaRun(() => signInWithEmailAndPassword(auth, email, password));
+      }catch(err){
+        setAuthLoading(false);
+        showAuthErr(err.message?.replace('Firebase: ','') || 'Sign-in failed.');
+        emailFail();
+      }
+    });
+    $('login-password').addEventListener('keydown', e => { if(e.key==='Enter') $('btn-email-login').click(); });
+
+    $('btn-google-login').addEventListener('click', async () => {
+      setAuthLoading(true); showAuthErr('');
+      try{
+        await mfaRun(() => signInWithPopup(auth, new GoogleAuthProvider()));
+      }catch(err){
+        setAuthLoading(false);
+        showAuthErr(err.message?.replace('Firebase: ','') || 'Google sign-in failed.');
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if(user) handleAuthed(user);
+      else setAuthLoading(false);
+    });
+
+    /* ── Rotating side-panel tips (desktop only) ── */
+    const _authTips = [
+      "Deep school-wide administration — audit trails, welfare, announcements and portal management, all in one secure place.",
+      "Review the full audit trail across every portal, in real time.",
+      "Manage announcements and keep every linked portal in sync.",
+      "One authorized admin sign-in for full school oversight.",
+      "Track welfare, results and student data from a single control room.",
+    ];
+    let _authTipIdx = 0;
+    function _renderAuthTipDots(){
+      const dotsEl = document.getElementById('asp-tip-dots');
+      if(!dotsEl) return;
+      dotsEl.innerHTML = _authTips.map((_, i)=>`<span class="asp-tip-dot${i===_authTipIdx?' active':''}"></span>`).join('');
+    }
+    function _rotateAuthTip(){
+      const el = document.getElementById('asp-tip-text');
+      if(!el) return;
+      el.classList.add('fading');
+      setTimeout(()=>{
+        _authTipIdx = (_authTipIdx + 1) % _authTips.length;
+        el.textContent = _authTips[_authTipIdx];
+        _renderAuthTipDots();
+        el.classList.remove('fading');
+      }, 350);
+    }
+    _renderAuthTipDots();
+    setInterval(_rotateAuthTip, 4500);
+
+    /* ── PWA install button ── */
+    window.addEventListener('beforeinstallprompt', () => {
+      $('pwa-install-btn')?.classList.add('show');
+    });
+  </script>
+    <script src="http://kanyadet-school-portal.web.app/js/landingNotifications.js" ></script>
+
+</body>
+</html>

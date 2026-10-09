@@ -8744,9 +8744,6 @@ window._atToggleDisable = async function(uid, name, isCurrentlyDisabled, email){
       ? { disabled: false, enabledAt: new Date().toISOString(),  enabledBy: currentAdminName }
       : { disabled: true,  disabledAt: new Date().toISOString(), disabledBy: currentAdminName };
     await updateDoc(doc(firestoreDb, 'users', uid), updates);
-    // Keep RTDB /staff in step: enabling grants write access, disabling removes it
-    const _st = await window._syncStaffEntry(uid);
-    if(!_st.ok) notify('⚠️ Account updated, but the database access list could not be changed. Click Sync staff in Roles.', 'warn', 9000);
     notify(icon + ' Account for <strong>' + name + '</strong> ' + action.toLowerCase() + 'd.', 'success');
     logActivity(icon + ' Account ' + action.toLowerCase() + 'd: ' + name + ' (' + (email||uid) + ')', isCurrentlyDisabled ? 'act-green' : 'act-red', currentAdminName, { category:'system' });
     _atLoadTeachers();
@@ -8772,9 +8769,6 @@ window._atHardDelete = async function(uid, name, email){
   try{
     const { doc, deleteDoc } = window._fb;
     await deleteDoc(doc(firestoreDb, 'users', uid));
-    // Remove their database write access too
-    const _st = await window._syncStaffEntry(uid, { removed: true });
-    if(!_st.ok) notify('⚠️ Profile deleted, but their /staff entry could not be removed. Click Sync staff.', 'warn', 9000);
     notify('🗑️ Account for <strong>' + name + '</strong> permanently deleted.', 'success');
     logActivity('🗑️ DELETED account: ' + name + ' (' + (email||uid) + ')', 'act-red', currentAdminName, { category:'system' });
     _atLoadTeachers();
@@ -9056,18 +9050,11 @@ window.createTeacherAccount = async function(){
 
     await setDoc(doc(firestoreDb, 'users', uid), teacherDoc);
 
-    // ── Grant database write access (RTDB /staff) so the teacher isn't PERMISSION_DENIED ──
-    const staffRes  = await window._syncStaffEntry(uid);
-    const staffLine = staffRes.ok
-      ? '🔑 Database access granted<br>'
-      : '⚠️ Account created, but database access could not be set — click <strong>Sync staff</strong> in Roles.<br>';
-
     // ── Success ───────────────────────────────────────────────────────────
     _atShowResult(
       `Teacher account created successfully!<br>
        <strong>${fullName}</strong> &nbsp;·&nbsp; ${email}<br>
        ${grades.length ? `🎓 Assigned: ${grades.join(', ')}<br>` : ''}
-       ${staffLine}
        <span style="color:var(--text3);font-size:11px">UID: ${uid}</span>`,
       'ok'
     );
@@ -9348,40 +9335,6 @@ window._arpTogglePasskeyOffer = async function(uid, name, on){
   }
 };
 
-/** What /staff/<uid> should hold for a user profile:
- *  'admin' (Advanced Admin), 'staff' (Teacher/admin role), null (disabled → remove),
- *  undefined (any other role → leave untouched). Single source of truth. */
-window._staffValueFor = function(u){
-  if(!u) return undefined;
-  var role = String(u.role || '').toLowerCase();
-  if(u.disabled === true) return null;
-  if(u.Advancedadmin === true) return 'admin';
-  if(role === 'teacher' || role === 'admin') return 'staff';
-  return undefined;
-};
-
-/** Writes ONE user's /staff entry from their current Firestore profile (or removes it
- *  with {removed:true}). Needs the signed-in account to be 'admin' under /staff.
- *  Never throws — returns { ok, value?, skipped?, error? } so callers can warn and carry on. */
-window._syncStaffEntry = async function(uid, opts){
-  try{
-    var val;
-    if(opts && opts.removed){
-      val = null;
-    } else {
-      var snap = await window._fb.getDoc(window._fb.doc(firestoreDb, 'users', uid));
-      if(!snap.exists()) return { ok: true, skipped: true };
-      val = window._staffValueFor(snap.data());
-      if(val === undefined) return { ok: true, skipped: true };
-    }
-    await window._fb.set(window._fb.ref(db, 'staff/' + uid), val);
-    return { ok: true, value: val };
-  } catch(e){
-    console.warn('[StaffSync] Could not update /staff/' + uid + ':', e && e.message);
-    return { ok: false, error: e };
-  }
-};
-
 /** Adds every active Advanced Admin ('admin') and Teacher/admin-role user ('staff')
  *  to RTDB /staff, and removes disabled users. Requires your own /staff entry
  *  to be 'admin' (set once in the Firebase console). */
@@ -9393,10 +9346,10 @@ window._arpSyncStaff = async function(){
     var snap = await window._fb.getDocs(window._fb.collection(firestoreDb, 'users'));
     var updates = {}, nAdmin = 0, nStaff = 0, nRemoved = 0;
     snap.forEach(function(d){
-      var v = window._staffValueFor(d.data());
-      if(v === null){ updates['staff/' + d.id] = null; nRemoved++; }
-      else if(v === 'admin'){ updates['staff/' + d.id] = 'admin'; nAdmin++; }
-      else if(v === 'staff'){ updates['staff/' + d.id] = 'staff'; nStaff++; }
+      var u = d.data(), role = String(u.role || '').toLowerCase();
+      if(u.disabled === true){ updates['staff/' + d.id] = null; nRemoved++; }
+      else if(u.Advancedadmin === true){ updates['staff/' + d.id] = 'admin'; nAdmin++; }
+      else if(role === 'teacher' || role === 'admin'){ updates['staff/' + d.id] = 'staff'; nStaff++; }
     });
     await window._fb.update(window._fb.ref(db), updates);
     var msg = nAdmin + ' admin, ' + nStaff + ' staff added; ' + nRemoved + ' removed.';
@@ -9415,151 +9368,25 @@ window._arpSyncStaff = async function(){
 /** Read-only probe of what the signed-in account can read in the Realtime Database. */
 window._arpCheckAccess = async function(){
   var out = document.getElementById('arp-access-out');
-  var btn = document.getElementById('arp-check-access');
-  if(btn) btn.disabled = true;
-  if(out) out.innerHTML = 'Checking… (reads, a write test, and a teacher audit)';
-
-  var esc = function(x){ return String(x == null ? '' : x).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); };
-  var why = function(e){
-    var code = (e && e.code) || '', msg = (e && e.message) || String(e || '');
-    if(code === 'PERMISSION_DENIED' || /permission[_ ]denied/i.test(msg)) return 'PERMISSION_DENIED (rules rejected it)';
-    if(/network|offline|failed to fetch|timeout/i.test(msg)) return 'network problem — ' + msg;
-    return (code ? code + ' — ' : '') + msg;
-  };
-  var row = function(ok, text){ return '<div>' + (ok === true ? '✅' : ok === false ? '❌' : 'ℹ️') + ' ' + text + '</div>'; };
-  var head = function(t){ return '<div style="margin:10px 0 3px;font-weight:700">' + t + '</div>'; };
-
-  var cu = auth && auth.currentUser ? auth.currentUser : null;
-  var uid = cu ? cu.uid : null;
-  var body = [], problems = [], fixes = [];
-  var actual, expected, profile = null, actualReadable = true;
-
-  try{
-    /* 1 — Who am I signed in as */
-    body.push(head('1. Your sign-in'));
-    if(!cu){
-      body.push(row(false, 'Not signed in to Firebase Auth — every rule sees <code>auth == null</code>.'));
-      problems.push('You are not signed in to Firebase Auth.');
-      fixes.push('Sign out and sign in again.');
-    } else {
-      body.push(row(true, esc(cu.email || '(no email)') + ' <span style="color:var(--text3)">· UID ' + esc(uid) + '</span>'));
-    }
-
-    /* 2 — Profile (Firestore) vs database access entry (RTDB /staff) */
-    if(uid){
-      body.push(head('2. Your role vs your database access'));
-      try{
-        var ps = await window._fb.getDoc(window._fb.doc(firestoreDb, 'users', uid));
-        if(ps.exists()) profile = ps.data();
-      }catch(e){ body.push(row(false, 'Could not read your Firestore profile: ' + esc(why(e)))); }
-      if(profile){
-        body.push(row(null, 'Profile: role <b>' + esc(profile.role || 'none') + '</b>' + (profile.Advancedadmin === true ? ', <b>Advanced Admin</b>' : '') + (profile.disabled === true ? ', <b>DISABLED</b>' : '')));
-        expected = window._staffValueFor(profile);
-      } else {
-        body.push(row(false, 'No Firestore profile found for this UID.'));
-      }
-      try{
-        var ss = await window._fb.get(window._fb.ref(db, 'staff/' + uid));
-        actual = ss.exists() ? ss.val() : null;
-      }catch(e){
-        actualReadable = false;
-        body.push(row(false, 'Could not read <code>/staff/' + esc(uid) + '</code>: ' + esc(why(e))));
-        problems.push('Cannot read /staff.');
-        fixes.push('Make sure the step 2 rules are published (Firebase console → Realtime Database → Rules).');
-      }
-      if(actualReadable){
-        body.push(row(actual ? true : false, 'Database access entry <code>/staff/…</code>: <b>' + esc(actual || 'none') + '</b>' + (expected ? ' (expected <b>' + esc(expected) + '</b>)' : '')));
-        if(!actual && expected){
-          problems.push('Your account has no /staff entry, so every database write is denied.');
-          fixes.push('Ask an Advanced Admin to click Sync staff. If no admin has an entry yet, add it once in the Firebase console: Realtime Database → staff → ' + uid + ' = "admin".');
-        } else if(actual && expected && actual !== expected){
-          problems.push('Your /staff entry (' + actual + ') does not match your role (' + expected + ').');
-          fixes.push('Click Sync staff to realign it.');
-        } else if(actual && expected === null){
-          problems.push('Your account is disabled but still has database access.');
-          fixes.push('Click Sync staff to remove it.');
-        }
-      }
-    }
-
-    /* 3 — Reads */
-    body.push(head('3. Read access'));
-    var paths = ['students','teachers','staff','announcements','lunch','audit_logs','roles','messages','submissions','fines'];
-    for(var i = 0; i < paths.length; i++){
-      try{
-        await window._fb.get(window._fb.query(window._fb.ref(db, paths[i]), window._fb.limitToFirst(1)));
-        body.push(row(true, 'read <code>' + paths[i] + '</code>'));
-      }catch(e){
-        body.push(row(false, 'read <code>' + paths[i] + '</code> — ' + esc(why(e))));
-        problems.push('Cannot read /' + paths[i] + '.');
-      }
-    }
-
-    /* 4 — Real write test (this is what teachers are failing at) */
-    body.push(head('4. Write test'));
-    var writeOk = false;
-    if(uid){
-      var testRef = window._fb.ref(db, 'quickEntryDrafts/__accesscheck__' + uid);
-      try{
-        await window._fb.set(testRef, { t: Date.now() });
-        writeOk = true;
-        try{
-          await window._fb.remove(testRef);
-          body.push(row(true, 'Write allowed — a temporary test entry was written and removed again.'));
-        }catch(e){
-          body.push(row(true, 'Write allowed, but the test entry <code>quickEntryDrafts/__accesscheck__' + esc(uid) + '</code> could not be removed — delete it in the console.'));
-        }
-      }catch(e){
-        body.push(row(false, 'Write denied — ' + esc(why(e))));
-        if(!problems.length){
-          problems.push('The rules rejected a staff-level write even though your /staff entry looks right.');
-          fixes.push('Re-publish database_rules_step2.json (Firebase console → Realtime Database → Rules → Publish) and check for typos in the rule paths.');
-        }
-      }
-    } else {
-      body.push(row(false, 'Skipped — not signed in.'));
-    }
-
-    /* 5 — Teacher audit: who in Firestore is missing from /staff */
-    body.push(head('5. Teacher audit (all accounts)'));
+  if(out) out.innerHTML = 'Checking…';
+  var uid = auth && auth.currentUser ? auth.currentUser.uid : null;
+  var paths = ['students','teachers','staff','announcements','lunch','audit_logs','roles','messages','submissions','fines'];
+  var lines = [];
+  if(uid){
     try{
-      var us = await window._fb.getDocs(window._fb.collection(firestoreDb, 'users'));
-      var sm = await window._fb.get(window._fb.ref(db, 'staff'));
-      var map = sm.exists() ? (sm.val() || {}) : {};
-      var okN = 0, skipN = 0, missing = [], wrong = [], stale = [], seen = {};
-      us.forEach(function(d){
-        var u = d.data(), v = window._staffValueFor(u), a = map[d.id], nm = (u.name || u.email || 'Unnamed') + ' [' + (u.Advancedadmin === true ? 'admin' : 'teacher') + '] · UID ' + d.id;
-        seen[d.id] = true;
-        if(v === undefined){ skipN++; return; }
-        if(v === null){ if(a) stale.push(nm); else okN++; return; }
-        if(!a) missing.push(nm);
-        else if(a !== v) wrong.push(nm + ' (' + a + ' → ' + v + ')');
-        else okN++;
-      });
-      var orphans = Object.keys(map).filter(function(k){ return !seen[k]; }).length;
-      var byTag = function(x, y){ var xa = x.indexOf(' [admin] ') > -1 ? 0 : 1, ya = y.indexOf(' [admin] ') > -1 ? 0 : 1; return xa - ya || x.localeCompare(y); };
-      missing.sort(byTag); wrong.sort(byTag); stale.sort(byTag);
-      var list = function(arr){ return '<ul style="margin:3px 0 3px 18px;padding:0">' + arr.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; };
-      body.push(row(null, '<span style="color:var(--text3)"><b>[admin]</b> = Advanced Admin · <b>[teacher]</b> = everyone else. Admins are listed first.</span>'));
-      body.push(row(true, okN + ' account(s) correctly set up'));
-      if(missing.length){ body.push(row(false, '<b>' + missing.length + ' without database access (cannot write):</b> ' + list(missing))); problems.push(missing.length + ' account(s) have no /staff entry.'); fixes.push('Click Sync staff to add them.'); }
-      if(wrong.length){ body.push(row(false, '<b>' + wrong.length + ' with the wrong level:</b> ' + list(wrong))); problems.push(wrong.length + ' account(s) have the wrong /staff level.'); fixes.push('Click Sync staff to correct them.'); }
-      if(stale.length){ body.push(row(false, '<b>' + stale.length + ' disabled but still have access:</b> ' + list(stale))); problems.push(stale.length + ' disabled account(s) still have access.'); fixes.push('Click Sync staff to remove them.'); }
-      if(orphans) body.push(row(null, orphans + ' /staff entr' + (orphans === 1 ? 'y' : 'ies') + ' with no matching profile (deleted accounts) — harmless.'));
-      if(skipN) body.push(row(null, skipN + ' account(s) with another role — not managed by Sync staff.'));
-    }catch(e){
-      body.push(row(false, 'Could not list accounts: ' + esc(why(e)) + ' (needs admin access)'));
-    }
-  }catch(e){
-    body.push(row(false, 'Unexpected error: ' + esc(why(e))));
+      var me = await window._fb.get(window._fb.ref(db, 'staff/' + uid));
+      lines.push('Your staff entry: <b>' + (me.exists() ? me.val() : 'none') + '</b>');
+    }catch(e){ lines.push('Your staff entry: ❌ cannot read'); }
   }
-
-  var verdict;
-  if(!problems.length) verdict = '<div style="padding:8px 10px;border-radius:8px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.35);margin-bottom:4px"><b>✅ All good.</b> Your account can read and write, and every teacher account has database access.</div>';
-  else verdict = '<div style="padding:8px 10px;border-radius:8px;background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);margin-bottom:4px"><b>❌ Found ' + problems.length + ' problem' + (problems.length === 1 ? '' : 's') + ':</b><ul style="margin:4px 0 4px 18px;padding:0">' + problems.map(function(p){ return '<li>' + esc(p) + '</li>'; }).join('') + '</ul><b>What to do:</b><ul style="margin:4px 0 0 18px;padding:0">' + fixes.filter(function(f,i,a){ return a.indexOf(f) === i; }).map(function(f){ return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></div>';
-
-  if(out) out.innerHTML = verdict + body.join('') + '<div style="margin-top:8px;color:var(--text3)">Checked ' + new Date().toLocaleTimeString() + '</div>';
-  if(btn) btn.disabled = false;
+  for(var i = 0; i < paths.length; i++){
+    try{
+      await window._fb.get(window._fb.query(window._fb.ref(db, paths[i]), window._fb.limitToFirst(1)));
+      lines.push('✅ read ' + paths[i]);
+    }catch(e){
+      lines.push('❌ read ' + paths[i] + ' — PERMISSION_DENIED');
+    }
+  }
+  if(out) out.innerHTML = lines.join('<br>');
 };
 
 window._arpToggleRole = async function(uid, name, grantAccess){
@@ -9592,9 +9419,6 @@ window._arpToggleRole = async function(uid, name, grantAccess){
     var payload = { Advancedadmin: grantAccess, advancedAdminUpdatedAt: new Date().toISOString(), advancedAdminUpdatedBy: currentAdminName || 'Admin' };
     if(grantAccess){ payload.assignedGrade = ''; payload.assignedGrades = []; }
     await window._fb.updateDoc(window._fb.doc(firestoreDb, 'users', uid), payload);
-    // Keep RTDB /staff in step: Advanced Admin -> 'admin', revoked -> 'staff'
-    var _st = await window._syncStaffEntry(uid);
-    if(!_st.ok) notify('Role saved, but the database access list could not be updated. Click Sync staff.', 'warn', 9000);
     var action = grantAccess ? 'granted' : 'revoked';
     notify('Advanced Admin access ' + action + ' for <strong>' + name + '</strong>.', 'success', 6000);
     logActivity('Advanced Admin role ' + action + ': ' + name, grantAccess ? 'act-green' : 'act-orange', currentAdminName, { category: 'system' });
@@ -11553,7 +11377,7 @@ function computeMovement(){
     const prev=recs.length>1?recs[recs.length-2]:null;
     const weak=getSubjects(cur.r).filter(s=>parseFloat(cur.r[s])<MOVE_WEAK_BELOW).length;
     const d=prev?cur.avg-prev.avg:null;
-    const row={id:cur.r.id,name:cur.r['Official Student Name']||'—',grade:cur.g,fullGrade:cur.r['Grade']||cur.g,term:getRecordTerm(cur.r),prev:prev?prev.avg:null,cur:cur.avg,d,weak};
+    const row={id:cur.r.id,name:cur.r['Official Student Name']||'—',grade:cur.g,term:getRecordTerm(cur.r),prev:prev?prev.avg:null,cur:cur.avg,d,weak};
     const why=[];
     if(d!==null && d<=-movementThreshold) why.push('dropped '+Math.abs(d).toFixed(1)+' pts');
     if(weak>=2) why.push(weak+' subjects below '+MOVE_WEAK_BELOW+'%');
@@ -11588,7 +11412,7 @@ function renderMovement(){
     const dCls=r.d===null?'':r.d>=0?'up':'dn';
     const dTxt=r.d===null?'—':(r.d>=0?'▲ ':'▼ ')+Math.abs(r.d).toFixed(1);
     const avgs=r.prev===null?r.cur.toFixed(1)+'%':r.prev.toFixed(1)+' → '+r.cur.toFixed(1);
-    return `<div class="move-row" data-id="${_gavgEsc(r.id)}" title="Open this learner's records"><div style="display:flex;align-items:center;gap:9px;min-width:0">${makePhotoAvatar(r.name,r.fullGrade||r.grade,'stu-av-sm','',r.id||'')}<div style="min-width:0"><div class="move-name">${_gavgEsc(r.name)}</div><div class="move-sub">${_gavgEsc(r.grade)} · ${_gavgEsc(r.why)}</div></div></div><div class="move-avgs">${avgs}</div><div class="move-d ${dCls}">${dTxt}</div></div>`;
+    return `<div class="move-row" data-id="${_gavgEsc(r.id)}" title="Open this learner's records"><div><div class="move-name">${_gavgEsc(r.name)}</div><div class="move-sub">${_gavgEsc(r.grade)} · ${_gavgEsc(r.why)}</div></div><div class="move-avgs">${avgs}</div><div class="move-d ${dCls}">${dTxt}</div></div>`;
   }).join('');
   list.onclick=e=>{ const row=e.target.closest('.move-row'); if(row) openRecordsModal(row.dataset.id); };
 }
@@ -13807,9 +13631,8 @@ function _cohortRunSearch(){
 
   if(matches.length>1){
     resultsEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">${
-      matches.slice(0,15).map(m=>`<div class="cohort-pick" data-key="${_gavgEsc(encodeURIComponent(m.key))}" style="cursor:pointer;padding:6px 10px;border-radius:6px;background:var(--surface2);display:flex;align-items:center;gap:9px">
-        ${makePhotoAvatar(m.name||'', (m.recs[m.recs.length-1]||{})['Grade']||'', 'stu-av-sm')}
-        <span><strong>${_gavgEsc(m.name||'Unnamed')}</strong> <span style="color:var(--text3)">· ULI: ${_gavgEsc(m.uli||'N/A')} · ${m.recs.length} record(s)</span></span>
+      matches.slice(0,15).map(m=>`<div class="cohort-pick" data-key="${_gavgEsc(encodeURIComponent(m.key))}" style="cursor:pointer;padding:6px 10px;border-radius:6px;background:var(--surface2)">
+        <strong>${_gavgEsc(m.name||'Unnamed')}</strong> <span style="color:var(--text3)">· ULI: ${_gavgEsc(m.uli||'N/A')} · ${m.recs.length} record(s)</span>
       </div>`).join('')
     }${matches.length>15?`<div style="font-size:11px;color:var(--text3);padding:4px 2px">Showing 15 of ${matches.length} — type more of the name to narrow it down.</div>`:''}</div>`;
     resultsEl.onclick=e=>{ const el=e.target.closest('.cohort-pick'); if(el) _cohortShowStudent(decodeURIComponent(el.dataset.key)); };
@@ -13831,7 +13654,7 @@ function _cohortShowStudent(key){
     return {label:`${p.grade||'—'} ${p.term||''} ${p.examType||''} (${p.year||'—'})`.replace(/\s+/g,' ').trim(), avg:parseFloat(st.avg), year:p.year||'0000', term:p.term||''};
   }).sort((a,b)=> (a.year+a.term).localeCompare(b.year+b.term));
 
-  document.getElementById('cohort-results').innerHTML = `<div style="padding:6px 0;display:flex;align-items:center;gap:10px">${makePhotoAvatar(student.name||'', (student.recs[student.recs.length-1]||{})['Grade']||'', 'stu-av-md')}<span><strong>${_gavgEsc(student.name||'Unnamed')}</strong> · ULI: ${_gavgEsc(student.uli||'N/A')} · ${rows.length} record(s) found across all grades/terms</span></div>`;
+  document.getElementById('cohort-results').innerHTML = `<div style="padding:6px 0"><strong>${_gavgEsc(student.name||'Unnamed')}</strong> · ULI: ${_gavgEsc(student.uli||'N/A')} · ${rows.length} record(s) found across all grades/terms</div>`;
   const wrap=document.getElementById('cohort-chart-wrap');
   wrap.style.display='block';
 
@@ -15146,7 +14969,6 @@ function scanMissingGender(){
 
   const rows = _genderFixCandidates.map(({rec,found}) => `
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--border);flex-wrap:wrap">
-      ${makePhotoAvatar(rec['Official Student Name']||'', rec['Grade']||'', 'stu-av-sm', '', rec.id||'')}
       <div style="flex:1;min-width:220px">
         <div style="font-size:12px;font-weight:700;color:var(--text)">${_qeEsc(rec['Official Student Name']||'Unknown')} <span class="bdg blue" style="margin-left:6px">${_qeEsc(gShort(rec['Grade']||'')||'—')}</span></div>
         <div style="font-size:10px;color:var(--text3);margin-top:4px">${_qeEsc(getRecordTerm(rec)||'—')} · Asm: ${_qeEsc(rec['Assessment No']||'N/A')} · ULI: ${_qeEsc(rec['ULI']||'N/A')}</div>
@@ -15156,7 +14978,6 @@ function scanMissingGender(){
 
   const unresolvedRows = unresolvedRecs.map(rec => `
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--orange);flex-wrap:wrap">
-      ${makePhotoAvatar(rec['Official Student Name']||'', rec['Grade']||'', 'stu-av-sm', '', rec.id||'')}
       <div style="flex:1;min-width:220px">
         <div style="font-size:12px;font-weight:700;color:var(--text)">${_qeEsc(rec['Official Student Name']||'Unknown')} <span class="bdg blue" style="margin-left:6px">${_qeEsc(gShort(rec['Grade']||'')||'—')}</span></div>
         <div style="font-size:10px;color:var(--text3);margin-top:4px">${_qeEsc(getRecordTerm(rec)||'—')} · Asm: ${_qeEsc(rec['Assessment No']||'N/A')} · ULI: ${_qeEsc(rec['ULI']||'N/A')}</div>
@@ -17669,7 +17490,6 @@ function renderEOTPreview(){
     <div class="rank-list">${top5.map((r,i)=>{
       const st=calcStats(r);const numClass=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-rest';
       return `<div class="rank-item"><div class="rank-num ${numClass}">${i+1}</div>
-        ${makePhotoAvatar(r['Official Student Name']||'', r['Grade']||'', 'stu-av-sm', '', r.id||'')}
         <div style="flex:1"><div class="rank-name">${_qeEsc(r['Official Student Name']||'—')}</div><div class="rank-sub" style="font-size:9px;word-break:break-word;max-width:120px">${_qeEsc(r['Grade']||'N/A')}</div></div>
         <div class="rank-score" style="color:${barColor(st.avg)}">${st.avg}%</div>
         <span class="gp ${gradePillClass(st.cls)}">${st.level}</span></div>`;
@@ -19506,7 +19326,7 @@ function _esaRenderLiveList(){
       ${_av}
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;font-weight:700;color:var(--text)">${s.name||'User'}</div>
-        <div style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px">${s.studentName?makePhotoAvatar(s.studentName, s.grade||'', 'stu-av-sm', 'width:20px;height:20px;border-radius:6px;font-size:9px'):''}<span>${s.studentName||'a student'}${s.grade?' · '+s.grade:''} · started ${since}</span></div>
+        <div style="font-size:11px;color:var(--text3)">${s.studentName||'a student'}${s.grade?' · '+s.grade:''} · started ${since}</div>
         <div style="font-size:11px;color:var(--orange);font-weight:600;margin-top:2px">${statusHtml}</div>
       </div>
     </div>`;
@@ -25804,7 +25624,7 @@ function detectDuplicates() {
     let rows = dupes.map(d => `
         <tr style="background:#fff3cd">
             <td style="padding:6px 10px;font-weight:bold;color:#856404">${d.type}</td>
-            <td style="padding:6px 10px">${d.students.map(s => `<span style="display:inline-flex;align-items:center;gap:6px;margin:2px 0">${typeof makePhotoAvatar === 'function' ? makePhotoAvatar(s['Official Student Name']||'', s['Grade']||'', 'stu-av-sm', 'width:24px;height:24px;border-radius:7px;font-size:10px', s.id||'') : ''}${_qeEsc(s['Official Student Name']||'')}</span>`).join(' / ')}</td>
+            <td style="padding:6px 10px">${d.students.map(s => s['Official Student Name']).join(' / ')}</td>
             <td style="padding:6px 10px">${d.students.map(s => s['Assessment No'] || 'N/A').join(' / ')}</td>
             <td style="padding:6px 10px">${d.students.map(s => s['Grade'] || 'N/A').join(' / ')}</td>
         </tr>`).join('');
@@ -26040,7 +25860,7 @@ async function previewReportCard(studentId) {
     modal.innerHTML = `
         <div style="background:#fff;border-radius:12px;width:100%;max-width:820px;height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.4)">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid #eee">
-                <div style="display:flex;align-items:center;gap:10px">${typeof makePhotoAvatar === 'function' ? makePhotoAvatar(student['Official Student Name']||'', student['Grade']||'', 'stu-av-sm', '', student.id||'') : ''}<strong style="color:#2c3e50">📄 Report Card Preview — ${_qeEsc(student['Official Student Name'] || '')}</strong></div>
+                <strong style="color:#2c3e50">📄 Report Card Preview — ${_qeEsc(student['Official Student Name'] || '')}</strong>
                 <div style="display:flex;gap:8px">
                     <button onclick="window.open('${blobUrl}','_blank')" style="border:none;background:#27ae60;color:#fff;border-radius:6px;padding:7px 16px;cursor:pointer;font-size:13px">⬇ Download</button>
                     <button onclick="document.getElementById('preview-modal').remove();URL.revokeObjectURL('${blobUrl}')" style="border:none;background:#e74c3c;color:#fff;border-radius:6px;padding:7px 16px;cursor:pointer;font-size:13px">✕ Close</button>
