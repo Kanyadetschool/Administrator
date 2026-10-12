@@ -3790,6 +3790,22 @@ setInterval(_rotateAuthTip, 5000);
                 </span>
                 <span class="settings-tile-arrow">›</span>
               </button>
+              <button class="settings-tile" id="tile-backup" style="display:none" data-target="backup-section" data-kw="backup export download save copy json" onclick="openSettingsModal('backup-section','💾 Data Backup')">
+                <span class="settings-tile-icon">💾</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Data Backup <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Download all results &amp; staff accounts</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-maint" style="display:none" data-target="maint-section" data-kw="maintenance lock pause offline update downtime" onclick="openSettingsModal('maint-section','🚧 Maintenance Mode')">
+                <span class="settings-tile-icon">🚧</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Maintenance Mode <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Pause the portal for non-admins</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
             </div>
           </section>
           <section class="cc-group" data-cc="exam">
@@ -3832,6 +3848,22 @@ setInterval(_rotateAuthTip, 5000);
                 <span class="settings-tile-body">
                   <span class="settings-tile-title">Fix Missing Gender <em class="cc-badge">Advanced</em></span>
                   <span class="settings-tile-desc">Backfill Gender on records saved without it</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-term-wizard" style="display:none" data-target="term-wizard-section" data-kw="new term setup wizard create exams year schedule" onclick="openSettingsModal('term-wizard-section','🧙 Term Setup Wizard')">
+                <span class="settings-tile-icon">🧙</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Term Setup Wizard <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Create a term’s exams, deadlines and lock date in one go</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-term-auto" style="display:none" data-target="term-auto-section" data-kw="scheduled lock auto freeze reminder deadline nudge warn" onclick="openSettingsModal('term-auto-section','⏰ Term Automations')">
+                <span class="settings-tile-icon">⏰</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Term Automations <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Scheduled term locks &amp; deadline reminders</span>
                 </span>
                 <span class="settings-tile-arrow">›</span>
               </button>
@@ -3888,6 +3920,22 @@ setInterval(_rotateAuthTip, 5000);
                 </span>
                 <span class="settings-tile-arrow">›</span>
               </button>
+              <button class="settings-tile" id="tile-bulk-perms" style="display:none" data-target="bulk-perms-section" data-kw="bulk many select teachers permission template allow block" onclick="openSettingsModal('bulk-perms-section','🧩 Bulk Permissions')">
+                <span class="settings-tile-icon">🧩</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Bulk Permissions <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Change import access for many teachers at once</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-temp-access" style="display:none" data-target="temp-access-section" data-kw="temporary temp expire time limited grant access" onclick="openSettingsModal('temp-access-section','⏳ Temporary Access')">
+                <span class="settings-tile-icon">⏳</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Temporary Access <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Give a teacher Import access that expires by itself</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
             </div>
           </section>
         </div>
@@ -3895,6 +3943,62 @@ setInterval(_rotateAuthTip, 5000);
         <!-- Hidden home for settings content — moved into the universal modal on open,
              and moved back here on close. Keeps every existing id/handler intact. -->
         <div id="settings-content-store" style="display:none">
+          <style>.cc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:8px 0}.cc-grid label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:var(--text2)}.cc-in{padding:8px 10px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:13px;width:100%}.cc-pills{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.cc-pills label{flex-direction:row;align-items:center;gap:5px;font-weight:600;padding:5px 10px;border:1px solid var(--border);border-radius:99px}</style>
+          <div class="settings-section" id="term-wizard-section">
+            <h3 class="settings-section-title">Term Setup Wizard</h3>
+            <div class="setting-row" style="display:block">
+              <div class="cc-grid">
+                <label>Year<input class="cc-in" id="tw-year" type="number" oninput="twPreview()"></label>
+                <label>Term<select class="cc-in" id="tw-term" onchange="twPreview()"><option>1</option><option>2</option><option>3</option></select></label>
+                <label>Stream<input class="cc-in" id="tw-stream" value="1" oninput="twPreview()"></label>
+                <label style="grid-column:1/-1">Grades (comma separated)<input class="cc-in" id="tw-grades" placeholder="Grade 4, Grade 5, Grade 6" oninput="twPreview()"></label>
+              </div>
+              <div class="cc-grid" style="display:block"><span class="cc-label">Exams to create</span>
+                <div class="cc-pills"><label><input type="checkbox" class="tw-ex" value="Opener" onchange="twPreview()"> Opener</label><label><input type="checkbox" class="tw-ex" value="CAT" onchange="twPreview()"> CAT</label><label><input type="checkbox" class="tw-ex" value="Mid Term" onchange="twPreview()"> Mid Term</label><label><input type="checkbox" class="tw-ex" value="End Term" checked onchange="twPreview()"> End Term</label></div></div>
+              <div class="cc-grid">
+                <label>Score entry deadline (optional)<input class="cc-in" id="tw-deadline" type="datetime-local"></label>
+                <label>Auto-lock on (optional)<input class="cc-in" id="tw-lock" type="datetime-local"></label>
+                <label>Warn teachers days before<input class="cc-in" id="tw-warn" type="number" min="0" value="3"></label>
+              </div>
+              <p id="tw-preview" style="font-size:12px;color:var(--text2);margin:6px 0 10px"></p>
+              <button class="btn btn-blue btn-sm" id="tw-btn" onclick="twCreate()">🧙 Create term</button>
+              <p style="font-size:11px;color:var(--text3);margin-top:8px">Grading uses the portal’s existing CBC scale. Exams already published are skipped.</p>
+            </div>
+          </div>
+          <div class="settings-section" id="term-auto-section">
+            <h3 class="settings-section-title">Term Automations</h3>
+            <div class="setting-row"><div class="setting-info"><h4>Deadline reminders</h4><p>Announce to all staff when an exam deadline is close</p></div><div style="display:flex;align-items:center;gap:8px"><input class="cc-in" id="ta-days" type="number" min="1" value="2" style="width:64px" onchange="taSaveRem()" title="Days before"><span style="font-size:11px">days before</span><div class="toggle-sw" id="ta-rem-toggle" onclick="taToggleRem()"></div></div></div>
+            <div class="setting-row" style="display:block"><div class="setting-info" style="margin-bottom:6px"><h4>Schedule a term lock</h4></div>
+              <div class="cc-grid"><label style="grid-column:1/-1">Exam / term<input class="cc-in" id="ta-term" list="ta-dl" placeholder="Pick or type an exam name"><datalist id="ta-dl"></datalist></label><label>Lock on<input class="cc-in" id="ta-when" type="datetime-local"></label><label>Warn days before<input class="cc-in" id="ta-warn" type="number" min="0" value="3"></label></div>
+              <button class="btn btn-blue btn-sm" onclick="taAddLock()">⏰ Schedule lock</button> <button class="btn btn-outline btn-sm" onclick="ccAutoSweep(true)">▶ Run check now</button></div>
+            <div id="ta-locks"></div>
+            <p style="font-size:11px;color:var(--text3);margin-top:8px">These run whenever an Advanced Admin has the portal open (checked every minute).</p>
+          </div>
+          <div class="settings-section" id="temp-access-section">
+            <h3 class="settings-section-title">Temporary Access</h3>
+            <div class="setting-row" style="display:block"><div class="setting-info" style="margin-bottom:6px"><h4>Grant Import Data access that expires</h4><p>For teachers whose import access is currently blocked</p></div>
+              <div class="cc-grid"><label>Teacher<select class="cc-in" id="tx-user"></select></label><label>Duration<select class="cc-in" id="tx-dur"><option value="1">1 hour</option><option value="24" selected>24 hours</option><option value="72">3 days</option><option value="168">7 days</option></select></label></div>
+              <button class="btn btn-blue btn-sm" onclick="txGrant()">⏳ Grant access</button></div>
+            <div id="tx-active"></div>
+          </div>
+          <div class="settings-section" id="backup-section">
+            <h3 class="settings-section-title">Data Backup</h3>
+            <div class="setting-row"><div class="setting-info"><h4>Download a full backup</h4><p>Student results plus staff accounts in one JSON file. Store it somewhere safe.</p></div><button class="btn btn-blue btn-sm" id="bk-btn" onclick="ccBackupNow()">⬇️ Backup now</button></div>
+            <div class="setting-row"><div class="setting-info"><h4>Last backup from this device</h4><p id="bk-last">Never</p></div></div>
+          </div>
+          <div class="settings-section" id="maint-section">
+            <h3 class="settings-section-title">Maintenance Mode</h3>
+            <div class="setting-row"><div class="setting-info"><h4>Pause the portal for everyone except Advanced Admins</h4><p id="maint-status">Off</p></div><div class="toggle-sw" id="maint-toggle" onclick="ccMaintToggle()"></div></div>
+            <div class="setting-row" style="display:block"><div class="setting-info" style="margin-bottom:8px"><h4>Message shown to staff</h4></div>
+              <textarea id="maint-msg" rows="3" style="width:100%;padding:9px 12px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:13px" placeholder="We are updating the portal. Please check back shortly."></textarea>
+              <div style="margin-top:8px"><button class="btn btn-blue btn-sm" onclick="ccMaintSave()">💾 Save message</button></div></div>
+          </div>
+          <div class="settings-section" id="bulk-perms-section">
+            <h3 class="settings-section-title">Bulk Permissions</h3>
+            <div class="setting-row" style="gap:8px;flex-wrap:wrap"><div class="setting-info"><h4>Select teachers, then apply</h4><p id="bp-sel">0 selected</p></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="ccBulkAll()">Select all</button><button class="btn btn-green btn-sm" onclick="ccBulkImport(true)">Allow import</button><button class="btn btn-red btn-sm" onclick="ccBulkImport(false)">Block import</button></div></div>
+            <div id="bp-list"><p class="cc-empty">Loading teachers…</p></div>
+          </div>
           <div class="settings-section" id="firebase-config-section">
             <h3 class="settings-section-title">Firebase Configuration</h3>
             <div class="setting-row">
@@ -8295,7 +8399,7 @@ function _applyTeacherProfile(data, uid){
     // Import Data access for regular teachers: defaults to true (existing
     // behavior) unless an Advanced Admin has explicitly revoked it by
     // setting canImportData:false on this teacher's users/{uid} doc.
-    canImportData = data.canImportData !== false;
+    canImportData = data.canImportData !== false && !(data.tempImportUntil && Date.now() > data.tempImportUntil);
     if(importNav) importNav.style.display = canImportData ? 'flex' : 'none';
 
     // Support both legacy assignedGrade (string) and new assignedGrades (array)
@@ -15423,6 +15527,12 @@ function openSettingsModal(elId, title){
   if(!el || !body) return;
   document.getElementById('settings-item-modal-title').textContent = title;
   try{ ccTrackUse(elId); }catch(_e){}
+  if(elId==='bulk-perms-section') ccBulkLoad();
+  if(elId==='backup-section'){ try{ document.getElementById('bk-last').textContent=localStorage.getItem('kps_last_backup')||'Never'; }catch(_e){} }
+  if(elId==='maint-section') _ccMaintStart();
+  if(elId==='term-wizard-section'){ var _y=document.getElementById('tw-year'); if(_y&&!_y.value) _y.value=new Date().getFullYear(); twPreview(); }
+  if(elId==='term-auto-section') taRender();
+  if(elId==='temp-access-section') txLoad();
   body.appendChild(el);
   el.style.display = '';
   document.getElementById('settings-item-modal').classList.add('on');
@@ -15460,6 +15570,7 @@ function ccSetChip(k){
 }
 function ccRefresh(){
   var view=document.getElementById('view-settings'); if(!view) return;
+  if(typeof _ccGateTiles==='function') _ccGateTiles();
   var inp=document.getElementById('cc-search');
   var q=((inp&&inp.value)||'').trim().toLowerCase();
   var shown=0, avail=0, areas=0;
@@ -15499,6 +15610,228 @@ function ccRefresh(){
   }
 }
 window.ccRefresh=ccRefresh; window.ccSetChip=ccSetChip; window.ccTrackUse=ccTrackUse;
+
+/* ══════════════════════════════════════════
+   CONTROL CENTER — Data Backup, Maintenance Mode, Bulk Permissions
+   Uses existing helpers only: firestoreDb, db/DB_PATH, window._fb, showConfirm, notify, logActivity.
+══════════════════════════════════════════ */
+function _ccAdv(){ return typeof isAdvancedAdmin!=='undefined' && isAdvancedAdmin===true; }
+function _ccGateTiles(){
+  ['tile-backup','tile-maint','tile-bulk-perms','tile-term-wizard','tile-term-auto','tile-temp-access'].forEach(function(id){
+    var t=document.getElementById(id); if(!t) return;
+    var want=_ccAdv()?'':'none'; if(t.style.display!==want) t.style.display=want;
+  });
+}
+setInterval(_ccGateTiles,2000);
+/* ── Data Backup ── */
+async function ccBackupNow(){
+  if(!_ccAdv()) return;
+  var btn=document.getElementById('bk-btn'); btn.disabled=true; btn.textContent='Preparing…';
+  try{
+    var F=window._fb, out={app:'Kanyadet Results Portal',createdAt:new Date().toISOString(),createdBy:currentAdminName||'Admin'};
+    var snap=await F.get(F.ref(db,DB_PATH)); out.students=snap.exists()?snap.val():{};
+    var us=await F.getDocs(F.collection(firestoreDb,'users')); out.users=[];
+    us.forEach(function(d){ var o=d.data(), c={uid:d.id};
+      Object.keys(o).forEach(function(k){ if(!/pass|cred|secret|mfa|totp|token/i.test(k)) c[k]=o[k]; });
+      out.users.push(c); });
+    var blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='results-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+    var stamp=new Date().toLocaleString(); try{localStorage.setItem('kps_last_backup',stamp);}catch(e){}
+    document.getElementById('bk-last').textContent=stamp;
+    notify('Backup downloaded ('+Object.keys(out.students).length+' student records, '+out.users.length+' staff accounts).','success',6000);
+    logActivity('Data backup downloaded','act-blue',currentAdminName,{category:'system'});
+  }catch(e){ notify('Backup failed: '+e.message,'error'); }
+  btn.disabled=false; btn.textContent='⬇️ Backup now';
+}
+window.ccBackupNow=ccBackupNow;
+/* ── Maintenance Mode ── */
+var _ccMaint={on:false,message:''}, _ccMaintUnsub=null;
+function _ccMaintRender(){
+  var tg=document.getElementById('maint-toggle'), st=document.getElementById('maint-status');
+  if(tg) tg.classList.toggle('on',_ccMaint.on);
+  if(st) st.textContent=_ccMaint.on?'ON — non-admins are locked out':'Off';
+  var ov=document.getElementById('cc-maint-overlay'), show=_ccMaint.on && !_ccAdv() && !!(window.currentUser||typeof currentAdminName!=='undefined');
+  if(show && !ov){
+    ov=document.createElement('div'); ov.id='cc-maint-overlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--bg,#0c1525);color:var(--text,#fff)';
+    ov.innerHTML='<div style="max-width:420px"><div style="font-size:54px">🚧</div><h2 style="margin:10px 0 6px">Portal under maintenance</h2><p id="cc-maint-text" style="opacity:.85;line-height:1.6"></p><button class="btn btn-blue" style="margin-top:16px" onclick="location.reload()">↻ Try again</button></div>';
+    document.body.appendChild(ov);
+  }
+  if(ov){ if(!show) ov.remove(); else ov.querySelector('#cc-maint-text').textContent=_ccMaint.message||'We are updating the portal. Please check back shortly.'; }
+}
+function _ccMaintStart(){
+  if(_ccMaintUnsub||typeof firestoreDb==='undefined'||!firestoreDb||!window._fb||!window._fb.onSnapshot) return;
+  try{ _ccMaintUnsub=window._fb.onSnapshot(window._fb.doc(firestoreDb,'config','maintenanceMode'),function(sn){
+      var d=sn.exists()?sn.data():{}; _ccMaint={on:d.on===true,message:d.message||''};
+      var m=document.getElementById('maint-msg'); if(m&&document.activeElement!==m) m.value=_ccMaint.message;
+      _ccMaintRender();
+    },function(){ _ccMaintUnsub=null; }); }catch(e){ _ccMaintUnsub=null; }
+}
+setInterval(function(){ _ccMaintStart(); _ccMaintRender(); },2500);
+async function ccMaintSave(on){
+  if(!_ccAdv()) return;
+  var msg=(document.getElementById('maint-msg').value||'').trim();
+  try{ await window._fb.setDoc(window._fb.doc(firestoreDb,'config','maintenanceMode'),{on:on===undefined?_ccMaint.on:on,message:msg,updatedBy:currentAdminName||'Admin',updatedAt:new Date().toISOString()});
+    notify(on===undefined?'Maintenance message saved.':(on?'Maintenance mode is ON.':'Maintenance mode is OFF.'),'success'); }
+  catch(e){ notify('Could not save: '+e.message,'error'); }
+}
+async function ccMaintToggle(){
+  var next=!_ccMaint.on;
+  var ok=await showConfirm(next?'Turn on Maintenance Mode':'Turn off Maintenance Mode',next?'Everyone except Advanced Admins will be blocked until you turn this off.':'Staff will be able to use the portal again.','🚧',next?'Turn ON':'Turn OFF',next?'btn-red':'btn-green');
+  if(!ok) return;
+  await ccMaintSave(next);
+  logActivity('Maintenance mode '+(next?'enabled':'disabled'),next?'act-orange':'act-green',currentAdminName,{category:'system'});
+}
+window.ccMaintSave=ccMaintSave; window.ccMaintToggle=ccMaintToggle;
+/* ── Bulk Permissions ── */
+var _bpUsers=[];
+async function ccBulkLoad(){
+  var box=document.getElementById('bp-list'); if(!box||!_ccAdv()) return;
+  try{ var us=await window._fb.getDocs(window._fb.collection(firestoreDb,'users')); _bpUsers=[];
+    us.forEach(function(d){ var o=d.data(); if(o.Advancedadmin===true) return; _bpUsers.push({uid:d.id,name:o.name||o.displayName||o.email||d.id,email:o.email||'',allowed:o.canImportData!==false}); });
+    _bpUsers.sort(function(a,b){return a.name.localeCompare(b.name);});
+    box.innerHTML=''; if(!_bpUsers.length){ box.innerHTML='<p class="cc-empty">No teacher accounts found.</p>'; return; }
+    _bpUsers.forEach(function(u){ var l=document.createElement('label'); l.className='setting-row'; l.style.cursor='pointer';
+      l.innerHTML='<span style="display:flex;align-items:center;gap:10px;min-width:0"><input type="checkbox" data-uid="'+u.uid+'"><span class="setting-info"><h4></h4><p></p></span></span><span class="bdg '+(u.allowed?'green':'red')+'">'+(u.allowed?'Import allowed':'Import blocked')+'</span>';
+      l.querySelector('h4').textContent=u.name; l.querySelector('p').textContent=u.email;
+      l.querySelector('input').addEventListener('change',_bpCount); box.appendChild(l); });
+    _bpCount();
+  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load teachers: '+String(e.message).replace(/</g,'&lt;')+'</p>'; }
+}
+function _bpSel(){ return Array.prototype.slice.call(document.querySelectorAll('#bp-list input:checked')).map(function(i){return i.getAttribute('data-uid');}); }
+function _bpCount(){ var n=_bpSel().length, el=document.getElementById('bp-sel'); if(el) el.textContent=n+' selected'; }
+function ccBulkAll(){ var c=document.querySelectorAll('#bp-list input'), all=_bpSel().length===c.length; c.forEach(function(i){i.checked=!all;}); _bpCount(); }
+async function ccBulkImport(allow){
+  var ids=_bpSel(); if(!ids.length){ notify('Select at least one teacher first.','warn'); return; }
+  var ok=await showConfirm(allow?'Allow Import Data':'Block Import Data',(allow?'Allow ':'Block ')+ids.length+' teacher(s) '+(allow?'to use':'from using')+' Import Data?','🧩',allow?'Allow':'Block',allow?'btn-green':'btn-red');
+  if(!ok) return; var done=0;
+  for(var i=0;i<ids.length;i++){ try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',ids[i]),{canImportData:allow,canImportDataUpdatedAt:new Date().toISOString(),canImportDataUpdatedBy:currentAdminName||'Admin'}); done++; }catch(e){} }
+  notify('Import access '+(allow?'allowed':'blocked')+' for '+done+' of '+ids.length+' teacher(s).',done===ids.length?'success':'warn',6000);
+  logActivity('Bulk import access '+(allow?'allowed':'blocked')+' for '+done+' teacher(s)',allow?'act-green':'act-orange',currentAdminName,{category:'system'});
+  ccBulkLoad();
+}
+window.ccBulkAll=ccBulkAll; window.ccBulkImport=ccBulkImport;
+
+/* ══════════════════════════════════════════
+   CONTROL CENTER — Term Setup Wizard, Term Automations, Temporary Access
+   Automation state: Firestore config/termAutomation {reminders:{on,daysBefore}, locks:[], nudged:[]}
+══════════════════════════════════════════ */
+function _ccFv(id){ var e=document.getElementById(id); return e?e.value:''; }
+function _ccMs(id){ var v=_ccFv(id); return v?new Date(v).getTime():0; }
+function _ccFmt(ms){ return new Date(ms).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'}); }
+async function _ccAutoUpdate(fn){
+  var F=window._fb, r=F.doc(firestoreDb,'config','termAutomation'), sn=await F.getDoc(r), d=sn.exists()?sn.data():{};
+  d.reminders=d.reminders||{on:true,daysBefore:2}; d.locks=d.locks||[]; d.nudged=d.nudged||[];
+  await fn(d); await F.setDoc(r,d); return d;
+}
+async function _ccAnnounce(title,body){
+  var F=window._fb; await F.set(F.push(F.ref(db,ANNOUNCEMENTS_PATH)),{title:title,body:body,type:'warn',createdBy:currentAdminName||'Admin',createdByUid:(window._currentUser&&window._currentUser.uid)||'',createdAt:Date.now()});
+}
+/* ── Term Setup Wizard ── */
+function _twCompounds(){
+  var g=_ccFv('tw-grades').split(',').map(function(x){return x.trim();}).filter(Boolean), y=_ccFv('tw-year').trim()||String(new Date().getFullYear()),
+      t=_ccFv('tw-term')||'1', st=_ccFv('tw-stream').trim()||'1', L=(typeof _TERM_LETTER!=='undefined'&&_TERM_LETTER[t])||'A', out=[];
+  var ex=Array.prototype.slice.call(document.querySelectorAll('.tw-ex:checked')).map(function(c){return c.value;});
+  g.forEach(function(gr){ ex.forEach(function(type){
+    var lab=/\bterm\b/i.test(type)?type.replace(/\s+Term\b/i,'-Term')+' '+t:type+' Term '+t;
+    out.push({grade:gr,compound:gr+'-'+y+'-'+L+st+'-'+lab}); }); });
+  return out;
+}
+function twPreview(){ var c=_twCompounds(), el=document.getElementById('tw-preview'); if(!el) return;
+  el.textContent=c.length?c.length+' exam(s) will be created, e.g. '+c[0].compound:'Enter at least one grade and tick an exam type.'; }
+async function twCreate(){
+  var list=_twCompounds(); if(!list.length){ notify('Enter grades and pick at least one exam.','warn'); return; }
+  var dl=_ccMs('tw-deadline'), lk=_ccMs('tw-lock'), warn=parseInt(_ccFv('tw-warn'),10)||0;
+  if(lk&&lk<=Date.now()){ notify('The lock date must be in the future.','warn'); return; }
+  var ok=await showConfirm('Create term setup','Publish '+list.length+' exam(s) to teachers'+(dl?', due '+_ccFmt(dl):'')+(lk?', locking '+_ccFmt(lk):'')+'?','🧙','Create','btn-blue'); if(!ok) return;
+  var F=window._fb, made=0, skipped=0, btn=document.getElementById('tw-btn'); btn.disabled=true;
+  try{
+    for(var i=0;i<list.length;i++){ var c=list[i], key=encodeURIComponent(c.compound);
+      if(typeof _pendingExams!=='undefined'&&_pendingExams[key]){ skipped++; continue; }
+      var o={compound:c.compound,grade:c.grade,createdBy:currentAdminName||'Admin',createdByUid:(window._currentUser&&window._currentUser.uid)||'',createdAt:Date.now()};
+      if(dl) o.deadline=dl; await F.set(F.ref(db,PENDING_EXAMS_PATH+'/'+key),o); made++; }
+    if(lk) await _ccAutoUpdate(function(d){ list.forEach(function(c){ if(!d.locks.some(function(l){return l.compound===c.compound;})) d.locks.push({compound:c.compound,lockAt:lk,warnDays:warn,warned:false}); }); });
+    logActivity('Term setup wizard: '+made+' exam(s) created'+(lk?', lock scheduled':''),'act-blue',currentAdminName,{category:'system'});
+    notify(made+' exam(s) published'+(skipped?' ('+skipped+' already existed)':'')+(lk?' · lock scheduled':'')+'.','success',7000);
+  }catch(e){ notify('Setup failed: '+e.message,'error'); }
+  btn.disabled=false;
+}
+/* ── Term Automations ── */
+async function taRender(){
+  var box=document.getElementById('ta-locks'); if(!box||!_ccAdv()) return;
+  var dl=document.getElementById('ta-dl'); if(dl&&typeof _pendingExams!=='undefined') dl.innerHTML=Object.values(_pendingExams).map(function(p){var o=document.createElement('option'); o.value=p.compound; return o.outerHTML;}).join('');
+  try{ var sn=await window._fb.getDoc(window._fb.doc(firestoreDb,'config','termAutomation')), d=sn.exists()?sn.data():{}, rem=d.reminders||{on:true,daysBefore:2};
+    document.getElementById('ta-rem-toggle').classList.toggle('on',rem.on!==false); document.getElementById('ta-days').value=rem.daysBefore||2;
+    box.innerHTML=''; var L=(d.locks||[]).slice().sort(function(a,b){return a.lockAt-b.lockAt;});
+    if(!L.length){ box.innerHTML='<p class="cc-empty">No scheduled locks.</p>'; return; }
+    L.forEach(function(l){ var r=document.createElement('div'); r.className='setting-row';
+      r.innerHTML='<div class="setting-info"><h4></h4><p></p></div><button class="btn btn-outline btn-sm">Cancel</button>';
+      r.querySelector('h4').textContent=l.compound; r.querySelector('p').textContent='Locks '+_ccFmt(l.lockAt)+(l.warned?' · teachers warned':'');
+      r.querySelector('button').addEventListener('click',function(){ _ccAutoUpdate(function(x){ x.locks=x.locks.filter(function(y){return y.compound!==l.compound;}); }).then(taRender); });
+      box.appendChild(r); });
+  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load: '+String(e.message).replace(/</g,'&lt;')+'</p>'; }
+}
+async function taToggleRem(){ await _ccAutoUpdate(function(d){ d.reminders.on=!(d.reminders.on!==false); }); taRender(); }
+async function taSaveRem(){ var n=Math.max(1,parseInt(_ccFv('ta-days'),10)||2); await _ccAutoUpdate(function(d){ d.reminders.daysBefore=n; }); notify('Reminder window saved.','success'); }
+async function taAddLock(){
+  var c=_ccFv('ta-term').trim(), w=_ccMs('ta-when'), wd=parseInt(_ccFv('ta-warn'),10)||0;
+  if(!c||!w||w<=Date.now()){ notify('Enter an exam name and a future lock date.','warn'); return; }
+  await _ccAutoUpdate(function(d){ d.locks=d.locks.filter(function(l){return l.compound!==c;}); d.locks.push({compound:c,lockAt:w,warnDays:wd,warned:false}); });
+  notify('Lock scheduled for '+_ccFmt(w)+'.','success'); taRender();
+}
+var _ccSweeping=false;
+async function ccAutoSweep(manual){
+  if(_ccSweeping||!_ccAdv()||typeof firestoreDb==='undefined'||!firestoreDb||!db) return; _ccSweeping=true;
+  try{
+    var F=window._fb, now=Date.now(), acts=0;
+    await _ccAutoUpdate(async function(d){
+      var keep=[];
+      for(var i=0;i<d.locks.length;i++){ var l=d.locks[i];
+        if(l.lockAt<=now){ await F.set(F.ref(db,LOCK_PATH+'/'+_lockKeyFor(l.compound)),{locked:true,label:l.compound,lockedBy:'Scheduled lock',lockedAt:now});
+          logActivity('Scheduled lock applied: '+l.compound,'act-orange',currentAdminName,{category:'system'}); acts++; continue; }
+        if(!l.warned&&l.lockAt-now<=(l.warnDays||0)*864e5){ await _ccAnnounce('Term will lock soon','"'+l.compound+'" will be locked on '+_ccFmt(l.lockAt)+'. Please finish and correct all scores before then.'); l.warned=true; acts++; }
+        keep.push(l); }
+      d.locks=keep;
+      if(d.reminders.on!==false&&typeof _pendingExams!=='undefined'){ var win=(d.reminders.daysBefore||2)*864e5;
+        for(var k in _pendingExams){ var p=_pendingExams[k]; if(!p||!p.deadline||p.deadline<now||p.deadline-now>win||d.nudged.indexOf(k)>-1) continue;
+          await _ccAnnounce('Score entry deadline approaching','"'+p.compound+'" is due '+_ccFmt(p.deadline)+'. Please submit any missing scores before the deadline.'); d.nudged.push(k); acts++; } }
+    });
+    // Temporary access: switch expired grants back off
+    var us=await F.getDocs(F.collection(firestoreDb,'users'));
+    us.forEach(function(x){ var o=x.data(); if(o.tempImportUntil&&o.tempImportUntil<=now){ acts++; F.updateDoc(F.doc(firestoreDb,'users',x.id),{canImportData:false,tempImportUntil:null}); } });
+    if(manual) notify(acts?acts+' automation action(s) ran.':'Nothing due right now.','success');
+  }catch(e){ if(manual) notify('Check failed: '+e.message,'error'); }
+  _ccSweeping=false;
+}
+setInterval(ccAutoSweep,60000); setTimeout(ccAutoSweep,15000);
+/* ── Temporary Access ── */
+async function txLoad(){
+  var sel=document.getElementById('tx-user'), box=document.getElementById('tx-active'); if(!sel||!_ccAdv()) return;
+  try{ var us=await window._fb.getDocs(window._fb.collection(firestoreDb,'users')); sel.innerHTML=''; box.innerHTML=''; var n=0, now=Date.now();
+    us.forEach(function(d){ var o=d.data(); if(o.Advancedadmin===true) return; var nm=o.name||o.displayName||o.email||d.id;
+      if(o.tempImportUntil&&o.tempImportUntil>now){ n++; var r=document.createElement('div'); r.className='setting-row';
+        r.innerHTML='<div class="setting-info"><h4></h4><p></p></div><button class="btn btn-outline btn-sm">Revoke now</button>';
+        r.querySelector('h4').textContent=nm; r.querySelector('p').textContent='Import access until '+_ccFmt(o.tempImportUntil);
+        r.querySelector('button').addEventListener('click',function(){ window._fb.updateDoc(window._fb.doc(firestoreDb,'users',d.id),{canImportData:false,tempImportUntil:null}).then(function(){ logActivity('Temporary access revoked: '+nm,'act-orange',currentAdminName,{category:'system'}); txLoad(); }); });
+        box.appendChild(r); }
+      else if(o.canImportData===false){ var op=document.createElement('option'); op.value=d.id; op.textContent=nm; op.setAttribute('data-name',nm); sel.appendChild(op); } });
+    if(!sel.options.length) sel.innerHTML='<option value="">No blocked teachers</option>';
+    if(!n) box.innerHTML='<p class="cc-empty">No active temporary grants.</p>';
+  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load: '+String(e.message).replace(/</g,'&lt;')+'</p>'; }
+}
+async function txGrant(){
+  var sel=document.getElementById('tx-user'); if(!sel.value){ notify('No teacher selected.','warn'); return; }
+  var hrs=parseInt(_ccFv('tx-dur'),10), until=Date.now()+hrs*36e5, nm=sel.options[sel.selectedIndex].getAttribute('data-name');
+  var ok=await showConfirm('Grant temporary access','Allow '+nm+' to use Import Data until '+_ccFmt(until)+'? It switches off automatically.','⏳','Grant','btn-blue'); if(!ok) return;
+  try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',sel.value),{canImportData:true,tempImportUntil:until,canImportDataUpdatedAt:new Date().toISOString(),canImportDataUpdatedBy:currentAdminName||'Admin'});
+    logActivity('Temporary Import access granted to '+nm+' until '+_ccFmt(until),'act-blue',currentAdminName,{category:'system'}); notify('Access granted until '+_ccFmt(until)+'.','success'); txLoad();
+  }catch(e){ notify('Could not grant: '+e.message,'error'); }
+}
+window.twPreview=twPreview; window.twCreate=twCreate; window.taToggleRem=taToggleRem; window.taSaveRem=taSaveRem; window.taAddLock=taAddLock; window.ccAutoSweep=ccAutoSweep; window.txGrant=txGrant;
+
+
 (function(){
   function init(){
     var v=document.getElementById('view-settings'); if(!v) return;
