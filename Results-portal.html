@@ -3936,6 +3936,22 @@ setInterval(_rotateAuthTip, 5000);
                 </span>
                 <span class="settings-tile-arrow">›</span>
               </button>
+              <button class="settings-tile" id="tile-sec-status" style="display:none" data-target="sec-status-section" data-kw="security passkey biometric two-step 2fa enrolled remind reset device" onclick="openSettingsModal('sec-status-section','🔏 Staff Security Status')">
+                <span class="settings-tile-icon">🔏</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Staff Security Status <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Who has a passkey set up — remind or reset</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-sessions" style="display:none" data-target="sessions-section" data-kw="sessions signed in online devices logout sign out active" onclick="openSettingsModal('sessions-section','🖥️ Active Sessions')">
+                <span class="settings-tile-icon">🖥️</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Active Sessions <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">See who is signed in, on which device</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
             </div>
           </section>
         </div>
@@ -3943,6 +3959,17 @@ setInterval(_rotateAuthTip, 5000);
         <!-- Hidden home for settings content — moved into the universal modal on open,
              and moved back here on close. Keeps every existing id/handler intact. -->
         <div id="settings-content-store" style="display:none">
+          <div class="settings-section" id="sec-status-section">
+            <h3 class="settings-section-title">Staff Security Status</h3>
+            <div class="setting-row" style="gap:8px;flex-wrap:wrap"><div class="setting-info"><h4 id="ss-summary">Loading…</h4><p>Passkey (fingerprint / face / PIN) is this portal’s second step. A person shows as enrolled after signing in on the device that holds their passkey.</p></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap"><select class="cc-in" id="ss-filter" style="width:auto" onchange="secRender()"><option value="all">Everyone</option><option value="no">Not enrolled</option></select><button class="btn btn-blue btn-sm" onclick="secRemindAll()">🔔 Remind all not enrolled</button></div></div>
+            <div id="ss-list"></div>
+          </div>
+          <div class="settings-section" id="sessions-section">
+            <h3 class="settings-section-title">Active Sessions</h3>
+            <div class="setting-row"><div class="setting-info"><h4 id="se-summary">Loading…</h4><p>Counts a device as signed in if it checked in within the last 3 minutes. Refreshes automatically.</p></div><button class="btn btn-outline btn-sm" onclick="sessLoad()">↻ Refresh</button></div>
+            <div id="se-list"></div>
+          </div>
           <style>.cc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:8px 0}.cc-grid label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:var(--text2)}.cc-in{padding:8px 10px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:13px;width:100%}.cc-pills{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.cc-pills label{flex-direction:row;align-items:center;gap:5px;font-weight:600;padding:5px 10px;border:1px solid var(--border);border-radius:99px}</style>
           <div class="settings-section" id="term-wizard-section">
             <h3 class="settings-section-title">Term Setup Wizard</h3>
@@ -6889,6 +6916,7 @@ const PK = {
     map[email] = { credId, uid, name: name || '' };
     localStorage.setItem(this._key, JSON.stringify(map));
     localStorage.setItem(this._lastKey, email);
+    try{ if(typeof ccMirrorPasskey==='function') ccMirrorPasskey(email, uid); }catch(_e){}
   },
   remove(email) {
     const map = this.all();
@@ -15533,6 +15561,8 @@ function openSettingsModal(elId, title){
   if(elId==='term-wizard-section'){ var _y=document.getElementById('tw-year'); if(_y&&!_y.value) _y.value=new Date().getFullYear(); twPreview(); }
   if(elId==='term-auto-section') taRender();
   if(elId==='temp-access-section') txLoad();
+  if(elId==='sec-status-section') secLoad();
+  if(elId==='sessions-section') sessLoad();
   body.appendChild(el);
   el.style.display = '';
   document.getElementById('settings-item-modal').classList.add('on');
@@ -15617,7 +15647,7 @@ window.ccRefresh=ccRefresh; window.ccSetChip=ccSetChip; window.ccTrackUse=ccTrac
 ══════════════════════════════════════════ */
 function _ccAdv(){ return typeof isAdvancedAdmin!=='undefined' && isAdvancedAdmin===true; }
 function _ccGateTiles(){
-  ['tile-backup','tile-maint','tile-bulk-perms','tile-term-wizard','tile-term-auto','tile-temp-access'].forEach(function(id){
+  ['tile-backup','tile-maint','tile-bulk-perms','tile-term-wizard','tile-term-auto','tile-temp-access','tile-sec-status','tile-sessions'].forEach(function(id){
     var t=document.getElementById(id); if(!t) return;
     var want=_ccAdv()?'':'none'; if(t.style.display!==want) t.style.display=want;
   });
@@ -15830,6 +15860,97 @@ async function txGrant(){
   }catch(e){ notify('Could not grant: '+e.message,'error'); }
 }
 window.twPreview=twPreview; window.twCreate=twCreate; window.taToggleRem=taToggleRem; window.taSaveRem=taSaveRem; window.taAddLock=taAddLock; window.ccAutoSweep=ccAutoSweep; window.txGrant=txGrant;
+
+/* ══════════════════════════════════════════
+   CONTROL CENTER — Staff Security Status + Active Sessions
+   Firestore: sessions/{uid}_{deviceId} {uid,name,email,deviceId,device,startedAt,lastSeen,revoked}
+              users/{uid}.passkeyDevices.{deviceId} = {at,label}  (mirrored when a passkey is set up / seen on sign-in)
+══════════════════════════════════════════ */
+function _ccDeviceId(){ var d=''; try{ d=localStorage.getItem('kps_device_id')||''; if(!d){ d='d'+Math.random().toString(36).slice(2,10)+Date.now().toString(36); localStorage.setItem('kps_device_id',d); } }catch(e){ d='d'+Date.now().toString(36); } return d; }
+function _ccDeviceLabel(){ var u=navigator.userAgent||'', b=/Edg\//.test(u)?'Edge':/OPR\//.test(u)?'Opera':/Chrome\//.test(u)?'Chrome':/Firefox\//.test(u)?'Firefox':/Safari\//.test(u)?'Safari':'Browser';
+  var o=/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iOS':/Windows/.test(u)?'Windows':/Mac OS/.test(u)?'macOS':/Linux/.test(u)?'Linux':'Unknown OS'; return b+' · '+o; }
+function _ccAgo(ms){ var m=Math.round((Date.now()-ms)/60000); return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' d ago'; }
+/* passkey mirror */
+function ccMirrorPasskey(email,uid){
+  if(!uid||typeof firestoreDb==='undefined'||!firestoreDb||!window._fb) return;
+  var u={}; u['passkeyDevices.'+_ccDeviceId()]={at:new Date().toISOString(),label:_ccDeviceLabel()};
+  window._fb.updateDoc(window._fb.doc(firestoreDb,'users',uid),u).catch(function(){});
+}
+/* session heartbeat + remote sign-out */
+var _ccSess={ready:false,unsub:null,uid:''};
+async function _ccSessBeat(){
+  var F=window._fb, cu=window._currentUser;
+  if(!F||typeof firestoreDb==='undefined'||!firestoreDb) return;
+  if(!cu||!cu.uid){ if(_ccSess.ready){ if(_ccSess.unsub){try{_ccSess.unsub();}catch(e){}} F.deleteDoc(F.doc(firestoreDb,'sessions',_ccSess.uid+'_'+_ccDeviceId())).catch(function(){}); _ccSess={ready:false,unsub:null,uid:''}; } return; }
+  var ref=F.doc(firestoreDb,'sessions',cu.uid+'_'+_ccDeviceId()), now=Date.now(), em=(typeof auth!=='undefined'&&auth&&auth.currentUser&&auth.currentUser.email)||cu.email||'';
+  try{
+    if(!_ccSess.ready||_ccSess.uid!==cu.uid){
+      try{ await F.deleteDoc(ref); }catch(e){}
+      await F.setDoc(ref,{uid:cu.uid,name:currentAdminName||cu.name||'',email:em,deviceId:_ccDeviceId(),device:_ccDeviceLabel(),startedAt:now,lastSeen:now,revoked:false});
+      _ccSess={ready:true,unsub:null,uid:cu.uid};
+      _ccSess.unsub=F.onSnapshot(ref,function(sn){ if(sn.exists()&&sn.data().revoked===true){ try{ notify('You were signed out by an administrator.','warn',6000); }catch(e){} (typeof doSignOut==='function'?doSignOut():F.signOut(auth)); } },function(){});
+      try{ var pk=(typeof PK!=='undefined')&&em&&PK.get(em); if(pk) ccMirrorPasskey(em,cu.uid); }catch(e){}
+    } else { await F.setDoc(ref,{lastSeen:now,name:currentAdminName||cu.name||''},{merge:true}); }
+  }catch(e){}
+}
+setInterval(_ccSessBeat,60000); setTimeout(_ccSessBeat,6000);
+/* Active Sessions panel */
+async function sessLoad(){
+  var box=document.getElementById('se-list'); if(!box||!_ccAdv()) return;
+  try{ var sn=await window._fb.getDocs(window._fb.collection(firestoreDb,'sessions')), rows=[], now=Date.now(), me=_ccDeviceId();
+    sn.forEach(function(d){ var o=d.data(); o._id=d.id; rows.push(o); });
+    rows=rows.filter(function(r){return now-(r.lastSeen||0)<864e5;}).sort(function(a,b){return b.lastSeen-a.lastSeen;});
+    var live=rows.filter(function(r){return now-r.lastSeen<18e4&&!r.revoked;});
+    document.getElementById('se-summary').textContent=live.length+' signed in now · '+rows.length+' device(s) in the last 24 h';
+    box.innerHTML=''; if(!rows.length){ box.innerHTML='<p class="cc-empty">No sessions recorded yet. Devices appear after their next sign-in.</p>'; return; }
+    rows.forEach(function(r){ var on=now-r.lastSeen<18e4&&!r.revoked, row=document.createElement('div'); row.className='setting-row';
+      row.innerHTML='<div class="setting-info"><h4></h4><p></p></div><span style="display:flex;align-items:center;gap:8px"><span class="bdg"></span><button class="btn btn-outline btn-sm">Sign out</button></span>';
+      row.querySelector('h4').textContent=(r.name||r.email||'Unknown')+(r.deviceId===me?' (this device)':'');
+      row.querySelector('p').textContent=r.device+' · '+(r.email||'')+' · active '+_ccAgo(r.lastSeen)+' · since '+_ccFmt(r.startedAt);
+      var b=row.querySelector('.bdg'); b.textContent=r.revoked?'Signed out':on?'Online':'Idle'; b.className='bdg '+(r.revoked?'red':on?'green':'');
+      var btn=row.querySelector('button'); if(r.revoked||r.deviceId===me||!on) btn.style.display='none';
+      btn.addEventListener('click',async function(){ var ok=await showConfirm('Sign out device','Sign out '+(r.name||r.email)+' on '+r.device+'? They will be signed out within a minute.','🖥️','Sign out','btn-red'); if(!ok) return;
+        try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'sessions',r._id),{revoked:true}); logActivity('Signed out device: '+(r.name||r.email)+' ('+r.device+')','act-orange',currentAdminName,{category:'system'}); notify('Sign-out sent.','success'); sessLoad(); }catch(e){ notify('Failed: '+e.message,'error'); } });
+      box.appendChild(row); });
+  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load: '+String(e.message).replace(/</g,'&lt;')+'</p>'; }
+}
+setInterval(function(){ var p=document.getElementById('se-list'); if(p&&p.offsetParent) sessLoad(); },20000);
+window.sessLoad=sessLoad; window.ccMirrorPasskey=ccMirrorPasskey;
+/* Staff Security Status panel */
+var _secUsers=[];
+async function secLoad(){
+  var box=document.getElementById('ss-list'); if(!box||!_ccAdv()) return;
+  try{ var sn=await window._fb.getDocs(window._fb.collection(firestoreDb,'users')); _secUsers=[];
+    sn.forEach(function(d){ var o=d.data(); _secUsers.push({uid:d.id,name:o.name||o.displayName||o.email||d.id,email:o.email||'',adv:o.Advancedadmin===true,devices:Object.keys(o.passkeyDevices||{}).length,req:o.passkeyRequired===true,offer:o.passkeyOffer===true}); });
+    _secUsers.sort(function(a,b){return (a.devices>0)-(b.devices>0)||a.name.localeCompare(b.name);}); secRender();
+  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load: '+String(e.message).replace(/</g,'&lt;')+'</p>'; }
+}
+function secRender(){
+  var box=document.getElementById('ss-list'); if(!box) return; var only=(document.getElementById('ss-filter')||{}).value==='no';
+  var done=_secUsers.filter(function(u){return u.devices>0;}).length;
+  document.getElementById('ss-summary').textContent=done+' of '+_secUsers.length+' staff have a passkey recorded';
+  box.innerHTML=''; var L=_secUsers.filter(function(u){return !only||u.devices===0;});
+  if(!L.length){ box.innerHTML='<p class="cc-empty">Everyone has a passkey recorded. 🎉</p>'; return; }
+  L.forEach(function(u){ var r=document.createElement('div'); r.className='setting-row';
+    r.innerHTML='<div class="setting-info"><h4></h4><p></p></div><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end"><span class="bdg"></span><button class="btn btn-outline btn-sm" data-a="remind">🔔 Remind</button><button class="btn btn-outline btn-sm" data-a="reset">♻️ Reset</button></span>';
+    r.querySelector('h4').textContent=u.name+(u.adv?' · Advanced Admin':''); r.querySelector('p').textContent=u.email+(u.req?' · passkey required':u.offer?' · reminder on':'');
+    var b=r.querySelector('.bdg'); b.textContent=u.devices?'Enrolled · '+u.devices+' device'+(u.devices>1?'s':''):'Not enrolled'; b.className='bdg '+(u.devices?'green':'red');
+    if(u.devices) r.querySelector('[data-a=remind]').style.display='none'; else r.querySelector('[data-a=reset]').style.display='none';
+    r.querySelector('[data-a=remind]').addEventListener('click',function(){ secSet(u,{passkeyOffer:true},'Reminder sent to '+u.name+' — the passkey prompt appears at their next sign-in.'); });
+    r.querySelector('[data-a=reset]').addEventListener('click',async function(){ var ok=await showConfirm('Reset passkey record','Clear '+u.name+'’s recorded passkey devices and prompt them to set one up again at next sign-in?','♻️','Reset','btn-red'); if(ok) secSet(u,{passkeyDevices:{},passkeyOffer:true},'Reset done for '+u.name+'.'); });
+    box.appendChild(r); });
+}
+async function secSet(u,payload,msg){
+  try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',u.uid),payload); logActivity('Passkey '+(payload.passkeyDevices?'reset':'reminder')+' for '+u.name,'act-blue',currentAdminName,{category:'system'}); notify(msg,'success',6000); secLoad(); }
+  catch(e){ notify('Failed: '+e.message,'error'); }
+}
+async function secRemindAll(){
+  var L=_secUsers.filter(function(u){return u.devices===0&&!u.offer;}); if(!L.length){ notify('Everyone not enrolled already has a reminder on.','info'); return; }
+  var ok=await showConfirm('Remind all','Turn on the passkey prompt for '+L.length+' staff who have not set one up?','🔔','Remind','btn-blue'); if(!ok) return;
+  var n=0; for(var i=0;i<L.length;i++){ try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',L[i].uid),{passkeyOffer:true}); n++; }catch(e){} }
+  logActivity('Passkey reminder turned on for '+n+' staff','act-blue',currentAdminName,{category:'system'}); notify('Reminder turned on for '+n+' staff.','success'); secLoad();
+}
+window.secRender=secRender; window.secRemindAll=secRemindAll;
 
 
 (function(){
