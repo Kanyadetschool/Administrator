@@ -1470,6 +1470,49 @@ body::before{
 #settings-item-modal-body>.settings-section:first-child{margin-bottom:0;}
 #settings-item-modal-body .settings-section-title{display:none;}
 
+/* ── Control Center (formerly Settings): hero, search, grouped tiles ── */
+.cc-hero{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 22px;margin-bottom:14px;border-radius:var(--radius-lg);background:linear-gradient(135deg,var(--blue-dk),var(--blue) 62%,var(--teal,var(--blue-lt)));color:#fff;position:relative;overflow:hidden;}
+.cc-hero::after{content:'';position:absolute;right:-50px;top:-70px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none;}
+.cc-hero-text{position:relative;z-index:1;min-width:0;}
+.cc-hero h2{font-size:22px;font-weight:900;margin:8px 0 4px;color:#fff;}
+.cc-hero p{font-size:12px;opacity:.9;max-width:520px;line-height:1.55;margin:0;}
+.cc-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.18);padding:3px 10px;border-radius:99px;}
+.cc-stats{display:flex;gap:10px;position:relative;z-index:1;}
+.cc-stat{min-width:78px;text-align:center;padding:9px 12px;border-radius:var(--radius-md);background:rgba(255,255,255,.16);}
+.cc-stat b{display:block;font-size:22px;font-weight:900;line-height:1.1;}
+.cc-stat span{font-size:10px;opacity:.88;font-weight:700;letter-spacing:.04em;}
+.cc-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.cc-search{flex:1 1 260px;display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;transition:var(--transition);}
+.cc-search:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow);}
+.cc-search input{flex:1;min-width:0;border:none;outline:none;background:transparent;color:var(--text);font:inherit;font-size:13px;}
+.cc-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.cc-chip{font:inherit;font-size:12px;font-weight:700;padding:7px 14px;border-radius:99px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:var(--transition);}
+.cc-chip:hover{border-color:var(--blue);color:var(--text);}
+.cc-chip.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+.cc-recent{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.cc-label{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
+.cc-recent-list{display:flex;gap:6px;flex-wrap:wrap;}
+.cc-recent-btn{font:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:99px;border:1px dashed var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:var(--transition);}
+.cc-recent-btn:hover{border-style:solid;border-color:var(--blue);color:var(--text);}
+.cc-group{--cc-accent:var(--blue);margin-bottom:22px;}
+.cc-group:last-of-type{margin-bottom:0;}
+.cc-group[data-cc="exam"]{--cc-accent:#e07826;}
+.cc-group[data-cc="staff"]{--cc-accent:var(--green);}
+.cc-group-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.cc-group-hdr h3{font-size:13px;font-weight:800;color:var(--text);margin:0;text-transform:none;letter-spacing:0;}
+.cc-group-hdr p{font-size:11px;color:var(--text3);margin:1px 0 0;}
+.cc-group-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--surface3);background:color-mix(in srgb,var(--cc-accent) 18%,transparent);}
+.cc-group-count{margin-left:auto;font-size:11px;font-weight:800;color:var(--cc-accent);}
+.cc-group .settings-tile-icon{background:var(--surface3);background:color-mix(in srgb,var(--cc-accent) 16%,transparent);}
+.cc-group .settings-tile:hover{border-color:var(--cc-accent);}
+.cc-badge{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;margin-left:6px;border-radius:99px;vertical-align:1px;color:var(--cc-accent);background:var(--surface3);background:color-mix(in srgb,var(--cc-accent) 14%,transparent);}
+.cc-empty{padding:26px 12px;text-align:center;font-size:13px;color:var(--text2);}
+.cc-hide{display:none !important;}
+#view-settings .cc-group:not(.cc-hide) .settings-tile:not(.cc-hide){animation:ccIn .35s ease both;}
+@keyframes ccIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){#view-settings .settings-tile{animation:none !important;}}
+@media (max-width:600px){.cc-hero{padding:16px;}.cc-stats{width:100%;}.cc-stat{flex:1;}}
+
 /* ══════════════════════════════════════════
    PRINT MODE
 ══════════════════════════════════════════ */
@@ -2983,8 +3026,8 @@ setInterval(_rotateAuthTip, 5000);
       <div class="nav-item" onclick="navTo('profile',this)" data-label="My Profile" id="nav-profile">
         <span class="nav-icon">👤</span> My Profile
       </div>
-      <div class="nav-item" onclick="navTo('settings',this)" data-label="Settings">
-        <span class="nav-icon">⚙️</span> Settings
+      <div class="nav-item" onclick="navTo('settings',this)" data-label="Control Center">
+        <span class="nav-icon">⚙️</span> Control Center
       </div>
       <div class="nav-item" onclick="navTo('auditlog',this)" data-label="Audit Log">
         <span class="nav-icon">🗂️</span> Audit Log
@@ -3699,114 +3742,154 @@ setInterval(_rotateAuthTip, 5000);
 
       <!-- ══════ SETTINGS VIEW ══════ -->
       <div class="view" id="view-settings">
-        <div class="sec-hdr"><h2>Settings</h2></div>
-        <div class="card">
-          <div class="settings-menu-grid" id="settings-menu-grid">
-            <button class="settings-tile" onclick="openSettingsModal('firebase-config-section','⚙️ Firebase Configuration')">
-              <span class="settings-tile-icon">⚙️</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Firebase Configuration</span>
-                <span class="settings-tile-desc">Database URL &amp; data path</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" onclick="openSettingsModal('portal-settings-section','🎨 Portal Settings')">
-              <span class="settings-tile-icon">🎨</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Portal Settings</span>
-                <span class="settings-tile-desc">Theme, auto-refresh, photos</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-term-lock" style="display:none" onclick="openSettingsModal('term-lock-section','🔒 Term Lock / Freeze')">
-              <span class="settings-tile-icon">🔒</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Term Lock / Freeze</span>
-                <span class="settings-tile-desc">Make a term's records read-only</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-pending-exams" style="display:none" onclick="openSettingsModal('pending-exams-section','🕒 Pending Exams (Quick Entry)')">
-              <span class="settings-tile-icon">🕒</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Pending Exams</span>
-                <span class="settings-tile-desc">Fix or delete exams awaiting scores</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-pe-deadlines" style="display:none" onclick="openSettingsModal('pe-deadlines-section','⏳ Score Entry Deadlines')">
-              <span class="settings-tile-icon">⏳</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Score Entry Deadlines</span>
-                <span class="settings-tile-desc">Live countdowns for every exam with a deadline</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-extra-subjects" style="display:none" onclick="openSettingsModal('extra-subjects-section','📚 Extra Subjects')">
-              <span class="settings-tile-icon">📚</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Extra Subjects</span>
-                <span class="settings-tile-desc">Pre-add a subject before scores exist</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-fix-gender" style="display:none" onclick="openSettingsModal('fix-gender-section','🩹 Fix Missing Gender')">
-              <span class="settings-tile-icon">🩹</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Fix Missing Gender</span>
-                <span class="settings-tile-desc">Backfill Gender on records that were saved without it</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" onclick="openSettingsModal('admin-account-section','👤 Admin Account')">
-              <span class="settings-tile-icon">👤</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Admin Account</span>
-                <span class="settings-tile-desc">Display name &amp; password</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-add-teacher" style="display:none" onclick="openSettingsModal('add-teacher-panel','👤 Add New Teacher Account')">
-              <span class="settings-tile-icon">👤</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Add Teacher Account</span>
-                <span class="settings-tile-desc">Create logins for teachers</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-grade-assignment" style="display:none" onclick="openSettingsModal('grade-assignment-panel','🎓 Teacher Grade Assignments')">
-              <span class="settings-tile-icon">🎓</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Grade Assignments</span>
-                <span class="settings-tile-desc">Which grades each teacher sees</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-adv-role" style="display:none" onclick="openSettingsModal('adv-role-panel','🛡️ Advanced Admin Role Management')">
-              <span class="settings-tile-icon">🛡️</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Advanced Admin Roles</span>
-                <span class="settings-tile-desc">Grant/revoke Advanced Admin</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-import-permissions" style="display:none" onclick="openSettingsModal('import-permission-panel','📥 Import Data Permissions')">
-              <span class="settings-tile-icon">📥</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Import Data Permissions</span>
-                <span class="settings-tile-desc">Allow/block teachers from importing</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
-            <button class="settings-tile" id="tile-login-access" style="display:none" onclick="openSettingsModal('login-access-panel','🔐 Login Access Control')">
-              <span class="settings-tile-icon">🔐</span>
-              <span class="settings-tile-body">
-                <span class="settings-tile-title">Login Access Control</span>
-                <span class="settings-tile-desc">Restrict sign-in to authorized emails</span>
-              </span>
-              <span class="settings-tile-arrow">›</span>
-            </button>
+        <!-- ══════ CONTROL CENTER (formerly "Settings") ══════ -->
+        <div class="cc-hero">
+          <div class="cc-hero-text">
+            <span class="cc-eyebrow" id="cc-role">⚙️ Control Center</span>
+            <h2>Control Center</h2>
+            <p>Everything that controls how the portal runs — database connection, term &amp; exam controls, staff accounts and sign-in access — in one place.</p>
           </div>
+          <div class="cc-stats">
+            <div class="cc-stat"><b id="cc-count">0</b><span>controls</span></div>
+            <div class="cc-stat"><b id="cc-areas">0</b><span>areas</span></div>
+          </div>
+        </div>
+        <div class="cc-toolbar">
+          <label class="cc-search"><span aria-hidden="true">🔍</span>
+            <input id="cc-search" type="search" placeholder="Search controls — e.g. lock, teacher, deadline" autocomplete="off" oninput="ccRefresh()" aria-label="Search controls">
+          </label>
+          <div class="cc-chips" id="cc-chips">
+            <button type="button" class="cc-chip on" data-cc="all" onclick="ccSetChip('all')">All</button>
+            <button type="button" class="cc-chip" data-cc="sys" onclick="ccSetChip('sys')">System</button>
+            <button type="button" class="cc-chip" data-cc="exam" onclick="ccSetChip('exam')">Terms &amp; Exams</button>
+            <button type="button" class="cc-chip" data-cc="staff" onclick="ccSetChip('staff')">Staff &amp; Access</button>
+          </div>
+        </div>
+        <div class="cc-recent" id="cc-recent" style="display:none">
+          <span class="cc-label">Recently used</span>
+          <div class="cc-recent-list" id="cc-recent-list"></div>
+        </div>
+        <div class="card cc-card">
+          <div class="cc-empty" id="cc-empty" style="display:none">🔎 No controls match your search. Try a different word, or pick “All”.</div>
+          <section class="cc-group" data-cc="sys">
+            <header class="cc-group-hdr"><span class="cc-group-ico">🧭</span><div><h3>System &amp; Appearance</h3><p>Connection and look-and-feel of the portal</p></div><span class="cc-group-count"></span></header>
+            <div class="settings-menu-grid">
+              <button class="settings-tile" data-target="firebase-config-section" data-kw="firebase config url path server" onclick="openSettingsModal('firebase-config-section','🗄️ Database Connection')">
+                <span class="settings-tile-icon">🗄️</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Database Connection</span>
+                  <span class="settings-tile-desc">Live database URL &amp; data path</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" data-target="portal-settings-section" data-kw="portal settings theme dark mode refresh photos" onclick="openSettingsModal('portal-settings-section','🎨 Appearance &amp; Preferences')">
+                <span class="settings-tile-icon">🎨</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Appearance &amp; Preferences</span>
+                  <span class="settings-tile-desc">Theme, auto-refresh, photos</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+            </div>
+          </section>
+          <section class="cc-group" data-cc="exam">
+            <header class="cc-group-hdr"><span class="cc-group-ico">🎯</span><div><h3>Terms, Exams &amp; Records</h3><p>Protect finished terms and keep score entry on track</p></div><span class="cc-group-count"></span></header>
+            <div class="settings-menu-grid">
+              <button class="settings-tile" id="tile-term-lock" style="display:none" data-target="term-lock-section" data-kw="freeze read-only unlock past term" onclick="openSettingsModal('term-lock-section','🔒 Term Lock / Freeze')">
+                <span class="settings-tile-icon">🔒</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Term Lock <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Freeze a term so its records become read-only</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-pending-exams" style="display:none" data-target="pending-exams-section" data-kw="pending quick entry exam delete" onclick="openSettingsModal('pending-exams-section','🕒 Pending Exams (Quick Entry)')">
+                <span class="settings-tile-icon">🕒</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Pending Exam Entries <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Fix or delete exams awaiting scores</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-pe-deadlines" style="display:none" data-target="pe-deadlines-section" data-kw="deadline countdown due date" onclick="openSettingsModal('pe-deadlines-section','⏳ Score Entry Deadlines')">
+                <span class="settings-tile-icon">⏳</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Score Entry Deadlines <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Live countdowns for every exam with a deadline</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-extra-subjects" style="display:none" data-target="extra-subjects-section" data-kw="subject add new" onclick="openSettingsModal('extra-subjects-section','📚 Extra Subjects')">
+                <span class="settings-tile-icon">📚</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Extra Subjects <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Pre-add a subject before scores exist</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-fix-gender" style="display:none" data-target="fix-gender-section" data-kw="gender backfill repair missing" onclick="openSettingsModal('fix-gender-section','🩹 Fix Missing Gender')">
+                <span class="settings-tile-icon">🩹</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Fix Missing Gender <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Backfill Gender on records saved without it</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+            </div>
+          </section>
+          <section class="cc-group" data-cc="staff">
+            <header class="cc-group-hdr"><span class="cc-group-ico">🔑</span><div><h3>Staff &amp; Access</h3><p>Who can sign in, what they can see and what they can do</p></div><span class="cc-group-count"></span></header>
+            <div class="settings-menu-grid">
+              <button class="settings-tile" data-target="admin-account-section" data-kw="profile name password account" onclick="openSettingsModal('admin-account-section','👤 My Admin Account')">
+                <span class="settings-tile-icon">👤</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">My Admin Account</span>
+                  <span class="settings-tile-desc">Display name &amp; password</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-add-teacher" style="display:none" data-target="add-teacher-panel" data-kw="new teacher create login user" onclick="openSettingsModal('add-teacher-panel','➕ Add Teacher Account')">
+                <span class="settings-tile-icon">➕</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Add Teacher Account <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Create logins for teachers</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-grade-assignment" style="display:none" data-target="grade-assignment-panel" data-kw="class grade teacher assign subject" onclick="openSettingsModal('grade-assignment-panel','🎓 Teacher Grade Assignments')">
+                <span class="settings-tile-icon">🎓</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Grade Assignments <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Which grades each teacher sees</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-adv-role" style="display:none" data-target="adv-role-panel" data-kw="role permission admin grant revoke" onclick="openSettingsModal('adv-role-panel','🛡️ Advanced Admin Roles')">
+                <span class="settings-tile-icon">🛡️</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Advanced Admin Roles <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Grant or revoke Advanced Admin</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-import-permissions" style="display:none" data-target="import-permission-panel" data-kw="import csv excel allow block" onclick="openSettingsModal('import-permission-panel','📥 Import Data Permissions')">
+                <span class="settings-tile-icon">📥</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Import Permissions <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Allow or block teachers from importing</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-login-access" style="display:none" data-target="login-access-panel" data-kw="sign in whitelist email authorized security" onclick="openSettingsModal('login-access-panel','🔐 Login Access Control')">
+                <span class="settings-tile-icon">🔐</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Login Access Control <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Restrict sign-in to authorized emails</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+            </div>
+          </section>
         </div>
 
         <!-- Hidden home for settings content — moved into the universal modal on open,
@@ -3974,7 +4057,7 @@ setInterval(_rotateAuthTip, 5000);
       <!-- ══════ UNIVERSAL SETTINGS MODAL ══════ -->
       <div class="modal-overlay" id="settings-item-modal" onclick="if(event.target===this)closeSettingsModal()">
         <div class="modal-box modal-wide">
-          <div class="modal-hdr"><h3 id="settings-item-modal-title">Settings</h3><button class="modal-close" onclick="closeSettingsModal()">✕</button></div>
+          <div class="modal-hdr"><h3 id="settings-item-modal-title">Control Center</h3><button class="modal-close" onclick="closeSettingsModal()">✕</button></div>
           <div class="modal-body" id="settings-item-modal-body"></div>
         </div>
       </div>
@@ -4978,15 +5061,14 @@ setInterval(_rotateAuthTip, 5000);
             Update your own display name/photo, and change your password here.
           </div></div>
         </div>
-        <div class="help-item" data-kw="settings firebase config term lock freeze admin account theme">
-          <div class="help-item-hdr" onclick="toggleHelpItem(this)"><span class="hi-icon">⚙️</span><span class="hi-title">Settings</span><span class="hi-chev">▾</span></div>
+        <div class="help-item" data-kw="control center settings firebase database config term lock freeze admin account theme teacher access deadline">
+          <div class="help-item-hdr" onclick="toggleHelpItem(this)"><span class="hi-icon">⚙️</span><span class="hi-title">Control Center</span><span class="hi-chev">▾</span></div>
           <div class="help-item-body"><div class="help-item-body-inner">
-            Admin-level configuration:
+            Admin controls, grouped by purpose — use the search box or the filter chips to find one fast:
             <ul>
-              <li><b>Firebase Configuration</b> — connection details for the database (leave alone unless you know what you're doing).</li>
-              <li><b>Portal Settings</b> — general options for the app.</li>
-              <li><b>Term Lock / Freeze</b> — lock a past term so marks can no longer be edited, preventing accidental changes to finalized results.</li>
-              <li><b>Admin Account</b> — manage who has admin access.</li>
+              <li><b>System &amp; Appearance</b> — Database Connection (leave alone unless you know what you're doing) and Appearance &amp; Preferences (theme, auto-refresh, photos).</li>
+              <li><b>Terms, Exams &amp; Records</b> — Term Lock freezes a past term so marks can't be edited; also Pending Exam Entries, Score Entry Deadlines, Extra Subjects and Fix Missing Gender.</li>
+              <li><b>Staff &amp; Access</b> — My Admin Account, plus (Advanced Admin) teacher accounts, grade assignments, admin roles, import permissions and login access.</li>
             </ul>
           </div></div>
         </div>
@@ -12973,7 +13055,7 @@ function renderStudentsTable(){
         <div style="display:flex;gap:5px;align-items:center">
           <span id="rec-lockicon-${r.id}" title="Term is locked" style="font-size:13px;${isTermLocked(r)?'':'display:none'}">🔒</span>
           <button class="btn btn-blue btn-xs" id="rec-view-${r.id}" onclick="viewStudent('${r.id}')">👁 View</button>
-          <button class="btn btn-outline btn-xs" id="rec-edit-${r.id}" onclick="editStudent('${r.id}')" ${isTermLocked(r)?'disabled title="Term locked — go to Settings to unlock" style=\"opacity:.4;cursor:not-allowed\"':''}>✏️</button>
+          <button class="btn btn-outline btn-xs" id="rec-edit-${r.id}" onclick="editStudent('${r.id}')" ${isTermLocked(r)?'disabled title="Term locked — go to Control Center to unlock" style=\"opacity:.4;cursor:not-allowed\"':''}>✏️</button>
           <button class="btn btn-red btn-xs" id="rec-del-${r.id}" onclick="deleteStudent('${r.id}')" ${!_isClassTeacherOfGrade(r['Grade'])?`disabled title="🔒 Only the Class Teacher of ${r['Grade']||'this grade'} (or an Advanced Admin) can delete" style=\"opacity:.4;cursor:not-allowed\"`:(isTermLocked(r)?'disabled title="Term locked" style=\"opacity:.4;cursor:not-allowed\"':'')}>🗑</button>
         </div>
       </td>
@@ -13140,7 +13222,7 @@ function switchStudentRecord(masterId, idx){
   if(editBtn){
     editBtn.setAttribute('onclick', `editStudent('${rec.id}')`);
     editBtn.disabled = locked;
-    editBtn.title = locked ? 'Term locked — go to Settings to unlock' : '';
+    editBtn.title = locked ? 'Term locked — go to Control Center to unlock' : '';
     editBtn.style.opacity = locked ? '.4' : '';
     editBtn.style.cursor = locked ? 'not-allowed' : '';
   }
@@ -13272,7 +13354,7 @@ function editStudent(id){
   if(!rec) return;
   // ── Lock guard — blocks ALL entry points (row button, records modal, switched record), not just the row UI state ──
   if(isTermLocked(rec)){
-    notify(`🔒 "${_termLockLabel(rec)}" is locked. Ask an Advanced Admin to unlock it in Settings before editing.`,'error',5000);
+    notify(`🔒 "${_termLockLabel(rec)}" is locked. Ask an Advanced Admin to unlock it in Control Center before editing.`,'error',5000);
     return;
   }
   editingKey=id;
@@ -13325,7 +13407,7 @@ async function saveStudentRecord(){
   if(editingKey){
     const rec=allData.find(r=>r.id===editingKey);
     if(rec && isTermLocked(rec)){
-      notify(`🔒 "${_termLockLabel(rec)}" is locked. Unlock it in Settings first.`,'error',5000);
+      notify(`🔒 "${_termLockLabel(rec)}" is locked. Unlock it in Control Center first.`,'error',5000);
       return;
     }
   } else {
@@ -13415,7 +13497,7 @@ async function deleteStudent(id){
   }
   // ── Lock guard ────────────────────────────────────────────────────────────
   if(isTermLocked(rec)){
-    notify(`🔒 "${_termLockLabel(rec)}" is locked. Unlock it in Settings to delete records.`,'error',5000);
+    notify(`🔒 "${_termLockLabel(rec)}" is locked. Unlock it in Control Center to delete records.`,'error',5000);
     return;
   }
   // ─────────────────────────────────────────────────────────────────────────
@@ -14915,7 +14997,7 @@ async function remindPendingExamTeachers(key){
   }
 
   if(!teachers.length){
-    notify(`⚠️ ${unassignedSubjects.length} subject(s) still have missing scores for ${grade}, but no teacher is assigned to them. Check subject assignments in Settings.`,'warn',6000);
+    notify(`⚠️ ${unassignedSubjects.length} subject(s) still have missing scores for ${grade}, but no teacher is assigned to them. Check subject assignments in Control Center.`,'warn',6000);
   }
 
   const deadlineMs = pe.deadline || null;
@@ -14956,7 +15038,7 @@ async function remindPendingExamTeachers(key){
       </div>
       <p style="font-size:12px;color:#7f8c8d;margin:0 0 14px">${grade} · "${compound}" — ${teachers.length} teacher(s) with missing scores${dlInfo?` · <span class="pe-countdown-badge" data-deadline="${deadlineMs}" style="font-weight:700;color:${dlInfo.color}">${dlInfo.text}</span>`:''}</p>
       ${unassignedSubjects.length ? `<div style="background:#fff4e5;border:1px solid #ffb84d;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#8a5a00">
-        ⚠️ <strong>${unassignedSubjects.length} subject(s) have missing scores but no assigned teacher</strong> to remind — nobody will get pinged for these unless you assign a teacher in Settings:
+        ⚠️ <strong>${unassignedSubjects.length} subject(s) have missing scores but no assigned teacher</strong> to remind — nobody will get pinged for these unless you assign a teacher in Control Center:
         <ul style="margin:6px 0 0;padding-left:18px">
           ${unassignedSubjects.map(s=>`<li>${s} — ${missingBySubject[s].length} student(s) missing</li>`).join('')}
         </ul>
@@ -15340,6 +15422,7 @@ function openSettingsModal(elId, title){
   const body = document.getElementById('settings-item-modal-body');
   if(!el || !body) return;
   document.getElementById('settings-item-modal-title').textContent = title;
+  try{ ccTrackUse(elId); }catch(_e){}
   body.appendChild(el);
   el.style.display = '';
   document.getElementById('settings-item-modal').classList.add('on');
@@ -15356,9 +15439,81 @@ function closeSettingsModal(){
 window.closeSettingsModal = closeSettingsModal;
 
 /* ══════════════════════════════════════════
+   CONTROL CENTER (formerly "Settings")
+   Search + category filter + live counts + recently used.
+   Purely presentational: every tile id, panel id and handler is unchanged;
+   role gating still works by other code toggling tile.style.display.
+══════════════════════════════════════════ */
+var _ccChip = 'all';
+var CC_RECENT_KEY = 'kps_cc_recent';
+function _ccRecent(){ try{ var a=JSON.parse(localStorage.getItem(CC_RECENT_KEY)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+function ccTrackUse(elId){
+  if(!document.querySelector('#view-settings .settings-tile[data-target="'+elId+'"]')) return;
+  var a=_ccRecent().filter(function(x){return x!==elId;}); a.unshift(elId); a=a.slice(0,4);
+  try{ localStorage.setItem(CC_RECENT_KEY, JSON.stringify(a)); }catch(e){}
+  ccRefresh();
+}
+function ccSetChip(k){
+  _ccChip = k;
+  document.querySelectorAll('#cc-chips .cc-chip').forEach(function(c){ c.classList.toggle('on', c.getAttribute('data-cc')===k); });
+  ccRefresh();
+}
+function ccRefresh(){
+  var view=document.getElementById('view-settings'); if(!view) return;
+  var inp=document.getElementById('cc-search');
+  var q=((inp&&inp.value)||'').trim().toLowerCase();
+  var shown=0, avail=0, areas=0;
+  view.querySelectorAll('.cc-group').forEach(function(g){
+    var gAvail=0, gShown=0, key=g.getAttribute('data-cc');
+    g.querySelectorAll('.settings-tile').forEach(function(t){
+      var allowed = t.style.display!=='none';
+      var hay=(t.textContent+' '+(t.getAttribute('data-kw')||'')).toLowerCase();
+      var match=(!q||hay.indexOf(q)>-1)&&(_ccChip==='all'||_ccChip===key);
+      t.classList.toggle('cc-hide', !match);
+      if(allowed){ gAvail++; if(match) gShown++; }
+    });
+    g.classList.toggle('cc-hide', gShown===0);
+    var cnt=g.querySelector('.cc-group-count'); if(cnt) cnt.textContent = gAvail+(gAvail===1?' control':' controls');
+    var chip=document.querySelector('#cc-chips .cc-chip[data-cc="'+key+'"]'); if(chip) chip.classList.toggle('cc-hide', gAvail===0);
+    if(gAvail>0) areas++;
+    avail+=gAvail; shown+=gShown;
+  });
+  var c1=document.getElementById('cc-count'); if(c1) c1.textContent=avail;
+  var c2=document.getElementById('cc-areas'); if(c2) c2.textContent=areas;
+  var role=document.getElementById('cc-role');
+  if(role) role.textContent = (typeof isAdvancedAdmin!=='undefined' && isAdvancedAdmin) ? '🛡️ Advanced Admin' : '👤 Staff access';
+  var em=document.getElementById('cc-empty'); if(em) em.style.display = shown===0 ? '' : 'none';
+  // Recently used (only tools this person can actually open)
+  var box=document.getElementById('cc-recent'), list=document.getElementById('cc-recent-list');
+  if(box&&list){
+    list.innerHTML='';
+    _ccRecent().forEach(function(id){
+      var t=view.querySelector('.settings-tile[data-target="'+id+'"]');
+      if(!t||t.style.display==='none') return;
+      var b=document.createElement('button'); b.type='button'; b.className='cc-recent-btn';
+      b.textContent=t.querySelector('.settings-tile-icon').textContent+' '+t.querySelector('.settings-tile-title').firstChild.textContent.trim();
+      b.addEventListener('click',function(){ t.click(); });
+      list.appendChild(b);
+    });
+    box.style.display = (list.children.length && !q && _ccChip==='all') ? '' : 'none';
+  }
+}
+window.ccRefresh=ccRefresh; window.ccSetChip=ccSetChip; window.ccTrackUse=ccTrackUse;
+(function(){
+  function init(){
+    var v=document.getElementById('view-settings'); if(!v) return;
+    // Role code reveals tiles by setting style.display — re-count when that happens.
+    // (Observe the tiles only — ccRefresh itself sets style on other nodes, which must not re-trigger it.)
+    if(window.MutationObserver){ var mo=new MutationObserver(function(){ ccRefresh(); }); v.querySelectorAll('.settings-tile').forEach(function(t){ mo.observe(t,{attributes:true,attributeFilter:['style']}); }); }
+    ccRefresh();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+
+/* ══════════════════════════════════════════
    NAVIGATION
 ══════════════════════════════════════════ */
-const views={'dashboard':'Overview & Analytics','students':'Manage Students','results':'Results & Grades','analytics':'Deep Analytics','reports':'Report Cards & Export','announcements':'School Announcements','settings':'Portal Settings','auditlog':'Full Admin Audit Trail'};
+const views={'dashboard':'Overview & Analytics','students':'Manage Students','results':'Results & Grades','analytics':'Deep Analytics','reports':'Report Cards & Export','announcements':'School Announcements','settings':'Admin tools, access & configuration','auditlog':'Full Admin Audit Trail'};
 function navTo(view,el){
   // Leaving the Quick Entry sheet — clear this device's live-editing presence
   // so it doesn't linger in the Advanced Admin's Live Editors list.
@@ -15405,19 +15560,20 @@ function navTo(view,el){
   if(viewEl)viewEl.classList.add('active');
   if(el)el.classList.add('active');
   const crumbs={dashboard:'Overview & Analytics',students:'Student Directory',results:'Results & Grades',analytics:'Charts & Insights',duplicates:'Same name or ULI across records',reports:'Report Cards & Export',import:'CSV / Excel Import',announcements:'School Notices',messages:'Chat with teachers & staff',settings:'Portal Configuration',auditlog:'Full Admin Audit Trail',profile:'Edit Your Profile & Password',progressrecords:'Download score history by subject & class'};
-  const titles={dashboard:'Dashboard',students:'Students',results:'Results',analytics:'Analytics',duplicates:'Duplicates',reports:'Report Cards',import:'Import Data',announcements:'Announcements',messages:'Messages',settings:'Settings',auditlog:'Audit Log',profile:'My Profile',progressrecords:'Progress Records'};
+  const titles={dashboard:'Dashboard',students:'Students',results:'Results',analytics:'Analytics',duplicates:'Duplicates',reports:'Report Cards',import:'Import Data',announcements:'Announcements',messages:'Messages',settings:'Control Center',auditlog:'Audit Log',profile:'My Profile',progressrecords:'Progress Records'};
   if(document.getElementById('topbar-title'))document.getElementById('topbar-title').textContent=titles[view]||view;
   if(view==='profile') profLoadInfo();
   if(document.getElementById('topbar-crumb'))document.getElementById('topbar-crumb').textContent=crumbs[view]||'';
   if(el) el.classList.add('active');
   document.getElementById('topbar-title').textContent=el?.querySelector('span+*')?.textContent||view.charAt(0).toUpperCase()+view.slice(1);
+  if(view==='settings') document.getElementById('topbar-title').textContent='Control Center';
   document.getElementById('topbar-crumb').textContent=views[view]||'';
   if(view==='auditlog') renderAuditView();
   if(view==='announcements' && typeof renderAnnouncements==='function') renderAnnouncements();
   if(view==='reports') setTimeout(_bridgeReportCardSystem, 50);
   if(view==='messages') msgInit();
   if(view==='duplicates') renderDuplicates();
-  if(view==='settings'){ renderTermLockSettings(); renderPendingExamsSettings(); renderExtraSubjectsSettings(); renderMissingGenderTile(); }
+  if(view==='settings'){ renderTermLockSettings(); renderPendingExamsSettings(); renderExtraSubjectsSettings(); renderMissingGenderTile(); if(typeof ccRefresh==='function') ccRefresh(); }
   if(view==='progressrecords') _prInit();
   if(window.innerWidth<768) closeSidebar();
 }
@@ -16903,7 +17059,7 @@ function renderRecordContent(allRecs, idx){
   _modalEditBtn.setAttribute('data-id', rec.id);
   const _locked = isTermLocked(rec);
   _modalEditBtn.disabled = _locked;
-  _modalEditBtn.title = _locked ? 'Term locked — go to Settings to unlock' : '';
+  _modalEditBtn.title = _locked ? 'Term locked — go to Control Center to unlock' : '';
   _modalEditBtn.style.opacity = _locked ? '.4' : '';
   _modalEditBtn.style.cursor = _locked ? 'not-allowed' : '';
 
@@ -17210,7 +17366,7 @@ const TOUR_STEPS=[
   {sel:'.nav-item[data-label="Announcements"]', icon:'📢', title:'Announcements', desc:'Post school-wide notices that every staff member sees when they log in.', view:'announcements'},
   {sel:'.nav-item[data-label="Messages"]', icon:'💬', title:'Messages', desc:'Direct real-time chat with other teachers and admins on the platform.', view:'messages'},
   {sel:'.nav-item[data-label="My Profile"]', icon:'👤', title:'My Profile', desc:'Update your name, photo, and change your password here.', view:'profile'},
-  {sel:'.nav-item[data-label="Settings"]', icon:'⚙️', title:'Settings', desc:'Admin configuration — including Term Lock, which freezes a past term so its marks can no longer be changed.', view:'settings'},
+  {sel:'.nav-item[data-label="Control Center"]', icon:'⚙️', title:'Control Center', desc:'Where admin controls live — database connection, Term Lock (freeze a past term), exam deadlines, teacher accounts and sign-in access. Use the search box to jump straight to a control.', view:'settings'},
   {sel:'.nav-item[data-label="Audit Log"]', icon:'🗂️', title:'Audit Log', desc:'A running history of important actions — who signed in, edited a record, or imported data.', view:'auditlog'},
   {sel:'[onclick="openSmartSearch()"]', icon:'🔍', title:'Smart Search', desc:'Press Ctrl+K anytime to jump straight to any student or page without navigating manually.', view:null},
   {sel:'.theme-toggle', icon:'🌙', title:'Dark / Light Mode', desc:'Switch themes here. Your choice is remembered next time you log in.', view:null},
@@ -20074,7 +20230,7 @@ async function loadQuickEntry(){
             which is now <strong>${_peDlInfo.text.replace('⚠️ ','')}</strong> in the past. This exam is locked and can no longer be opened for score entry.
           </div>
           <div style="font-size:12px;color:var(--text3);margin-top:10px">
-            If you still need to submit or correct scores, ask an Advanced Admin to extend the deadline (Settings → Score Entry Deadlines) or open this exam for you.
+            If you still need to submit or correct scores, ask an Advanced Admin to extend the deadline (Control Center → Score Entry Deadlines) or open this exam for you.
           </div>
         </div>`;
     }
@@ -20220,7 +20376,7 @@ async function loadQuickEntry(){
   // tell them plainly what's going on and who can fix it, instead of
   // leaving them staring at an empty table.
   if(!_qeIsFullAccessForGrade && _qeAllGradeSubjects.length && !_qeSubjects.length){
-    notify(`🔒 You don't have any subject assigned for ${pendingGrade} yet — ask an Advanced Admin to assign one in Settings → Teacher Grade Assignments.`,'warn',8000);
+    notify(`🔒 You don't have any subject assigned for ${pendingGrade} yet — ask an Advanced Admin to assign one in Control Center → Grade Assignments.`,'warn',8000);
   }
 
   // ── Pull in any scores already submitted to the database for this exam ────

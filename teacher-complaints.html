@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teachers' Complaints Portal | Kanyadet Primary & Junior School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0f2447;--navy2:#1b3566;--gold:#d3a437;--bg:#fbf7ee;--card:#fffdf8;--ink:#1d2433;--mute:#6b7384;--line:rgba(211,164,55,.35);--ok:#1e7e4f;--warn:#b7791f;--bad:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+h1,h2{font-family:'Playfair Display',serif;margin:0}
+.top{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:3px solid var(--gold)}
+.top h1{font-size:1.15rem}.top small{color:#e8d9ab;display:block;font-family:'DM Sans'}
+.who{display:flex;align-items:center;gap:10px;font-size:.85rem}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--gold);padding:9px 16px;background:var(--gold);color:var(--navy);font-weight:700}
+button.ghost{background:transparent;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--navy2);outline-offset:2px}
+button:disabled{opacity:.6;cursor:wait}
+main{max-width:920px;margin:0 auto;padding:20px 16px 60px}
+.gate{text-align:center;margin-top:12vh}.gate h2{font-size:1.8rem;color:var(--navy);margin-bottom:8px}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:18px;flex-wrap:wrap}
+.tab{background:none;border:none;border-bottom:3px solid transparent;border-radius:0;color:var(--mute);padding:10px 14px}
+.tab.on{color:var(--navy);border-bottom-color:var(--gold)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(211,164,55,.15);margin-bottom:14px}
+label{display:block;font-weight:700;font-size:.85rem;margin:12px 0 4px}
+input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid #cfc7b2;border-radius:8px;background:#fff}
+textarea{min-height:120px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.row{grid-template-columns:1fr}.top{flex-wrap:wrap}}
+.hint{color:var(--mute);font-size:.8rem}
+.badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.75rem;font-weight:700;color:#fff}
+.Open{background:var(--bad)}.InProgress{background:var(--warn)}.Resolved{background:var(--ok)}
+.meta{color:var(--mute);font-size:.8rem}
+.head{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.reply{border-left:3px solid var(--gold);padding:6px 12px;margin-top:10px;background:#fff7dc;border-radius:0 8px 8px 0}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.filters select{width:auto}
+.empty{text-align:center;color:var(--mute);padding:30px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 20px;border-radius:10px;border:1px solid var(--gold);display:none;z-index:9}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Teachers' Complaints Portal<small>Kanyadet Primary &amp; Junior School</small></h1>
+  <div class="who hide" id="who"><span id="uname"></span><button class="ghost" id="outBtn">Sign out</button></div>
+</header>
+<main>
+  <section class="gate" id="gate">
+    <h2>Raise a concern with administration or ICT</h2>
+    <p class="hint">Sign in with your school Google account to submit and track your complaints.</p>
+    <button id="inBtn">Sign in with Google</button>
+  </section>
+
+  <section id="app" class="hide">
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-t="new">Raise complaint</button>
+      <button class="tab" data-t="mine">My complaints</button>
+      <button class="tab hide" data-t="all" id="allTab">All complaints</button>
+    </div>
+
+    <div id="t-new">
+      <form class="card" id="form">
+        <label for="cat">Category</label>
+        <select id="cat" required>
+          <option value="">Select category</option>
+          <option>Scoresheet not received</option>
+          <option>SBA / KNEC portal issue</option>
+          <option>Results portal problem</option>
+          <option>Learner records error</option>
+          <option>Equipment / ICT support</option>
+          <option>Timetable</option>
+          <option>Other</option>
+        </select>
+        <div class="row">
+          <div><label for="grade">Grade</label>
+            <select id="grade"><option value="">Not applicable</option>
+              <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option><option>Grade 4</option><option>Grade 5</option><option>Grade 6</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option></select></div>
+          <div><label for="subject">Subject (if any)</label><input id="subject" maxlength="60" placeholder="e.g. Science & Technology"></div>
+        </div>
+        <label for="prio">Urgency</label>
+        <select id="prio"><option>Normal</option><option>Urgent</option></select>
+        <label for="details">Describe the problem</label>
+        <textarea id="details" required minlength="10" maxlength="1500" placeholder="What happened, and what do you need?"></textarea>
+        <p class="hint">Your name and email are attached automatically so ICT can follow up.</p>
+        <button type="submit" id="sendBtn">Submit complaint</button>
+      </form>
+    </div>
+
+    <div id="t-mine" class="hide"><div id="mineList"></div></div>
+
+    <div id="t-all" class="hide">
+      <div class="filters">
+        <select id="fStatus"><option value="">All statuses</option><option>Open</option><option>In progress</option><option>Resolved</option></select>
+        <select id="fCat"><option value="">All categories</option></select>
+      </div>
+      <div id="allList"></div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ---- CONFIG: paste your school's Firebase config and the ICT/admin emails ----
+const firebaseConfig = {
+   apiKey: 'AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE',
+  authDomain: 'kanyadet-school-admin.firebaseapp.com',
+  projectId: 'kanyadet-school-admin',
+  databaseURL: 'https://kanyadet-school-admin-default-rtdb.firebaseio.com',
+  storageBucket: 'kanyadet-school-admin.firebasestorage.app',
+  messagingSenderId: '409708360032',
+  appId: '1:409708360032:web:a21d63e8cb5fa1ecabee05',
+};
+const ADMIN_EMAILS = ["ict@example.com", "admin@example.com"]; // can view all and reply
+// -----------------------------------------------------------------------------
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const STATUS = ["Open", "In progress", "Resolved"];
+let user = null, isAdmin = false, unsubs = [], allDocs = [];
+
+const toast = m => { const t = $("toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 3000); };
+const when = ts => ts?.toDate ? ts.toDate().toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" }) : "just now";
+const cls = s => s.replace(" ", "");
+
+$("inBtn").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => toast("Sign-in failed: " + e.code));
+$("outBtn").onclick = () => signOut(auth);
+
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === b));
+  ["new", "mine", "all"].forEach(t => $("t-" + t).classList.toggle("hide", t !== b.dataset.t));
+});
+
+onAuthStateChanged(auth, u => {
+  unsubs.forEach(f => f()); unsubs = [];
+  user = u;
+  $("gate").classList.toggle("hide", !!u);
+  $("app").classList.toggle("hide", !u);
+  $("who").classList.toggle("hide", !u);
+  if (!u) return;
+  isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase()).includes((u.email || "").toLowerCase());
+  $("uname").textContent = u.displayName || u.email;
+  $("allTab").classList.toggle("hide", !isAdmin);
+
+  unsubs.push(onSnapshot(query(collection(db, "complaints"), where("uid", "==", u.uid)),
+    s => renderMine(s.docs.map(d => ({ id: d.id, ...d.data() }))),
+    e => toast("Could not load your complaints: " + e.code)));
+  if (isAdmin) unsubs.push(onSnapshot(collection(db, "complaints"),
+    s => { allDocs = s.docs.map(d => ({ id: d.id, ...d.data() })); renderAll(); },
+    e => toast("Could not load all complaints: " + e.code)));
+});
+
+$("form").onsubmit = async e => {
+  e.preventDefault();
+  const btn = $("sendBtn"); btn.disabled = true;
+  try {
+    await addDoc(collection(db, "complaints"), {
+      ref: "C-" + Date.now().toString(36).toUpperCase().slice(-6),
+      uid: user.uid, email: user.email, name: user.displayName || user.email,
+      category: $("cat").value, grade: $("grade").value, subject: $("subject").value.trim(),
+      priority: $("prio").value, details: $("details").value.trim(),
+      status: "Open", reply: "", createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    });
+    e.target.reset(); toast("Complaint submitted. You can track it under My complaints.");
+    document.querySelector('[data-t="mine"]').click();
+  } catch (err) { toast("Submit failed: " + err.code); }
+  btn.disabled = false;
+};
+
+const byDate = (a, b) => (b.createdAt?.seconds ?? 9e9) - (a.createdAt?.seconds ?? 9e9);
+
+function card(c, admin) {
+  const tags = [c.grade, c.subject].filter(Boolean).map(esc).join(", ");
+  return `<article class="card">
+    <div class="head"><strong>${esc(c.category)}</strong>
+      <span><span class="badge ${cls(c.status)}">${esc(c.status)}</span>${c.priority === "Urgent" ? ' <span class="badge Open">Urgent</span>' : ""}</span></div>
+    <div class="meta">${esc(c.ref)} · ${when(c.createdAt)}${admin ? " · " + esc(c.name) + " (" + esc(c.email) + ")" : ""}${tags ? " · " + tags : ""}</div>
+    <p>${esc(c.details)}</p>
+    ${c.reply ? `<div class="reply"><strong>Response:</strong> ${esc(c.reply)}</div>` : ""}
+    ${admin ? `<div class="row" style="margin-top:10px">
+      <select data-status="${c.id}">${STATUS.map(s => `<option${s === c.status ? " selected" : ""}>${s}</option>`).join("")}</select>
+      <input data-reply="${c.id}" value="${esc(c.reply)}" placeholder="Write a response" maxlength="500"></div>
+      <button style="margin-top:8px" data-save="${c.id}">Save update</button>` : ""}
+  </article>`;
+}
+
+function renderMine(list) {
+  list.sort(byDate);
+  $("mineList").innerHTML = list.length ? list.map(c => card(c, false)).join("")
+    : '<div class="empty">You have not raised any complaints yet. Use Raise complaint to start.</div>';
+}
+
+function renderAll() {
+  const cats = [...new Set(allDocs.map(c => c.category))].sort();
+  const fc = $("fCat"), cur = fc.value;
+  fc.innerHTML = '<option value="">All categories</option>' + cats.map(c => `<option>${esc(c)}</option>`).join("");
+  fc.value = cur;
+  const s = $("fStatus").value, k = fc.value;
+  const list = allDocs.filter(c => (!s || c.status === s) && (!k || c.category === k)).sort(byDate);
+  $("allList").innerHTML = list.length ? list.map(c => card(c, true)).join("") : '<div class="empty">No complaints match these filters.</div>';
+}
+$("fStatus").onchange = renderAll; $("fCat").onchange = renderAll;
+
+$("allList").onclick = async e => {
+  const id = e.target.dataset?.save; if (!id) return;
+  try {
+    await updateDoc(doc(db, "complaints", id), {
+      status: document.querySelector(`[data-status="${id}"]`).value,
+      reply: document.querySelector(`[data-reply="${id}"]`).value.trim(),
+      updatedAt: serverTimestamp()
+    });
+    toast("Update saved.");
+  } catch (err) { toast("Save failed: " + err.code); }
+};
+</script>
+</body>
+</html>

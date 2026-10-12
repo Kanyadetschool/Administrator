@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pre-Primary Results — Kanyadet School</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#2980b9;--blue-dk:#1a5276;--blue-lt:#5dade2;--orange:#e67e22;--gold:#f39c12;--green:#27ae60;--red:#e74c3c;--purple:#8e44ad;--teal:#16a085;--r:18px;--rs:10px;--t:all .25s cubic-bezier(.4,0,.2,1);--sw:240px;
+--bg:#090f1a;--surface:#111d2e;--surface2:#162438;--surface3:#1c2e44;--border:rgba(41,128,185,.22);--bs:rgba(41,128,185,.45);--text:#ddeeff;--text2:#7aaec9;--shadow:0 8px 32px rgba(0,0,0,.4);--side:#0a1422}
+[data-theme=light]{--bg:linear-gradient(135deg,#eef0f2,#f4f0e6 45%,#fbecc3);--surface:#fff;--surface2:#fdfaf2;--surface3:#f8eed6;--border:rgba(211,164,55,.25);--bs:rgba(211,164,55,.5);--text:#0c1e33;--text2:#5a5342;--shadow:0 4px 20px rgba(211,164,55,.18);--side:#faf6ea}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;font:14px 'DM Sans',sans-serif;background:var(--bg) fixed;color:var(--text)}
+button,input,select{font:inherit;color:inherit}
+.btn{border:1.5px solid var(--border);background:var(--surface2);padding:8px 14px;border-radius:var(--rs);cursor:pointer;font-weight:600;transition:var(--t)}
+.btn:hover{border-color:var(--blue);transform:translateY(-1px)}.btn.pri{background:linear-gradient(135deg,var(--blue),var(--blue-dk));border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(41,128,185,.35)}
+.btn.or{background:linear-gradient(135deg,var(--orange),#d35400);border-color:transparent;color:#fff}.btn.sm{padding:5px 10px;font-size:12px}
+input,select{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 12px;outline:none}input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(41,128,185,.25)}
+#login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 20% 20%,rgba(41,128,185,.35),transparent 50%),radial-gradient(circle at 85% 80%,rgba(230,126,34,.3),transparent 45%),var(--bg);z-index:50}
+.lcard{width:min(400px,92vw);background:var(--surface);border:1.5px solid var(--border);border-radius:24px;padding:34px 30px;box-shadow:var(--shadow);text-align:center;animation:up .5s}
+@keyframes up{from{opacity:0;transform:translateY(20px)}}
+.badge{width:68px;height:68px;margin:0 auto 12px;border-radius:20px;display:grid;place-items:center;font-size:32px;background:linear-gradient(135deg,var(--blue),var(--orange));box-shadow:0 8px 24px var(--blue-lt)}
+.lcard h2{font:700 24px 'Playfair Display';margin:6px 0}.lcard p{color:var(--text2);margin:0 0 18px}.lcard input{width:100%;margin-bottom:10px}.lcard .btn{width:100%;margin-top:4px}
+.err{color:var(--red);min-height:18px;font-size:12px;margin-top:8px}
+#app{display:none;height:100%}#app.on{display:flex}
+aside{width:var(--sw);background:var(--side);border-right:1.5px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.brand{display:flex;gap:10px;align-items:center;padding:4px 8px 16px}.brand b{font:700 15px 'Playfair Display';display:block}.brand small{color:var(--text2);font-size:11px}
+.nav{display:flex;gap:10px;align-items:center;padding:11px 14px;border-radius:14px;cursor:pointer;color:var(--text2);font-weight:600;transition:var(--t);border:1.5px solid transparent}
+.nav:hover{background:var(--surface2);color:var(--text)}.nav.on{background:var(--surface2);color:var(--text);border-color:var(--bs);box-shadow:inset 3px 0 0 var(--orange)}
+.sp{flex:1}.who{font-size:11px;color:var(--text2);padding:8px;word-break:break-all}
+main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 24px;border-bottom:1.5px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:5}
+.seg{display:flex;background:var(--surface2);border-radius:12px;padding:3px;border:1.5px solid var(--border)}.seg button{border:0;background:none;padding:7px 18px;border-radius:9px;font-weight:700;cursor:pointer;color:var(--text2)}.seg button.on{background:linear-gradient(135deg,var(--orange),#d35400);color:#fff}
+.content{padding:24px;overflow:auto;flex:1}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;animation:up .4s}
+.kpi:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--c)}.kpi small{color:var(--text2);font-weight:600}.kpi b{display:block;font:700 30px 'JetBrains Mono';margin-top:4px;color:var(--c)}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px}@media(max-width:1000px){.grid2{grid-template-columns:1fr}aside{display:none}}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);margin-bottom:16px}.card h3{margin:0 0 14px;font:700 16px 'Playfair Display'}
+.dist{display:grid;grid-template-columns:130px 1fr;gap:8px 12px;align-items:center;font-size:13px}.stk{display:flex;height:22px;border-radius:7px;overflow:hidden;background:var(--surface3)}.stk i{display:grid;place-items:center;font:700 10px 'JetBrains Mono';color:#fff;font-style:normal;transition:width .6s}
+.EE{background:var(--green)}.ME{background:var(--blue)}.AE{background:var(--gold)}.BE{background:var(--red)}
+.lg{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--text2)}.lg span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;background:var(--c)}
+.li{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border)}.li:last-child{border:0}.li b{font-family:'JetBrains Mono'}
+.tw{overflow:auto;border:1.5px solid var(--border);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%}th{background:var(--surface3);font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:11px 6px;color:var(--text2);position:sticky;top:0}
+td{padding:5px 6px;text-align:center;border-bottom:1px solid var(--border)}tr:hover td{background:var(--surface2)}td.n{text-align:left;min-width:200px}td.n input{width:100%;border-color:transparent;background:transparent}td.n input:hover{border-color:var(--border)}
+.c{width:46px;height:34px;display:inline-grid;place-items:center;border-radius:9px;font:700 13px 'JetBrains Mono';cursor:pointer;color:#fff;outline:none;transition:var(--t);user-select:none}.c.NA{background:var(--surface3);color:var(--text2)}.c:focus{outline:3px solid var(--orange);transform:scale(1.12)}
+.pos{font:700 13px 'JetBrains Mono';color:var(--gold)}.tot{font:700 14px 'JetBrains Mono'}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}.hint{color:var(--text2);font-size:12px}
+.lock{background:rgba(231,76,60,.15);border:1.5px solid var(--red);color:var(--red);padding:8px 14px;border-radius:var(--rs);font-weight:700;margin-bottom:12px}
+.rc{background:#fff;color:#111;border:2px solid #14284b;border-radius:8px;padding:26px 30px;max-width:780px;margin:0 auto 20px;page-break-after:always;font-family:'DM Sans'}
+.rc h1{font:700 22px 'Playfair Display';text-align:center;margin:0;color:#14284b}.rc .sub{text-align:center;border-bottom:3px double #c9a227;padding:6px 0 12px;margin-bottom:14px;color:#555}
+.rc table{margin:12px 0}.rc th{background:#14284b;color:#fff;position:static}.rc td,.rc th{border:1px solid #bbb;padding:8px;text-align:left}.rc .g{font-weight:700;text-align:center}
+.sig{display:flex;gap:30px;margin-top:34px}.sig div{flex:1;border-top:1px solid #333;padding-top:4px;font-size:12px}
+#toasts{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;z-index:99}.toast{background:var(--surface);border:1.5px solid var(--bs);border-left:4px solid var(--orange);padding:10px 16px;border-radius:12px;box-shadow:var(--shadow);animation:up .3s}
+@media print{body{background:#fff}aside,.top,.tools,#toasts,.noprint{display:none!important}.content{padding:0;overflow:visible}#app{display:block}
+.card,.tw{box-shadow:none;border-color:#999}.rc{border-radius:0}.c{-webkit-print-color-adjust:exact;print-color-adjust:exact}.EE,.ME,.AE,.BE{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4 landscape;margin:10mm}body.rcp @page{size:A4 portrait}}
+</style></head><body>
+<div id="login"><div class="lcard"><div class="badge">🎒</div><h2>Pre-Primary Results</h2><p>Kanyadet Primary & Junior School<br>Sign in with your staff account</p>
+<input id="em" type="email" placeholder="Email"><input id="pw" type="password" placeholder="Password"><button class="btn pri" id="go">Sign In</button><button class="btn" id="gg">Continue with Google</button><div class="err" id="err"></div></div></div>
+<div id="app"><aside><div class="brand"><div class="badge" style="width:42px;height:42px;font-size:20px;margin:0;border-radius:13px">🎒</div><div><b>PP Results</b><small>PP1 · PP2 · CBC</small></div></div>
+<div class="nav on" data-v="dash">📊 Dashboard</div><div class="nav" data-v="sheet">📝 Class Sheet</div><div class="nav" data-v="cards">🧾 Report Cards</div><div class="sp"></div>
+<div class="nav" id="th">🌓 Toggle theme</div><div class="nav" id="so">🚪 Sign out</div><div class="who" id="who"></div></aside>
+<main><div class="top"><div class="seg"><button data-c="PP1">PP1</button><button data-c="PP2">PP2</button></div>
+<select id="term"><option>Term I</option><option>Term II</option><option>Term III</option></select><input id="year" type="number" style="width:92px"><span class="sp"></span><span class="hint" id="sync">● connecting…</span></div>
+<div class="content" id="ct"></div></main></div><div id="toasts"></div>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import{getDatabase,ref,onValue,update,set,push,remove}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signInWithPopup,GoogleAuthProvider,signOut}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+const app=initializeApp({apiKey:"AIzaSyA_41WpdMjHJOU5s3gQ9aieIayZRvUoRLE",authDomain:"kanyadet-school-admin.firebaseapp.com",projectId:"kanyadet-school-admin",databaseURL:"https://kanyadet-school-admin-default-rtdb.firebaseio.com",storageBucket:"kanyadet-school-admin.firebasestorage.app",messagingSenderId:"409708360032"},'pp');
+const db=getDatabase(app),auth=getAuth(app);
+const SUBJ=["Mathematical Activities","Language Activities","Kiswahili Activities","Creative Activities","Environmental Activities","Religious Education","PPI"];
+const GR=["EE","ME","AE","BE","–"],PT={EE:4,ME:3,AE:2,BE:1},DESC={EE:"Exceeding Expectation",ME:"Meeting Expectation",AE:"Approaching Expectation",BE:"Below Expectation"};
+const REM=["Very Good","Good","Fair","Needs Support"];
+const SEED=`Shelda Favour|EEEEEEEEEEEEEE|Very Good
+Joy Anet Adhiambo|EEEEEEEEEEEEEE|Very Good
+Maurice Onyango|EEEEEEEEEEEEEE|Very Good
+Fredrick Otieno|EEEEEEEEEEEEEE|Very Good
+Hardisan Omega|EEEEEEEEEEEEEE|Very Good
+Vincent Otieno|EEEEEEEEEEEEEE|Very Good
+Rolex Brandon|EEEEEEMEEEEEEE|Very Good
+Elizabeth Akinyi|MEEEMEEEEEMEME|Good
+Geofry Olel|MEMEEEEEEEMEME|Good
+Gift Omondi|EEMEMEMEMEMEME|Good
+Lucracious Atieno|MEMEMEEEEEMEME|Good
+Robert Bravin|EEMEEEEEEEMEME|Good
+Ramsy Otieno|MEMEAEEEAEAEAE|Fair
+Prince Sherid|AEAEMEMEEEMEME|Good
+Charles Bravin|AEAEAEAEBEAEAE|Fair
+Foturn Omondi|AEAEBEAEBEAEAE|Fair
+Charles Obaje|EEEEMEME––EE|Very Good`;
+let cls="PP2",view="dash",data={},locked=false,user=null,offD=null,offL=null,sel=null;
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const base=()=>`PPResults/${cls}/${$("#year").value}/${$("#term").value.replace(/ /g,"")}`;
+const toast=t=>{const d=document.createElement("div");d.className="toast";d.textContent=t;$("#toasts").append(d);setTimeout(()=>d.remove(),3200)};
+const log=(a,d)=>push(ref(db,"audit_logs"),{app:"pp-results",action:a,detail:d,user:user?.email,at:Date.now()}).catch(()=>{});
+const gcls=g=>g=="–"?"NA":g,pts=r=>r.g.reduce((t,g)=>t+(PT[g]||0),0),cnt=r=>r.g.filter(g=>PT[g]).length,avg=r=>cnt(r)?pts(r)/cnt(r):0;
+const sug=r=>{const a=avg(r);return !cnt(r)?"":a>=3.5?REM[0]:a>=2.5?REM[1]:a>=1.5?REM[2]:REM[3]};
+function rows(){const R=Object.entries(data).map(([id,v])=>({id,...v,g:Array.from({length:7},(_,i)=>(v.g&&v.g[i])||"–")})).sort((a,b)=>(a.o||0)-(b.o||0));
+ R.forEach(r=>r.pos=1+R.filter(x=>avg(x)>avg(r)+1e-9).length);return R}
+/* ---------- auth ---------- */
+$("#go").onclick=async()=>{try{await signInWithEmailAndPassword(auth,$("#em").value.trim(),$("#pw").value)}catch(e){$("#err").textContent="Sign-in failed: "+(e.code||"").replace("auth/","")}};
+$("#pw").onkeydown=e=>e.key=="Enter"&&$("#go").click();
+$("#gg").onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>$("#err").textContent=e.code);
+$("#so").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{user=u;$("#login").style.display=u?"none":"flex";$("#app").classList.toggle("on",!!u);
+ if(u){$("#who").textContent=u.email;if(!$("#year").value)$("#year").value=2026;$("#term").value="Term III";listen();log("open","pp-results")}else{offD&&offD();offL&&offL()}});
+/* ---------- data ---------- */
+function listen(){offD&&offD();offL&&offL();
+ offD=onValue(ref(db,base()+"/learners"),s=>{data=s.val()||{};$("#sync").textContent="● live";$("#sync").style.color="var(--green)";render()},e=>{$("#sync").textContent="● no access";toast("Database denied access: "+e.code)});
+ offL=onValue(ref(db,base()+"/locked"),s=>{locked=!!s.val();render()})}
+const set1=(id,j,v)=>{if(locked)return toast("🔒 Sheet is locked");update(ref(db,`${base()}/learners/${id}/g`),{[j]:v}).catch(e=>toast(e.code))};
+const addL=n=>{if(!n.trim())return;push(ref(db,base()+"/learners"),{n:n.trim(),g:Array(7).fill("–"),r:"",o:Date.now()});log("add",n)};
+function seed(){const u={};SEED.split("\n").forEach((l,i)=>{const[n,g,r]=l.split("|");u[`s${String(i+1).padStart(2,"0")}`]={n,g:g.match(/EE|ME|AE|BE|–/g),r,o:i+1}});update(ref(db,base()+"/learners"),u).then(()=>toast("PP2 Term III 2026 sheet loaded"));log("seed",base())}
+/* ---------- views ---------- */
+function render(){document.querySelectorAll(".nav[data-v]").forEach(n=>n.classList.toggle("on",n.dataset.v==view));document.querySelectorAll(".seg button").forEach(b=>b.classList.toggle("on",b.dataset.c==cls));
+ ({dash,sheet,cards})[view]()}
+function empty(){return `<div class="card" style="text-align:center;padding:50px"><div style="font-size:46px">📭</div><h3>No learners in ${cls} · ${$("#term").value} ${$("#year").value}</h3><p class="hint">Add learners in Class Sheet${cls=="PP2"&&$("#term").value=="Term III"&&$("#year").value=="2026"?" or load the sheet you already marked:":"."}</p>${cls=="PP2"&&$("#term").value=="Term III"&&$("#year").value=="2026"?'<button class="btn or" id="sd">Load PP2 Term III 2026 sheet</button>':""}</div>`}
+function dash(){const R=rows(),ct=$("#ct");if(!R.length){ct.innerHTML=empty();$("#sd")&&($("#sd").onclick=seed);return}
+ const tot=R.length*7,done=R.reduce((t,r)=>t+cnt(r),0),mean=R.reduce((t,r)=>t+pts(r),0)/R.length,vg=R.filter(r=>(r.r||sug(r))==REM[0]).length,sup=R.filter(r=>["Fair","Needs Support"].includes(r.r||sug(r)));
+ const top=[...R].sort((a,b)=>avg(b)-avg(a)).slice(0,5);
+ ct.innerHTML=`<div class="kpis">${[["Learners",R.length,"--blue"],["Mean total /28",mean.toFixed(1),"--orange"],["Rated Very Good",vg,"--green"],["Entry complete",Math.round(done/tot*100)+"%","--teal"],["Need support",sup.length,"--red"]].map(k=>`<div class="kpi" style="--c:var(${k[2]})"><small>${k[0]}</small><b>${k[1]}</b></div>`).join("")}</div>
+ <div class="grid2"><div class="card"><h3>Grade distribution by learning area</h3><div class="dist">${SUBJ.map((s,j)=>{const c=Object.fromEntries(["EE","ME","AE","BE"].map(t=>[t,R.filter(r=>r.g[j]==t).length]));const n=Object.values(c).reduce((a,b)=>a+b,0)||1;return `<div>${s.split(" ")[0]}</div><div class="stk">${["EE","ME","AE","BE"].map(t=>c[t]?`<i class="${t}" style="width:${c[t]/n*100}%">${c[t]}</i>`:"").join("")}</div>`}).join("")}</div>
+ <div class="lg">${[["EE","--green"],["ME","--blue"],["AE","--gold"],["BE","--red"]].map(x=>`<span style="--c:var(${x[1]})">${x[0]}</span>`).join("")}</div></div>
+ <div><div class="card"><h3>🏆 Top performers</h3>${top.map(r=>`<div class="li"><span>${esc(r.n)}</span><b>${pts(r)}</b></div>`).join("")}</div>
+ <div class="card"><h3>🤝 Needs support</h3>${sup.length?sup.map(r=>`<div class="li"><span>${esc(r.n)}</span><b style="color:var(--red)">${pts(r)}</b></div>`).join(""):'<span class="hint">None 🎉</span>'}</div></div></div>`}
+function sheet(){const R=rows(),ct=$("#ct");
+ ct.innerHTML=`${locked?'<div class="lock">🔒 This sheet is locked — unlock to edit.</div>':""}<div class="tools"><input id="nn" placeholder="New learner name…" style="width:230px"><button class="btn pri" id="ad">+ Add</button><button class="btn" id="ar">✨ Auto remarks</button><button class="btn" id="lk">${locked?"🔓 Unlock":"🔒 Lock sheet"}</button><button class="btn" id="cv">⬇ CSV</button><button class="btn or" onclick="print()">🖨 Print</button><span class="hint">Click a cell, press <b>E / M / A / B</b> (or – ) · arrows move · click cycles</span></div>
+ <div class="tw"><table><thead><tr><th>#</th><th>Learner</th>${SUBJ.map(s=>`<th title="${s}">${s.split(" ")[0]}${s.includes("Ed")?" Ed.":""}</th>`).join("")}<th>Total</th><th>Avg</th><th>Pos</th><th>Remark</th><th class="noprint"></th></tr></thead><tbody id="tb">
+ ${R.map((r,i)=>`<tr data-id="${r.id}"><td>${i+1}</td><td class="n"><input value="${esc(r.n)}" data-nm></td>${r.g.map((g,j)=>`<td><span class="c ${gcls(g)}" tabindex="0" data-j="${j}">${g}</span></td>`).join("")}<td class="tot">${pts(r)}</td><td class="hint">${cnt(r)?avg(r).toFixed(2):"–"}</td><td class="pos">${cnt(r)?r.pos:"–"}</td><td><select data-rm><option></option>${REM.map(x=>`<option${x==r.r?" selected":""}>${x}</option>`).join("")}</select></td><td class="noprint"><button class="btn sm" data-del title="Remove">✕</button></td></tr>`).join("")}</tbody></table></div>`;
+ document.querySelectorAll(".c").forEach(c=>{c.style.background=""});
+ document.querySelectorAll(".c.EE").forEach(c=>c.classList.add("EE"));
+ $("#ad").onclick=()=>{addL($("#nn").value);$("#nn").value=""};$("#nn").onkeydown=e=>e.key=="Enter"&&$("#ad").click();
+ $("#ar").onclick=()=>{if(locked)return toast("🔒 Locked");if(!confirm("Replace ALL remarks with auto suggestions?"))return;const u={};rows().forEach(r=>u[r.id+"/r"]=sug(r));update(ref(db,base()+"/learners"),u);log("autoremarks",base())};
+ $("#lk").onclick=()=>{set(ref(db,base()+"/locked"),!locked);log(locked?"unlock":"lock",base())};
+ $("#cv").onclick=csv;
+ const tb=$("#tb");
+ tb.onclick=e=>{const c=e.target.closest(".c");if(c){const id=c.closest("tr").dataset.id,j=+c.dataset.j,g=c.textContent;if(e.detail>0&&document.activeElement===c)set1(id,j,GR[(GR.indexOf(g)+1)%5]);c.focus()}
+  const d=e.target.closest("[data-del]");if(d){const id=d.closest("tr").dataset.id;if(!locked&&confirm("Remove "+data[id].n+"?")){remove(ref(db,`${base()}/learners/${id}`));log("remove",data[id].n)}}};
+ tb.onchange=e=>{const id=e.target.closest("tr").dataset.id;if(locked)return toast("🔒 Locked");if(e.target.dataset.nm!==undefined)update(ref(db,`${base()}/learners/${id}`),{n:e.target.value});if(e.target.dataset.rm!==undefined)update(ref(db,`${base()}/learners/${id}`),{r:e.target.value})};
+ tb.onkeydown=e=>{const c=e.target.closest(".c");if(!c)return;const tr=c.closest("tr"),j=+c.dataset.j,k=e.key.toLowerCase();
+  const map={e:"EE",m:"ME",a:"AE",b:"BE","-":"–","0":"–",delete:"–",backspace:"–"};
+  if(map[k]){set1(tr.dataset.id,j,map[k]);e.preventDefault();const nx=tr.querySelector(`[data-j="${j+1}"]`)||tr.nextElementSibling?.querySelector('[data-j="0"]');setTimeout(()=>{(document.querySelector(`tr[data-id="${tr.dataset.id}"] [data-j="${j+1}"]`)||document.querySelector(`tr[data-id="${tr.nextElementSibling?.dataset.id}"] [data-j="0"]`))?.focus()},60)}
+  const mv={arrowright:[0,1],arrowleft:[0,-1],arrowdown:[1,0],arrowup:[-1,0]}[k];
+  if(mv){e.preventDefault();const t=mv[0]?(mv[0]>0?tr.nextElementSibling:tr.previousElementSibling):tr;t?.querySelector(`[data-j="${j+mv[1]}"]`)?.focus()}}}
+function cards(){const R=rows(),ct=$("#ct");if(!R.length){ct.innerHTML=empty();return}
+ const card=r=>`<div class="rc"><h1>KANYADET PRIMARY & JUNIOR SCHOOL</h1><div class="sub">Akala, Kenya · Pre-Primary Learner Progress Report<br><b>${cls} — ${$("#term").value} ${$("#year").value}</b></div>
+ <p><b>Learner:</b> ${esc(r.n)} &nbsp;&nbsp; <b>Class:</b> ${cls} &nbsp;&nbsp; <b>Position:</b> ${cnt(r)?r.pos+" / "+R.length:"–"}</p>
+ <table><tr><th>Learning Area</th><th style="text-align:center">Grade</th><th>Performance Level</th></tr>${SUBJ.map((s,j)=>`<tr><td>${s}</td><td class="g">${r.g[j]}</td><td>${DESC[r.g[j]]||"Not assessed"}</td></tr>`).join("")}
+ <tr><th>Total points</th><th style="text-align:center">${pts(r)}</th><th>out of ${cnt(r)*4} (${cnt(r)} areas assessed)</th></tr></table>
+ <p><b>Teacher's remark:</b> ${esc(r.r||sug(r))}</p><div class="sig"><div>Class Teacher</div><div>Head Teacher</div><div>Parent / Guardian</div></div>
+ <p style="font-size:10px;color:#777;margin-top:14px">EE = Exceeding · ME = Meeting · AE = Approaching · BE = Below expectation</p></div>`;
+ ct.innerHTML=`<div class="tools"><select id="pick">${R.map(r=>`<option value="${r.id}"${r.id==sel?" selected":""}>${esc(r.n)}</option>`).join("")}</select><button class="btn pri" id="p1">🖨 Print this card</button><button class="btn or" id="pa">🖨 Print all (${R.length})</button></div><div id="cc"></div>`;
+ sel=sel&&data[sel]?sel:R[0].id;$("#pick").value=sel;const one=()=>$("#cc").innerHTML=card(R.find(r=>r.id==sel));one();
+ $("#pick").onchange=e=>{sel=e.target.value;one()};
+ $("#p1").onclick=()=>{document.body.classList.add("rcp");print()};$("#pa").onclick=()=>{$("#cc").innerHTML=R.map(card).join("");document.body.classList.add("rcp");print();setTimeout(one,500)};
+ addEventListener("afterprint",()=>document.body.classList.remove("rcp"),{once:true})}
+function csv(){const q=s=>`"${String(s).replace(/"/g,'""')}"`,R=rows(),L=[["No","Name",...SUBJ,"Total","Position","Remark"].map(q).join(",")];
+ R.forEach((r,i)=>L.push([i+1,r.n,...r.g,pts(r),r.pos,r.r||""].map(q).join(",")));
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([L.join("\n")],{type:"text/csv"}));a.download=`${cls}_${$("#term").value.replace(/ /g,"")}_${$("#year").value}.csv`;a.click()}
+/* ---------- shell ---------- */
+document.querySelectorAll(".nav[data-v]").forEach(n=>n.onclick=()=>{view=n.dataset.v;render()});
+document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{cls=b.dataset.c;sel=null;listen()});
+$("#term").onchange=$("#year").onchange=()=>{sel=null;listen()};
+$("#th").onclick=()=>{const d=document.documentElement,t=d.dataset.theme=="dark"?"light":"dark";d.dataset.theme=t;};
+document.documentElement.dataset.theme="light";
+</script></body></html>
