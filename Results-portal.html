@@ -1236,6 +1236,126 @@ body::before{
   .modal-footer .btn{flex:1;justify-content:center;font-size:11px;padding:8px 10px;}
 }
 
+/* ── Live Score Entry Sessions modal (lsm) ───────────────────────────── */
+#qe-live-sessions-modal .modal-box{width:min(700px,100%);max-height:min(88vh,860px);}
+.lsm-hdr-l{display:flex;align-items:center;gap:12px;min-width:0}
+.lsm-hdr-ic{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));box-shadow:0 6px 18px var(--blue-glow)}
+.lsm-sub{font-size:11px;color:var(--text3);font-weight:600;margin-top:2px}
+.lsm-live-pill{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.7px;color:var(--green);background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.32);padding:4px 9px;border-radius:99px;margin-left:auto;flex-shrink:0}
+.lsm-pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:lsmPulse 1.8s infinite}
+@keyframes lsmPulse{0%{box-shadow:0 0 0 0 rgba(39,174,96,.6)}70%{box-shadow:0 0 0 7px rgba(39,174,96,0)}100%{box-shadow:0 0 0 0 rgba(39,174,96,0)}}
+.lsm-top{padding:14px 22px 0;flex-shrink:0}
+.lsm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.lsm-stat{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;position:relative;overflow:hidden}
+.lsm-stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--lsm-c,var(--blue))}
+.lsm-stat b{display:block;font-size:22px;font-weight:900;line-height:1.1;color:var(--text)}
+.lsm-stat span{font-size:9.5px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.lsm-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.lsm-search{flex:1;min-width:150px;background:var(--surface2);border:1.5px solid var(--border);border-radius:99px;padding:7px 14px;font-size:12px;color:var(--text);outline:none;transition:var(--transition);font-family:inherit}
+.lsm-search:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
+.lsm-chip{border:1.5px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:700;padding:6px 11px;border-radius:99px;cursor:pointer;transition:var(--transition);font-family:inherit}
+.lsm-chip:hover{border-color:var(--blue-lt)}
+.lsm-chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.lsm-chip em{font-style:normal;opacity:.75;margin-left:3px}
+#qe-live-sessions-modal .modal-body{padding:14px 22px 18px}
+.lsm-group{margin-bottom:16px}
+.lsm-group:last-child{margin-bottom:0}
+.lsm-group-hdr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 2px 8px}
+.lsm-group-name{font-size:12px;font-weight:900;color:var(--text);letter-spacing:.2px}
+.lsm-tag{font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--surface3);color:var(--text2);border:1px solid var(--border)}
+.lsm-tag.collab{background:rgba(142,68,173,.12);color:var(--purple);border-color:rgba(142,68,173,.35)}
+.lsm-cards{display:grid;gap:8px}
+.lsm-card{--lsm-c:var(--text3);background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--lsm-c);border-radius:var(--radius-md);padding:11px 13px;cursor:pointer;transition:var(--transition);outline:none}
+.lsm-card:hover,.lsm-card:focus-visible{border-color:var(--lsm-c);transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.lsm-card.s-typing{--lsm-c:var(--green)}
+.lsm-card.s-active{--lsm-c:var(--blue-lt)}
+.lsm-card.s-opened{--lsm-c:var(--teal)}
+.lsm-card.s-idle{--lsm-c:var(--gold)}
+.lsm-card.s-stale{--lsm-c:var(--red)}
+.lsm-card-top{display:flex;align-items:center;gap:10px}
+.lsm-who{flex:1;min-width:0}
+.lsm-name{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lsm-meta{font-size:10.5px;color:var(--text3);margin-top:1px}
+.lsm-pill{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:4px 9px;border-radius:99px;color:var(--lsm-c);background:color-mix(in srgb,var(--lsm-c) 14%,transparent);border:1px solid color-mix(in srgb,var(--lsm-c) 38%,transparent)}
+.lsm-card.s-typing .lsm-pill i{width:6px;height:6px;border-radius:50%;background:var(--green);animation:lsmPulse 1.4s infinite}
+.lsm-cell{display:flex;align-items:center;gap:10px;margin-top:9px;padding:8px 10px;background:var(--surface3);border-radius:10px}
+.lsm-cell-l{flex:1;min-width:0}
+.lsm-cell-k{font-size:9px;font-weight:800;letter-spacing:.7px;color:var(--text3);text-transform:uppercase}
+.lsm-cell-stu{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lsm-cell-sub{font-size:10.5px;color:var(--text3);margin-top:1px}
+.lsm-subj{display:inline-block;font-weight:700;color:var(--blue-lt);background:rgba(93,173,226,.12);border-radius:6px;padding:1px 7px;margin-right:4px}
+.lsm-score{flex-shrink:0;min-width:48px;text-align:center;font-size:20px;font-weight:900;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px 10px}
+.lsm-score.empty{font-size:12px;font-weight:700;color:var(--text3);font-style:italic}
+.lsm-nocell{margin-top:9px;padding:8px 10px;border:1.5px dashed var(--border);border-radius:10px;font-size:11px;color:var(--text3);font-style:italic}
+.lsm-card-ft{display:flex;align-items:center;gap:10px;margin-top:9px}
+.lsm-bar{flex:1;height:4px;border-radius:4px;background:var(--surface3);overflow:hidden}
+.lsm-bar i{display:block;height:100%;border-radius:4px;background:var(--lsm-c);transition:width .6s ease}
+.lsm-open{font-size:10.5px;font-weight:800;color:var(--lsm-c);white-space:nowrap;transition:var(--transition)}
+.lsm-card:hover .lsm-open{transform:translateX(3px)}
+.lsm-empty{text-align:center;padding:34px 10px}
+.lsm-empty .ic{font-size:38px;margin-bottom:8px;opacity:.85}
+.lsm-empty b{display:block;font-size:13px;color:var(--text);margin-bottom:4px}
+.lsm-empty span{font-size:11.5px;color:var(--text3);line-height:1.5}
+.lsm-foot{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center;padding:10px 22px;border-top:1px solid var(--border);font-size:10.5px;color:var(--text3);flex-shrink:0}
+.lsm-foot span{display:inline-flex;align-items:center;gap:5px}
+.lsm-foot i{width:8px;height:8px;border-radius:50%;display:inline-block}
+@media(max-width:600px){
+  .lsm-top{padding:12px 16px 0}
+  #qe-live-sessions-modal .modal-body{padding:12px 16px 16px}
+  .lsm-stats{grid-template-columns:repeat(2,1fr)}
+  .lsm-foot{padding:10px 16px}
+  .lsm-live-pill{display:none}
+}
+@media(prefers-reduced-motion:reduce){.lsm-pulse,.lsm-card.s-typing .lsm-pill i{animation:none}.lsm-card,.lsm-open{transition:none}}
+
+/* ── Live Sessions modal: tabs + Awaiting-entry reminders (lsm) ─────── */
+.lsm-tabs{display:flex;gap:6px;padding:10px 22px 0;flex-shrink:0;border-bottom:1px solid var(--border)}
+.lsm-tab{background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-1px;padding:8px 12px;font-size:12px;font-weight:800;color:var(--text3);cursor:pointer;font-family:inherit;transition:var(--transition)}
+.lsm-tab:hover{color:var(--text)}
+.lsm-tab.on{color:var(--text);border-bottom-color:var(--blue-lt)}
+.lsm-tab em{font-style:normal;font-size:10px;font-weight:900;margin-left:5px;padding:1px 7px;border-radius:99px;background:var(--surface3);color:var(--text2)}
+.lsm-tab.on em{background:var(--blue);color:#fff}
+.lsm-pane{display:flex;flex-direction:column;min-height:0;flex:1}
+.lsm-tools .lsm-btn,.lsm-btn{border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11px;font-weight:800;padding:6px 12px;border-radius:99px;cursor:pointer;font-family:inherit;transition:var(--transition);white-space:nowrap}
+.lsm-btn:hover{border-color:var(--blue-lt);color:var(--text)}
+.lsm-btn.wa{background:#25D366;border-color:#25D366;color:#fff}
+.lsm-btn.wa:hover{filter:brightness(1.08);color:#fff}
+.lsm-btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.lsm-btn[disabled]{opacity:.45;cursor:not-allowed}
+.lsm-card.s-live{--lsm-c:var(--green)}
+.lsm-card.s-nophone{--lsm-c:var(--red)}
+.lsm-card.s-ready{--lsm-c:var(--orange)}
+.lsm-card.s-reminded{--lsm-c:var(--purple)}
+.lsm-card.static{cursor:default}
+.lsm-card.static:hover{transform:none;box-shadow:none}
+.lsm-owes{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:10.5px;font-weight:700;color:var(--orange)}
+.lsm-owes span{background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.3);border-radius:99px;padding:2px 8px;color:var(--text2)}
+.lsm-owes b{color:var(--orange)}
+.lsm-ex{margin-bottom:18px}
+.lsm-ex-hdr{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:8px}
+.lsm-ex-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lsm-prog{height:6px;border-radius:6px;background:var(--surface3);overflow:hidden;margin-top:8px}
+.lsm-prog i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--blue-lt))}
+.lsm-ex-meta{font-size:10.5px;color:var(--text3);margin-top:5px;font-weight:600}
+.lsm-warn{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:11px;color:var(--text2);line-height:1.5}
+.lsm-warn b{color:var(--red)}
+.lsm-det{margin-top:7px;background:var(--surface3);border-radius:10px;padding:6px 10px;font-size:11px}
+.lsm-det summary{cursor:pointer;font-weight:700;color:var(--text);list-style:none;display:flex;align-items:center;gap:6px}
+.lsm-det summary::-webkit-details-marker{display:none}
+.lsm-det summary b{margin-left:auto;font-size:10px;color:var(--orange);background:rgba(230,126,34,.12);padding:1px 8px;border-radius:99px}
+.lsm-det ul{margin:6px 0 2px;padding-left:18px;color:var(--text2);columns:2;column-gap:18px}
+.lsm-det pre{margin:6px 0 2px;white-space:pre-wrap;word-break:break-word;font:11px/1.45 inherit;color:var(--text2)}
+.lsm-ph{display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap}
+.lsm-phin{flex:1;min-width:150px;background:var(--surface);border:1.5px solid var(--border);border-radius:99px;padding:7px 13px;font-size:12px;color:var(--text);outline:none;font-family:inherit}
+.lsm-phin:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
+.lsm-act{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;align-items:center}
+.lsm-act .lsm-btn.wa{flex:1;min-width:150px;text-align:center}
+.lsm-queue{background:linear-gradient(135deg,rgba(37,211,102,.14),rgba(41,128,185,.12));border:1px solid rgba(37,211,102,.4);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:12px}
+.lsm-queue b{font-size:12px;color:var(--text)}
+.lsm-queue .nx{font-size:11px;color:var(--text2);margin:3px 0 8px}
+.lsm-rem{font-size:10.5px;color:var(--purple);font-weight:700}
+@media(max-width:600px){.lsm-tabs{padding:8px 16px 0}.lsm-det ul{columns:1}}
+
 /* Quick Entry "Two ways to enter scores" popup — always centred on every
    screen size (overrides the bottom-sheet layout other modals use on
    phones), with an auto-dismiss progress bar along the top edge. */
@@ -2229,6 +2349,76 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
 .dist-cmp i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
 .gavg-rank.has-target .gavg-row{grid-template-columns:62px 1fr 46px 58px 60px;}
 .gavg-row-g{font-weight:700;font-size:10.5px;text-align:right;}
+/* Band Movement matrix */
+.bm-wrap{overflow-x:auto;padding:2px 0 4px;}
+.bm{border-collapse:separate;border-spacing:3px;font-size:12px;margin:0 auto;}
+.bm th{font-size:10px;font-weight:800;color:var(--text3);padding:4px 8px;text-align:center;white-space:nowrap;}
+.bm th i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.bm .bm-corner{text-align:left;font-size:9.5px;}
+.bm .bm-rowh{text-align:right;}
+.bm td{min-width:48px;height:38px;text-align:center;border-radius:8px;font-weight:800;color:var(--text);cursor:pointer;transition:var(--transition);}
+.bm td:hover{filter:brightness(.95);transform:translateY(-1px);}
+.bm td.zero{background:transparent;color:var(--text3);font-weight:500;cursor:default;} .bm td.zero:hover{transform:none;filter:none;}
+.bm td.bm-tot{background:var(--surface2);color:var(--text2);cursor:default;font-weight:700;} .bm td.bm-tot:hover{transform:none;filter:none;}
+.bm td.sel{outline:2px solid var(--blue);outline-offset:1px;}
+.bm-detail:empty{display:none;}
+.bm-detail{margin-top:8px;border-top:1px solid var(--border);padding-top:8px;max-height:220px;overflow-y:auto;overscroll-behavior:contain;}
+.bm-row{display:grid;grid-template-columns:1fr auto 62px;gap:10px;align-items:center;padding:3px 4px;font-size:11.5px;border-radius:6px;}
+.bm-row:hover{background:rgba(41,128,185,.08);}
+.bm-name{font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* Quick Entry — Live Preview panel */
+.qe-lp{position:fixed;top:0;right:0;bottom:0;width:min(470px,100vw);z-index:7000;background:var(--surface);border-left:1px solid var(--border);box-shadow:-18px 0 50px rgba(0,0,0,.28);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .28s cubic-bezier(.4,0,.2,1);visibility:hidden;}
+.qe-lp.on{transform:none;visibility:visible;}
+@media(min-width:1500px){ body.qe-lp-open #view-quickentry{margin-right:470px;} }
+.qe-lp-hdr{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.qe-lp-title{flex:1;min-width:0;display:flex;flex-direction:column;font-weight:800;font-size:14px;color:var(--text);}
+.qe-lp-title small{font-size:10.5px;font-weight:600;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.qe-lp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:7px;box-shadow:0 0 0 0 rgba(39,174,96,.6);animation:qeLpPulse 1.8s infinite;}
+@keyframes qeLpPulse{0%{box-shadow:0 0 0 0 rgba(39,174,96,.55);}70%{box-shadow:0 0 0 8px rgba(39,174,96,0);}100%{box-shadow:0 0 0 0 rgba(39,174,96,0);}}
+.qe-lp-actions{display:flex;gap:4px;}
+.qe-lp-actions button{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:13px;}
+.qe-lp-actions button:hover{border-color:var(--border-strong);}
+.qe-lp-tabs{display:flex;gap:2px;padding:6px 10px 0;border-bottom:1px solid var(--border);}
+.qe-lp-tab{border:none;background:none;color:var(--text3);font:inherit;font-size:12px;font-weight:800;padding:8px 10px;cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:5px;}
+.qe-lp-tab:hover{color:var(--text);} .qe-lp-tab.on{color:var(--blue);border-bottom-color:var(--blue);}
+.qe-lp-badge{display:inline-block;min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:#f39c12;color:#fff;font-size:10px;font-weight:800;line-height:17px;text-align:center;margin-left:5px;}
+.qe-lp-badge.bad{background:#e74c3c;}
+#qe-lp-btn.qe-lp-btn-on{background:var(--blue);border-color:var(--blue);color:#fff;}
+.qe-lp-body{flex:1;overflow-y:auto;padding:12px 14px 28px;overscroll-behavior:contain;}
+.qe-lp-sec{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin:16px 0 8px;} .qe-lp-sec small{font-weight:600;letter-spacing:0;text-transform:none;margin-left:6px;}
+.qe-lp-muted{font-size:12px;color:var(--text3);}
+.qe-lp-empty{padding:36px 14px;text-align:center;font-size:13px;color:var(--text2);line-height:1.5;} .qe-lp-empty small{display:block;margin-top:8px;font-size:11px;color:var(--text3);}
+.qe-lp-tiles{margin:0;} .qe-lp-tiles .gavg-tile.main{flex:1 1 100%;}
+.qe-lp-prog{height:6px;border-radius:99px;background:var(--surface3);margin-top:7px;overflow:hidden;} .qe-lp-prog i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .3s;}
+.qe-lp-prog.thin{height:3px;margin-top:6px;} .qe-lp-prog.thin i{background:var(--blue);}
+.qe-lp-bands{display:flex;gap:2px;height:30px;border-radius:9px;overflow:hidden;}
+.qe-lp-seg{border:none;color:#fff;font:inherit;font-size:10.5px;font-weight:800;cursor:pointer;min-width:6px;padding:0;} .qe-lp-seg:hover{filter:brightness(1.1);}
+.qe-lp-legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:7px;font-size:10.5px;font-weight:700;color:var(--text2);} .qe-lp-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;}
+.qe-lp-hist{display:flex;gap:4px;height:104px;align-items:stretch;}
+.qe-lp-hcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;min-width:0;}
+.qe-lp-hcol i{display:block;width:100%;border-radius:4px 4px 0 0;transition:height .3s;} .qe-lp-hcol em{font-size:9px;font-style:normal;color:var(--text3);} .qe-lp-hn{font-size:9.5px;font-weight:800;color:var(--text2);min-height:11px;}
+.qe-lp-ins{display:grid;gap:8px;} .qe-lp-ins .ins{padding:8px 10px;}
+.qe-lp-d{font-size:10.5px;font-weight:800;color:var(--text3);margin-left:6px;white-space:nowrap;} .qe-lp-d.up,.qe-lp-chip small.up{color:var(--green);} .qe-lp-d.dn,.qe-lp-chip small.dn{color:#e74c3c;}
+.qe-lp-subj{padding:9px 10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--surface2);} .qe-lp-subj.weak{border-color:rgba(231,76,60,.45);background:rgba(231,76,60,.06);}
+.qe-lp-subj-top{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text);} .qe-lp-sp{flex:1;} .qe-lp-val{font-weight:800;font-size:14px;}
+.qe-lp-raw{font-size:9.5px;font-weight:800;padding:1px 6px;border-radius:8px;background:rgba(255,159,10,.16);color:var(--orange);}
+.qe-lp-bar{height:8px;border-radius:99px;background:var(--surface3);margin:7px 0 6px;overflow:hidden;} .qe-lp-bar i{display:block;height:100%;border-radius:99px;transition:width .3s;}
+.qe-lp-subj-meta{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:10.5px;color:var(--text3);font-weight:600;} .qe-lp-subj-meta a{color:var(--blue);font-weight:800;text-decoration:none;}
+.qe-lp-ctl input{width:100%;padding:8px 10px;border:1.5px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:12.5px;margin-bottom:8px;}
+.qe-lp-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.qe-lp-row{border-bottom:1px solid var(--border);}
+.qe-lp-rowmain{display:grid;grid-template-columns:22px minmax(0,1fr) auto 50px auto auto;gap:8px;align-items:center;padding:8px 4px;cursor:pointer;border-radius:8px;font-size:12px;} .qe-lp-rowmain:hover{background:rgba(41,128,185,.07);}
+.qe-lp-rank{font-weight:800;color:var(--text3);text-align:center;font-size:11px;}
+.qe-lp-name{font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .qe-lp-name em{font-style:normal;font-size:9.5px;font-weight:800;color:var(--orange);margin-left:5px;}
+.qe-lp-strip{display:inline-flex;gap:2px;height:20px;align-items:flex-end;} .qe-lp-strip i{display:block;width:6px;border-radius:2px;}
+.qe-lp-avg{font-weight:800;text-align:right;font-variant-numeric:tabular-nums;}
+.qe-lp-pill{font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:8px;border:1px solid;}
+.qe-lp-det{display:flex;flex-wrap:wrap;gap:6px;padding:4px 4px 12px 30px;} .qe-lp-det .btn{margin-top:2px;}
+.qe-lp-chip{display:flex;align-items:baseline;gap:5px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);font-size:11px;} .qe-lp-chip span{color:var(--text2);font-weight:700;} .qe-lp-chip small{font-size:9.5px;font-weight:700;color:var(--text3);}
+.qe-lp-chk{display:flex;gap:10px;padding:9px 10px;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:10px;margin-bottom:7px;background:var(--surface2);cursor:pointer;} .qe-lp-chk:hover{background:rgba(41,128,185,.08);}
+.qe-lp-chk.s0{border-left-color:#e74c3c;} .qe-lp-chk.s1{border-left-color:#f39c12;}
+.qe-lp-ic{font-size:16px;line-height:1.2;} .qe-lp-ct{font-size:12px;font-weight:800;color:var(--text);} .qe-lp-ct em{font-style:normal;font-size:9.5px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-left:6px;}
+.qe-lp-cx{font-size:11.5px;color:var(--text2);margin-top:2px;line-height:1.4;}
 /* Key Insights */
 .ins-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:10px;}
 .ins{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:10px;background:var(--surface2);min-width:0;}
@@ -3052,7 +3242,7 @@ setInterval(_rotateAuthTip, 5000);
         <span class="nav-icon">👤</span> My Profile
       </div>
       <div class="nav-item" onclick="navTo('settings',this)" data-label="Control Center">
-        <span class="nav-icon">⚙️</span> Settings
+        <span class="nav-icon">⚙️</span> Control Center
       </div>
       <div class="nav-item" onclick="navTo('auditlog',this)" data-label="Audit Log">
         <span class="nav-icon">🗂️</span> Audit Log
@@ -3228,6 +3418,7 @@ setInterval(_rotateAuthTip, 5000);
               <div class="actions-row">
                 <select class="sel" id="gavg-compare" onchange="renderGradeBars()" style="font-size:11px;max-width:150px" title="What the ranking change is measured against"><option value="prev">vs previous term</option></select>
                 <button type="button" class="gavg-chip" id="gavg-target" onclick="setSchoolTarget()" title="Set the school target average (admins)" hidden>🎯 Target</button>
+                <button type="button" class="gavg-chip on" id="gavg-fc" onclick="toggleGradeAvgForecast()" title="Show a trend projection for the next assessment (needs 3+ assessments)">Forecast</button>
                 <button type="button" class="gavg-chip" id="gavg-scale" onclick="toggleGradeAvgScale()" title="Start the axis at 0 and end at 100">Full scale</button>
               </div>
             </div>
@@ -3253,6 +3444,23 @@ setInterval(_rotateAuthTip, 5000);
           <div class="gavg-chips" id="move-tabs"></div>
           <div class="chart-note" id="move-note" style="margin:0 0 8px"></div>
           <div class="move-list" id="move-list"></div>
+        </div>
+
+        <!-- Band Movement: transition matrix of the same learners between two assessments. See renderBandMatrix. -->
+        <div class="card" id="bm-card" style="margin-bottom:18px">
+          <div class="card-hdr">
+            <div class="card-title">🔀 Band Movement</div>
+            <div class="actions-row">
+              <select class="sel" id="bm-grade" onchange="renderBandMatrix()" style="font-size:11px;max-width:120px" title="Which class to include"></select>
+              <select class="sel" id="bm-from" onchange="renderBandMatrix()" style="font-size:11px;max-width:160px" title="Earlier assessment"></select>
+              <span style="font-size:12px;color:var(--text3)">→</span>
+              <select class="sel" id="bm-to" onchange="renderBandMatrix()" style="font-size:11px;max-width:160px" title="Later assessment"></select>
+            </div>
+          </div>
+          <div class="gavg-hero" id="bm-hero"></div>
+          <div class="bm-wrap" id="bm-matrix"></div>
+          <div class="chart-note" id="bm-note"></div>
+          <div class="bm-detail" id="bm-detail"></div>
         </div>
 
         <div class="grid-2">
@@ -4547,6 +4755,7 @@ setInterval(_rotateAuthTip, 5000);
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <input type="text" id="qe-search" class="sel" placeholder="🔍 Search student…" oninput="_qeFilterTable(this.value)" style="width:180px;padding:6px 10px;font-size:12px">
               <button class="btn btn-outline btn-sm" id="qe-reset-filters-btn" onclick="_qeResetAllFilters()" title="Clear the search box and every column filter in one go">🔄 Reset Filters</button>
+              <button class="btn btn-outline btn-sm" id="qe-lp-btn" onclick="_qeLivePreviewToggle()" title="Live analytics of the scores as you type — class average, bands, subjects, ranking and data checks">📊 Live Preview<span id="qe-lp-btn-count" class="qe-lp-badge bad" style="display:none"></span></button>
               <button class="btn btn-outline btn-sm" onclick="_qeJumpToMissing()" title="Jump to the next empty score in a subject you can enter">🎯 Jump to Missing</button>
               <span id="qe-save-status" style="font-size:11px;color:var(--text2)"></span>
               <span id="qe-final-status" style="font-size:11px;font-weight:700"></span>
@@ -4747,6 +4956,20 @@ setInterval(_rotateAuthTip, 5000);
 </div>
 
 <!-- QUICK ENTRY: ADD STUDENT TO SHEET MODAL -->
+<!-- QUICK ENTRY: LIVE PREVIEW — docked analytics panel that updates as scores are typed. See _qeLivePreviewRender. -->
+<aside class="qe-lp" id="qe-lp" aria-hidden="true" aria-label="Live preview of the scores being entered">
+  <div class="qe-lp-hdr">
+    <div class="qe-lp-title"><span><i class="qe-lp-dot"></i>Live Preview</span><small id="qe-lp-sub"></small></div>
+    <div class="qe-lp-actions">
+      <button type="button" onclick="_qeLpCopy()" title="Copy a plain-text summary (for WhatsApp / email)">📋</button>
+      <button type="button" onclick="_qeLpCsv()" title="Download the live ranking as a CSV">⬇️</button>
+      <button type="button" onclick="_qeLivePreviewClose()" title="Close (Esc)">✕</button>
+    </div>
+  </div>
+  <div class="qe-lp-tabs" id="qe-lp-tabs"></div>
+  <div class="qe-lp-body" id="qe-lp-body"></div>
+</aside>
+
 <div class="modal-overlay" id="qe-add-student-modal" onclick="if(event.target===this)_qeCloseAddStudentModal()">
   <div class="modal-box" style="max-width:420px">
     <div class="modal-hdr">
@@ -4787,14 +5010,55 @@ setInterval(_rotateAuthTip, 5000);
 
 <!-- LIVE QUICK ENTRY SESSIONS MODAL (Advanced Admin only) -->
 <div class="modal-overlay" id="qe-live-sessions-modal" onclick="if(event.target===this)_qeCloseLiveSessionsModal()">
-  <div class="modal-box" style="max-width:520px">
+  <div class="modal-box">
     <div class="modal-hdr">
-      <h3>👀 Live Score Entry Sessions</h3>
-      <button class="modal-close" onclick="_qeCloseLiveSessionsModal()">✕</button>
+      <div class="lsm-hdr-l">
+        <div class="lsm-hdr-ic">👀</div>
+        <div style="min-width:0">
+          <h3>Live Score Entry Sessions</h3>
+          <div class="lsm-sub" id="qe-lsm-sub">Watching Quick Entry in real time</div>
+        </div>
+      </div>
+      <span class="lsm-live-pill"><span class="lsm-pulse"></span>LIVE</span>
+      <button class="modal-close" onclick="_qeCloseLiveSessionsModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="lsm-tabs">
+      <button class="lsm-tab on" id="qe-lsm-tab-live" onclick="_lsmSwitchTab('live')">🟢 Live now<em id="qe-lsm-tab-live-n">0</em></button>
+      <button class="lsm-tab" id="qe-lsm-tab-await" onclick="_lsmSwitchTab('await')">⏳ Awaiting entry<em id="qe-lsm-tab-await-n">…</em></button>
+    </div>
+    <div class="lsm-pane" id="qe-lsm-pane-live">
+    <div class="lsm-top">
+      <div class="lsm-stats" id="qe-lsm-stats"></div>
+      <div class="lsm-tools">
+        <input type="search" class="lsm-search" id="qe-lsm-search" placeholder="🔍 Search teacher, exam, student or subject…" oninput="_lsmSetQuery(this.value)" autocomplete="off">
+        <div id="qe-lsm-chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
     </div>
     <div class="modal-body">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Teachers currently have these sheets open in Quick Entry, along with the student/subject/score they last typed into. Click a card to jump straight into that sheet and watch scores come in live.</div>
-      <div id="qe-live-sessions-list" style="display:grid;gap:8px;max-height:min(50vh,420px);overflow-y:auto"></div>
+      <div id="qe-live-sessions-list"></div>
+    </div>
+    <div class="lsm-foot">
+      <span><i style="background:var(--green)"></i>Entering now (&lt;30s)</span>
+      <span><i style="background:var(--blue-lt)"></i>Active (&lt;3 min)</span>
+      <span><i style="background:var(--gold)"></i>Idle</span>
+      <span><i style="background:var(--red)"></i>Connection quiet</span>
+      <span style="margin-left:auto">Tap a card to join that sheet &amp; watch scores arrive</span>
+    </div>
+    </div>
+    <div class="lsm-pane" id="qe-lsm-pane-await" style="display:none">
+      <div class="lsm-top">
+        <div class="lsm-stats" id="qe-lsm-aw-stats"></div>
+        <div class="lsm-tools">
+          <div id="qe-lsm-aw-chips" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
+          <button class="lsm-btn" onclick="_lsmLoadAwaiting({force:true,users:true})" title="Re-check every sheet and reload teacher contacts">↻ Refresh</button>
+          <button class="lsm-btn wa" id="qe-lsm-queue-btn" onclick="_lsmStartQueue(null)">▶ Remind queue</button>
+        </div>
+      </div>
+      <div class="modal-body"><div id="qe-lsm-aw-list"></div></div>
+      <div class="lsm-foot">
+        <span>💬 Opens WhatsApp with the message pre-filled — you tap Send</span>
+        <span style="margin-left:auto">🔔 Every reminder is logged so nobody gets nagged twice by accident</span>
+      </div>
     </div>
   </div>
 </div>
@@ -11375,6 +11639,7 @@ function renderAll(){
   try{ renderMeetTrend(); }catch(e){ console.warn('meet trend',e); }
   renderMovement();
   try{ renderInsights(); }catch(e){ console.warn('insights',e); }
+  try{ renderBandMatrix(); }catch(e){ console.warn('band matrix',e); }
   renderTopStudents();
   renderActivityLog();
   renderDashboardAuditWidget();
@@ -12005,6 +12270,402 @@ function renderMeetTrend(){
 window.renderMeetTrend=renderMeetTrend;
 
 /* ══════════════════════════════════════════
+   BAND MOVEMENT — how the same learners moved between performance bands
+   from one assessment to another (a transition matrix).
+══════════════════════════════════════════ */
+let _bmSel=null, _bmCells={};
+function renderBandMatrix(){
+  const mat=document.getElementById('bm-matrix'); if(!mat) return;
+  const gSel=document.getElementById('bm-grade'), fSel=document.getElementById('bm-from'), tSel=document.getElementById('bm-to');
+  const hero=document.getElementById('bm-hero'), note=document.getElementById('bm-note'), det=document.getElementById('bm-detail');
+  const grades=getUniqueGrades();
+  const keepG=gSel.value||'all';
+  gSel.innerHTML=`<option value="all">${grades.length>1?'All grades':(grades[0]||'—')}</option>`+(grades.length>1?grades.map(g=>`<option value="${_gavgEsc(g)}">${_gavgEsc(g)}</option>`).join(''):'');
+  gSel.value=[...gSel.options].some(o=>o.value===keepG)?keepG:'all';
+  const gFilter=gSel.value;
+
+  // learner -> assessment -> [averages]
+  const L={}, gradesByKey={};
+  _scopedRecords().forEach(r=>{
+    const g=gShort(r['Grade']); if(gFilter!=='all' && g!==gFilter) return;
+    const t=getRecordTerm(r); if(!t||t==='Unknown') return;
+    const a=parseFloat(calcStats(r).avg); if(isNaN(a)) return;
+    const id=String(r['Assessment No']||r['Official Student Name']||'').trim().toLowerCase(); if(!id) return;
+    const k=_assessKey(t);
+    const o=L[id]||(L[id]={name:String(r['Official Student Name']||r['Assessment No']||id),by:{}});
+    (o.by[k]||(o.by[k]=[])).push(a);
+    (gradesByKey[k]||(gradesByKey[k]=new Set())).add(g);
+  });
+  const keys=Object.keys(gradesByKey).sort((x,y)=>_qeCompoundOrderKey(x).localeCompare(_qeCompoundOrderKey(y)));
+  _bmSel=null; if(det) det.innerHTML='';
+  if(keys.length<2){
+    [fSel,tSel].forEach(s=>s.innerHTML='');
+    if(hero) hero.innerHTML=''; mat.innerHTML='<div class="chart-note" style="margin:8px 0">Needs results from at least two assessments.</div>'; if(note) note.textContent=''; return;
+  }
+  // defaults: the latest two assessments sat by at least half the grades in view
+  const allG=new Set(); Object.values(gradesByKey).forEach(s=>s.forEach(g=>allG.add(g)));
+  const full=keys.filter(k=>gradesByKey[k].size>=Math.ceil(allG.size/2));
+  const dTo=full[full.length-1]||keys[keys.length-1], dFrom=full[full.length-2]||keys[Math.max(0,keys.indexOf(dTo)-1)];
+  const fill=(sel,def)=>{ const keep=sel.value; sel.innerHTML=keys.map(k=>`<option value="${_gavgEsc(k)}">${_gavgEsc(k)}</option>`).join(''); sel.value=keys.includes(keep)?keep:def; };
+  fill(fSel,dFrom); fill(tSel,dTo);
+  const from=fSel.value, to=tSel.value;
+  if(from===to){ if(hero) hero.innerHTML=''; mat.innerHTML='<div class="chart-note" style="margin:8px 0">Pick two different assessments to compare.</div>'; if(note) note.textContent=''; return; }
+
+  const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+  const bi=v=>{ const i=DIST_BANDS.findIndex(b=>b.test(v)); return i<0?DIST_BANDS.length-1:i; };
+  const n=DIST_BANDS.length;
+  _bmCells={}; const cnt=Array.from({length:n},()=>Array(n).fill(0)); let matched=0, only=0, sum=0;
+  Object.values(L).forEach(o=>{
+    const a=o.by[from], b=o.by[to];
+    if(a&&b){ const x=mean(a), y=mean(b), f=bi(x), t=bi(y); cnt[f][t]++; (_bmCells[f+'_'+t]||(_bmCells[f+'_'+t]=[])).push({name:o.name,a:x,b:y}); matched++; sum+=y-x; }
+    else if(a||b) only++;
+  });
+  let up=0,same=0,down=0; // index 0 = best band, so a smaller column index = improved
+  cnt.forEach((row,f)=>row.forEach((c,t)=>{ if(t<f) up+=c; else if(t>f) down+=c; else same+=c; }));
+  const pct=v=>matched?Math.round(v/matched*100):0;
+  if(hero) hero.innerHTML = matched
+    ? `<div class="gavg-tile main"><span>Learners compared</span><b>${matched}</b><small>sat both assessments</small></div>`
+    + `<div class="gavg-tile up"><span>Moved up a band</span><b>${up}</b><small>${pct(up)}%</small></div>`
+    + `<div class="gavg-tile"><span>Same band</span><b>${same}</b><small>${pct(same)}%</small></div>`
+    + `<div class="gavg-tile dn"><span>Dropped a band</span><b>${down}</b><small>${pct(down)}%</small></div>`
+    + `<div class="gavg-tile ${sum>=0?'up':'dn'}"><span>Average change</span><b>${sum/matched>=0?'▲':'▼'} ${Math.abs(sum/matched).toFixed(1)}</b><small>points per learner</small></div>`
+    : '';
+  if(!matched){ mat.innerHTML='<div class="chart-note" style="margin:8px 0">No learner sat both assessments, so there is nothing to match.</div>'; if(note) note.textContent=''; return; }
+
+  const max=Math.max(1,...cnt.flat()), codes=DIST_BANDS.map(b=>b.label.split(' ')[0]);
+  const rowT=cnt.map(r=>r.reduce((a,b)=>a+b,0)), colT=Array.from({length:n},(_,t)=>cnt.reduce((a,r)=>a+r[t],0));
+  let h=`<table class="bm"><thead><tr><th class="bm-corner">Then ↓ &nbsp; Now →</th>${codes.map((c,i)=>`<th><i style="background:${DIST_BANDS[i].color}"></i>${c}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
+  cnt.forEach((row,f)=>{
+    h+=`<tr><th class="bm-rowh"><i style="background:${DIST_BANDS[f].color}"></i>${codes[f]}</th>`;
+    row.forEach((c,t)=>{
+      if(!c){ h+='<td class="zero">·</td>'; return; }
+      const al=(.18+.62*c/max).toFixed(2), col=t<f?'39,174,96':t>f?'231,76,60':'127,140,141';
+      h+=`<td data-f="${f}" data-t="${t}" style="background:rgba(${col},${al})" title="${c} learner${c===1?'':'s'} · ${codes[f]} → ${codes[t]}">${c}</td>`;
+    });
+    h+=`<td class="bm-tot">${rowT[f]}</td></tr>`;
+  });
+  h+=`<tr><th class="bm-rowh">Total</th>${colT.map(c=>`<td class="bm-tot">${c}</td>`).join('')}<td class="bm-tot">${matched}</td></tr></tbody></table>`;
+  mat.innerHTML=h;
+  if(note) note.textContent=`${from} → ${to}. Green = moved up, red = dropped, grey = same band. Click a cell to see the learners.${only?` ${only} learner${only===1?'':'s'} sat only one of the two and ${only===1?'is':'are'} left out.`:''}`;
+  mat.onclick=e=>{
+    const td=e.target.closest('td[data-f]'); if(!td) return;
+    const f=+td.dataset.f, t=+td.dataset.t, list=(_bmCells[f+'_'+t]||[]).slice().sort((x,y)=>(y.b-y.a)-(x.b-x.a));
+    mat.querySelectorAll('td.sel').forEach(x=>x.classList.remove('sel')); td.classList.add('sel');
+    const lab=t<f?'moved up':t>f?'dropped':'stayed';
+    det.innerHTML=`<div class="gavg-rank-hdr">${list.length} learner${list.length===1?'':'s'} ${lab}: ${codes[f]} → ${codes[t]}</div>`
+      +list.slice(0,60).map(x=>{ const d=x.b-x.a; return `<div class="bm-row"><span class="bm-name">${_gavgEsc(x.name)}</span><span>${x.a.toFixed(1)}% → <b>${x.b.toFixed(1)}%</b></span><span class="gavg-row-d ${d>=0.05?'up':d<=-0.05?'dn':''}">${d>=0.05?'▲':d<=-0.05?'▼':'•'} ${Math.abs(d).toFixed(1)}</span></div>`; }).join('')
+      +(list.length>60?`<div class="chart-note">+${list.length-60} more</div>`:'');
+  };
+}
+window.renderBandMatrix=renderBandMatrix;
+
+/* ══════════════════════════════════════════════════════════════════════
+   QUICK ENTRY — LIVE PREVIEW
+   A docked, non-blocking analytics panel that recomputes from what is typed
+   in the sheet (before Submit): completion, class average, band split,
+   per-subject stats, a live leaderboard and a data-quality checker — each
+   measured against the same grade's previous assessment where one exists.
+   Reads the sheet's inputs only; it never writes scores.
+══════════════════════════════════════════════════════════════════════ */
+let _qeLpOpen=false, _qeLpTab='overview', _qeLpFilter='all', _qeLpQuery='', _qeLpOpenRow=null, _qeLpTimer=null, _qeLpPoll=null, _qeLpSigLast='', _qeLpPrevCache={k:'',v:null};
+const QE_LP_TABS=[['overview','Overview'],['subjects','Subjects'],['learners','Learners'],['checks','Checks']];
+
+function _qeLivePreviewToggle(){ _qeLpOpen ? _qeLivePreviewClose() : _qeLivePreviewOpen(); }
+function _qeLivePreviewOpen(){
+  _qeLpOpen=true;
+  const p=document.getElementById('qe-lp'); if(!p) return;
+  p.classList.add('on'); p.setAttribute('aria-hidden','false'); document.body.classList.add('qe-lp-open');
+  document.getElementById('qe-lp-btn')?.classList.add('qe-lp-btn-on');
+  _qeLpSigLast=''; _qeLivePreviewRender(true);
+  clearInterval(_qeLpPoll); _qeLpPoll=setInterval(()=>{ if(_qeLpOpen) _qeLivePreviewRender(); },2000);
+}
+function _qeLivePreviewClose(){
+  _qeLpOpen=false; clearInterval(_qeLpPoll); clearTimeout(_qeLpTimer);
+  const p=document.getElementById('qe-lp'); if(!p) return;
+  p.classList.remove('on'); p.setAttribute('aria-hidden','true'); document.body.classList.remove('qe-lp-open');
+  document.getElementById('qe-lp-btn')?.classList.remove('qe-lp-btn-on');
+}
+function _qeLivePreviewSchedule(){
+  if(!_qeLpOpen) return;
+  clearTimeout(_qeLpTimer); _qeLpTimer=setTimeout(()=>_qeLivePreviewRender(),120);
+}
+function _qeLpSetTab(t){ _qeLpTab=t; _qeLpOpenRow=null; _qeLpSigLast=''; _qeLivePreviewRender(true); }
+window._qeLivePreviewToggle=_qeLivePreviewToggle; window._qeLivePreviewClose=_qeLivePreviewClose; window._qeLivePreviewSchedule=_qeLivePreviewSchedule; window._qeLpSetTab=_qeLpSetTab;
+
+/** Previous assessment for the same grade (latest one chronologically before
+ *  the sheet's exam), as student-id → {avg, subj}. Matched on Assessment No / ULI / name. */
+function _qeLpIdOf(r){ return (_qeRealId(r['Assessment No'])||_qeRealId(r['ULI'])||String(r['Official Student Name']||'').trim().toLowerCase()||'').toString().toLowerCase(); }
+function _qeLpPrev(){
+  const grade=_qeGrade||gShort(_qeCompound), cache=_qeCompound+'|'+allData.length;
+  if(_qeLpPrevCache.k===cache) return _qeLpPrevCache.v;
+  let best=null, bestKey='';
+  const cur=_qeCompoundOrderKey(_qeCompound);
+  const seen=new Set();
+  allData.forEach(r=>{
+    if(gShort(r['Grade'])!==grade) return;
+    const t=getRecordTerm(r); if(!t||t==='Unknown'||t===_qeCompound||seen.has(t)) return; seen.add(t);
+    const k=_qeCompoundOrderKey(t);
+    if(k.localeCompare(cur)<0 && (!best||k.localeCompare(bestKey)>0)){ best=t; bestKey=k; }
+  });
+  let v=null;
+  if(best){
+    const students={}, subjSum={};
+    allData.forEach(r=>{
+      if(getRecordTerm(r)!==best) return;
+      const id=_qeLpIdOf(r); if(!id) return;
+      const sc={}; getSubjects(r).forEach(s=>{ const x=parseFloat(r[s]); if(!isNaN(x)) sc[s]=x; });
+      const vals=Object.values(sc); if(!vals.length) return;
+      students[id]={ avg:vals.reduce((a,b)=>a+b,0)/vals.length, subj:sc };
+      Object.keys(sc).forEach(s=>(subjSum[s]||(subjSum[s]=[])).push(sc[s]));
+    });
+    const subjMean={}; Object.keys(subjSum).forEach(s=>subjMean[s]=subjSum[s].reduce((a,b)=>a+b,0)/subjSum[s].length);
+    const avgs=Object.values(students).map(x=>x.avg);
+    v={ term:best, students, subjMean, classAvg:avgs.length?avgs.reduce((a,b)=>a+b,0)/avgs.length:null, n:avgs.length };
+  }
+  _qeLpPrevCache={k:cache,v}; return v;
+}
+
+/** Everything the panel shows, computed from the sheet's live inputs. */
+function _qeLpModel(){
+  const subjects=_qeSubjects.slice();
+  const inputs=_qeGetAllScoreInputs();
+  const cells={}, invalid=[], rawVals={};
+  let total=0, filled=0;
+  inputs.forEach(inp=>{
+    total++;
+    const raw=inp.value.trim(); if(raw==='') return;
+    const key=inp.getAttribute('data-student'), subj=inp.getAttribute('data-subject');
+    let x=parseFloat(raw);
+    if(isNaN(x)||x<0){ invalid.push({key,subj,raw}); return; }
+    if(!_qeLocked && _qeSubjectRawMode[subj]) x=Math.round(x/(_qeSubjectMaxScore[subj]||100)*100);
+    x=Math.min(100,x); filled++;
+    (cells[key]||(cells[key]={}))[subj]=x;
+  });
+  const prev=_qeLpPrev();
+  const students=_qeStudents.map(r=>{
+    const key=_qeStudentKey(r), sc=cells[key]||{}, vals=Object.values(sc), n=vals.length;
+    const avg=n?vals.reduce((a,b)=>a+b,0)/n:null;
+    const p=prev?prev.students[_qeLpIdOf(r)]:null;
+    let delta=null;
+    if(p&&n){ const common=Object.keys(sc).filter(s=>p.subj[s]!==undefined); if(common.length){ delta=common.reduce((a,s)=>a+sc[s],0)/common.length - common.reduce((a,s)=>a+p.subj[s],0)/common.length; } }
+    return { key, name:String(r['Official Student Name']||'—'), gender:r['Gender']||'', sc, n, avg, complete:n===subjects.length&&n>0, delta, hasPrev:!!p };
+  });
+  const withAvg=students.filter(s=>s.avg!==null);
+  const cls=_assessStats(withAvg.map(s=>s.avg));
+  const missingBy={}; subjects.forEach(s=>missingBy[s]=0);
+  inputs.forEach(inp=>{ if(inp.value.trim()==='') { const s=inp.getAttribute('data-subject'); missingBy[s]=(missingBy[s]||0)+1; } });
+  const subj=subjects.map(s=>{
+    const vals=students.map(st=>st.sc[s]).filter(v=>v!==undefined);
+    const st=_assessStats(vals);
+    return { name:s, n:vals.length, N:students.length, st, min:vals.length?Math.min(...vals):null, max:vals.length?Math.max(...vals):null,
+      raw:!!_qeSubjectRawMode[s]&&!_qeLocked, rawMax:_qeSubjectMaxScore[s]||100, missing:missingBy[s]||0,
+      delta:(prev&&st&&prev.subjMean[s]!==undefined)?st.mean-prev.subjMean[s]:null, vals };
+  });
+  // Ranking (ties share a rank)
+  const ranked=withAvg.slice().sort((a,b)=>b.avg-a.avg); let rk=0,last=null;
+  ranked.forEach((s,i)=>{ if(last===null||Math.abs(s.avg-last)>1e-9){ rk=i+1; last=s.avg; } s.rank=rk; });
+
+  // ── data-quality checks ──
+  const checks=[], mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  invalid.forEach(i=>{ const st=students.find(s=>s.key===i.key); checks.push({sev:0,icon:'⛔',title:'Invalid score',text:`${st?st.name:'Student'} · ${i.subj}: “${i.raw}”`,k:i.key,s:i.subj}); });
+  subj.forEach(sb=>{
+    if(sb.vals.length>=8 && sb.st && sb.st.sd>0) students.forEach(st=>{ const v=st.sc[sb.name]; if(v!==undefined && Math.abs(v-sb.st.mean)/sb.st.sd>2.5) checks.push({sev:1,icon:'📍',title:'Unusual for the class',text:`${st.name} · ${sb.name}: ${v}% (class ${sb.st.mean.toFixed(0)}%)`,k:st.key,s:sb.name}); });
+    const freq={}; sb.vals.forEach(v=>freq[v]=(freq[v]||0)+1);
+    const top=Object.entries(freq).sort((a,b)=>b[1]-a[1])[0];
+    if(sb.vals.length>=8 && top && top[1]/sb.vals.length>=0.6) checks.push({sev:2,icon:'🔁',title:'Same score repeated',text:`${sb.name}: ${top[1]} of ${sb.vals.length} learners have ${top[0]}% — check this column.`,k:null,s:sb.name});
+    const zeros=students.filter(st=>st.sc[sb.name]===0);
+    if(zeros.length>=3) checks.push({sev:1,icon:'0️⃣',title:'Several zeros',text:`${sb.name}: ${zeros.length} learners scored 0. Leave absent learners blank instead of 0.`,k:zeros[0].key,s:sb.name});
+  });
+  students.forEach(st=>{
+    const e=Object.entries(st.sc);
+    if(e.length>=4) e.forEach(([s,v])=>{ const om=mean(e.filter(x=>x[0]!==s).map(x=>x[1])); if(Math.abs(v-om)>=40) checks.push({sev:1,icon:'↕️',title:'Out of pattern',text:`${st.name} · ${s}: ${v}% vs ${om.toFixed(0)}% in their other subjects`,k:st.key,s}); });
+    if(st.delta!==null && Math.abs(st.delta)>=25) checks.push({sev:st.delta<0?1:2,icon:st.delta<0?'📉':'📈',title:'Big change since last time',text:`${st.name}: ${st.delta>0?'▲':'▼'} ${Math.abs(st.delta).toFixed(0)} points vs ${prev.term}`,k:st.key,s:null});
+  });
+  const sig={}; students.forEach(st=>{ const e=Object.entries(st.sc).sort((a,b)=>a[0].localeCompare(b[0])); if(e.length>=4) (sig[e.map(x=>x.join(':')).join('|')]||(sig[e.map(x=>x.join(':')).join('|')]=[])).push(st); });
+  Object.values(sig).filter(a=>a.length>1).forEach(a=>checks.push({sev:1,icon:'👯',title:'Identical rows',text:`${a.map(x=>x.name).slice(0,3).join(', ')}${a.length>3?` +${a.length-3}`:''} have exactly the same scores — possible duplicate entry.`,k:a[0].key,s:null}));
+  checks.sort((a,b)=>a.sev-b.sev);
+
+  return { subjects, students, ranked, cls, subj, prev, checks, total, filled, invalid:invalid.length,
+    completeStudents:students.filter(s=>s.complete).length };
+}
+
+const _qeLpFmt=(v,d=1)=>v===null||v===undefined||isNaN(v)?'—':(+v).toFixed(d);
+function _qeLpDelta(d,unit){
+  if(d===null||d===undefined||isNaN(d)) return '<span class="qe-lp-d">—</span>';
+  const c=d>=0.05?'up':d<=-0.05?'dn':'';
+  return `<span class="qe-lp-d ${c}">${d>=0.05?'▲':d<=-0.05?'▼':'•'} ${Math.abs(d).toFixed(1)}${unit||''}</span>`;
+}
+function _qeLpPill(avg){ const lv=gradeInfo(avg).level, c=_bandColor(avg); return `<span class="qe-lp-pill" style="background:${c}22;color:${c};border-color:${c}55">${_gavgEsc(lv)}</span>`; }
+
+function _qeLivePreviewRender(force){
+  const body=document.getElementById('qe-lp-body'); if(!body||!_qeLpOpen) return;
+  const sub=document.getElementById('qe-lp-sub');
+  if(!_qeCompound||!_qeStudents.length||!_qeSubjects.length){
+    document.getElementById('qe-lp-tabs').innerHTML=''; 
+    body.innerHTML='<div class="qe-lp-empty">Load a grade and exam sheet in Quick Entry to see live analytics here.</div>';
+    if(sub) sub.textContent=''; _qeLpSigLast=''; return;
+  }
+  const m=_qeLpModel();
+  // Skip re-render when nothing changed (keeps scroll position / hover steady)
+  const sig=JSON.stringify([_qeCompound,_qeLpTab,_qeLpFilter,_qeLpQuery,_qeLpOpenRow,m.students.map(s=>[s.key,s.sc]),m.invalid,_qeLocked,m.prev&&m.prev.term]);
+  if(!force && sig===_qeLpSigLast) return; _qeLpSigLast=sig;
+
+  if(sub) sub.textContent=`${_qeCompound}${_qeLocked?' · 🔒 locked':''}`;
+  const tabs=document.getElementById('qe-lp-tabs');
+  tabs.innerHTML=QE_LP_TABS.map(([k,l])=>`<button type="button" class="qe-lp-tab${_qeLpTab===k?' on':''}" onclick="_qeLpSetTab('${k}')">${l}${k==='checks'&&m.checks.length?`<span class="qe-lp-badge${m.checks.some(c=>c.sev===0)?' bad':''}">${m.checks.length}</span>`:''}</button>`).join('');
+  const btn=document.getElementById('qe-lp-btn-count');
+  if(btn){ btn.textContent=m.checks.length||''; btn.style.display=m.checks.length?'':'none'; }
+
+  const keepScroll=body.scrollTop, fa=document.activeElement, hadQ=fa&&fa.id==='qe-lp-q', caret=hadQ?fa.selectionStart:null;
+  body.innerHTML = _qeLpTab==='subjects' ? _qeLpViewSubjects(m) : _qeLpTab==='learners' ? _qeLpViewLearners(m) : _qeLpTab==='checks' ? _qeLpViewChecks(m) : _qeLpViewOverview(m);
+  body.scrollTop=keepScroll;
+  if(hadQ){ const q=document.getElementById('qe-lp-q'); if(q){ q.focus(); try{ q.setSelectionRange(caret,caret); }catch(e){} } }
+}
+
+/* ── Overview ── */
+function _qeLpViewOverview(m){
+  const c=m.cls, pct=m.total?Math.round(m.filled/m.total*100):0, prev=m.prev;
+  const dAvg=(c&&prev&&prev.classAvg!==null)?c.mean-prev.classAvg:null;
+  const bands=DIST_BANDS.map(b=>({b,n:m.ranked.filter(s=>b.test(s.avg)).length}));
+  const nR=m.ranked.length||1, maxBin=Math.max(1,...Array.from({length:10},(_,i)=>m.ranked.filter(s=>Math.min(9,Math.floor(s.avg/10))===i).length));
+  const hist=Array.from({length:10},(_,i)=>{ const n=m.ranked.filter(s=>Math.min(9,Math.floor(s.avg/10))===i).length; return `<div class="qe-lp-hcol" title="${i*10}–${i===9?100:i*10+9}%: ${n} learner${n===1?'':'s'}"><span class="qe-lp-hn">${n||''}</span><i style="height:${n?Math.max(6,n/maxBin*100):0}%;background:${_bandColor(i*10+5)}"></i><em>${i*10}</em></div>`; }).join('');
+  // plain-language highlights
+  const hl=[]; const add=(tone,icon,html)=>hl.push(`<div class="ins ${tone}"><div class="ins-ic">${icon}</div><div class="ins-b"><div class="ins-x">${html}</div></div></div>`);
+  if(c){
+    if(dAvg!==null) add(dAvg>=1?'good':dAvg<=-1?'bad':'info','📊',`Class average is <b>${c.mean.toFixed(1)}%</b> — ${dAvg>=0.05?'up':dAvg<=-0.05?'down':'level'} ${Math.abs(dAvg)>=0.05?`<b>${Math.abs(dAvg).toFixed(1)}</b> points `:''}on ${_gavgEsc(prev.term)}.`);
+    const below=m.ranked.filter(s=>s.avg<41).length;
+    add(below/c.n>=.4?'bad':below?'warn':'good','🛟',below?`<b>${below}</b> of ${c.n} learners are below expectation (under 41%).`:`Every learner entered so far is meeting expectation.`);
+    const sb=m.subj.filter(s=>s.st&&s.n>=3).sort((a,b)=>a.st.mean-b.st.mean);
+    if(sb.length>=2) add('warn','📚',`Weakest subject: <b>${_gavgEsc(sb[0].name)}</b> (${sb[0].st.mean.toFixed(1)}%). Strongest: <b>${_gavgEsc(sb[sb.length-1].name)}</b> (${sb[sb.length-1].st.mean.toFixed(1)}%).`);
+    const mm=m.ranked.filter(s=>s.gender==='Male').map(s=>s.avg), ff=m.ranked.filter(s=>s.gender==='Female').map(s=>s.avg);
+    if(mm.length>=3&&ff.length>=3){ const d=ff.reduce((a,b)=>a+b,0)/ff.length-mm.reduce((a,b)=>a+b,0)/mm.length; if(Math.abs(d)>=0.5) add('info','⚤',`<b>${d>0?'Girls':'Boys'}</b> lead by ${Math.abs(d).toFixed(1)} points so far.`); }
+  }
+  const worst=m.subj.filter(s=>s.missing>0).sort((a,b)=>b.missing-a.missing)[0];
+  if(m.filled<m.total && worst) add('info','🧩',`<b>${m.total-m.filled}</b> scores still to enter — most in <b>${_gavgEsc(worst.name)}</b> (${worst.missing}).`);
+  if(m.checks.length) add(m.checks.some(x=>x.sev===0)?'bad':'warn','🔎',`<b>${m.checks.length}</b> thing${m.checks.length===1?'':'s'} worth checking before you submit — see <a href="#" onclick="_qeLpSetTab('checks');return false">Checks</a>.`);
+  return `
+  <div class="gavg-hero qe-lp-tiles">
+    <div class="gavg-tile main"><span>Entered</span><b>${pct}%</b><small>${m.filled} of ${m.total} scores · ${m.completeStudents}/${m.students.length} learners complete</small><div class="qe-lp-prog"><i style="width:${pct}%"></i></div></div>
+    <div class="gavg-tile ${dAvg===null?'':dAvg>=0.05?'up':dAvg<=-0.05?'dn':''}"><span>Class average</span><b>${c?c.mean.toFixed(1)+'%':'—'}</b><small>${dAvg===null?(prev?'no overlap':'no earlier exam'):(dAvg>=0.05?'▲':dAvg<=-0.05?'▼':'•')+' '+Math.abs(dAvg).toFixed(1)+' vs previous'}</small></div>
+    <div class="gavg-tile"><span>Meeting 41%+</span><b>${c?c.meet.toFixed(0)+'%':'—'}</b><small>exceeding ${c?c.exceed.toFixed(0):'—'}%</small></div>
+    <div class="gavg-tile"><span>Median</span><b>${c?c.median.toFixed(1)+'%':'—'}</b><small>${c?`middle 50%: ${Math.round(c.q1)}–${Math.round(c.q3)}`:'—'}</small></div>
+  </div>
+  <div class="qe-lp-sec">Performance bands</div>
+  <div class="qe-lp-bands">${m.ranked.length?bands.filter(x=>x.n).map(x=>`<button type="button" class="qe-lp-seg" style="flex:${x.n};background:${x.b.color}" title="${_gavgEsc(x.b.label)} — ${x.n} learner${x.n===1?'':'s'}" onclick="_qeLpFilter='band:${x.b.label.split(' ')[0]}';_qeLpSetTab('learners')">${Math.round(x.n/nR*100)>=9?Math.round(x.n/nR*100)+'%':''}</button>`).join(''):'<div class="qe-lp-muted">Waiting for scores…</div>'}</div>
+  <div class="qe-lp-legend">${bands.map(x=>`<span><i style="background:${x.b.color}"></i>${x.b.label.split(' ')[0]} ${x.n}</span>`).join('')}</div>
+  <div class="qe-lp-sec">Score spread <small>learner averages</small></div>
+  <div class="qe-lp-hist">${hist}</div>
+  <div class="qe-lp-sec">Highlights</div>
+  <div class="qe-lp-ins">${hl.join('')||'<div class="qe-lp-muted">Highlights appear as scores are entered.</div>'}</div>`;
+}
+
+/* ── Subjects ── */
+function _qeLpViewSubjects(m){
+  const rows=m.subj.slice().sort((a,b)=>(a.st?a.st.mean:999)-(b.st?b.st.mean:999));
+  const hasPrev=!!m.prev;
+  return `<div class="qe-lp-sec">Subjects <small>weakest first${hasPrev?' · change vs '+_gavgEsc(m.prev.term):''}</small></div>`
+  +rows.map((s,i)=>{
+    const done=s.N?Math.round(s.n/s.N*100):0, col=s.st?_bandColor(s.st.mean):'#7f8c8d';
+    return `<div class="qe-lp-subj${i===0&&s.st&&rows.length>2?' weak':''}">
+      <div class="qe-lp-subj-top"><b>${_gavgEsc(s.name)}</b>${s.raw?`<span class="qe-lp-raw" title="Typed as a raw mark out of ${s.rawMax}">/${s.rawMax}</span>`:''}<span class="qe-lp-sp"></span>${s.st?`<span class="qe-lp-val" style="color:${col}">${s.st.mean.toFixed(1)}%</span>${_qeLpDelta(s.delta)}`:'<span class="qe-lp-muted">no scores</span>'}</div>
+      <div class="qe-lp-bar"><i style="width:${s.st?Math.min(100,s.st.mean):0}%;background:${col}"></i></div>
+      <div class="qe-lp-subj-meta">
+        <span>${s.n}/${s.N} entered${s.missing?` · <a href="#" data-s="${_qeEsc(s.name)}" onclick="_qeLpJumpMissing(this.dataset.s);return false">${s.missing} missing ›</a>`:' ✓'}</span>
+        ${s.st?`<span>median ${s.st.median.toFixed(0)}</span><span>range ${s.min}–${s.max}</span><span>meeting ${s.st.meet.toFixed(0)}%</span><span>σ ${s.st.sd.toFixed(1)}</span>`:''}
+      </div>
+      ${done<100?`<div class="qe-lp-prog thin"><i style="width:${done}%"></i></div>`:''}
+    </div>`; }).join('');
+}
+
+/* ── Learners ── */
+function _qeLpViewLearners(m){
+  const chips=[['all','All'],['top','Top 10'],['support','Needs support'],['declined','Declined'],['partial','Incomplete']];
+  const band=_qeLpFilter.startsWith('band:')?_qeLpFilter.slice(5):null;
+  let list=m.students.slice();
+  const q=_qeLpQuery.trim().toLowerCase();
+  if(q) list=list.filter(s=>s.name.toLowerCase().includes(q));
+  if(band) list=list.filter(s=>s.avg!==null && DIST_BANDS.find(b=>b.test(s.avg)).label.split(' ')[0]===band);
+  else if(_qeLpFilter==='top') list=list.filter(s=>s.rank&&s.rank<=10);
+  else if(_qeLpFilter==='support') list=list.filter(s=>s.avg!==null&&s.avg<41);
+  else if(_qeLpFilter==='declined') list=list.filter(s=>s.delta!==null&&s.delta<=-5);
+  else if(_qeLpFilter==='partial') list=list.filter(s=>!s.complete);
+  list.sort((a,b)=>(a.rank||9999)-(b.rank||9999)||a.name.localeCompare(b.name));
+  const ctl=`<div class="qe-lp-ctl"><input id="qe-lp-q" type="text" placeholder="🔍 Find a learner…" value="${_qeEsc(_qeLpQuery)}" oninput="_qeLpQuery=this.value;_qeLpSigLast='';_qeLivePreviewSchedule()">
+    <div class="qe-lp-chips">${chips.map(([k,l])=>`<button type="button" class="gavg-chip${_qeLpFilter===k?' on':''}" onclick="_qeLpFilter='${k}';_qeLpSigLast='';_qeLivePreviewRender(true)">${l}</button>`).join('')}${band?`<button type="button" class="gavg-chip on" onclick="_qeLpFilter='all';_qeLpSigLast='';_qeLivePreviewRender(true)">Band ${_gavgEsc(band)} ✕</button>`:''}</div></div>`;
+  const mean=m.cls?m.cls.mean:null;
+  const rows=list.map(s=>{
+    const open=_qeLpOpenRow===s.key;
+    const strip=m.subjects.map(sj=>{ const v=s.sc[sj]; return `<i title="${_gavgEsc(sj)}: ${v===undefined?'—':v+'%'}" style="background:${v===undefined?'var(--surface3)':_bandColor(v)};height:${v===undefined?30:Math.max(18,v)}%"></i>`; }).join('');
+    let detail='';
+    if(open){
+      detail=`<div class="qe-lp-det">${m.subj.map(sb=>{ const v=s.sc[sb.name]; const d=(v!==undefined&&sb.st)?v-sb.st.mean:null; const pv=m.prev&&m.prev.students[_qeLpIdOf(_qeStudents.find(r=>_qeStudentKey(r)===s.key)||{})]; const pd=(v!==undefined&&pv&&pv.subj[sb.name]!==undefined)?v-pv.subj[sb.name]:null;
+        return `<div class="qe-lp-chip"><span>${_gavgEsc(sb.name)}</span><b style="color:${v===undefined?'var(--text3)':_bandColor(v)}">${v===undefined?'—':v+'%'}</b>${d!==null?`<small title="vs class average">${d>=0?'+':'−'}${Math.abs(d).toFixed(0)} class</small>`:''}${pd!==null?`<small title="vs previous exam" class="${pd>=0.5?'up':pd<=-0.5?'dn':''}">${pd>=0?'▲':'▼'}${Math.abs(pd).toFixed(0)} prev</small>`:''}</div>`; }).join('')}
+        <button type="button" class="btn btn-outline btn-sm" data-k="${_qeEsc(s.key)}" onclick="_qeLpJump(this.dataset.k,null)">Go to this row ›</button></div>`;
+    }
+    return `<div class="qe-lp-row${open?' open':''}"><div class="qe-lp-rowmain" data-k="${_qeEsc(s.key)}" onclick="_qeLpOpenRow=(_qeLpOpenRow===this.dataset.k?null:this.dataset.k);_qeLpSigLast='';_qeLivePreviewRender(true)">
+      <span class="qe-lp-rank">${s.rank||'–'}</span>
+      <span class="qe-lp-name">${_gavgEsc(s.name)}${s.complete?'':` <em title="${s.n} of ${m.subjects.length} subjects entered">${s.n}/${m.subjects.length}</em>`}</span>
+      <span class="qe-lp-strip">${strip}</span>
+      <span class="qe-lp-avg">${s.avg===null?'—':s.avg.toFixed(1)+'%'}</span>${s.avg===null?'':_qeLpPill(s.avg)}${_qeLpDelta(s.delta)}
+    </div>${detail}</div>`;
+  }).join('');
+  return ctl+`<div class="qe-lp-sec">${list.length} learner${list.length===1?'':'s'}${m.prev?` <small>▲▼ vs ${_gavgEsc(m.prev.term)}</small>`:''}</div>`+(rows||'<div class="qe-lp-muted" style="padding:10px 2px">No learners match.</div>');
+}
+
+/* ── Checks ── */
+function _qeLpViewChecks(m){
+  if(!m.checks.length) return `<div class="qe-lp-empty good">✅ Nothing looks off so far.<small>Checks cover invalid scores, unusual values, out-of-pattern entries, repeated scores, zeros, duplicate rows and big changes since the last exam.</small></div>`;
+  const lab=['Fix','Look at','FYI'];
+  return `<div class="qe-lp-sec">${m.checks.length} to review <small>click one to jump to the cell</small></div>`
+   +m.checks.slice(0,120).map(c=>`<div class="qe-lp-chk s${c.sev}" ${c.k||c.s?`data-k="${_qeEsc(c.k||'')}" data-s="${_qeEsc(c.s||'')}" onclick="_qeLpJump(this.dataset.k,this.dataset.s)" title="Jump to it"`:''}><span class="qe-lp-ic">${c.icon}</span><div><div class="qe-lp-ct">${_gavgEsc(c.title)} <em>${lab[c.sev]}</em></div><div class="qe-lp-cx">${c.text.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div></div></div>`).join('')
+   +(m.checks.length>120?`<div class="qe-lp-muted">+${m.checks.length-120} more</div>`:'');
+}
+
+/** Scrolls the sheet to a cell (or a learner's row / a subject column's first empty cell) and flashes it. */
+function _qeLpJump(key,subj){
+  const inputs=_qeGetAllScoreInputs();
+  const inp=inputs.find(i=>(!key||i.getAttribute('data-student')===key)&&(!subj||i.getAttribute('data-subject')===subj));
+  if(!inp||!inp.isConnected){ notify('That cell is hidden right now — clear the sheet search / filters, or switch to that subject column on mobile.','warn',5000); return; }
+  inp.scrollIntoView({block:'center',inline:'center',behavior:'smooth'});
+  try{ inp.focus({preventScroll:true}); inp.select(); }catch(e){}
+  inp.classList.add('qe-live-updated'); setTimeout(()=>inp.classList.remove('qe-live-updated'),1800);
+}
+function _qeLpJumpMissing(subj){
+  const inp=_qeGetAllScoreInputs().find(i=>i.getAttribute('data-subject')===subj && i.value.trim()==='' && !i.disabled);
+  if(!inp){ notify('No empty cell you can fill in that subject.','info',3500); return; }
+  _qeLpJump(inp.getAttribute('data-student'),subj);
+}
+window._qeLpJump=_qeLpJump; window._qeLpJumpMissing=_qeLpJumpMissing;
+
+/** Plain-text summary (WhatsApp / email friendly) and a CSV of the live ranking. */
+function _qeLpSummaryText(){
+  const m=_qeLpModel(), c=m.cls; if(!c) return '';
+  const prev=m.prev, d=(prev&&prev.classAvg!==null)?c.mean-prev.classAvg:null;
+  const sb=m.subj.filter(s=>s.st).sort((a,b)=>a.st.mean-b.st.mean);
+  const L=[`${_qeCompound}`,`Entered ${m.filled}/${m.total} scores (${m.total?Math.round(m.filled/m.total*100):0}%) · ${m.completeStudents}/${m.students.length} learners complete`,
+    `Class average ${c.mean.toFixed(1)}%${d!==null?` (${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(1)} vs ${prev.term})`:''} · median ${c.median.toFixed(1)}% · meeting expectation ${c.meet.toFixed(0)}%`];
+  if(sb.length>=2) L.push(`Weakest: ${sb[0].name} ${sb[0].st.mean.toFixed(1)}% · Strongest: ${sb[sb.length-1].name} ${sb[sb.length-1].st.mean.toFixed(1)}%`);
+  L.push('Top 3: '+m.ranked.slice(0,3).map(s=>`${s.name} (${s.avg.toFixed(1)}%)`).join(', '));
+  const need=m.ranked.filter(s=>s.avg<41).length; if(need) L.push(`Below expectation: ${need} learner${need===1?'':'s'}`);
+  return L.join('\n');
+}
+async function _qeLpCopy(){
+  const t=_qeLpSummaryText(); if(!t){ notify('Nothing to summarise yet — enter some scores first.','warn',3500); return; }
+  try{ await navigator.clipboard.writeText(t); notify('📋 Summary copied.','success',2500); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=t; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); notify('📋 Summary copied.','success',2500); }catch(_){ notify('Could not copy.','error',3500); } ta.remove(); }
+}
+function _qeLpCsv(){
+  const m=_qeLpModel(); if(!m.ranked.length){ notify('Nothing to export yet.','warn',3500); return; }
+  const q=v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`;
+  const rows=[['Rank','Name','Gender','Subjects entered','Average %','Level','Change vs previous',...m.subjects].map(q).join(',')];
+  m.students.slice().sort((a,b)=>(a.rank||9999)-(b.rank||9999)).forEach(s=>rows.push([s.rank||'',s.name,s.gender,`${s.n}/${m.subjects.length}`,s.avg===null?'':s.avg.toFixed(1),s.avg===null?'':gradeInfo(s.avg).level,s.delta===null?'':s.delta.toFixed(1),...m.subjects.map(sj=>s.sc[sj]===undefined?'':s.sc[sj])].map(q).join(',')));
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  a.download='live-preview-'+String(_qeCompound).replace(/[^\w-]+/g,'_')+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+window._qeLpCopy=_qeLpCopy; window._qeLpCsv=_qeLpCsv;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && _qeLpOpen && !document.querySelector('.modal-overlay.on')) _qeLivePreviewClose(); });
+
+/* ══════════════════════════════════════════
    KEY INSIGHTS — plain-language findings for the dashboard, from the user's
    own scope (teachers: their grade(s); admins: whole school).
 ══════════════════════════════════════════ */
@@ -12434,6 +13095,17 @@ const GRADE_LINE_PALETTE = ['#5dade2','#27ae60','#f39c12','#e74c3c','#8e44ad','#
  *  steady, or slipping term to term, which is the whole point of tracking
  *  it. A grade with no exam in a given term gets a gap in its line
  *  (spanGaps), not a misleading dip to zero. */
+let gradeAvgForecast=true;
+function toggleGradeAvgForecast(){ gradeAvgForecast=!gradeAvgForecast; renderGradeBars(); }
+window.toggleGradeAvgForecast=toggleGradeAvgForecast;
+/** Least-squares trend through up to the last 5 assessments → the next one (needs 3+). Indicative only. */
+function _gavgProject(vals){
+  const p=vals.slice(-5), n=p.length; if(n<3) return null;
+  const mx=(n-1)/2, my=p.reduce((a,b)=>a+b,0)/n; let num=0, den=0;
+  p.forEach((y,i)=>{ num+=(i-mx)*(y-my); den+=(i-mx)*(i-mx); });
+  const slope=den?num/den:0;
+  return { next:Math.max(0,Math.min(100,my+slope*(n-mx))), slope, n };
+}
 let gradeAvgLevel='all', gradeAvgFullScale=false, _gavgLgLast={i:-1,t:0};
 const GAVG_LEVELS=[['all','All grades'],['lower','Lower (PP–3)'],['upper','Upper (4–6)'],['junior','Junior (7–9)'],['other','Other']];
 function _gradeLevel(g){
@@ -12488,6 +13160,7 @@ function renderGradeBars(){
     });
   }
   document.getElementById('gavg-scale')?.classList.toggle('on',gradeAvgFullScale);
+  document.getElementById('gavg-fc')?.classList.toggle('on',gradeAvgForecast);
   const tb=document.getElementById('gavg-target');
   if(tb){ tb.hidden=!isAdvancedAdmin; tb.textContent=schoolTarget===null?'🎯 Target':`🎯 Target ${schoolTarget}%`; }
   _loadTargetRemote();
@@ -12570,12 +13243,27 @@ function renderGradeBars(){
     ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--text')||'#222';
     chart.data.datasets.forEach((ds,i)=>{
       if(ds._isTarget || !chart.isDatasetVisible(i)) return;
-      chart.getDatasetMeta(i).data.forEach((pt,j)=>{ const v=ds.data[j]; if(v===null||v===undefined) return; ctx.fillText(v+'%',pt.x,pt.y-8); });
+      chart.getDatasetMeta(i).data.forEach((pt,j)=>{ const v=ds.data[j]; if(v===null||v===undefined) return; if(ds._isForecast && j!==ds.data.length-1) return; ctx.fillText((ds._isForecast?'~':'')+v+'%',pt.x,pt.y-8); });
     });
     ctx.restore();
   }};
+  // Trend projection: a dashed continuation to one extra "Next (projected)" slot
+  const proj={};
+  if(gradeAvgForecast) grades.forEach(g=>{ const p=_gavgProject(terms.map(t=>avgOf(g,t)).filter(v=>v!==null)); if(p) proj[g]=p; });
+  const hasFc=Object.keys(proj).length>0;
+  const labelsAll=hasFc?[...terms,'Next (projected)']:terms;
+  if(hasFc){
+    datasets.forEach(d=>d.data.push(null));
+    Object.keys(proj).forEach(g=>{
+      const base=datasets.find(d=>d.label===g); if(!base) return;
+      let last=-1; base.data.forEach((v,i)=>{ if(v!==null && i<terms.length) last=i; });
+      const data=labelsAll.map(()=>null); data[last]=base.data[last]; data[terms.length]=+proj[g].next.toFixed(1);
+      datasets.push({ label:g+' (forecast)', _isForecast:true, _for:g, data, borderColor:base.borderColor, borderDash:[6,5], borderWidth:2, fill:false, tension:0,
+        pointStyle:'rectRot', pointRadius:c=>c.dataIndex===terms.length?6:0, pointHoverRadius:7, pointBackgroundColor:'#fff', pointBorderColor:base.borderColor, pointBorderWidth:2, spanGaps:true });
+    });
+  }
   if(schoolTarget!==null) datasets.push({
-    label:`Target ${schoolTarget}%`, data:terms.map(()=>schoolTarget),
+    label:`Target ${schoolTarget}%`, data:labelsAll.map(()=>schoolTarget),
     borderColor:'#95a5a6', borderDash:[6,5], borderWidth:1.5, pointRadius:0, pointHoverRadius:0,
     fill:false, tension:0, _isTarget:true
   });
@@ -12593,38 +13281,41 @@ function renderGradeBars(){
   const ctx=canvas.getContext('2d');
   gradeAvgChart=new Chart(ctx,{
     type:'line',
-    data:{ labels:terms, datasets },
+    data:{ labels:labelsAll, datasets },
     plugins:[gavgLabels],
     options:{
-      layout:{ padding:{ top:single?18:0, right:single?16:0 } },
+      layout:{ padding:{ top:single?18:0, right:single?(hasFc?30:16):0 } },
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
       onHover:(e,_els,chart)=>_chartHoverCursor(e,chart),
       onClick:(e,_els,chart)=>{
         const hit=_chartPick(chart,e); if(!hit) return;
-        if(chart.data.datasets[hit.datasetIndex]._isTarget) return;
+        const _d=chart.data.datasets[hit.datasetIndex]; if(_d._isTarget||_d._isForecast||hit.index>=terms.length) return;
         drillToStudents({ grade:chart.data.datasets[hit.datasetIndex].label, assess:terms[hit.index] });
       },
       plugins:{
         legend:{
           display: !single || schoolTarget!==null,
           position:'bottom',
-          labels:{ color:th.tick, font:{size:10}, boxWidth:12, usePointStyle:true },
+          labels:{ color:th.tick, font:{size:10}, boxWidth:12, usePointStyle:true, filter:it=>!/\(forecast\)$/.test(it.text) },
           // click = show/hide a grade; double-click = show only that grade (again = show all)
           onClick:(e,item,legend)=>{
             const ch=legend.chart, i=item.datasetIndex, now=Date.now();
             if(_gavgLgLast.i===i && now-_gavgLgLast.t<350){
-              const others=ch.data.datasets.map((_,k)=>k).filter(k=>k!==i && !ch.data.datasets[k]._isTarget);
+              const others=ch.data.datasets.map((_,k)=>k).filter(k=>k!==i && !ch.data.datasets[k]._isTarget && !ch.data.datasets[k]._isForecast);
               const isolated=others.every(k=>!ch.isDatasetVisible(k));
               ch.data.datasets.forEach((d,k)=>ch.setDatasetVisibility(k, isolated ? true : (k===i || !!d._isTarget)));
             } else {
               ch.setDatasetVisibility(i,!ch.isDatasetVisible(i));
             }
+            // a grade's dashed forecast follows its line
+            ch.data.datasets.forEach((d,k)=>{ if(d._isForecast){ const gi=ch.data.datasets.findIndex(x=>x.label===d._for); ch.setDatasetVisibility(k, gi>=0 && ch.isDatasetVisible(gi)); } });
             _gavgLgLast={i,t:now};
             ch.update();
           }
         },
-        tooltip:{ filter:i=>!i.dataset._isTarget, callbacks:{ footer:()=>'Click to list these students', label: c => {
+        tooltip:{ filter:i=>!i.dataset._isTarget, callbacks:{ footer:c=>c.some(x=>x.dataset._isForecast)?'Straight-line trend of recent assessments — indicative only':'Click to list these students', label: c => {
+          if(c.dataset._isForecast) return ` ${c.dataset._for}: ~${c.parsed.y}% projected`;
           const n=byGradeTerm[c.dataset.label]?.[terms[c.dataIndex]]?.length||0;
           return ` ${c.dataset.label}: ${c.parsed.y}% · ${n} student${n===1?'':'s'}`;
         } } }
@@ -12693,11 +13384,13 @@ function _gavgRenderClass(g,terms,avgOf,byGradeTerm,cmp,rank,hero){
   const dCls=d===null?'':d>=0.05?'up':d<=-0.05?'dn':'';
   const dTxt=d===null?'—':`${d>=0.05?'▲':d<=-0.05?'▼':'•'} ${Math.abs(d).toFixed(1)}`;
   const gap=schoolTarget===null?null:cur-schoolTarget;
+  const pr=gradeAvgForecast?_gavgProject(have.map(t=>avgOf(g,t))):null;
   if(hero) hero.innerHTML =
     `<div class="gavg-tile main" style="border-left-color:${band.color}"><span title="${_gavgEsc(latest)}">Latest · ${_gavgEsc(latest)}</span><b>${cur.toFixed(1)}%</b><small>${_gavgEsc(lvl)} · ${_gavgEsc(band.label.replace(/\s*\(.*\)/,''))} band</small></div>`
     + `<div class="gavg-tile ${dCls}"><span>${base?'vs '+_gavgEsc(base):'Change'}</span><b>${dTxt}</b><small>${d===null?'first assessment':'points'}</small></div>`
     + (gap!==null?`<div class="gavg-tile ${gap>=0?'up':'dn'}"><span>Target ${schoolTarget}%</span><b>${gap>=0?'+':'−'}${Math.abs(gap).toFixed(1)}</b><small>${gap>=0?'above target':'below target'}</small></div>`:'')
-    + `<div class="gavg-tile"><span>Learners</span><b>${n}</b><small>assessed</small></div>`;
+    + `<div class="gavg-tile"><span>Learners</span><b>${n}</b><small>assessed</small></div>`
+    + (pr?`<div class="gavg-tile ${pr.next-cur>=0.05?'up':pr.next-cur<=-0.05?'dn':''}"><span>Next · projected</span><b>~${pr.next.toFixed(1)}%</b><small>${pr.next-cur>=0.05?'▲':pr.next-cur<=-0.05?'▼':'•'} ${Math.abs(pr.next-cur).toFixed(1)} on recent trend</small></div>`:'');
 
   const now=_gavgSubjAvgs(g,latest), was=base?_gavgSubjAvgs(g,base):{};
   const rows=Object.keys(now).map(s=>({s,v:now[s],d:was[s]===undefined?null:now[s]-was[s]})).sort((a,b)=>a.v-b.v);
@@ -20655,64 +21348,524 @@ function _qeUpdateLiveSessionsBadge(){
   badge.style.display = count ? 'flex' : 'none';
 }
 
+/* ── Live Score Entry Sessions: state + helpers ───────────────────────── */
+let _lsmFilter = 'all', _lsmQuery = '', _lsmRows = [], _lsmTimer = null, _lsmSig = '';
+const _lsmEsc = v => String(v==null?'':v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function _lsmAgo(ms){
+  const s = Math.max(0, Math.round(ms/1000));
+  if(s < 5) return 'just now';
+  if(s < 60) return s + 's ago';
+  const m = Math.floor(s/60);
+  if(m < 60) return m + ' min ago';
+  const h = Math.floor(m/60), r = m % 60;
+  return h + 'h' + (r ? ' ' + r + 'm' : '') + ' ago';
+}
+function _lsmDur(ms){
+  const m = Math.floor(Math.max(0, ms)/60000);
+  if(m < 1) return 'under a minute';
+  if(m < 60) return m + ' min';
+  const h = Math.floor(m/60), r = m % 60;
+  return h + 'h' + (r ? ' ' + r + 'm' : '');
+}
+const _LSM_META = {
+  typing:{label:'Entering now',  live:true},
+  active:{label:'Active',        live:true},
+  opened:{label:'Just opened',   live:true},
+  idle:  {label:'Idle',          live:false},
+  stale: {label:'Connection quiet', live:false}
+};
+function _lsmStatus(s, now){
+  const hb = now - (s.lastActive || s.startedAt || now);
+  if(hb > 90000) return 'stale';                       // heartbeat is every 25s
+  const cellAge = s.cell ? now - (s.cell.updatedAt || now) : null;
+  if(cellAge !== null && cellAge < 30000)  return 'typing';
+  if(cellAge !== null && cellAge < 180000) return 'active';
+  if(cellAge === null && now - (s.startedAt || now) < 120000) return 'opened';
+  return 'idle';
+}
+function _lsmSetFilter(f){ _lsmFilter = f; _qeRenderLiveSessionsList(); }
+function _lsmSetQuery(v){ _lsmQuery = (v||'').trim().toLowerCase(); _qeRenderLiveSessionsList(); }
+window._lsmSetFilter = _lsmSetFilter; window._lsmSetQuery = _lsmSetQuery;
+function _lsmJump(i){
+  const s = _lsmRows[i]; if(!s) return;
+  _qeJumpToSession(s.compound||'', s.grade||'', s.uid||'', s.name||'Teacher');
+}
+window._lsmJump = _lsmJump;
+
+/** Light 4s tick while the modal is open: refreshes relative times and the
+ *  freshness bars in place (no flicker). If any session crossed a status
+ *  threshold (typing → active → idle) it does a full re-render instead. */
+function _lsmTick(){
+  const now = Date.now();
+  if(_lsmTabNow==='await' && !_lsmAwait.loading && now - _lsmAwait.loadedAt > 90000) _lsmLoadAwaiting({force:true});
+  const sig = Object.values(_qeActiveSessions||{}).map(s=>(s.uid||'')+(s.compound||'')+_lsmStatus(s,now)).sort().join('|');
+  if(sig !== _lsmSig){ _qeRenderLiveSessionsList(); return; }
+  document.querySelectorAll('#qe-live-sessions-modal [data-lsm-ts]').forEach(el=>{
+    const ts = +el.dataset.lsmTs; if(!ts) return;
+    el.textContent = el.dataset.lsmKind === 'dur' ? _lsmDur(now - ts) : _lsmAgo(now - ts);
+  });
+  document.querySelectorAll('#qe-live-sessions-modal [data-lsm-bar]').forEach(el=>{
+    el.style.width = Math.max(0, 100 - (now - (+el.dataset.lsmBar)) / 1800) + '%';
+  });
+}
+
 function _qeOpenLiveSessionsModal(){
   if(!isAdvancedAdmin){ notify('⛔ Advanced Admin only.','error'); return; }
+  _lsmFilter = 'all'; _lsmQuery = '';
+  const si = document.getElementById('qe-lsm-search'); if(si) si.value = '';
+  _lsmSwitchTab('live');
+  _lsmLoadAwaiting({});   // warm the Awaiting tab (cached 60s) so its badge + "still owes" lines are ready
   _qeRenderLiveSessionsList();
   document.getElementById('qe-live-sessions-modal').classList.add('on');
+  clearInterval(_lsmTimer);
+  _lsmTimer = setInterval(_lsmTick, 4000);
 }
 window._qeOpenLiveSessionsModal = _qeOpenLiveSessionsModal;
 
 function _qeCloseLiveSessionsModal(){
   document.getElementById('qe-live-sessions-modal').classList.remove('on');
+  clearInterval(_lsmTimer); _lsmTimer = null;
+  _lsmQueue = null;
 }
 window._qeCloseLiveSessionsModal = _qeCloseLiveSessionsModal;
 
 function _qeRenderLiveSessionsList(){
   const box = document.getElementById('qe-live-sessions-list');
   if(!box) return;
-  const sessions = Object.values(_qeActiveSessions).sort((a,b)=>(b.lastActive||0)-(a.lastActive||0));
-  if(!sessions.length){
-    box.innerHTML = '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0">No teachers are currently entering scores.</p>';
+  const now = Date.now();
+  const all = Object.values(_qeActiveSessions||{}).map(s=>({s, st:_lsmStatus(s, now), act:(s.cell&&s.cell.updatedAt)||s.startedAt||0}));
+  _lsmSig = all.map(r=>(r.s.uid||'')+(r.s.compound||'')+r.st).sort().join('|');
+  _lsmUpdateTabs(all.length);
+  if(_lsmTabNow==='await') _lsmRenderAwait();   // teacher "in session" state may have changed
+
+  // ── Summary stats ──
+  const nTyping = all.filter(r=>r.st==='typing').length;
+  const nLive   = all.filter(r=>_LSM_META[r.st].live).length;
+  const nIdle   = all.length - nLive;
+  const sheets  = new Set(all.map(r=>r.s.compound)).size;
+  const stats = document.getElementById('qe-lsm-stats');
+  if(stats) stats.innerHTML = [
+    ['Teachers online', all.length, 'var(--blue)'],
+    ['Sheets open',     sheets,     'var(--purple)'],
+    ['Entering now',    nTyping,    'var(--green)'],
+    ['Idle / quiet',    nIdle,      'var(--gold)']
+  ].map(([l,v,c])=>`<div class="lsm-stat" style="--lsm-c:${c}"><b>${v}</b><span>${l}</span></div>`).join('');
+  const sub = document.getElementById('qe-lsm-sub');
+  if(sub) sub.textContent = all.length
+    ? `${all.length} teacher${all.length>1?'s':''} across ${sheets} sheet${sheets>1?'s':''} · updates in real time`
+    : 'Watching Quick Entry in real time';
+
+  // ── Filter chips ──
+  const chips = document.getElementById('qe-lsm-chips');
+  if(chips) chips.innerHTML = [['all','All',all.length],['live','Working',nLive],['idle','Idle',nIdle]]
+    .map(([k,l,n])=>`<button class="lsm-chip${_lsmFilter===k?' on':''}" onclick="_lsmSetFilter('${k}')">${l}<em>${n}</em></button>`).join('');
+
+  if(!all.length){
+    _lsmRows = [];
+    box.innerHTML = `<div class="lsm-empty"><div class="ic">🌙</div><b>No teachers are entering scores right now</b><span>When a teacher opens a sheet in Quick Entry, they'll appear here instantly —<br>with the student, subject and score they last typed.</span></div>`;
     return;
   }
-  box.innerHTML = sessions.map(s=>{
-    const mins = Math.max(0, Math.round((Date.now() - (s.startedAt||Date.now())) / 60000));
-    const since = mins < 1 ? 'just now' : mins === 1 ? '1 min ago' : mins < 60 ? `${mins} min ago` : `${Math.round(mins/60)}h ago`;
-    const _av = makePhotoAvatar(s.name||'Teacher', s.grade||'', 'stu-av-sm', 'flex-shrink:0');
 
-    // ── Cell-level detail: which student/subject/score this teacher is on ──
-    // Populated once they've typed into at least one cell (mirrored into
-    // presence by _qeSaveDraft on the same 1.2s debounce as the draft save).
-    const cell = s.cell || null;
-    let cellBlock = `<div style="font-size:11px;color:var(--text3);font-style:italic">Hasn't entered a score yet</div>`;
-    if(cell){
-      const cellMins = Math.max(0, Math.round((Date.now() - (cell.updatedAt||Date.now())) / 60000));
-      const cellSince = cellMins < 1 ? 'just now' : cellMins === 1 ? '1 min ago' : `${cellMins} min ago`;
-      const _studentAv = makePhotoAvatar(cell.studentName||'Student', s.grade||'', 'stu-av-sm', 'flex-shrink:0');
-      const valDisplay = (cell.value===undefined || cell.value==='') ? '<em style="color:var(--text3)">empty</em>' : `<strong style="color:var(--blue)">${cell.value}</strong>`;
-      cellBlock = `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:6px 8px;background:var(--surface3);border-radius:8px">
-        ${_studentAv}
-        <div style="flex:1;min-width:0;font-size:11px">
-          <div style="font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cell.studentName||'Student'}</div>
-          <div style="color:var(--text3)">${cell.subject||'—'} · ${valDisplay} · ${cellSince}</div>
+  // ── Apply filter + search ──
+  let rows = all.filter(r=>{
+    if(_lsmFilter==='live' && !_LSM_META[r.st].live) return false;
+    if(_lsmFilter==='idle' &&  _LSM_META[r.st].live) return false;
+    if(_lsmQuery){
+      const c = r.s.cell||{};
+      const hay = [r.s.name, r.s.compound, r.s.grade, c.studentName, c.subject].join(' ').toLowerCase();
+      if(!hay.includes(_lsmQuery)) return false;
+    }
+    return true;
+  });
+  if(!rows.length){
+    _lsmRows = [];
+    box.innerHTML = `<div class="lsm-empty"><div class="ic">🔍</div><b>No sessions match</b><span>Try a different search or switch the filter back to “All”.</span></div>`;
+    return;
+  }
+
+  // ── Group by exam sheet; most recently active sheet first ──
+  const groups = {};
+  rows.forEach(r=>{ (groups[r.s.compound||'—'] = groups[r.s.compound||'—'] || []).push(r); });
+  const ordered = Object.entries(groups).map(([k,list])=>{
+    list.sort((a,b)=>b.act-a.act);
+    return {k, list, latest:list[0].act};
+  }).sort((a,b)=>b.latest-a.latest);
+
+  _lsmRows = [];
+  box.innerHTML = ordered.map(g=>{
+    const grade = g.list[0].s.grade;
+    const collab = g.list.length > 1;
+    const cards = g.list.map(r=>{
+      const s = r.s, st = r.st, meta = _LSM_META[st];
+      const idx = _lsmRows.push(s) - 1;
+      const av = makePhotoAvatar(s.name||'Teacher', s.grade||'', 'stu-av-sm', 'flex-shrink:0');
+      const cell = s.cell || null;
+      let cellBlock;
+      if(cell){
+        const empty = (cell.value===undefined || cell.value===null || cell.value==='');
+        cellBlock = `<div class="lsm-cell">
+          ${makePhotoAvatar(cell.studentName||'Student', s.grade||'', 'stu-av-sm', 'flex-shrink:0')}
+          <div class="lsm-cell-l">
+            <div class="lsm-cell-k">Last entry</div>
+            <div class="lsm-cell-stu">${_lsmEsc(cell.studentName||'Student')}</div>
+            <div class="lsm-cell-sub"><span class="lsm-subj">${_lsmEsc(cell.subject||'—')}</span><span data-lsm-ts="${cell.updatedAt||0}" data-lsm-kind="ago">${_lsmAgo(now-(cell.updatedAt||now))}</span></div>
+          </div>
+          <div class="lsm-score${empty?' empty':''}">${empty?'cleared':_lsmEsc(cell.value)}</div>
+        </div>`;
+      } else {
+        cellBlock = `<div class="lsm-nocell">Hasn't entered a score yet — sheet opened <span data-lsm-ts="${s.startedAt||0}" data-lsm-kind="ago">${_lsmAgo(now-(s.startedAt||now))}</span></div>`;
+      }
+      const barPct = cell ? Math.max(0, 100 - (now-(cell.updatedAt||now))/1800) : 0;
+      return `<div class="lsm-card s-${st}" role="button" tabindex="0" onclick="_lsmJump(${idx})" onkeydown="if(event.key==='Enter')_lsmJump(${idx})">
+        <div class="lsm-card-top">
+          ${av}
+          <div class="lsm-who">
+            <div class="lsm-name">${_lsmEsc(s.name||'Teacher')}</div>
+            <div class="lsm-meta">⏱ In session <span data-lsm-ts="${s.startedAt||0}" data-lsm-kind="dur">${_lsmDur(now-(s.startedAt||now))}</span> · 📡 seen <span data-lsm-ts="${s.lastActive||s.startedAt||0}" data-lsm-kind="ago">${_lsmAgo(now-(s.lastActive||s.startedAt||now))}</span></div>
+          </div>
+          <span class="lsm-pill">${st==='typing'?'<i></i>':''}${meta.label}</span>
+        </div>
+        ${cellBlock}
+        ${_lsmOwesLine(s)}
+        <div class="lsm-card-ft">
+          <div class="lsm-bar" title="Entry freshness — drains over 3 minutes"><i data-lsm-bar="${cell?(cell.updatedAt||0):0}" style="width:${barPct}%"></i></div>
+          <span class="lsm-open">Open sheet →</span>
         </div>
       </div>`;
-    }
-
-    return `<div onclick="_qeJumpToSession('${(s.compound||'').replace(/'/g,"\\'")}','${(s.grade||'').replace(/'/g,"\\'")}','${(s.uid||'').replace(/'/g,"\\'")}','${(s.name||'Teacher').replace(/'/g,"\\'")}')"
-        style="display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer;transition:var(--transition)"
-        onmouseenter="this.style.borderColor='var(--blue-lt)'" onmouseleave="this.style.borderColor='var(--border)'">
-      <div style="display:flex;align-items:center;gap:10px">
-        ${_av}
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:700;color:var(--text)">${s.name||'Teacher'}</div>
-          <div style="font-size:11px;color:var(--text3)">${s.compound||'—'} · started ${since}</div>
-        </div>
-        <span style="flex-shrink:0;font-size:10px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:4px">🟢 live</span>
+    }).join('');
+    return `<div class="lsm-group">
+      <div class="lsm-group-hdr">
+        <span class="lsm-group-name">📝 ${_lsmEsc(g.k)}</span>
+        ${grade?`<span class="lsm-tag">${_lsmEsc(grade)}</span>`:''}
+        <span class="lsm-tag${collab?' collab':''}">${collab?`👥 ${g.list.length} teachers on this sheet`:'👤 1 teacher'}</span>
       </div>
-      ${cellBlock}
+      <div class="lsm-cards">${cards}</div>
     </div>`;
   }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   AWAITING ENTRY — WhatsApp reminders for already-created Quick Entry exams
+   Source of truth: _pendingExams (exams) × Firestore users (teachers, their
+   assignedGrades/assignedSubjects and `phone`) × computeLiveMissingScoresForExam
+   (what is genuinely still blank, incl. unsubmitted shared-draft scores).
+   Reminder history lives in RTDB quickEntryReminders/{encCompound}/{uid}
+   (mirrored in localStorage so it still works if the rule isn't deployed).
+   wa.me can't be auto-sent from a browser: the admin taps once per teacher.
+   ═══════════════════════════════════════════════════════════════════════ */
+const QE_REMIND_PATH = 'quickEntryReminders';
+let _lsmTabNow = 'live';
+let _lsmAwait = {loadedAt:0, loading:false, exams:[], complete:0, error:''};
+let _lsmAwRows = [], _lsmAwFilter = 'all', _lsmQueue = null;
+let _lsmUsers = {at:0, list:[]};
+let _lsmRemindLog = {};     // "encCompound|uid" → {lastAt,count,by}
+
+const _lsmPhoneOk = raw => /^\d{11,15}$/.test(_waNormalizePhone(raw));
+function _lsmPhonePretty(raw){
+  const d = _waNormalizePhone(raw);
+  return /^254\d{9}$/.test(d) ? `+254 ${d.slice(3,6)} ${d.slice(6,9)} ${d.slice(9)}` : (d ? '+'+d : '');
+}
+function _lsmLocalLog(){ try{ return JSON.parse(localStorage.getItem('lsmRemindLog')||'{}'); }catch(e){ return {}; } }
+
+function _lsmUpdateTabs(liveCount){
+  const l = document.getElementById('qe-lsm-tab-live-n'), a = document.getElementById('qe-lsm-tab-await-n');
+  if(l && liveCount!==undefined) l.textContent = liveCount;
+  if(a) a.textContent = _lsmAwait.loadedAt ? _lsmAwait.exams.reduce((n,e)=>n+e.teachers.length,0) : '…';
+}
+function _lsmSwitchTab(tab){
+  _lsmTabNow = tab;
+  const L = document.getElementById('qe-lsm-pane-live'), A = document.getElementById('qe-lsm-pane-await');
+  if(L) L.style.display = tab==='live' ? 'flex' : 'none';
+  if(A) A.style.display = tab==='await' ? 'flex' : 'none';
+  document.getElementById('qe-lsm-tab-live')?.classList.toggle('on', tab==='live');
+  document.getElementById('qe-lsm-tab-await')?.classList.toggle('on', tab==='await');
+  if(tab==='await'){ _lsmRenderAwait(); _lsmLoadAwaiting({}); }
+}
+window._lsmSwitchTab = _lsmSwitchTab;
+
+/** "⏳ Still owes: Maths 5 · English 3" line for a Live-tab card. */
+function _lsmOwesLine(s){
+  if(!_lsmAwait.loadedAt) return '';
+  const ex = _lsmAwait.exams.find(e=>e.compound===s.compound);
+  const tr = ex && ex.teachers.find(x=>x.uid===s.uid);
+  if(!tr) return '';
+  return `<div class="lsm-owes">⏳ Still owes: ${tr.owed.map(o=>`<span>${_lsmEsc(o.subject)} <b>${o.students.length}</b></span>`).join('')}</div>`;
+}
+
+async function _lsmLoadAwaiting(opts={}){
+  if(_lsmAwait.loading) return;
+  if(!opts.force && _lsmAwait.loadedAt && Date.now()-_lsmAwait.loadedAt < 60000) return;
+  _lsmAwait.loading = true; _lsmAwait.error = '';
+  if(_lsmTabNow==='await') _lsmRenderAwait();
+  try{
+    if(!firestoreDb) throw new Error('Firestore is not ready yet');
+    // Teachers (cached 5 min; Refresh button forces a reload)
+    if(opts.users || Date.now()-_lsmUsers.at > 300000){
+      const {collection,getDocs} = window._fb;
+      const snap = await getDocs(collection(firestoreDb,'users'));
+      const list = []; snap.forEach(d=>list.push({uid:d.id,...d.data()}));
+      _lsmUsers = {at:Date.now(), list};
+    }
+    // Reminder history
+    let log = _lsmLocalLog();
+    try{
+      const {ref,get} = window._fb;
+      const s = await get(ref(db, QE_REMIND_PATH));
+      if(s.exists()) Object.entries(s.val()).forEach(([enc,byUid])=>Object.entries(byUid||{}).forEach(([uid,r])=>{ log[enc+'|'+uid] = r; }));
+    }catch(e){ /* rule/offline — local log only */ }
+    _lsmRemindLog = log;
+
+    const entries = Object.entries(_pendingExams||{}).filter(([k,pe])=>pe && pe.compound);
+    const results = await Promise.all(entries.map(async ([key,pe])=>{
+      const grade = pe.grade || gShort(pe.compound) || '';
+      try{ return {key,pe,grade,r:await computeLiveMissingScoresForExam(grade, pe.compound)}; }
+      catch(e){ return {key,pe,grade,r:null}; }
+    }));
+
+    const exams = []; let complete = 0;
+    results.forEach(({key,pe,grade,r})=>{
+      if(!r) return;
+      const miss = r.missingBySubject||{};
+      const missingN = Object.values(miss).reduce((n,a)=>n+a.length,0);
+      if(!missingN){ complete++; return; }
+      const totalN = (r.students||[]).length * (r.subjects||[]).length;
+      const teachers = _lsmUsers.list.filter(u=>{
+        if(u.Advancedadmin===true) return false;
+        if((u.role||'').trim().toLowerCase()==='admin') return false;
+        const gs = (Array.isArray(u.assignedGrades)&&u.assignedGrades.length) ? u.assignedGrades : (u.assignedGrade?[u.assignedGrade]:[]);
+        return gs.includes(grade);
+      }).map(u=>{
+        const assigned = (u.assignedSubjects && Array.isArray(u.assignedSubjects[grade])) ? u.assignedSubjects[grade] : [];
+        return {uid:u.uid, name:u.name||u.email||'Unnamed', phone:u.phone||'',
+                owed:assigned.filter(s=>miss[s]).map(s=>({subject:s, students:miss[s]}))};
+      }).filter(x=>x.owed.length);
+      const covered = new Set(); teachers.forEach(x=>x.owed.forEach(o=>covered.add(o.subject)));
+      const unassigned = Object.keys(miss).filter(s=>!covered.has(s)).map(s=>({subject:s,n:miss[s].length}));
+      exams.push({key, encKey:encodeURIComponent(pe.compound), compound:pe.compound, grade,
+                  deadline:pe.deadline||0, overdue:!!pe.deadline && pe.deadline<Date.now(),
+                  missingN, totalN, teachers, unassigned});
+    });
+    exams.sort((a,b)=>(b.overdue-a.overdue) || ((a.deadline||9e15)-(b.deadline||9e15)) || (b.missingN-a.missingN));
+    _lsmAwait = {loadedAt:Date.now(), loading:false, exams, complete, error:''};
+  }catch(e){
+    _lsmAwait.loading = false; _lsmAwait.error = e.message || String(e);
+  }
+  _lsmUpdateTabs();
+  if(_lsmTabNow==='await') _lsmRenderAwait();
+  if(document.getElementById('qe-live-sessions-modal')?.classList.contains('on') && _lsmTabNow==='live') _qeRenderLiveSessionsList();
+}
+window._lsmLoadAwaiting = _lsmLoadAwaiting;
+
+function _lsmMsg(ex, t, prevCount){
+  const first = (t.name.split(' ')[0]) || t.name;
+  const L = ['🏫 *KANYADET PRI & JUNIOR SCHOOL*', prevCount ? `⏰ *Quick Entry Reminder #${prevCount+1}*` : '⏰ *Quick Entry Reminder*', '',
+             `Hi ${first},`, '', `"*${ex.compound}*" is still awaiting scores in your subject(s):`, ''];
+  t.owed.forEach(o=>{
+    L.push(`📘 *${o.subject}* — ${o.students.length} student(s) missing:`);
+    o.students.slice(0,15).forEach(n=>L.push(`   • ${n}`));
+    if(o.students.length>15) L.push(`   • …and ${o.students.length-15} more`);
+    L.push('');
+  });
+  if(ex.deadline){
+    const di = _peDeadlineInfo(ex.deadline);
+    L.push(`🗓️ Deadline: ${new Date(ex.deadline).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'})} (${di.text.replace('⚠️ ','').replace('⏳ ','')})`, '');
+  }
+  L.push('Kindly log in to Quick Entry and submit these scores as soon as possible so results processing isn\'t delayed.');
+  if(/^https?:/.test(location.protocol)) L.push(`🔗 ${location.href.split('#')[0].split('?')[0]}`);
+  L.push('', 'Thank you!', '_Kanyadet School System_');
+  return L.join('\n');
+}
+
+function _lsmLogReminder(ex, t, newCount){
+  const key = ex.encKey+'|'+t.uid;
+  const rec = {lastAt:Date.now(), count:newCount, by:currentAdminName||'Admin', name:t.name};
+  _lsmRemindLog[key] = rec;
+  try{ const l=_lsmLocalLog(); l[key]=rec; localStorage.setItem('lsmRemindLog', JSON.stringify(l)); }catch(e){}
+  try{ const {ref,set}=window._fb; set(ref(db, `${QE_REMIND_PATH}/${ex.encKey}/${t.uid}`), rec).catch(()=>{}); }catch(e){}
+  try{ logActivity(`📲 WhatsApp reminder #${newCount} → ${t.name} for "${ex.compound}"`, 'act-orange', currentAdminName, {category:'system'}); }catch(e){}
+}
+
+function _lsmDoSend(ex, t){
+  if(!_lsmPhoneOk(t.phone)){ notify(`⚠️ ${t.name} has no valid WhatsApp number yet — add it first.`,'warn',3500); return false; }
+  const prev = (_lsmRemindLog[ex.encKey+'|'+t.uid]||{}).count || 0;
+  window.open(`https://wa.me/${_waNormalizePhone(t.phone)}?text=${encodeURIComponent(_lsmMsg(ex,t,prev))}`, '_blank', 'noopener');
+  _lsmLogReminder(ex, t, prev+1);
+  return true;
+}
+function _lsmSend(i){ const r=_lsmAwRows[i]; if(r && _lsmDoSend(r.ex, r.t)) _lsmRenderAwait(); }
+function _lsmCopy(i){
+  const r=_lsmAwRows[i]; if(!r) return;
+  const prev=(_lsmRemindLog[r.ex.encKey+'|'+r.t.uid]||{}).count||0;
+  navigator.clipboard.writeText(_lsmMsg(r.ex,r.t,prev)).then(()=>notify('📋 Message copied','success',2000));
+}
+function _lsmEditPhone(i){ const el=document.getElementById('lsm-ph-'+i); if(el){ el.style.display = el.style.display==='none' ? 'flex' : 'none'; el.querySelector('input')?.focus(); } }
+async function _lsmSavePhone(i){
+  const r=_lsmAwRows[i]; if(!r) return;
+  const inp=document.getElementById('lsm-phin-'+i); const raw=(inp?.value||'').trim();
+  if(!_lsmPhoneOk(raw)){ notify('⚠️ Enter a valid number, e.g. 0712 345 678','warn',3000); return; }
+  const phone = '+'+_waNormalizePhone(raw);
+  try{
+    const {doc,updateDoc}=window._fb;
+    await updateDoc(doc(firestoreDb,'users',r.t.uid), {phone, phoneUpdatedAt:Date.now(), phoneSource:'admin-live-sessions'});
+  }catch(e){ notify('❌ Could not save number: '+(e.message||e),'error',4500); return; }
+  _lsmAwait.exams.forEach(e=>e.teachers.forEach(x=>{ if(x.uid===r.t.uid) x.phone=phone; }));
+  const u=_lsmUsers.list.find(x=>x.uid===r.t.uid); if(u) u.phone=phone;
+  try{ logActivity(`📞 Saved WhatsApp number for ${r.t.name}`, 'act-blue', currentAdminName, {category:'system'}); }catch(e){}
+  notify(`✅ Saved ${_lsmPhonePretty(phone)} for ${r.t.name}`,'success',2500);
+  _lsmUpdateTabs(); _lsmRenderAwait();
+}
+window._lsmSend=_lsmSend; window._lsmCopy=_lsmCopy; window._lsmEditPhone=_lsmEditPhone; window._lsmSavePhone=_lsmSavePhone;
+function _lsmSetAwFilter(f){ _lsmAwFilter=f; _lsmRenderAwait(); }
+window._lsmSetAwFilter=_lsmSetAwFilter;
+
+/* ── One-tap-per-teacher queue (browsers block multiple auto-opened chats) ── */
+function _lsmStartQueue(exKey){
+  const items=[]; let skippedLive=0, noPhone=0;
+  _lsmAwait.exams.forEach(ex=>{
+    if(exKey && ex.key!==exKey) return;
+    ex.teachers.forEach(t=>{
+      if(_qeActiveSessions[t.uid+'|'+ex.compound]){ skippedLive++; return; }
+      if(!_lsmPhoneOk(t.phone)){ noPhone++; return; }
+      items.push({ex,t});
+    });
+  });
+  if(!items.length){ notify(`Nothing to queue${noPhone?` — ${noPhone} teacher(s) have no WhatsApp number`:''}${skippedLive?` · ${skippedLive} already in session`:''}.`,'info',4000); return; }
+  _lsmQueue={items,i:0,skippedLive,noPhone};
+  _lsmRenderAwait();
+}
+function _lsmQueueSend(){ const q=_lsmQueue; if(!q) return; const it=q.items[q.i]; if(it) _lsmDoSend(it.ex,it.t); _lsmQueueNext(); }
+function _lsmQueueNext(){ const q=_lsmQueue; if(!q) return; q.i++; if(q.i>=q.items.length){ _lsmQueue=null; notify('✅ Reminder queue finished','success',3000); } _lsmRenderAwait(); }
+function _lsmQueueStop(){ _lsmQueue=null; _lsmRenderAwait(); }
+window._lsmStartQueue=_lsmStartQueue; window._lsmQueueSend=_lsmQueueSend; window._lsmQueueNext=_lsmQueueNext; window._lsmQueueStop=_lsmQueueStop;
+
+function _lsmRenderAwait(){
+  const box=document.getElementById('qe-lsm-aw-list'); if(!box) return;
+  const ae=document.activeElement;
+  if(ae && ae.classList && ae.classList.contains('lsm-phin')) return;   // don't wipe a number mid-typing
+  const A=_lsmAwait, now=Date.now();
+  const rowsAll=A.exams.flatMap(e=>e.teachers.map(t=>({ex:e,t})));
+  const noContact=new Set(rowsAll.filter(r=>!_lsmPhoneOk(r.t.phone)).map(r=>r.t.uid)).size;
+  const stats=document.getElementById('qe-lsm-aw-stats');
+  if(stats) stats.innerHTML=[
+    ['Exams awaiting',A.exams.length,'var(--purple)'],
+    ['Scores missing',A.exams.reduce((n,e)=>n+e.missingN,0),'var(--orange)'],
+    ['Teachers to remind',rowsAll.length,'var(--blue)'],
+    ['No WhatsApp number',noContact,'var(--red)']
+  ].map(([l,v,c])=>`<div class="lsm-stat" style="--lsm-c:${c}"><b>${A.loadedAt||v?v:'…'}</b><span>${l}</span></div>`).join('');
+  const nOver=A.exams.filter(e=>e.overdue).length, nNew=rowsAll.filter(r=>!_lsmRemindLog[r.ex.encKey+'|'+r.t.uid]).length;
+  const chips=document.getElementById('qe-lsm-aw-chips');
+  if(chips) chips.innerHTML=[['all','All',rowsAll.length],['overdue','Overdue',nOver],['nocontact','No contact',noContact],['new','Not reminded',nNew]]
+    .map(([k,l,n])=>`<button class="lsm-chip${_lsmAwFilter===k?' on':''}" onclick="_lsmSetAwFilter('${k}')">${l}<em>${n}</em></button>`).join('');
+  const qb=document.getElementById('qe-lsm-queue-btn');
+  if(qb){ const n=rowsAll.filter(r=>_lsmPhoneOk(r.t.phone)&&!_qeActiveSessions[r.t.uid+'|'+r.ex.compound]).length; qb.disabled=!n; qb.textContent=`▶ Remind queue (${n})`; }
+
+  if(A.loading && !A.loadedAt){ box.innerHTML=`<div class="lsm-empty"><div class="ic">⏳</div><b>Checking every pending exam…</b><span>Comparing each sheet's live scores with who teaches what.</span></div>`; return; }
+  if(A.error && !A.loadedAt){ box.innerHTML=`<div class="lsm-empty"><div class="ic">⚠️</div><b>Couldn't load</b><span>${_lsmEsc(A.error)}<br>Tap Refresh to try again.</span></div>`; return; }
+  if(!A.exams.length){ box.innerHTML=`<div class="lsm-empty"><div class="ic">🎉</div><b>Nothing is awaiting entry</b><span>${A.complete?`All ${A.complete} pending exam${A.complete>1?'s are':' is'} fully entered.`:'No pending Quick Entry exams have been created yet.'}</span></div>`; return; }
+
+  _lsmAwRows=[];
+  let html='';
+  if(_lsmQueue){
+    const q=_lsmQueue, it=q.items[q.i];
+    html+=`<div class="lsm-queue"><b>📲 Reminder queue · ${q.i+1} of ${q.items.length}</b>
+      <div class="nx">Next: <strong>${_lsmEsc(it.t.name)}</strong> — ${_lsmEsc(it.ex.compound)} (${it.t.owed.reduce((n,o)=>n+o.students.length,0)} missing)${q.skippedLive?` · ${q.skippedLive} in-session skipped`:''}${q.noPhone?` · ${q.noPhone} without number skipped`:''}</div>
+      <div class="lsm-act" style="margin:0"><button class="lsm-btn wa" onclick="_lsmQueueSend()">💬 Open WhatsApp &amp; continue</button><button class="lsm-btn" onclick="_lsmQueueNext()">Skip</button><button class="lsm-btn" onclick="_lsmQueueStop()">Stop</button></div></div>`;
+  }
+  let shown=0;
+  A.exams.forEach(ex=>{
+    const teachers=ex.teachers.filter(t=>{
+      const ph=_lsmPhoneOk(t.phone), rem=_lsmRemindLog[ex.encKey+'|'+t.uid];
+      if(_lsmAwFilter==='overdue') return ex.overdue;
+      if(_lsmAwFilter==='nocontact') return !ph;
+      if(_lsmAwFilter==='new') return !rem;
+      return true;
+    });
+    if(!teachers.length && !(_lsmAwFilter==='all' && ex.unassigned.length)) return;
+    const pct=ex.totalN?Math.round((ex.totalN-ex.missingN)/ex.totalN*100):0;
+    const dl=ex.deadline?_peDeadlineInfo(ex.deadline):null;
+    const remindable=ex.teachers.filter(t=>_lsmPhoneOk(t.phone)&&!_qeActiveSessions[t.uid+'|'+ex.compound]).length;
+    html+=`<div class="lsm-ex"><div class="lsm-ex-hdr">
+      <div class="lsm-ex-row"><span class="lsm-group-name">📝 ${_lsmEsc(ex.compound)}</span>${ex.grade?`<span class="lsm-tag">${_lsmEsc(ex.grade)}</span>`:''}
+        ${dl?`<span class="lsm-tag pe-countdown-badge" data-deadline="${ex.deadline}" style="color:${dl.color}">${dl.text}</span>`:'<span class="lsm-tag">No deadline</span>'}
+        <button class="lsm-btn wa" style="margin-left:auto" ${remindable?'':'disabled'} onclick="_lsmStartQueue('${ex.key.replace(/'/g,"\\'")}')">▶ Remind all (${remindable})</button></div>
+      <div class="lsm-prog" title="${pct}% of scores entered"><i style="width:${pct}%"></i></div>
+      <div class="lsm-ex-meta">${pct}% entered · ${ex.missingN} of ${ex.totalN} scores missing · ${ex.teachers.length} teacher${ex.teachers.length!==1?'s':''} owe scores</div></div>`;
+    if(_lsmAwFilter==='all' && ex.unassigned.length) html+=`<div class="lsm-warn">⚠️ <b>No teacher assigned</b> for ${ex.unassigned.map(u=>`${_lsmEsc(u.subject)} (${u.n})`).join(', ')} — nobody can be reminded for these. Assign them in Control Center.</div>`;
+    html+='<div class="lsm-cards">';
+    teachers.forEach(t=>{
+      const i=_lsmAwRows.push({ex,t})-1;
+      const ph=_lsmPhoneOk(t.phone), rem=_lsmRemindLog[ex.encKey+'|'+t.uid], live=!!_qeActiveSessions[t.uid+'|'+ex.compound];
+      const st=live?'live':!ph?'nophone':rem?'reminded':'ready';
+      const pill={live:'🟢 In session now',nophone:'📵 No contact',reminded:'🔔 Reminded',ready:'⏳ Awaiting'}[st];
+      const total=t.owed.reduce((n,o)=>n+o.students.length,0);
+      const prev=(rem&&rem.count)||0;
+      html+=`<div class="lsm-card static s-${st}">
+        <div class="lsm-card-top">${makePhotoAvatar(t.name,ex.grade,'stu-av-sm','flex-shrink:0')}
+          <div class="lsm-who"><div class="lsm-name">${_lsmEsc(t.name)}</div>
+            <div class="lsm-meta">${ph?`📞 ${_lsmPhonePretty(t.phone)}`:'📞 No WhatsApp number on file'} · <strong>${total}</strong> score${total!==1?'s':''} missing</div></div>
+          <span class="lsm-pill">${pill}</span></div>
+        ${t.owed.map(o=>`<details class="lsm-det"><summary>📘 ${_lsmEsc(o.subject)}<b>${o.students.length} missing</b></summary><ul>${o.students.slice(0,40).map(n=>`<li>${_lsmEsc(n)}</li>`).join('')}${o.students.length>40?`<li>…and ${o.students.length-40} more</li>`:''}</ul></details>`).join('')}
+        ${rem?`<div class="lsm-rem" style="margin-top:7px">🔔 Reminded ${prev}× · last <span data-lsm-ts="${rem.lastAt}" data-lsm-kind="ago">${_lsmAgo(now-rem.lastAt)}</span>${rem.by?` by ${_lsmEsc(rem.by)}`:''}</div>`:''}
+        ${live?`<div class="lsm-rem" style="margin-top:7px;color:var(--green)">They have this sheet open right now — a reminder is optional.</div>`:''}
+        <div class="lsm-ph" id="lsm-ph-${i}" style="display:${ph?'none':'flex'}"><input class="lsm-phin" id="lsm-phin-${i}" type="tel" placeholder="WhatsApp number, e.g. 0712 345 678" value="${_lsmEsc(t.phone)}" onkeydown="if(event.key==='Enter')_lsmSavePhone(${i})"><button class="lsm-btn pri" onclick="_lsmSavePhone(${i})">💾 Save number</button></div>
+        <div class="lsm-act">
+          <button class="lsm-btn wa" ${ph?'':'disabled'} onclick="_lsmSend(${i})">💬 ${prev?'Send reminder #'+(prev+1):'Send WhatsApp reminder'}</button>
+          <button class="lsm-btn" onclick="_lsmCopy(${i})" title="Copy message">📋 Copy</button>
+          <button class="lsm-btn" onclick="_lsmEditPhone(${i})" title="Edit contact">✏️ ${ph?'Edit number':''}</button>
+        </div>
+        <details class="lsm-det"><summary>💬 Message preview</summary><pre>${_lsmEsc(_lsmMsg(ex,t,prev))}</pre></details>
+      </div>`;
+      shown++;
+    });
+    html+='</div></div>';
+  });
+  if(!html) html=`<div class="lsm-empty"><div class="ic">🔍</div><b>No teachers match this filter</b><span>Switch back to “All”.</span></div>`;
+  else if(A.complete) html+=`<div style="text-align:center;font-size:11px;color:var(--text3);padding:4px 0 2px">✅ ${A.complete} other pending exam${A.complete>1?'s are':' is'} fully entered</div>`;
+  box.innerHTML=html;
+}
+
+/* ═══ Teacher-side contact capture ═════════════════════════════════════════
+   First time a teacher opens a Quick Entry sheet without a valid WhatsApp
+   number on their profile, ask once (snoozable 3 days) — saved to the same
+   users/{uid}.phone field the profile form and the reminders already use. */
+async function _qeMaybeAskContact(){
+  try{
+    const uid=window._currentUser?.uid;
+    if(!uid||isAdvancedAdmin||!firestoreDb) return;
+    if(sessionStorage.getItem('qeContactAsked')==='1') return;
+    if(Date.now() < (+localStorage.getItem('qeContactSnooze_'+uid)||0)) return;
+    sessionStorage.setItem('qeContactAsked','1');
+    const {doc,getDoc}=window._fb;
+    const snap=await getDoc(doc(firestoreDb,'users',uid));
+    const d=snap.exists()?snap.data():{};
+    if((d.role||'').trim().toLowerCase()==='admin' || _lsmPhoneOk(d.phone)) return;
+    _qeShowContactPrompt(uid,d.phone||'');
+  }catch(e){ /* best-effort */ }
+}
+window._qeMaybeAskContact=_qeMaybeAskContact;
+function _qeShowContactPrompt(uid,prefill){
+  document.getElementById('qe-contact-modal')?.remove();
+  const m=document.createElement('div');
+  m.className='modal-overlay on'; m.id='qe-contact-modal';
+  m.innerHTML=`<div class="modal-box" style="max-width:420px"><div class="modal-hdr"><h3>📲 Add your WhatsApp number</h3><button class="modal-close" aria-label="Close" id="qcm-x">✕</button></div>
+    <div class="modal-body"><p style="font-size:12.5px;color:var(--text2);line-height:1.55;margin:0 0 12px">So the school can send you a quick WhatsApp reminder when scores you teach are still awaiting entry — with the exact learners missing, so you don't have to hunt for them.</p>
+    <input id="qcm-in" class="input" type="tel" placeholder="e.g. 0712 345 678" value="${_lsmEsc(prefill)}" style="width:100%">
+    <div id="qcm-err" style="font-size:11px;color:var(--red);min-height:16px;margin-top:6px"></div>
+    <p style="font-size:10.5px;color:var(--text3);margin:4px 0 14px">Used only for school score reminders. You can change it any time in your profile.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-outline btn-sm" id="qcm-later">Remind me later</button><button class="btn btn-green btn-sm" id="qcm-save">💾 Save number</button></div></div></div>`;
+  document.body.appendChild(m);
+  const close=()=>m.remove();
+  const snooze=()=>{ try{ localStorage.setItem('qeContactSnooze_'+uid, String(Date.now()+3*864e5)); }catch(e){} close(); };
+  m.querySelector('#qcm-x').onclick=snooze; m.querySelector('#qcm-later').onclick=snooze;
+  m.querySelector('#qcm-save').onclick=async()=>{
+    const raw=m.querySelector('#qcm-in').value.trim();
+    if(!_lsmPhoneOk(raw)){ m.querySelector('#qcm-err').textContent='Enter a valid number, e.g. 0712 345 678'; return; }
+    try{
+      const {doc,updateDoc}=window._fb;
+      await updateDoc(doc(firestoreDb,'users',uid),{phone:'+'+_waNormalizePhone(raw),phoneUpdatedAt:Date.now(),phoneSource:'teacher-prompt'});
+      notify('✅ Thanks — your WhatsApp number is saved.','success',3000); close();
+    }catch(e){ m.querySelector('#qcm-err').textContent='Could not save: '+(e.message||e); }
+  };
 }
 
 /** Advanced Admin clicked a live session — jumps straight into that same
@@ -21422,7 +22575,7 @@ async function loadQuickEntry(){
 
   // Announce presence to Advanced Admins (only meaningful for an actually
   // editable sheet — a locked exam isn't "being worked on" by this device).
-  if(viewOnly) _qeStopPresence(); else _qeStartPresence(selCompound, selGrade);
+  if(viewOnly) _qeStopPresence(); else { _qeStartPresence(selCompound, selGrade); _qeMaybeAskContact(); }
 
   _qeMaybeShowRawTip(); // one-time "percentage vs raw score" heads-up, first sheet opened this session
 }
@@ -21848,6 +23001,10 @@ function _qeRefreshMissingBadges(){
   });
 }
 window._qeRefreshMissingBadges = _qeRefreshMissingBadges;
+// Keep the Live Preview panel in step with every keystroke / render that refreshes the missing badges
+const _qeRefreshMissingBadgesBase=_qeRefreshMissingBadges;
+_qeRefreshMissingBadges=function(){ _qeRefreshMissingBadgesBase.apply(this,arguments); try{ _qeLivePreviewSchedule(); }catch(e){} };
+window._qeRefreshMissingBadges=_qeRefreshMissingBadges;
 
 /** Jumps straight to the next empty score cell in a subject THIS teacher
  *  can actually enter (all subjects, for an Advanced Admin or the Class
