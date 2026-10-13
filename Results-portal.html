@@ -2229,6 +2229,31 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
 .dist-cmp i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
 .gavg-rank.has-target .gavg-row{grid-template-columns:62px 1fr 46px 58px 60px;}
 .gavg-row-g{font-weight:700;font-size:10.5px;text-align:right;}
+/* Key Insights */
+.ins-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:10px;}
+.ins{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:10px;background:var(--surface2);min-width:0;}
+.ins.good{border-left-color:var(--green);} .ins.bad{border-left-color:#e74c3c;} .ins.warn{border-left-color:#f39c12;}
+.ins.click{cursor:pointer;transition:var(--transition);} .ins.click:hover{background:rgba(41,128,185,.08);}
+.ins-ic{font-size:18px;line-height:1.25;flex:none;}
+.ins-b{min-width:0;}
+.ins-t{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.ins-x{font-size:12.5px;color:var(--text);line-height:1.45;margin-top:2px;overflow-wrap:anywhere;}
+.ins-x b{font-weight:800;}
+/* Class view (user has an assigned grade): stat tiles + subject breakdown */
+.gavg-hero{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;}
+.gavg-hero:empty{display:none;}
+.dist-kpi-cap{flex:1 1 100%;font-size:10.5px;font-weight:700;color:var(--text3);}
+.gavg-tile{flex:1 1 84px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;min-width:0;}
+.gavg-tile>span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gavg-tile>b{display:block;font-size:22px;font-weight:800;line-height:1.15;margin-top:2px;color:var(--text);}
+.gavg-tile>small{display:block;font-size:10.5px;font-weight:700;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gavg-tile.main{flex:2 1 150px;border-left:4px solid var(--blue);}
+.gavg-tile .up,.gavg-tile.up>b{color:var(--green);}
+.gavg-tile .dn,.gavg-tile.dn>b{color:#e74c3c;}
+.gavg-subj{display:grid;grid-template-columns:minmax(80px,130px) 1fr 44px 54px;align-items:center;gap:8px;padding:3px 4px;font-size:11.5px;border-radius:6px;}
+.gavg-subj.weak{background:rgba(231,76,60,.09);}
+.gavg-subj-name{font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gavg-subj .gavg-row-bar{height:8px;}
 .gavg-row-g.up{color:var(--green);}
 .gavg-row-g.dn{color:#e74c3c;}
 
@@ -3122,6 +3147,11 @@ setInterval(_rotateAuthTip, 5000);
             <div class="kpi-val" id="kpi-ee" style="color:var(--gold)">—</div>
             <div class="kpi-label">EE (Exceeding)</div>
           </div>
+          <div class="kpi-card" style="--accent-glow:rgba(39,174,96,.1)">
+            <div class="kpi-icon">🎯</div>
+            <div class="kpi-val" id="kpi-meet" style="color:var(--green)">—</div>
+            <div class="kpi-label">Meeting Expectation (41%+)</div>
+          </div>
           <div class="kpi-card" style="--accent-glow:rgba(142,68,173,.1)">
             <div class="kpi-icon">📚</div>
             <div class="kpi-val" id="kpi-grades" style="color:#c39bd3">—</div>
@@ -3134,7 +3164,17 @@ setInterval(_rotateAuthTip, 5000);
           </div>
         </div>
 
+        <!-- Key Insights: auto-written findings for the user's own scope. See renderInsights. -->
+        <div class="card" id="ins-card" style="margin-bottom:18px">
+          <div class="card-hdr">
+            <div class="card-title">💡 Key Insights</div>
+            <div class="actions-row"><span class="chart-note" id="ins-sub" style="margin:0"></span></div>
+          </div>
+          <div class="ins-grid" id="ins-grid"></div>
+        </div>
+
         <div class="grid-60-40">
+          <div style="min-width:0">
           <!-- Performance Distribution — now a trend line chart: % of
                students in each performance band, per exam term, instead of
                a single frozen snapshot. See renderDistChart. -->
@@ -3148,9 +3188,34 @@ setInterval(_rotateAuthTip, 5000);
                 </select>
               </div>
             </div>
+            <div class="gavg-chips" id="dist-views"></div>
             <div class="chart-box"><canvas id="dist-chart"></canvas><div class="skeleton chart-skel" id="dist-skel"></div><div class="chart-empty" id="dist-empty" hidden>No exam results with a term yet</div></div>
             <div class="chart-note" id="dist-note"></div>
+            <div class="gavg-hero" id="dist-kpis" style="margin:10px 0 0"></div>
             <div class="dist-cmp-wrap" id="dist-cmp"></div>
+          </div>
+
+
+          <!-- Learners by Outcome — trend line chart under Performance Distribution:
+               share of learners meeting / exceeding / below expectation per assessment,
+               with the same class chips, tiles and breakdown as Grade Averages. See renderMeetTrend. -->
+          <div class="card">
+            <div class="card-hdr">
+              <div class="card-title" id="mt-title">Learners by Outcome</div>
+              <div class="actions-row">
+                <select class="sel" id="mt-metric" onchange="renderMeetTrend()" style="font-size:11px;max-width:190px" title="Which share of learners to track">
+                  <option value="meeting">Meeting expectation (41%+)</option>
+                  <option value="exceeding">Exceeding (75%+)</option>
+                  <option value="below">Below expectation (&lt;41%)</option>
+                </select>
+              </div>
+            </div>
+            <div class="gavg-chips" id="mt-chips"></div>
+            <div class="gavg-hero" id="mt-hero"></div>
+            <div class="chart-box"><canvas id="meet-trend-chart"></canvas><div class="chart-empty" id="mt-empty" hidden>No exam results with a term yet</div></div>
+            <div class="chart-note" id="mt-note"></div>
+            <div class="gavg-rank" id="mt-rank"></div>
+          </div>
           </div>
 
           <!-- Grade Averages — now a trend line chart: one line per grade,
@@ -3159,7 +3224,7 @@ setInterval(_rotateAuthTip, 5000);
                renderGradeBars. -->
           <div class="card">
             <div class="card-hdr">
-              <div class="card-title">Grade Averages</div>
+              <div class="card-title" id="gavg-title">Grade Averages</div>
               <div class="actions-row">
                 <select class="sel" id="gavg-compare" onchange="renderGradeBars()" style="font-size:11px;max-width:150px" title="What the ranking change is measured against"><option value="prev">vs previous term</option></select>
                 <button type="button" class="gavg-chip" id="gavg-target" onclick="setSchoolTarget()" title="Set the school target average (admins)" hidden>🎯 Target</button>
@@ -3167,6 +3232,7 @@ setInterval(_rotateAuthTip, 5000);
               </div>
             </div>
             <div class="gavg-chips" id="gavg-chips"></div>
+            <div class="gavg-hero" id="gavg-hero"></div>
             <div class="chart-box"><canvas id="grade-avg-chart"></canvas><div class="skeleton chart-skel" id="gavg-skel"></div><div class="chart-empty" id="gavg-empty" hidden>No exam results with a term yet</div></div>
             <div class="chart-note" id="gavg-note"></div>
             <div class="gavg-rank" id="gavg-rank"></div>
@@ -3936,22 +4002,6 @@ setInterval(_rotateAuthTip, 5000);
                 </span>
                 <span class="settings-tile-arrow">›</span>
               </button>
-              <button class="settings-tile" id="tile-sec-status" style="display:none" data-target="sec-status-section" data-kw="security passkey biometric two-step 2fa enrolled remind reset device" onclick="openSettingsModal('sec-status-section','🔏 Staff Security Status')">
-                <span class="settings-tile-icon">🔏</span>
-                <span class="settings-tile-body">
-                  <span class="settings-tile-title">Staff Security Status <em class="cc-badge">Advanced</em></span>
-                  <span class="settings-tile-desc">Who has a passkey set up — remind or reset</span>
-                </span>
-                <span class="settings-tile-arrow">›</span>
-              </button>
-              <button class="settings-tile" id="tile-sessions" style="display:none" data-target="sessions-section" data-kw="sessions signed in online devices logout sign out active" onclick="openSettingsModal('sessions-section','🖥️ Active Sessions')">
-                <span class="settings-tile-icon">🖥️</span>
-                <span class="settings-tile-body">
-                  <span class="settings-tile-title">Active Sessions <em class="cc-badge">Advanced</em></span>
-                  <span class="settings-tile-desc">See who is signed in, on which device</span>
-                </span>
-                <span class="settings-tile-arrow">›</span>
-              </button>
             </div>
           </section>
         </div>
@@ -3959,17 +4009,6 @@ setInterval(_rotateAuthTip, 5000);
         <!-- Hidden home for settings content — moved into the universal modal on open,
              and moved back here on close. Keeps every existing id/handler intact. -->
         <div id="settings-content-store" style="display:none">
-          <div class="settings-section" id="sec-status-section">
-            <h3 class="settings-section-title">Staff Security Status</h3>
-            <div class="setting-row" style="gap:8px;flex-wrap:wrap"><div class="setting-info"><h4 id="ss-summary">Loading…</h4><p>Passkey (fingerprint / face / PIN) is this portal’s second step. A person shows as enrolled after signing in on the device that holds their passkey.</p></div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap"><select class="cc-in" id="ss-filter" style="width:auto" onchange="secRender()"><option value="all">Everyone</option><option value="no">Not enrolled</option></select><button class="btn btn-blue btn-sm" onclick="secRemindAll()">🔔 Remind all not enrolled</button></div></div>
-            <div id="ss-list"></div>
-          </div>
-          <div class="settings-section" id="sessions-section">
-            <h3 class="settings-section-title">Active Sessions</h3>
-            <div class="setting-row"><div class="setting-info"><h4 id="se-summary">Loading…</h4><p>Counts a device as signed in if it checked in within the last 3 minutes. Refreshes automatically.</p></div><button class="btn btn-outline btn-sm" onclick="sessLoad()">↻ Refresh</button></div>
-            <div id="se-list"></div>
-          </div>
           <style>.cc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:8px 0}.cc-grid label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:var(--text2)}.cc-in{padding:8px 10px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:13px;width:100%}.cc-pills{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.cc-pills label{flex-direction:row;align-items:center;gap:5px;font-weight:600;padding:5px 10px;border:1px solid var(--border);border-radius:99px}</style>
           <div class="settings-section" id="term-wizard-section">
             <h3 class="settings-section-title">Term Setup Wizard</h3>
@@ -6644,7 +6683,7 @@ function toggleTheme(){
   const sw=document.getElementById('toggle-dark');
   if(sw) sw.classList.toggle('on',!isDark);
   // Dashboard charts read their grid/tick colours from the theme — redraw them.
-  try{ renderDistChart(); renderGradeBars(); }catch(e){}
+  try{ renderDistChart(); renderGradeBars(); renderMeetTrend(); }catch(e){}
 }
 window.toggleTheme=toggleTheme;
 (()=>{
@@ -6916,7 +6955,6 @@ const PK = {
     map[email] = { credId, uid, name: name || '' };
     localStorage.setItem(this._key, JSON.stringify(map));
     localStorage.setItem(this._lastKey, email);
-    try{ if(typeof ccMirrorPasskey==='function') ccMirrorPasskey(email, uid); }catch(_e){}
   },
   remove(email) {
     const map = this.all();
@@ -11334,7 +11372,9 @@ function renderAll(){
   renderKPIs();
   renderDistChart();
   renderGradeBars();
+  try{ renderMeetTrend(); }catch(e){ console.warn('meet trend',e); }
   renderMovement();
+  try{ renderInsights(); }catch(e){ console.warn('insights',e); }
   renderTopStudents();
   renderActivityLog();
   renderDashboardAuditWidget();
@@ -11509,6 +11549,7 @@ function renderKPIs(){
 
   const eeCount=scopedData.filter(r=>{ const a=parseFloat(calcStats(r).avg); return a>=75; }).length;
   document.getElementById('kpi-ee').textContent=eeCount;
+  const _km=document.getElementById('kpi-meet'); if(_km) _km.textContent=avgs.length?Math.round(avgs.filter(a=>a>=41).length/avgs.length*100)+'%':'—';
 
   document.getElementById('kpi-grades').textContent=getUniqueGrades().length;
   document.getElementById('kpi-records').textContent=scopedData.length;
@@ -11539,86 +11580,210 @@ const DIST_BANDS = [
   { label:'BE (<21)',     color:'#8e44ad', test:a=>a<21 },
 ];
 
-/** Performance Distribution, redesigned as a trend line chart: what % of
- *  students fell into each performance band, TERM BY TERM, rather than one
- *  static bar chart frozen at whatever data happens to be loaded. This is
- *  the actually useful question a school asks — "is the bottom band
- *  shrinking over time, or growing?" — which a single snapshot can never
- *  answer. Terms are ordered with the same chronological key Quick Entry's
- *  own exam picker uses (_qeCompoundOrderKey), not alphabetically, so e.g.
- *  "Term 2" never sorts before "Term 10". */
+let distView='bands';
+const DIST_VIEWS=[['bands','Bands over time'],['spread','Score spread'],['gender','Boys vs girls']];
+function setDistView(v){ distView=v; renderDistChart(); }
+window.setDistView=setDistView;
+const _bandColor=v=>(DIST_BANDS.find(b=>b.test(v))||DIST_BANDS[DIST_BANDS.length-1]).color;
+
+/** Summary numbers for a list of average scores. "Meeting" = 41%+ (ME2 and
+ *  above), "exceeding" = 75%+ (EE), "below" = under 41% (AE / BE). */
+function _quantile(sorted,q){
+  if(!sorted.length) return null;
+  const p=(sorted.length-1)*q, lo=Math.floor(p), hi=Math.ceil(p);
+  return sorted[lo]+(sorted[hi]-sorted[lo])*(p-lo);
+}
+function _assessStats(vals){
+  const n=vals.length; if(!n) return null;
+  const s=[...vals].sort((a,b)=>a-b), mean=s.reduce((a,b)=>a+b,0)/n;
+  return { n, mean, median:_quantile(s,.5), q1:_quantile(s,.25), q3:_quantile(s,.75),
+    sd:Math.sqrt(s.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n),
+    meet:s.filter(v=>v>=41).length/n*100, exceed:s.filter(v=>v>=75).length/n*100, below:s.filter(v=>v<41).length/n*100 };
+}
+
+/** Performance Distribution — three views of the same results:
+ *   Bands over time  100% stacked columns, one per assessment
+ *   Score spread     histogram of the latest assessment (+ median, + earlier one for shape)
+ *   Boys vs girls    band split by gender for the latest assessment
+ *  plus summary tiles (meeting / exceeding / below expectation, median, typical range)
+ *  measured against the "Compare with…" assessment (default: the previous one). */
 function renderDistChart(){
   const grade=document.getElementById('dist-grade-sel')?.value||'all';
   // Teachers only ever see their own grade(s), even on "All Grades".
   const _allowed = isAdvancedAdmin ? null : getUniqueGrades();
   const data=getFilteredByGrade(grade).filter(r=>!_allowed || _allowed.includes(gShort(r['Grade'])));
 
-  const byTerm={};
+  // Grouped by ASSESSMENT (exam identity minus its "Grade N-" prefix), so
+  // "All Grades" pools every class that sat the same assessment.
+  const byTerm={}, byTermG={}, gradesIn={};
   data.forEach(r=>{
     const t=getRecordTerm(r);
     if(!t||t==='Unknown') return;
     const a=parseFloat(calcStats(r).avg);
     if(isNaN(a)) return;
-    (byTerm[t] || (byTerm[t]=[])).push(a);
+    const k=_assessKey(t);
+    (byTerm[k] || (byTerm[k]=[])).push(a);
+    (gradesIn[k] || (gradesIn[k]=new Set())).add(gShort(r['Grade']));
+    const gd=r['Gender'];
+    if(gd==='Male'||gd==='Female') (byTermG[k] || (byTermG[k]={Male:[],Female:[]}))[gd].push(a);
   });
   const terms=Object.keys(byTerm).sort((x,y)=>_qeCompoundOrderKey(x).localeCompare(_qeCompoundOrderKey(y)));
+  // "Latest" for the tiles / spread / boys-vs-girls = most recent assessment sat by
+  // at least half of the grades in view, so one class's early Opener exam doesn't
+  // stand in for the whole school. (The over-time columns still show every assessment.)
+  const allG=new Set(); Object.values(gradesIn).forEach(s=>s.forEach(g=>allG.add(g)));
+  const fullTerms=terms.filter(k=>gradesIn[k].size>=Math.ceil(allG.size/2));
+  const latest=fullTerms[fullTerms.length-1]||terms[terms.length-1];
 
-  const datasets=DIST_BANDS.map(b=>({
-    label:b.label,
-    data:terms.map(t=>{
-      const vals=byTerm[t];
-      return vals.length ? +(vals.filter(b.test).length/vals.length*100).toFixed(1) : 0;
-    }),
-    borderColor:b.color,
-    backgroundColor:b.color+'22',
-    borderWidth:2.5,
-    tension:.35,
-    pointRadius:3,
-    pointHoverRadius:6,
-    pointBackgroundColor:b.color,
-    fill:false,
-  }));
+  const vbox=document.getElementById('dist-views');
+  if(vbox){
+    vbox.innerHTML='';
+    DIST_VIEWS.forEach(([k,lab])=>{
+      const b=document.createElement('button');
+      b.type='button'; b.className='gavg-chip'+(distView===k?' on':''); b.textContent=lab;
+      b.onclick=()=>setDistView(k); vbox.appendChild(b);
+    });
+  }
 
   document.getElementById('dist-skel')?.remove();
-  _renderDistCompare(terms,byTerm);
+  _renderDistCompare(terms,byTerm,latest);
+  const base=(document.getElementById('dist-compare')?.value)||fullTerms[fullTerms.length-2]||'';
+  _renderDistKpis(latest,byTerm,base);
+
   const empty=document.getElementById('dist-empty');
   const note=document.getElementById('dist-note');
-  if(note){
-    const skipped=data.filter(r=>{ const t=getRecordTerm(r); return !t||t==='Unknown'||isNaN(parseFloat(calcStats(r).avg)); }).length;
-    note.textContent = skipped ? `${skipped} record${skipped===1?'':'s'} left out (no term or no marks).` : '';
-  }
   if(distChart){ distChart.destroy(); distChart=null; }
   if(empty) empty.hidden = terms.length>0;
-  if(!terms.length) return;
+  if(!terms.length){ if(note) note.textContent=''; return; }
 
+  const bandDatasets=(labels,pctFor)=>DIST_BANDS.map((b,bi)=>({
+    label:b.label, data:labels.map((_,i)=>pctFor(b,i)),
+    backgroundColor:b.color, borderColor:'rgba(255,255,255,.55)', borderWidth:1, borderSkipped:false, maxBarThickness:64,
+  }));
+  // Draws each band's % inside its segment (only when tall enough to hold it)
+  const distLabels={ id:'distLabels', afterDatasetsDraw(chart){
+    const {ctx}=chart; ctx.save();
+    ctx.font='700 10px sans-serif'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    chart.data.datasets.forEach((ds,i)=>{
+      if(ds.type==='line' || !chart.isDatasetVisible(i)) return;
+      chart.getDatasetMeta(i).data.forEach((bar,j)=>{
+        const v=ds.data[j]; if(v<7) return;
+        const p=bar.getProps(['x','y','base'],true);
+        ctx.fillText(Math.round(v)+'%', p.x, (p.y+p.base)/2);
+      });
+    });
+    ctx.restore();
+  }};
+
+  let labels=terms, datasets, stacked=true, plugins=[distLabels], tipLabel, onClick=null, noteExtra='';
   const th=_chartTheme();
+
+  if(distView==='spread'){
+    stacked=false;
+    const vals=byTerm[latest];
+    const hist=a=>{ const c=Array(10).fill(0); a.forEach(x=>c[Math.min(9,Math.max(0,Math.floor(x/10)))]++); return c; };
+    const cL=hist(vals), pct=(c,n)=>c.map(x=>+(x/n*100).toFixed(1));
+    labels=cL.map((_,i)=>i===9?'90–100':`${i*10}–${i*10+9}`);
+    const hasBase=base && base!==latest && byTerm[base];
+    const cB=hasBase?hist(byTerm[base]):null;
+    datasets=[{ type:'bar', label:latest, data:pct(cL,vals.length), backgroundColor:cL.map((_,i)=>_bandColor(i*10+5)), borderRadius:4, maxBarThickness:46, order:2 }];
+    if(hasBase) datasets.push({ type:'line', label:base, data:pct(cB,byTerm[base].length), borderColor:'#7f8c8d', backgroundColor:'#7f8c8d', borderDash:[5,4], borderWidth:2, pointRadius:3, tension:0, fill:false, order:1 });
+    const st=_assessStats(vals);
+    const medianLine={ id:'medianLine', afterDatasetsDraw(chart){
+      const x=chart.scales.x, y=chart.scales.y; if(!x||!y) return;
+      const w=x.getPixelForValue(1)-x.getPixelForValue(0);
+      const px=x.getPixelForValue(0)-w/2+(st.median/10)*w;
+      const {ctx}=chart; ctx.save();
+      ctx.strokeStyle='#2c3e50'; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(px,y.top); ctx.lineTo(px,y.bottom); ctx.stroke(); ctx.setLineDash([]);
+      ctx.font='700 10px sans-serif'; ctx.fillStyle=th.tick||'#555'; ctx.textBaseline='top';
+      const right=px>x.left+(x.right-x.left)*.7; ctx.textAlign=right?'right':'left';
+      ctx.fillText('Median '+st.median.toFixed(1)+'%', px+(right?-5:5), y.top+2);
+      ctx.restore();
+    }};
+    plugins=[medianLine];
+    tipLabel=c=>{ const cn=c.datasetIndex===0?cL[c.dataIndex]:cB[c.dataIndex]; return ` ${c.dataset.label}: ${c.parsed.y}% (${cn} learner${cn===1?'':'s'})`; };
+    noteExtra=`Bars: share of ${latest} learners in each 10-point score range, coloured by band${hasBase?'. Dashed line: '+base+'.':'.'}`;
+  } else if(distView==='gender'){
+    const g=byTermG[latest]||{Male:[],Female:[]};
+    labels=[`Boys (${g.Male.length})`,`Girls (${g.Female.length})`];
+    const groups=[g.Male,g.Female];
+    datasets=bandDatasets(labels,(b,i)=>groups[i].length?+(groups[i].filter(b.test).length/groups[i].length*100).toFixed(1):0);
+    tipLabel=c=>{ const n=groups[c.dataIndex].length, k=Math.round(c.parsed.y/100*n); return ` ${c.dataset.label}: ${c.parsed.y}% (${k} learner${k===1?'':'s'})`; };
+    const mm=_assessStats(g.Male), ff=_assessStats(g.Female);
+    noteExtra=(mm&&ff) ? `${latest} · average: boys ${mm.mean.toFixed(1)}% · girls ${ff.mean.toFixed(1)}%.` : `${latest} · not enough gender data to compare.`;
+  } else {
+    datasets=bandDatasets(terms,(b,i)=>{ const v=byTerm[terms[i]]; return v.length?+(v.filter(b.test).length/v.length*100).toFixed(1):0; });
+    tipLabel=c=>{
+      const total=byTerm[terms[c.dataIndex]]?.length||0;
+      const count=Math.round(c.parsed.y/100*total);
+      return ` ${c.dataset.label}: ${c.parsed.y}% (${count} student${count===1?'':'s'})`;
+    };
+    onClick=(e,_els,chart)=>{
+      const hit=_chartPick(chart,e); if(!hit) return;
+      const g=document.getElementById('dist-grade-sel')?.value||'all';
+      drillToStudents({ grade:g==='all'?'':g, assess:terms[hit.index], level:DIST_BANDS[hit.datasetIndex].label.split(' ')[0] });
+    };
+  }
+
+  if(note){
+    const skipped=data.filter(r=>{ const t=getRecordTerm(r); return !t||t==='Unknown'||isNaN(parseFloat(calcStats(r).avg)); }).length;
+    note.textContent=[noteExtra, skipped?`${skipped} record${skipped===1?'':'s'} left out (no term or no marks).`:''].filter(Boolean).join(' ');
+  }
+
   const ctx=document.getElementById('dist-chart').getContext('2d');
   distChart=new Chart(ctx,{
-    type:'line',
-    data:{ labels:terms, datasets },
+    type:'bar',
+    data:{ labels, datasets },
+    plugins,
     options:{
       responsive:true, maintainAspectRatio:false,
-      interaction:{ mode:'index', intersect:false },
-      onHover:(e,_els,chart)=>_chartHoverCursor(e,chart),
-      onClick:(e,_els,chart)=>{
-        const hit=_chartPick(chart,e); if(!hit) return;
-        const g=document.getElementById('dist-grade-sel')?.value||'all';
-        drillToStudents({ grade:g==='all'?'':g, term:terms[hit.index], level:DIST_BANDS[hit.datasetIndex].label.split(' ')[0] });
-      },
+      interaction:{ mode:distView==='spread'?'index':'index', intersect:false },
+      onHover:(e,_els,chart)=>{ if(onClick) _chartHoverCursor(e,chart); },
+      onClick: onClick || undefined,
       plugins:{
-        legend:{ position:'bottom', labels:{ color:th.tick, font:{size:10}, boxWidth:12, usePointStyle:true } },
-        tooltip:{ callbacks:{ footer:()=>'Click to list these students', label: c => {
-          const total = byTerm[terms[c.dataIndex]]?.length || 0;
-          const count = Math.round(c.parsed.y/100*total);
-          return ` ${c.dataset.label}: ${c.parsed.y}% (${count} student${count===1?'':'s'})`;
-        } } }
+        legend:{ position:'bottom', labels:{ color:th.tick, font:{size:10}, boxWidth:12, usePointStyle:true,
+          generateLabels: distView==='spread' ? (c=>Chart.defaults.plugins.legend.labels.generateLabels(c).map(x=>x.datasetIndex===0?{...x,fillStyle:'#5d6d7e',strokeStyle:'#5d6d7e'}:x)) : undefined } },
+        tooltip:{ callbacks:{ label:tipLabel, footer:()=>onClick?'Click to list these students':'' } }
       },
       scales:{
-        x:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},maxRotation:45,minRotation:0,autoSkip:false} },
-        y:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},callback:v=>v+'%'}, min:0, max:100 }
+        x:{ stacked, grid:{display:false}, ticks:{color:th.tick,font:{size:10},maxRotation:35,minRotation:0,autoSkip:false} },
+        y: stacked
+          ? { stacked:true, grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},stepSize:20,callback:v=>v+'%'}, min:0, max:100 }
+          : { grid:{color:th.grid}, beginAtZero:true, ticks:{color:th.tick,font:{size:10},callback:v=>v+'%'}, title:{display:true,text:'% of learners',color:th.tick,font:{size:10}} }
       }
     }
   });
+}
+
+/** Summary tiles for the latest assessment, each with its change against the
+ *  chosen comparison assessment ("Compare with…", default = the previous one). */
+function _renderDistKpis(latest,byTerm,base){
+  const box=document.getElementById('dist-kpis'); if(!box) return;
+  if(!latest||!byTerm[latest]){ box.innerHTML=''; return; }
+  const cur=_assessStats(byTerm[latest]);
+  const old=(base&&base!==latest&&byTerm[base])?_assessStats(byTerm[base]):null;
+  const delta=(a,b,goodUp,unit)=>{
+    if(!old) return '<small>—</small>';
+    const d=a-b, flat=Math.abs(d)<0.05;
+    const cls=flat?'':((d>0)===goodUp?'up':'dn');
+    return `<small><span class="${cls}">${flat?'•':d>0?'▲':'▼'} ${Math.abs(d).toFixed(1)} ${unit}</span></small>`;
+  };
+  box.innerHTML=
+    `<div class="dist-kpi-cap">${_gavgEsc(latest)} · ${cur.n} learners${old?` · changes vs ${_gavgEsc(base)}`:''}</div>`
+  + `<div class="gavg-tile main"><span>Meeting (41%+)</span><b>${cur.meet.toFixed(1)}%</b>${delta(cur.meet,old?old.meet:0,true,'pp')}</div>`
+  + `<div class="gavg-tile"><span>Exceeding (75%+)</span><b>${cur.exceed.toFixed(1)}%</b>${delta(cur.exceed,old?old.exceed:0,true,'pp')}</div>`
+  + `<div class="gavg-tile"><span>Below (under 41%)</span><b>${cur.below.toFixed(1)}%</b>${delta(cur.below,old?old.below:0,false,'pp')}</div>`
+  + `<div class="gavg-tile"><span>Median score</span><b>${cur.median.toFixed(1)}%</b>${delta(cur.median,old?old.median:0,true,'pts')}</div>`
+  + `<div class="gavg-tile"><span>Middle 50% score</span><b>${Math.round(cur.q1)}–${Math.round(cur.q3)}%</b><small>σ ${cur.sd.toFixed(1)}</small></div>`;
+}
+
+/** Exam identities carry their class ("Grade 4-2026-A1-Mid-Term 1"), so the
+ *  same assessment sat by Grades 4, 5 and 6 looks like three different
+ *  "terms". This strips that class prefix → "2026-A1-Mid-Term 1", the key
+ *  that actually lines the classes up on one shared axis. */
+function _assessKey(t){
+  return String(t||'').replace(/^\s*(?:grade\s*\d+|pp\s*\d+)\s*-\s*/i,'').trim()||String(t||'');
 }
 
 /** Open the Students list pre-filtered (grade / term / level) — used when a
@@ -11629,7 +11794,22 @@ function drillToStudents(o){
   navTo('students',document.querySelector('.nav-item[data-label="Students"]'));
   const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||''; };
   set('student-search',''); set('filter-gender','');
-  set('filter-grade',o.grade); set('filter-term',o.term); set('filter-level',o.level);
+  // Charts now group by assessment (class prefix removed). One class + assessment
+  // maps back to a single exact exam identity; "all grades" uses a temporary
+  // "__assess__:" option that filterStudents() understands.
+  let term=o.term||'';
+  const ts=document.getElementById('filter-term');
+  ts?.querySelectorAll('option[data-assess]').forEach(x=>x.remove());
+  if(o.assess){
+    const exact=o.grade ? getUniqueTerms().find(t=>gShort(t)===o.grade && _assessKey(t)===o.assess) : null;
+    if(exact) term=exact;
+    else if(ts && !o.grade){
+      const op=document.createElement('option');
+      op.value='__assess__:'+o.assess; op.dataset.assess='1'; op.textContent='All grades · '+o.assess;
+      ts.appendChild(op); term=op.value;
+    }
+  }
+  set('filter-grade',o.grade); set('filter-term',term); set('filter-level',o.level);
   filterStudents();
 }
 window.drillToStudents=drillToStudents;
@@ -11671,16 +11851,279 @@ function initChartExportButtons(){
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initChartExportButtons); else initChartExportButtons();
 
+/* ══════════════════════════════════════════
+   LEARNERS BY OUTCOME — trend line chart (sits under Performance Distribution)
+   Same smart behaviour as Grade Averages, but the measure is the SHARE of
+   learners meeting / exceeding / below expectation, per assessment.
+══════════════════════════════════════════ */
+let mtMetric='meeting', mtLevel='all', mtFocus=null, mtChart=null, _mtLgLast={i:-1,t:0};
+const MT_METRICS={
+  meeting:  { label:'Meeting expectation (41%+)', noun:'meeting expectation', test:v=>v>=41, goodUp:true  },
+  exceeding:{ label:'Exceeding (75%+)',           noun:'exceeding',           test:v=>v>=75, goodUp:true  },
+  below:    { label:'Below expectation (under 41%)', noun:'below expectation', test:v=>v<41,  goodUp:false },
+};
+function setMtMetric(m){ mtMetric=m; renderMeetTrend(); }
+function setMtLevel(l){ mtLevel=l; renderMeetTrend(); }
+function setMtFocus(g){ mtFocus=g; renderMeetTrend(); }
+window.setMtMetric=setMtMetric; window.setMtLevel=setMtLevel; window.setMtFocus=setMtFocus;
+
+function renderMeetTrend(){
+  const canvas=document.getElementById('meet-trend-chart'); if(!canvas) return;
+  const M=MT_METRICS[document.getElementById('mt-metric')?.value||mtMetric]||MT_METRICS.meeting;
+  mtMetric=Object.keys(MT_METRICS).find(k=>MT_METRICS[k]===M);
+  const allGrades=getUniqueGrades();
+  const classMode=_gavgClassMode();
+  if(classMode && mtFocus!=='__all__' && !allGrades.includes(mtFocus)) mtFocus=allGrades[0]||null;
+
+  // chips: classes (teacher) or grade levels (admin)
+  const present=new Set(allGrades.map(_gradeLevel));
+  if(mtLevel!=='all' && !present.has(mtLevel)) mtLevel='all';
+  const chips=document.getElementById('mt-chips');
+  if(chips){
+    chips.innerHTML='';
+    const mk=(k,lab,on,fn)=>{ const b=document.createElement('button'); b.type='button'; b.className='gavg-chip'+(on?' on':''); b.textContent=lab; b.onclick=fn; chips.appendChild(b); };
+    if(classMode){ if(allGrades.length>1) [...allGrades.map(g=>[g,g]),['__all__','All my classes']].forEach(([k,lab])=>mk(k,lab,mtFocus===k,()=>setMtFocus(k))); }
+    else if(present.size>1) GAVG_LEVELS.forEach(([k,lab])=>{ if(k!=='all' && !present.has(k)) return; mk(k,lab,mtLevel===k,()=>setMtLevel(k)); });
+  }
+  const grades=classMode
+    ? (mtFocus==='__all__' ? allGrades : (mtFocus?[mtFocus]:[]))
+    : (mtLevel==='all' ? allGrades : allGrades.filter(g=>_gradeLevel(g)===mtLevel));
+  const single=classMode && grades.length===1;
+  const titleEl=document.getElementById('mt-title');
+  if(titleEl) titleEl.textContent = single ? `${grades[0]} · Learners ${M.noun}` : 'Learners by Outcome';
+  const hero=document.getElementById('mt-hero'), rank=document.getElementById('mt-rank'), empty=document.getElementById('mt-empty'), note=document.getElementById('mt-note');
+  if(hero) hero.innerHTML=''; if(rank) rank.innerHTML='';
+
+  const byGT={}; let skipped=0;
+  allData.forEach(r=>{
+    const g=gShort(r['Grade']); if(!grades.includes(g)) return;
+    const t0=getRecordTerm(r), a=parseFloat(calcStats(r).avg);
+    if(!t0||t0==='Unknown'||isNaN(a)){ skipped++; return; }
+    const t=_assessKey(t0), bt=byGT[g]||(byGT[g]={});
+    (bt[t]||(bt[t]=[])).push(a);
+  });
+  const tset=new Set(); Object.values(byGT).forEach(bt=>Object.keys(bt).forEach(t=>tset.add(t)));
+  const terms=[...tset].sort((x,y)=>_qeCompoundOrderKey(x).localeCompare(_qeCompoundOrderKey(y)));
+  const valOf=(g,t)=>{ const v=byGT[g]?.[t]; return v&&v.length ? v.filter(M.test).length/v.length*100 : null; };
+  const colorOf=g=>GRADE_LINE_PALETTE[allGrades.indexOf(g)%GRADE_LINE_PALETTE.length];
+
+  if(note) note.textContent=skipped?`${skipped} record${skipped===1?'':'s'} left out (no term or no marks).`:'';
+  if(mtChart){ mtChart.destroy(); mtChart=null; }
+  if(empty) empty.hidden=terms.length>0;
+  if(!terms.length) return;
+
+  const datasets=grades.map(g=>{ const c=colorOf(g); return {
+    label:g, data:terms.map(t=>{ const v=valOf(g,t); return v===null?null:+v.toFixed(1); }),
+    borderColor:c,
+    backgroundColor: single ? (x=>{ const a=x.chart.chartArea; if(!a) return c+'22'; const gr=x.chart.ctx.createLinearGradient(0,a.top,0,a.bottom); gr.addColorStop(0,c+'55'); gr.addColorStop(1,c+'05'); return gr; }) : c+'22',
+    borderWidth:single?3:2.5, tension:0, pointRadius:single?5:4, pointHoverRadius:7, pointBackgroundColor:c, spanGaps:true, fill:single,
+  }; });
+  const labelPlugin={ id:'mtLabels', afterDatasetsDraw(chart){
+    if(!single) return;
+    const {ctx}=chart; ctx.save(); ctx.font='700 10.5px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--text')||'#222';
+    chart.data.datasets.forEach((ds,i)=>{ if(!chart.isDatasetVisible(i)) return; chart.getDatasetMeta(i).data.forEach((pt,j)=>{ const v=ds.data[j]; if(v!=null) ctx.fillText(v+'%',pt.x,pt.y-8); }); });
+    ctx.restore();
+  }};
+  const vals=datasets.flatMap(d=>d.data).filter(v=>v!==null);
+  const yMax=Math.min(100,Math.max(20,Math.ceil((Math.max(0,...vals)+10)/10)*10));
+
+  const th=_chartTheme();
+  mtChart=new Chart(canvas.getContext('2d'),{
+    type:'line', data:{ labels:terms, datasets }, plugins:[labelPlugin],
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:single?18:0, right:single?16:0 } },
+      interaction:{ mode:'index', intersect:false },
+      onHover:(e,_els,chart)=>_chartHoverCursor(e,chart),
+      onClick:(e,_els,chart)=>{ const hit=_chartPick(chart,e); if(!hit) return; drillToStudents({ grade:chart.data.datasets[hit.datasetIndex].label, assess:terms[hit.index] }); },
+      plugins:{
+        legend:{ display:!single, position:'bottom', labels:{ color:th.tick, font:{size:10}, boxWidth:12, usePointStyle:true },
+          // click = show/hide a grade; double-click = show only that grade (again = show all)
+          onClick:(e,item,legend)=>{
+            const ch=legend.chart, i=item.datasetIndex, now=Date.now();
+            if(_mtLgLast.i===i && now-_mtLgLast.t<350){
+              const others=ch.data.datasets.map((_,k)=>k).filter(k=>k!==i);
+              const isolated=others.every(k=>!ch.isDatasetVisible(k));
+              ch.data.datasets.forEach((d,k)=>ch.setDatasetVisibility(k,isolated?true:k===i));
+            } else ch.setDatasetVisibility(i,!ch.isDatasetVisible(i));
+            _mtLgLast={i,t:now}; ch.update();
+          } },
+        tooltip:{ callbacks:{ footer:()=>'Click to list these students', label:c=>{
+          const arr=byGT[c.dataset.label]?.[terms[c.dataIndex]]||[], k=arr.filter(M.test).length;
+          return ` ${c.dataset.label}: ${c.parsed.y}% (${k} of ${arr.length} learners)`; } } }
+      },
+      scales:{
+        x:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},maxRotation:45,minRotation:0,autoSkip:false} },
+        y:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},callback:v=>v+'%'}, min:0, max:yMax, title:{display:true,text:'% of learners',color:th.tick,font:{size:10}} }
+      }
+    }
+  });
+
+  const good=(d)=>Math.abs(d)<0.05?'':((d>0)===M.goodUp?'up':'dn');
+  const arrow=d=>`${d>=0.05?'▲':d<=-0.05?'▼':'•'} ${Math.abs(d).toFixed(1)}`;
+  if(single){
+    const g=grades[0], have=terms.filter(t=>valOf(g,t)!==null), latest=have[have.length-1], prev=have[have.length-2]||null;
+    const cur=valOf(g,latest), d=prev?cur-valOf(g,prev):null, n=byGT[g][latest].length;
+    const bestT=have.reduce((b,t)=>(b===null|| (M.goodUp?valOf(g,t)>valOf(g,b):valOf(g,t)<valOf(g,b)))?t:b,null);
+    if(hero) hero.innerHTML=
+      `<div class="gavg-tile main" style="border-left-color:${colorOf(g)}"><span title="${_gavgEsc(latest)}">Latest · ${_gavgEsc(latest)}</span><b>${cur.toFixed(1)}%</b><small>${_gavgEsc(M.noun)}</small></div>`
+    + `<div class="gavg-tile"><span>${prev?'vs '+_gavgEsc(prev):'Change'}</span><b class="${d===null?'':good(d)}">${d===null?'—':arrow(d)}</b><small>${d===null?'first assessment':'pp'}</small></div>`
+    + `<div class="gavg-tile"><span>Best assessment</span><b>${valOf(g,bestT).toFixed(1)}%</b><small title="${_gavgEsc(bestT)}">${_gavgEsc(bestT)}</small></div>`
+    + `<div class="gavg-tile"><span>Learners</span><b>${n}</b><small>assessed</small></div>`;
+    // Subjects: share of learners in this outcome, worst first
+    const acc={}, wasAcc={};
+    allData.forEach(r=>{
+      if(gShort(r['Grade'])!==g) return;
+      const k=_assessKey(getRecordTerm(r)); const tgt=k===latest?acc:(prev&&k===prev?wasAcc:null); if(!tgt) return;
+      getSubjects(r).forEach(s=>{ const v=parseFloat(r[s]); if(!isNaN(v)) (tgt[s]||(tgt[s]=[])).push(v); });
+    });
+    const share=a=>a.filter(M.test).length/a.length*100;
+    const rows=Object.keys(acc).map(s=>({s,v:share(acc[s]),d:wasAcc[s]?share(acc[s])-share(wasAcc[s]):null}))
+      .sort((a,b)=>M.goodUp?a.v-b.v:b.v-a.v);
+    if(rank) rank.innerHTML=rows.length
+      ? `<div class="gavg-rank-hdr">Subjects · ${_gavgEsc(latest)} · ${M.goodUp?'weakest':'most affected'} first</div>`+rows.map((r,i)=>{
+          const dd=r.d===null?'<span class="gavg-row-d">—</span>':`<span class="gavg-row-d ${good(r.d)}">${arrow(r.d)}</span>`;
+          const col=M.goodUp?(r.v>=60?'#27ae60':r.v>=40?'#f39c12':'#e74c3c'):(r.v<=20?'#27ae60':r.v<=50?'#f39c12':'#e74c3c');
+          return `<div class="gavg-subj${i===0&&rows.length>2?' weak':''}"><span class="gavg-subj-name" title="${_gavgEsc(r.s)}">${_gavgEsc(r.s)}</span><span class="gavg-row-bar"><i style="width:${Math.min(100,r.v)}%;background:${col}"></i></span><span class="gavg-row-val">${r.v.toFixed(0)}%</span>${dd}</div>`;
+        }).join('') : '';
+    if(rank) rank.onclick=null;
+  } else if(rank){
+    const rows=grades.map(g=>{
+      const have=terms.filter(t=>valOf(g,t)!==null); if(!have.length) return null;
+      const latest=have[have.length-1], prev=have[have.length-2];
+      const cur=valOf(g,latest);
+      return { g, t:latest, cur, d:prev?cur-valOf(g,prev):null, color:colorOf(g) };
+    }).filter(Boolean).sort((a,b)=>M.goodUp?b.cur-a.cur:a.cur-b.cur);
+    rank.innerHTML=rows.length
+      ? `<div class="gavg-rank-hdr">Ranking · each class's latest assessment · ${_gavgEsc(M.noun)}</div>`+rows.map(r=>
+          `<div class="gavg-row" data-grade="${_gavgEsc(r.g)}" data-term="${_gavgEsc(r.t)}" title="${_gavgEsc(r.t)} — click to list these students"><span class="gavg-row-name">${_gavgEsc(r.g)}</span><span class="gavg-row-bar"><i style="width:${Math.min(100,r.cur)}%;background:${r.color}"></i></span><span class="gavg-row-val">${r.cur.toFixed(0)}%</span>${r.d===null?'<span class="gavg-row-d">—</span>':`<span class="gavg-row-d ${good(r.d)}">${arrow(r.d)}</span>`}</div>`).join('')
+      : '';
+    rank.onclick=e=>{ const row=e.target.closest('.gavg-row'); if(row) drillToStudents({ grade:row.dataset.grade, assess:row.dataset.term }); };
+  }
+}
+window.renderMeetTrend=renderMeetTrend;
+
+/* ══════════════════════════════════════════
+   KEY INSIGHTS — plain-language findings for the dashboard, from the user's
+   own scope (teachers: their grade(s); admins: whole school).
+══════════════════════════════════════════ */
+let _insActions=[];
+function _scopedRecords(){
+  if(currentAssignedGrade==='__NONE__' && !currentAssignedGrades.length) return [];
+  return allData.filter(r=>_teacherCanSeeGrade(r['Grade']));
+}
+function renderInsights(){
+  const box=document.getElementById('ins-grid'); if(!box) return;
+  const sub=document.getElementById('ins-sub');
+  _insActions=[];
+  const rows=[];
+  _scopedRecords().forEach(r=>{
+    const t=getRecordTerm(r); if(!t||t==='Unknown') return;
+    const a=parseFloat(calcStats(r).avg); if(isNaN(a)) return;
+    rows.push({r,g:gShort(r['Grade']),k:_assessKey(t),t,a,sex:r['Gender']});
+  });
+  if(!rows.length){
+    box.innerHTML='<div class="ins"><div class="ins-b"><div class="ins-x">Insights appear once exam results have been recorded.</div></div></div>';
+    if(sub) sub.textContent=''; return;
+  }
+  // "Latest" = most recent assessment sat by at least half of the grades in scope,
+  // so one class's early Opener exam doesn't masquerade as the whole school.
+  const gradeSet=new Set(rows.map(x=>x.g)), need=Math.ceil(gradeSet.size/2);
+  const keys=[...new Set(rows.map(x=>x.k))].sort((x,y)=>_qeCompoundOrderKey(x).localeCompare(_qeCompoundOrderKey(y)));
+  const full=keys.filter(k=>new Set(rows.filter(x=>x.k===k).map(x=>x.g)).size>=need);
+  const latest=full[full.length-1]||keys[keys.length-1], prev=full[full.length-2]||null;
+  const L=rows.filter(x=>x.k===latest), P=prev?rows.filter(x=>x.k===prev):[];
+  // Full raw exam names (with the class, e.g. "Grade 4-2026-B2-End-Term 2"), one per class that sat it
+  const rawOf=k=>[...new Set(rows.filter(x=>x.k===k).map(x=>x.t))].sort((x,y)=>x.localeCompare(y,undefined,{numeric:true}));
+  const latestN=rawOf(latest).length===1?rawOf(latest)[0]:latest, prevN=prev?(rawOf(prev).length===1?rawOf(prev)[0]:prev):'';
+  if(sub) sub.textContent=`Based on ${rawOf(latest).join(', ')}${prev?' compared with '+rawOf(prev).join(', '):''}`;
+
+  const E=_gavgEsc, mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
+  const arrow=(d,u)=>`${d>=0.05?'▲':d<=-0.05?'▼':'•'} ${Math.abs(d).toFixed(1)}${u||''}`;
+  const out=[];
+  const add=(icon,title,tone,html,action)=>{ out.push({icon,title,tone,html,i:action?_insActions.push(action)-1:-1}); };
+
+  // 1 · Meeting expectation
+  const sL=_assessStats(L.map(x=>x.a)), sP=P.length?_assessStats(P.map(x=>x.a)):null;
+  {
+    const d=sP?sL.meet-sP.meet:null;
+    add('🎯','Meeting expectation', d===null?'info':d>=1?'good':d<=-1?'bad':'info',
+      `<b>${sL.meet.toFixed(1)}%</b> of learners score 41% or more${d===null?'.':Math.abs(d)<0.05?`, unchanged since ${E(prevN)}.`:` — ${d>0?'up':'down'} <b>${Math.abs(d).toFixed(1)} pp</b> since ${E(prevN)}.`}`);
+  }
+  // 2 · Learners below expectation
+  {
+    const nb=L.filter(x=>x.a<41).length, pb=nb/L.length*100;
+    add('🛟','Need support', pb>=60?'bad':pb>=30?'warn':'good',
+      `<b>${nb}</b> of ${L.length} results (${pb.toFixed(0)}%) are below expectation (AE or BE).`);
+  }
+  // 3 · Subjects: weakest and strongest
+  const subj=(arr)=>{ const acc={}; arr.forEach(x=>getSubjects(x.r).forEach(s=>{ const v=parseFloat(x.r[s]); if(!isNaN(v)) (acc[s]||(acc[s]=[])).push(v); })); const m={}; Object.keys(acc).forEach(s=>m[s]=mean(acc[s])); return m; };
+  const sbL=subj(L), sbP=P.length?subj(P):{};
+  const sk=Object.keys(sbL).sort((a,b)=>sbL[a]-sbL[b]);
+  if(sk.length>=2){
+    const lo=sk[0], hi=sk[sk.length-1];
+    add('📚','Subjects','warn',`Weakest: <b>${E(lo)}</b> (${sbL[lo].toFixed(1)}%). Strongest: <b>${E(hi)}</b> (${sbL[hi].toFixed(1)}%).`);
+    // 4 · Biggest subject movement
+    const mv=sk.filter(s=>sbP[s]!==undefined).map(s=>({s,d:sbL[s]-sbP[s]})).sort((a,b)=>b.d-a.d);
+    if(mv.length>=2){
+      const up=mv[0], dn=mv[mv.length-1], parts=[];
+      if(up.d>=0.5) parts.push(`Biggest gain: <b>${E(up.s)}</b> ${arrow(up.d)}`);
+      if(dn.d<=-0.5) parts.push(`Biggest drop: <b>${E(dn.s)}</b> ${arrow(dn.d)}`);
+      if(parts.length) add('📈','Subject movement', up.d>=0.5&&dn.d>-0.5?'good':dn.d<=-0.5&&up.d<0.5?'bad':'info', parts.join(' · ')+'.');
+    }
+  }
+  // 5 · Grades: movement and lowest-performing
+  const gm=(arr)=>{ const o={}; [...gradeSet].forEach(g=>{ const v=arr.filter(x=>x.g===g).map(x=>x.a); if(v.length) o[g]=mean(v); }); return o; };
+  const gL=gm(L), gP=gm(P), gk=Object.keys(gL);
+  const gmv=gk.filter(g=>gP[g]!==undefined).map(g=>({g,d:gL[g]-gP[g]})).sort((a,b)=>b.d-a.d);
+  if(gmv.length===1){
+    const x=gmv[0];
+    add('🏫',`${x.g} average`, x.d>=0.5?'good':x.d<=-0.5?'bad':'info', `<b>${gL[x.g].toFixed(1)}%</b> — ${arrow(x.d,' pts')} since ${E(prevN)}.`, {grade:x.g,assess:latest});
+  } else if(gmv.length>=2){
+    const up=gmv[0], dn=gmv[gmv.length-1], parts=[];
+    if(up.d>=0.5) parts.push(`Most improved: <b>${E(up.g)}</b> ${arrow(up.d)}`);
+    if(dn.d<=-0.5) parts.push(`Biggest drop: <b>${E(dn.g)}</b> ${arrow(dn.d)}`);
+    if(parts.length) add('🏫','Grade movement', up.d>=0.5&&dn.d>-0.5?'good':dn.d<=-0.5&&up.d<0.5?'bad':'info', parts.join(' · ')+'.', {grade:(up.d>=0.5?up:dn).g,assess:latest});
+  }
+  if(gk.length>=2){
+    const ranked=gk.sort((a,b)=>gL[a]-gL[b]);
+    add('🔻','Lowest grade','warn',`<b>${E(ranked[0])}</b> has the lowest average (${gL[ranked[0]].toFixed(1)}%); <b>${E(ranked[ranked.length-1])}</b> the highest (${gL[ranked[ranked.length-1]].toFixed(1)}%).`,{grade:ranked[0],assess:latest});
+  }
+  // 6 · Boys vs girls
+  {
+    const m=L.filter(x=>x.sex==='Male').map(x=>x.a), f=L.filter(x=>x.sex==='Female').map(x=>x.a);
+    if(m.length>=3 && f.length>=3){
+      const d=mean(f)-mean(m);
+      add('⚤','Boys vs girls','info', Math.abs(d)<0.5
+        ? `Boys (<b>${mean(m).toFixed(1)}%</b>) and girls (<b>${mean(f).toFixed(1)}%</b>) are performing level.`
+        : `<b>${d>0?'Girls':'Boys'}</b> lead by <b>${Math.abs(d).toFixed(1)}</b> pts (girls ${mean(f).toFixed(1)}% · boys ${mean(m).toFixed(1)}%).`);
+    }
+  }
+  // 7 · Coverage — a data-quality nudge
+  if(P.length){
+    const d=L.length-P.length, drop=d<0 && Math.abs(d)/P.length>=0.1;
+    add('🧾','Results recorded', drop?'warn':'info', drop
+      ? `<b>${L.length}</b> results vs ${P.length} in ${E(prevN)} — <b>${Math.abs(d)}</b> fewer. Check that no marks are missing.`
+      : `<b>${L.length}</b> results in ${E(latestN)}${d===0?`, same as ${E(prevN)}.`:` (${d>0?'+':'−'}${Math.abs(d)} vs ${E(prevN)}).`}`);
+  }
+
+  box.innerHTML=out.map(o=>`<div class="ins ${o.tone}${o.i>=0?' click':''}"${o.i>=0?` data-i="${o.i}" title="Click to list these students"`:''}><div class="ins-ic">${o.icon}</div><div class="ins-b"><div class="ins-t">${E(o.title)}</div><div class="ins-x">${o.html}</div></div></div>`).join('');
+  box.onclick=e=>{ const el=e.target.closest('.ins[data-i]'); if(el) drillToStudents(_insActions[+el.dataset.i]); };
+}
+window.renderInsights=renderInsights;
+
 /* ─── Term comparison table (Performance Distribution) ─── */
-function _renderDistCompare(terms,byTerm){
+function _renderDistCompare(terms,byTerm,latestTerm){
   const sel=document.getElementById('dist-compare'), box=document.getElementById('dist-cmp');
   if(!sel||!box) return;
   const keep=sel.value||'';
   sel.innerHTML='';
   const o0=document.createElement('option'); o0.value=''; o0.textContent='Compare with…'; sel.appendChild(o0);
-  terms.slice(0,-1).forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent='vs '+t; sel.appendChild(o); });
+  const latest=latestTerm||terms[terms.length-1];
+  terms.filter(t=>t!==latest).forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent='vs '+t; sel.appendChild(o); });
   sel.value=[...sel.options].some(o=>o.value===keep)?keep:'';
-  const base=sel.value, latest=terms[terms.length-1];
+  const base=sel.value;
   if(!base||!latest||!byTerm[base]||!byTerm[latest]){ box.innerHTML=''; return; }
   const pct=(t,b)=>{ const v=byTerm[t]; return v.length? v.filter(b.test).length/v.length*100 : 0; };
   const rows=DIST_BANDS.map((b,i)=>{
@@ -12000,6 +12443,16 @@ function _gradeLevel(g){
   return n<=3?'lower':n<=6?'upper':'junior';
 }
 function _gavgEsc(x){ return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+/** True when the signed-in user is limited to assigned grade(s) (teachers).
+ *  Advanced admins / unrestricted users keep the whole-school overview. */
+function _gavgClassMode(){
+  if(isAdvancedAdmin) return false;
+  if(currentAssignedGrade==='__NONE__' && !currentAssignedGrades.length) return false;
+  return !!(currentAssignedGrades.length || currentAssignedGrade);
+}
+let gradeAvgFocus=null;   // class view: the grade being shown, or '__all__' to overlay every assigned grade
+function setGradeAvgFocus(g){ gradeAvgFocus=g; renderGradeBars(); }
+window.setGradeAvgFocus=setGradeAvgFocus;
 function setGradeAvgLevel(l){ gradeAvgLevel=l; renderGradeBars(); }
 function toggleGradeAvgScale(){ gradeAvgFullScale=!gradeAvgFullScale; renderGradeBars(); }
 window.setGradeAvgLevel=setGradeAvgLevel;
@@ -12011,12 +12464,22 @@ function renderGradeBars(){
   const allGrades=getUniqueGrades();
 
   // Level chips (only levels that actually have grades; hidden if just one)
+  const classMode=_gavgClassMode();
+  if(classMode && gradeAvgFocus!=='__all__' && !allGrades.includes(gradeAvgFocus)) gradeAvgFocus=allGrades[0]||null;
   const present=new Set(allGrades.map(_gradeLevel));
   if(gradeAvgLevel!=='all' && !present.has(gradeAvgLevel)) gradeAvgLevel='all';
   const chips=document.getElementById('gavg-chips');
   if(chips){
     chips.innerHTML='';
-    if(present.size>1) GAVG_LEVELS.forEach(([k,lab])=>{
+    if(classMode){
+      // Teacher with several classes: pick one class, or overlay them all
+      if(allGrades.length>1) [...allGrades.map(g=>[g,g]),['__all__','All my classes']].forEach(([k,lab])=>{
+        const b=document.createElement('button');
+        b.type='button'; b.className='gavg-chip'+(gradeAvgFocus===k?' on':''); b.textContent=lab;
+        b.onclick=()=>setGradeAvgFocus(k);
+        chips.appendChild(b);
+      });
+    } else if(present.size>1) GAVG_LEVELS.forEach(([k,lab])=>{
       if(k!=='all' && !present.has(k)) return;
       const b=document.createElement('button');
       b.type='button'; b.className='gavg-chip'+(gradeAvgLevel===k?' on':''); b.textContent=lab;
@@ -12029,16 +12492,26 @@ function renderGradeBars(){
   if(tb){ tb.hidden=!isAdvancedAdmin; tb.textContent=schoolTarget===null?'🎯 Target':`🎯 Target ${schoolTarget}%`; }
   _loadTargetRemote();
 
-  const grades=gradeAvgLevel==='all' ? allGrades : allGrades.filter(g=>_gradeLevel(g)===gradeAvgLevel);
+  const grades=classMode
+    ? (gradeAvgFocus==='__all__' ? allGrades : (gradeAvgFocus ? [gradeAvgFocus] : []))
+    : (gradeAvgLevel==='all' ? allGrades : allGrades.filter(g=>_gradeLevel(g)===gradeAvgLevel));
+  const single=classMode && grades.length===1;   // one class in focus → full class view
+  const titleEl=document.getElementById('gavg-title');
+  if(titleEl) titleEl.textContent = single ? `${grades[0]} · Class Average` : classMode ? 'My Classes · Averages' : 'Grade Averages';
+  const heroEl=document.getElementById('gavg-hero'); if(heroEl) heroEl.innerHTML='';
 
   const byGradeTerm={}; // grade -> term -> [scores]
   let skipped=0;
   allData.forEach(r=>{
     const g=gShort(r['Grade']);
     if(!grades.includes(g)) return;
-    const t=getRecordTerm(r);
+    const t0=getRecordTerm(r);
     const a=parseFloat(calcStats(r).avg);
-    if(!t||t==='Unknown'||isNaN(a)){ skipped++; return; }
+    if(!t0||t0==='Unknown'||isNaN(a)){ skipped++; return; }
+    // Key by ASSESSMENT ("2026-A1-Mid-Term 1"), not the full identity that
+    // embeds the class — otherwise every grade gets its own x-axis slot and
+    // the lines never line up for comparison.
+    const t=_assessKey(t0);
     const byTerm = byGradeTerm[g] || (byGradeTerm[g]={});
     (byTerm[t] || (byTerm[t]=[])).push(a);
   });
@@ -12074,16 +12547,33 @@ function renderGradeBars(){
       label:g,
       data:terms.map(t=>{ const v=avgOf(g,t); return v===null?null:+v.toFixed(1); }),
       borderColor:color,
-      backgroundColor:color+'22',
-      borderWidth:2.5,
-      tension:.35,
-      pointRadius:3,
-      pointHoverRadius:6,
+      // single class: soft gradient under the line; several: plain lines
+      backgroundColor: single ? (c=>{
+        const a=c.chart.chartArea; if(!a) return color+'22';
+        const gr=c.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);
+        gr.addColorStop(0,color+'55'); gr.addColorStop(1,color+'05'); return gr;
+      }) : color+'22',
+      borderWidth:single?3:2.5,
+      tension:0,            // straight segments: smoothing invents dips/peaks that were never scored
+      pointRadius:single?5:4,
+      pointHoverRadius:7,
       pointBackgroundColor:color,
       spanGaps:true,
-      fill:false,
+      fill:single,
     };
   });
+  // Single class: print each average above its point so no hovering is needed
+  const gavgLabels={ id:'gavgLabels', afterDatasetsDraw(chart){
+    if(!single) return;
+    const {ctx}=chart; ctx.save();
+    ctx.font='700 10.5px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--text')||'#222';
+    chart.data.datasets.forEach((ds,i)=>{
+      if(ds._isTarget || !chart.isDatasetVisible(i)) return;
+      chart.getDatasetMeta(i).data.forEach((pt,j)=>{ const v=ds.data[j]; if(v===null||v===undefined) return; ctx.fillText(v+'%',pt.x,pt.y-8); });
+    });
+    ctx.restore();
+  }};
   if(schoolTarget!==null) datasets.push({
     label:`Target ${schoolTarget}%`, data:terms.map(()=>schoolTarget),
     borderColor:'#95a5a6', borderDash:[6,5], borderWidth:1.5, pointRadius:0, pointHoverRadius:0,
@@ -12104,17 +12594,20 @@ function renderGradeBars(){
   gradeAvgChart=new Chart(ctx,{
     type:'line',
     data:{ labels:terms, datasets },
+    plugins:[gavgLabels],
     options:{
+      layout:{ padding:{ top:single?18:0, right:single?16:0 } },
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
       onHover:(e,_els,chart)=>_chartHoverCursor(e,chart),
       onClick:(e,_els,chart)=>{
         const hit=_chartPick(chart,e); if(!hit) return;
         if(chart.data.datasets[hit.datasetIndex]._isTarget) return;
-        drillToStudents({ grade:chart.data.datasets[hit.datasetIndex].label, term:terms[hit.index] });
+        drillToStudents({ grade:chart.data.datasets[hit.datasetIndex].label, assess:terms[hit.index] });
       },
       plugins:{
         legend:{
+          display: !single || schoolTarget!==null,
           position:'bottom',
           labels:{ color:th.tick, font:{size:10}, boxWidth:12, usePointStyle:true },
           // click = show/hide a grade; double-click = show only that grade (again = show all)
@@ -12143,6 +12636,11 @@ function renderGradeBars(){
     }
   });
 
+  if(rank && single){
+    rank.classList.remove('has-target');
+    rank.onclick=null;
+    _gavgRenderClass(grades[0],terms,avgOf,byGradeTerm,cmp,rank,heroEl);
+  } else
   // Latest-term ranking with change vs each grade's previous term
   if(rank){
     const latest=terms[terms.length-1];
@@ -12166,8 +12664,50 @@ function renderGradeBars(){
           return `<div class="gavg-row" data-grade="${_gavgEsc(r.g)}" data-term="${_gavgEsc(latest)}" title="Click to list these students"><span class="gavg-row-name">${_gavgEsc(r.g)}</span><span class="gavg-row-bar"><i style="width:${Math.max(0,Math.min(100,r.cur))}%;background:${r.color}"></i></span><span class="gavg-row-val">${r.cur.toFixed(1)}%</span>${d}${gap(r.cur)}</div>`;
         }).join('')
       : '';
-    rank.onclick=e=>{ const row=e.target.closest('.gavg-row'); if(row) drillToStudents({ grade:row.dataset.grade, term:row.dataset.term }); };
+    rank.onclick=e=>{ const row=e.target.closest('.gavg-row'); if(row) drillToStudents({ grade:row.dataset.grade, assess:row.dataset.term }); };
   }
+}
+
+/** Mean score per subject for one class in one assessment. */
+function _gavgSubjAvgs(g,key){
+  const acc={};
+  allData.forEach(r=>{
+    if(gShort(r['Grade'])!==g || _assessKey(getRecordTerm(r))!==key) return;
+    getSubjects(r).forEach(s=>{ const v=parseFloat(r[s]); if(!isNaN(v)) (acc[s]||(acc[s]=[])).push(v); });
+  });
+  const out={}; Object.keys(acc).forEach(s=>out[s]=acc[s].reduce((a,b)=>a+b,0)/acc[s].length);
+  return out;
+}
+
+/** Class view: headline tiles (average, change, target gap, learners) and a
+ *  weakest-first subject breakdown for the class's latest assessment. */
+function _gavgRenderClass(g,terms,avgOf,byGradeTerm,cmp,rank,hero){
+  const have=terms.filter(t=>avgOf(g,t)!==null);
+  if(!have.length){ if(hero) hero.innerHTML=''; rank.innerHTML=''; return; }
+  const latest=have[have.length-1];
+  const base=(cmp!=='prev' && cmp!==latest && have.includes(cmp)) ? cmp : (have[have.length-2]||null);
+  const cur=avgOf(g,latest), prev=base?avgOf(g,base):null, d=prev===null?null:cur-prev;
+  const n=byGradeTerm[g]?.[latest]?.length||0;
+  const bandOf=v=>(DIST_BANDS.find(b=>b.test(v))||DIST_BANDS[DIST_BANDS.length-1]);
+  const band=bandOf(cur), lvl=gradeInfo(cur).level;
+  const dCls=d===null?'':d>=0.05?'up':d<=-0.05?'dn':'';
+  const dTxt=d===null?'—':`${d>=0.05?'▲':d<=-0.05?'▼':'•'} ${Math.abs(d).toFixed(1)}`;
+  const gap=schoolTarget===null?null:cur-schoolTarget;
+  if(hero) hero.innerHTML =
+    `<div class="gavg-tile main" style="border-left-color:${band.color}"><span title="${_gavgEsc(latest)}">Latest · ${_gavgEsc(latest)}</span><b>${cur.toFixed(1)}%</b><small>${_gavgEsc(lvl)} · ${_gavgEsc(band.label.replace(/\s*\(.*\)/,''))} band</small></div>`
+    + `<div class="gavg-tile ${dCls}"><span>${base?'vs '+_gavgEsc(base):'Change'}</span><b>${dTxt}</b><small>${d===null?'first assessment':'points'}</small></div>`
+    + (gap!==null?`<div class="gavg-tile ${gap>=0?'up':'dn'}"><span>Target ${schoolTarget}%</span><b>${gap>=0?'+':'−'}${Math.abs(gap).toFixed(1)}</b><small>${gap>=0?'above target':'below target'}</small></div>`:'')
+    + `<div class="gavg-tile"><span>Learners</span><b>${n}</b><small>assessed</small></div>`;
+
+  const now=_gavgSubjAvgs(g,latest), was=base?_gavgSubjAvgs(g,base):{};
+  const rows=Object.keys(now).map(s=>({s,v:now[s],d:was[s]===undefined?null:now[s]-was[s]})).sort((a,b)=>a.v-b.v);
+  rank.innerHTML = rows.length
+    ? `<div class="gavg-rank-hdr">Subjects · ${_gavgEsc(latest)} · weakest first</div>` + rows.map((r,i)=>{
+        const dd=r.d===null?'<span class="gavg-row-d">—</span>'
+          :`<span class="gavg-row-d ${r.d>=0.05?'up':r.d<=-0.05?'dn':''}">${r.d>=0.05?'▲':r.d<=-0.05?'▼':'•'} ${Math.abs(r.d).toFixed(1)}</span>`;
+        return `<div class="gavg-subj${i===0&&rows.length>2?' weak':''}" ${i===0&&rows.length>2?'title="Lowest average this assessment"':''}><span class="gavg-subj-name" title="${_gavgEsc(r.s)}">${_gavgEsc(r.s)}</span><span class="gavg-row-bar"><i style="width:${Math.max(0,Math.min(100,r.v))}%;background:${bandOf(r.v).color}"></i></span><span class="gavg-row-val">${r.v.toFixed(1)}%</span>${dd}</div>`;
+      }).join('')
+    : '';
 }
 
 /* ══════════════════════════════════════════
@@ -13102,7 +13642,10 @@ function filterStudents(){
       if((op==='='||op==='==')&&!(Math.round(avg)===val)) return false;
     }
     if(g&&gShort(r['Grade'])!==g) return false;
-    if(t&&getRecordTerm(r)!==t) return false;
+    if(t){
+      if(t.startsWith('__assess__:')){ if(_assessKey(getRecordTerm(r))!==t.slice(11)) return false; }
+      else if(getRecordTerm(r)!==t) return false;
+    }
     if(gend&&r['Gender']!==gend) return false;
     if(lv&&!calcStats(r).level.includes(lv)) return false;
     return true;
@@ -15561,8 +16104,6 @@ function openSettingsModal(elId, title){
   if(elId==='term-wizard-section'){ var _y=document.getElementById('tw-year'); if(_y&&!_y.value) _y.value=new Date().getFullYear(); twPreview(); }
   if(elId==='term-auto-section') taRender();
   if(elId==='temp-access-section') txLoad();
-  if(elId==='sec-status-section') secLoad();
-  if(elId==='sessions-section') sessLoad();
   body.appendChild(el);
   el.style.display = '';
   document.getElementById('settings-item-modal').classList.add('on');
@@ -15647,7 +16188,7 @@ window.ccRefresh=ccRefresh; window.ccSetChip=ccSetChip; window.ccTrackUse=ccTrac
 ══════════════════════════════════════════ */
 function _ccAdv(){ return typeof isAdvancedAdmin!=='undefined' && isAdvancedAdmin===true; }
 function _ccGateTiles(){
-  ['tile-backup','tile-maint','tile-bulk-perms','tile-term-wizard','tile-term-auto','tile-temp-access','tile-sec-status','tile-sessions'].forEach(function(id){
+  ['tile-backup','tile-maint','tile-bulk-perms','tile-term-wizard','tile-term-auto','tile-temp-access'].forEach(function(id){
     var t=document.getElementById(id); if(!t) return;
     var want=_ccAdv()?'':'none'; if(t.style.display!==want) t.style.display=want;
   });
@@ -15860,97 +16401,6 @@ async function txGrant(){
   }catch(e){ notify('Could not grant: '+e.message,'error'); }
 }
 window.twPreview=twPreview; window.twCreate=twCreate; window.taToggleRem=taToggleRem; window.taSaveRem=taSaveRem; window.taAddLock=taAddLock; window.ccAutoSweep=ccAutoSweep; window.txGrant=txGrant;
-
-/* ══════════════════════════════════════════
-   CONTROL CENTER — Staff Security Status + Active Sessions
-   Firestore: sessions/{uid}_{deviceId} {uid,name,email,deviceId,device,startedAt,lastSeen,revoked}
-              users/{uid}.passkeyDevices.{deviceId} = {at,label}  (mirrored when a passkey is set up / seen on sign-in)
-══════════════════════════════════════════ */
-function _ccDeviceId(){ var d=''; try{ d=localStorage.getItem('kps_device_id')||''; if(!d){ d='d'+Math.random().toString(36).slice(2,10)+Date.now().toString(36); localStorage.setItem('kps_device_id',d); } }catch(e){ d='d'+Date.now().toString(36); } return d; }
-function _ccDeviceLabel(){ var u=navigator.userAgent||'', b=/Edg\//.test(u)?'Edge':/OPR\//.test(u)?'Opera':/Chrome\//.test(u)?'Chrome':/Firefox\//.test(u)?'Firefox':/Safari\//.test(u)?'Safari':'Browser';
-  var o=/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iOS':/Windows/.test(u)?'Windows':/Mac OS/.test(u)?'macOS':/Linux/.test(u)?'Linux':'Unknown OS'; return b+' · '+o; }
-function _ccAgo(ms){ var m=Math.round((Date.now()-ms)/60000); return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' d ago'; }
-/* passkey mirror */
-function ccMirrorPasskey(email,uid){
-  if(!uid||typeof firestoreDb==='undefined'||!firestoreDb||!window._fb) return;
-  var u={}; u['passkeyDevices.'+_ccDeviceId()]={at:new Date().toISOString(),label:_ccDeviceLabel()};
-  window._fb.updateDoc(window._fb.doc(firestoreDb,'users',uid),u).catch(function(){});
-}
-/* session heartbeat + remote sign-out */
-var _ccSess={ready:false,unsub:null,uid:''};
-async function _ccSessBeat(){
-  var F=window._fb, cu=window._currentUser;
-  if(!F||typeof firestoreDb==='undefined'||!firestoreDb) return;
-  if(!cu||!cu.uid){ if(_ccSess.ready){ if(_ccSess.unsub){try{_ccSess.unsub();}catch(e){}} F.deleteDoc(F.doc(firestoreDb,'sessions',_ccSess.uid+'_'+_ccDeviceId())).catch(function(){}); _ccSess={ready:false,unsub:null,uid:''}; } return; }
-  var ref=F.doc(firestoreDb,'sessions',cu.uid+'_'+_ccDeviceId()), now=Date.now(), em=(typeof auth!=='undefined'&&auth&&auth.currentUser&&auth.currentUser.email)||cu.email||'';
-  try{
-    if(!_ccSess.ready||_ccSess.uid!==cu.uid){
-      try{ await F.deleteDoc(ref); }catch(e){}
-      await F.setDoc(ref,{uid:cu.uid,name:currentAdminName||cu.name||'',email:em,deviceId:_ccDeviceId(),device:_ccDeviceLabel(),startedAt:now,lastSeen:now,revoked:false});
-      _ccSess={ready:true,unsub:null,uid:cu.uid};
-      _ccSess.unsub=F.onSnapshot(ref,function(sn){ if(sn.exists()&&sn.data().revoked===true){ try{ notify('You were signed out by an administrator.','warn',6000); }catch(e){} (typeof doSignOut==='function'?doSignOut():F.signOut(auth)); } },function(){});
-      try{ var pk=(typeof PK!=='undefined')&&em&&PK.get(em); if(pk) ccMirrorPasskey(em,cu.uid); }catch(e){}
-    } else { await F.setDoc(ref,{lastSeen:now,name:currentAdminName||cu.name||''},{merge:true}); }
-  }catch(e){}
-}
-setInterval(_ccSessBeat,60000); setTimeout(_ccSessBeat,6000);
-/* Active Sessions panel */
-async function sessLoad(){
-  var box=document.getElementById('se-list'); if(!box||!_ccAdv()) return;
-  try{ var sn=await window._fb.getDocs(window._fb.collection(firestoreDb,'sessions')), rows=[], now=Date.now(), me=_ccDeviceId();
-    sn.forEach(function(d){ var o=d.data(); o._id=d.id; rows.push(o); });
-    rows=rows.filter(function(r){return now-(r.lastSeen||0)<864e5;}).sort(function(a,b){return b.lastSeen-a.lastSeen;});
-    var live=rows.filter(function(r){return now-r.lastSeen<18e4&&!r.revoked;});
-    document.getElementById('se-summary').textContent=live.length+' signed in now · '+rows.length+' device(s) in the last 24 h';
-    box.innerHTML=''; if(!rows.length){ box.innerHTML='<p class="cc-empty">No sessions recorded yet. Devices appear after their next sign-in.</p>'; return; }
-    rows.forEach(function(r){ var on=now-r.lastSeen<18e4&&!r.revoked, row=document.createElement('div'); row.className='setting-row';
-      row.innerHTML='<div class="setting-info"><h4></h4><p></p></div><span style="display:flex;align-items:center;gap:8px"><span class="bdg"></span><button class="btn btn-outline btn-sm">Sign out</button></span>';
-      row.querySelector('h4').textContent=(r.name||r.email||'Unknown')+(r.deviceId===me?' (this device)':'');
-      row.querySelector('p').textContent=r.device+' · '+(r.email||'')+' · active '+_ccAgo(r.lastSeen)+' · since '+_ccFmt(r.startedAt);
-      var b=row.querySelector('.bdg'); b.textContent=r.revoked?'Signed out':on?'Online':'Idle'; b.className='bdg '+(r.revoked?'red':on?'green':'');
-      var btn=row.querySelector('button'); if(r.revoked||r.deviceId===me||!on) btn.style.display='none';
-      btn.addEventListener('click',async function(){ var ok=await showConfirm('Sign out device','Sign out '+(r.name||r.email)+' on '+r.device+'? They will be signed out within a minute.','🖥️','Sign out','btn-red'); if(!ok) return;
-        try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'sessions',r._id),{revoked:true}); logActivity('Signed out device: '+(r.name||r.email)+' ('+r.device+')','act-orange',currentAdminName,{category:'system'}); notify('Sign-out sent.','success'); sessLoad(); }catch(e){ notify('Failed: '+e.message,'error'); } });
-      box.appendChild(row); });
-  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load: '+String(e.message).replace(/</g,'&lt;')+'</p>'; }
-}
-setInterval(function(){ var p=document.getElementById('se-list'); if(p&&p.offsetParent) sessLoad(); },20000);
-window.sessLoad=sessLoad; window.ccMirrorPasskey=ccMirrorPasskey;
-/* Staff Security Status panel */
-var _secUsers=[];
-async function secLoad(){
-  var box=document.getElementById('ss-list'); if(!box||!_ccAdv()) return;
-  try{ var sn=await window._fb.getDocs(window._fb.collection(firestoreDb,'users')); _secUsers=[];
-    sn.forEach(function(d){ var o=d.data(); _secUsers.push({uid:d.id,name:o.name||o.displayName||o.email||d.id,email:o.email||'',adv:o.Advancedadmin===true,devices:Object.keys(o.passkeyDevices||{}).length,req:o.passkeyRequired===true,offer:o.passkeyOffer===true}); });
-    _secUsers.sort(function(a,b){return (a.devices>0)-(b.devices>0)||a.name.localeCompare(b.name);}); secRender();
-  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load: '+String(e.message).replace(/</g,'&lt;')+'</p>'; }
-}
-function secRender(){
-  var box=document.getElementById('ss-list'); if(!box) return; var only=(document.getElementById('ss-filter')||{}).value==='no';
-  var done=_secUsers.filter(function(u){return u.devices>0;}).length;
-  document.getElementById('ss-summary').textContent=done+' of '+_secUsers.length+' staff have a passkey recorded';
-  box.innerHTML=''; var L=_secUsers.filter(function(u){return !only||u.devices===0;});
-  if(!L.length){ box.innerHTML='<p class="cc-empty">Everyone has a passkey recorded. 🎉</p>'; return; }
-  L.forEach(function(u){ var r=document.createElement('div'); r.className='setting-row';
-    r.innerHTML='<div class="setting-info"><h4></h4><p></p></div><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end"><span class="bdg"></span><button class="btn btn-outline btn-sm" data-a="remind">🔔 Remind</button><button class="btn btn-outline btn-sm" data-a="reset">♻️ Reset</button></span>';
-    r.querySelector('h4').textContent=u.name+(u.adv?' · Advanced Admin':''); r.querySelector('p').textContent=u.email+(u.req?' · passkey required':u.offer?' · reminder on':'');
-    var b=r.querySelector('.bdg'); b.textContent=u.devices?'Enrolled · '+u.devices+' device'+(u.devices>1?'s':''):'Not enrolled'; b.className='bdg '+(u.devices?'green':'red');
-    if(u.devices) r.querySelector('[data-a=remind]').style.display='none'; else r.querySelector('[data-a=reset]').style.display='none';
-    r.querySelector('[data-a=remind]').addEventListener('click',function(){ secSet(u,{passkeyOffer:true},'Reminder sent to '+u.name+' — the passkey prompt appears at their next sign-in.'); });
-    r.querySelector('[data-a=reset]').addEventListener('click',async function(){ var ok=await showConfirm('Reset passkey record','Clear '+u.name+'’s recorded passkey devices and prompt them to set one up again at next sign-in?','♻️','Reset','btn-red'); if(ok) secSet(u,{passkeyDevices:{},passkeyOffer:true},'Reset done for '+u.name+'.'); });
-    box.appendChild(r); });
-}
-async function secSet(u,payload,msg){
-  try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',u.uid),payload); logActivity('Passkey '+(payload.passkeyDevices?'reset':'reminder')+' for '+u.name,'act-blue',currentAdminName,{category:'system'}); notify(msg,'success',6000); secLoad(); }
-  catch(e){ notify('Failed: '+e.message,'error'); }
-}
-async function secRemindAll(){
-  var L=_secUsers.filter(function(u){return u.devices===0&&!u.offer;}); if(!L.length){ notify('Everyone not enrolled already has a reminder on.','info'); return; }
-  var ok=await showConfirm('Remind all','Turn on the passkey prompt for '+L.length+' staff who have not set one up?','🔔','Remind','btn-blue'); if(!ok) return;
-  var n=0; for(var i=0;i<L.length;i++){ try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',L[i].uid),{passkeyOffer:true}); n++; }catch(e){} }
-  logActivity('Passkey reminder turned on for '+n+' staff','act-blue',currentAdminName,{category:'system'}); notify('Reminder turned on for '+n+' staff.','success'); secLoad();
-}
-window.secRender=secRender; window.secRemindAll=secRemindAll;
 
 
 (function(){
