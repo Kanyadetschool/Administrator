@@ -5213,13 +5213,91 @@ setInterval(_rotateAuthTip, 5000);
 </div>
 <style>
 @keyframes qeLivePulse{0%,100%{opacity:1}50%{opacity:.35}}
-/* Top-bar chip: scores a teacher still owes + live countdown (see _trUpdateChip) */
-.tr-chip{display:flex;align-items:center;gap:7px;border:1.5px solid var(--tr-c,var(--orange));background:var(--surface);color:var(--text);border-radius:999px;padding:5px 11px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;animation:trChipIn .4s cubic-bezier(.34,1.56,.64,1);}
+/* Teacher score reminder: centred chip under the top bar + centred popup (all screen sizes) */
+.tr-chip{
+  position:fixed;left:0;right:0;margin-inline:auto;width:max-content;max-width:min(88vw,340px);
+  top:var(--tr-top,calc(env(safe-area-inset-top,0px) + 12px));z-index:10030;
+  display:flex;align-items:center;gap:8px;border:1.5px solid var(--tr-c,var(--orange));background:var(--surface);color:var(--text);
+  border-radius:999px;padding:7px 15px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);-webkit-tap-highlight-color:transparent;
+  animation:trChipIn .55s cubic-bezier(.34,1.56,.64,1) both;
+  transition:top .3s ease,border-color .3s ease;
+}
 .tr-chip:active{transform:scale(.96);}
+.tr-chip-n{display:inline-block;animation:trChipTick 2.4s ease-in-out infinite;}
 .tr-chip-time{font-weight:800;}
-@keyframes trChipIn{from{opacity:0;transform:translateY(-8px) scale(.9)}to{opacity:1;transform:none}}
-@media(max-width:480px){.tr-chip-time{display:none;}.tr-chip{padding:5px 9px;}}
-@media(prefers-reduced-motion:reduce){.tr-chip{animation:none;}}
+body.lem-on .tr-chip{top:calc(var(--tr-top,calc(env(safe-area-inset-top,0px) + 12px)) + 44px);} /* sit below the live-editing pill when both show */
+@keyframes trChipIn{from{opacity:0;transform:translateY(-18px) scale(.88)}to{opacity:1;transform:none}}
+@keyframes trChipTick{0%,88%,100%{transform:rotate(0)}91%{transform:rotate(-14deg)}94%{transform:rotate(12deg)}97%{transform:rotate(-6deg)}}
+#tr-remind-modal{align-items:center;justify-content:center;padding:16px;animation:trFade .25s ease both;}
+#tr-remind-modal .modal-box{margin:auto;width:min(420px,100%);max-height:calc(100dvh - 32px);border-radius:var(--radius-xl);animation:trPop .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes trFade{from{opacity:0}to{opacity:1}}
+@keyframes trPop{from{opacity:0;transform:translateY(26px) scale(.9)}to{opacity:1;transform:none}}
+/* ── Teacher reminder popup: hero ring + live clock + progress cards ── */
+#tr-remind-modal.trm-out{animation:trmOut .22s ease both;}
+#tr-remind-modal.trm-out .modal-box{animation:trmBoxOut .22s ease both;}
+@keyframes trmOut{to{opacity:0}}
+@keyframes trmBoxOut{to{opacity:0;transform:translateY(14px) scale(.95)}}
+.trm-box{padding:0!important;display:flex;flex-direction:column;overflow:hidden;position:relative;border:1px solid var(--border-strong);}
+.trm-box::before{content:'';position:absolute;inset:-60px -40px auto -40px;height:190px;pointer-events:none;
+  background:radial-gradient(60% 100% at 30% 0%,var(--tr-c) 0%,transparent 70%);opacity:.22;animation:trmGlow 4s ease-in-out infinite;}
+@keyframes trmGlow{0%,100%{opacity:.18}50%{opacity:.3}}
+.trm-x{position:absolute;top:10px;right:12px;z-index:3;width:30px;height:30px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:13px;transition:transform .15s,background .15s;}
+.trm-x:hover{background:var(--border);transform:rotate(90deg);}
+.trm-hero{position:relative;display:flex;align-items:center;gap:14px;padding:20px 18px 12px;}
+.trm-ring{position:relative;width:76px;height:76px;flex-shrink:0;}
+.trm-ring svg{transform:rotate(-90deg);display:block;}
+.trm-ring circle{fill:none;stroke-width:6;}
+.trm-ring-bg{stroke:var(--border);}
+.trm-ring-fg{stroke:var(--tr-c);stroke-linecap:round;stroke-dasharray:var(--c);stroke-dashoffset:var(--c);animation:trmRing 1.1s .25s cubic-bezier(.22,1,.36,1) forwards;filter:drop-shadow(0 0 4px var(--tr-c));}
+@keyframes trmRing{to{stroke-dashoffset:var(--off);}}
+.trm-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text);}
+.trm-pct b{font-size:20px;font-weight:900;letter-spacing:-.5px;}
+.trm-pct small{font-size:10px;font-weight:800;margin:6px 0 0 1px;color:var(--text2);}
+.trm-hello{min-width:0;padding-right:24px;}
+.trm-pill{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;padding:3px 9px;border-radius:999px;color:var(--tr-c);border:1px solid var(--tr-c);background:var(--surface);}
+.trm-greet{font-size:15px;color:var(--text2);margin-top:7px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.trm-greet b{display:block;font-size:16px;}
+.trm-greet b{color:var(--text);font-weight:800;}
+.trm-sub{font-size:13px;color:var(--text2);margin-top:2px;}
+.trm-count{font-size:22px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;}
+.trm-clock{position:relative;margin:4px 18px 0;padding:10px 12px 12px;border-radius:var(--radius-md);background:var(--surface2);border:1px solid var(--border);}
+.trm-clock-l{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.trm-blks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.trm-blk{display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;border-radius:10px;background:var(--surface);border:1px solid var(--border);}
+.trm-blk b{font-size:22px;font-weight:900;color:var(--tr-c);font-variant-numeric:tabular-nums;line-height:1.1;}
+.trm-blk span{font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);margin-top:2px;}
+.trm-scroll{position:relative;overflow:auto;padding:12px 18px 6px;flex:1;min-height:0;}
+.trm-nudge{font-size:12px;font-weight:700;color:var(--text2);margin:0 0 8px;}
+.trm-card{--c:var(--border-strong);border:1.5px solid var(--c);border-radius:var(--radius-md);padding:12px 13px;margin-bottom:10px;background:var(--surface);animation:trmCard .5s calc(.35s + var(--i)*.09s) cubic-bezier(.22,1,.36,1) both;}
+@keyframes trmCard{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.trm-exam{font-size:13px;font-weight:800;color:var(--text);}
+.trm-due{font-size:11.5px;color:var(--text3);margin:2px 0 9px;}
+.trm-bar,.trm-mini{display:block;height:7px;border-radius:99px;background:var(--border);overflow:hidden;}
+.trm-bar i,.trm-mini i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--tr-c),var(--tr-c));animation:trmFill .9s .5s cubic-bezier(.22,1,.36,1) forwards;}
+.trm-mini{height:5px;flex:1;}
+@keyframes trmFill{to{width:var(--w);}}
+.trm-barlbl{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin:5px 0 8px;}
+.trm-barlbl b{color:var(--text);}
+.trm-row{display:flex;align-items:center;gap:10px;font-size:12px;padding:6px 0;border-top:1px dashed var(--border);}
+.trm-sn{font-weight:700;color:var(--text);flex:0 0 38%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.trm-left{font-weight:800;color:var(--red);white-space:nowrap;min-width:52px;text-align:right;}
+.trm-open{margin-top:8px;width:100%;padding:9px;border-radius:var(--radius-md);border:1.5px solid var(--tr-c);background:transparent;color:var(--text);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;transition:background .15s,color .15s,transform .12s;}
+.trm-open:hover{background:var(--tr-c);color:#fff;}
+.trm-open:active{transform:scale(.97);}
+.trm-foot{position:relative;display:flex;gap:10px;padding:12px 18px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--border);background:var(--surface);}
+.trm-later{flex:0 0 auto;padding:12px 18px;border-radius:var(--radius-md);border:1px solid var(--border-strong);background:var(--surface);color:var(--text2);font:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.trm-go{flex:1;padding:12px;border-radius:var(--radius-md);border:none;background:var(--tr-c);color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18);position:relative;overflow:hidden;transition:transform .12s;animation:trmPulse 2.4s 1.4s ease-in-out infinite;}
+.trm-go:active{transform:scale(.97);}
+.trm-go::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:trmShine 3.2s 1.6s ease-in-out infinite;}
+@keyframes trmShine{0%{left:-60%}55%,100%{left:130%}}
+@keyframes trmPulse{0%,100%{box-shadow:0 6px 18px rgba(0,0,0,.18)}50%{box-shadow:0 6px 24px rgba(0,0,0,.18),0 0 0 6px color-mix(in srgb,var(--tr-c) 22%,transparent)}}
+@media(max-width:380px){.trm-blk b{font-size:19px}.trm-hero{padding:18px 14px 10px}.trm-clock,.trm-scroll,.trm-foot{margin-left:14px;margin-right:14px}.trm-scroll{padding-left:0;padding-right:0}.trm-foot{padding-left:0;padding-right:0;margin:0 14px}}
+@media(prefers-reduced-motion:reduce){
+  #tr-remind-modal.trm-out,#tr-remind-modal.trm-out .modal-box,.trm-box::before,.trm-ring-fg,.trm-card,.trm-bar i,.trm-mini i,.trm-go,.trm-go::after{animation:none!important;}
+  .trm-ring-fg{stroke-dashoffset:var(--off);} .trm-bar i,.trm-mini i{width:var(--w);}
+}
+@media(prefers-reduced-motion:reduce){.tr-chip,.tr-chip-n,#tr-remind-modal,#tr-remind-modal .modal-box{animation:none;}}
 /* Live-editing pill: centred under the top bar (so it never covers the mobile
    hamburger or the page title), glides in/out instead of popping. Top offset
    is measured from the real top bar by _liveEditMiniPlace(). */
@@ -16412,9 +16490,11 @@ async function _trCompute(){
     if(lk && lk.locked) continue;
     if(pe.deadline && _peDeadlineInfo(pe.deadline).overdue) continue;
     let r; try{ r = await computeLiveMissingScoresForExam(grade, compound); }catch(e){ continue; }
+    const classSize = (r.students||[]).length;
+    const subjCount = (r.subjects||[]).filter(sj => _teacherCanEnterSubject(grade, sj)).length;
     const subs = Object.keys(r.missingBySubject||{}).filter(sj => _teacherCanEnterSubject(grade, sj))
-      .map(sj => ({subject:sj, students:r.missingBySubject[sj]}));
-    if(subs.length) items.push({compound, grade, deadline:pe.deadline||0, subs});
+      .map(sj => ({subject:sj, students:r.missingBySubject[sj], total:classSize}));
+    if(subs.length) items.push({compound, grade, deadline:pe.deadline||0, subs, classSize, cells:classSize*Math.max(subjCount, subs.length)});
   }
   items.sort((a,b)=>(a.deadline||Infinity)-(b.deadline||Infinity)); // most urgent first
   return items;
@@ -16432,22 +16512,29 @@ function _trMarkSeen(items){
   items.forEach(x=>{ o[x.compound] = Math.min(o[x.compound]||999, _trBand(x.deadline)); });
   try{ localStorage.setItem(_trSeenKey(), JSON.stringify(o)); }catch(e){}
 }
+/** Keep the chip centred just under the real top bar (never over the hamburger). */
+function _trPlaceChip(){
+  const chip = document.getElementById('tr-chip'); if(!chip) return;
+  const tb = document.querySelector('.topbar'), r = tb ? tb.getBoundingClientRect() : null;
+  if(r && r.height > 0) chip.style.setProperty('--tr-top', (Math.max(0, r.bottom) + 10) + 'px');
+}
+window.addEventListener('resize', ()=>{ try{ _trPlaceChip(); }catch(e){} });
 function _trUpdateChip(){
   let chip = document.getElementById('tr-chip');
   const items = _trItemsLive.filter(x=>!x.deadline || !_peDeadlineInfo(x.deadline).overdue);
   if(!items.length || isAdvancedAdmin){ if(chip) chip.style.display = 'none'; return; }
   if(!chip){
-    const host = document.querySelector('.topbar-right'); if(!host) return;
     chip = document.createElement('button');
     chip.id = 'tr-chip'; chip.type = 'button'; chip.className = 'tr-chip';
     chip.title = 'Scores you still need to enter — tap for details';
     chip.onclick = () => _trShowModal(_trItemsLive);
-    host.insertBefore(chip, host.firstChild);
+    document.body.appendChild(chip);
   }
   const total = items.reduce((a,x)=>a+x.subs.reduce((b,y)=>b+y.students.length,0),0);
   const next = items.find(x=>x.deadline);
   const info = next ? _peDeadlineInfo(next.deadline) : null;
   chip.style.display = '';
+  _trPlaceChip();
   chip.style.setProperty('--tr-c', info ? info.color : 'var(--orange)');
   chip.innerHTML = `<span class="tr-chip-n">⏰ ${total}</span>` + (next ? `<span class="tr-chip-time pe-countdown-badge" data-deadline="${next.deadline}">${info.text}</span>` : '');
 }
@@ -16482,7 +16569,19 @@ async function _trStart(attempt){
   window._trShownUid = uid; // once per login, even if nothing was owed
   _trItemsLive = items; window._trItems = items;
   _trUpdateChip();
-  if(items.length){ _trMarkSeen(items); _trShowModal(items); }
+  if(items.length){
+    // Popup at login only when it matters: a deadline within 3 days shows every login;
+    // anything further off (or with no deadline) shows at most once a day -- the chip
+    // is always there either way.
+    const near = items.some(x=>x.deadline && (x.deadline - Date.now()) <= 3*86400000);
+    const dayKey = 'tr_daily_' + uid, today = new Date().toDateString();
+    let doneToday = false; try{ doneToday = localStorage.getItem(dayKey) === today; }catch(e){}
+    if(near || !doneToday){
+      _trMarkSeen(items);
+      try{ localStorage.setItem(dayKey, today); }catch(e){}
+      _trShowModal(items, false);
+    }
+  }
   clearInterval(_trTimer);
   _trTimer = setInterval(_trTick, 30000);
   clearInterval(window._trRefreshTimer);
@@ -16491,40 +16590,109 @@ async function _trStart(attempt){
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && window._trShownUid) _trRefresh(); });
 function _trShowModal(items, urgent){
   const old = document.getElementById('tr-remind-modal'); if(old) old.remove();
+  if(!items || !items.length) return;
   const E = _annEsc;
-  const total = items.reduce((a,x)=>a+x.subs.reduce((b,y)=>b+y.students.length,0),0);
+  const missOf = x => x.subs.reduce((b,y)=>b+y.students.length,0);
+  const total = items.reduce((a,x)=>a+missOf(x),0);
+  const cells = items.reduce((a,x)=>a+(x.cells||0),0);
+  const done = Math.max(0, cells-total);
+  const pctOf = (d,c) => { if(!c) return 0; const v=Math.round(d/c*100); return (d<c && v>=100) ? 99 : v; };
+  const pct = pctOf(done,cells);
+  const first = items.find(x=>x.deadline) || null;
+  const fdl = first ? _peDeadlineInfo(first.deadline) : null;
+  const accent = fdl ? fdl.color : 'var(--orange)';
+  const hr = new Date().getHours();
+  const greet = hr<12 ? 'Good morning' : hr<17 ? 'Good afternoon' : 'Good evening';
+  const who = (typeof currentAdminName === 'string' && currentAdminName && currentAdminName !== 'Admin') ? currentAdminName : '';
+  const C = 2*Math.PI*30; // ring circumference
   const m = document.createElement('div');
   m.className = 'modal-overlay on'; m.id = 'tr-remind-modal';
-  m.onclick = e => { if(e.target===m) m.remove(); };
+  m.onclick = e => { if(e.target===m) _trCloseModal(); };
+
+  const cards = items.map((x,i)=>{
+    const dl = x.deadline ? _peDeadlineInfo(x.deadline) : null;
+    const n = missOf(x), d = Math.max(0,(x.cells||0)-n), p = pctOf(d,x.cells||0);
+    const rows = x.subs.map(y=>{
+      const sd = Math.max(0,(y.total||0)-y.students.length), sp = pctOf(sd,y.total||0);
+      return `<div class="trm-row" title="${E(y.students.slice(0,15).join(', ')+(y.students.length>15?' …':''))}">
+        <span class="trm-sn">${E(y.subject)}</span>
+        <span class="trm-mini"><i style="--w:${sp}%"></i></span>
+        <span class="trm-left">${y.students.length} left</span>
+      </div>`;
+    }).join('');
+    return `<div class="trm-card" style="--i:${i};--c:${dl?dl.color:'var(--border-strong)'}">
+      <div class="trm-ch">
+        <div class="trm-exam">${E(x.compound)}</div>
+        <div class="trm-due">${dl
+          ? `<span class="pe-countdown-badge" data-deadline="${x.deadline}" style="font-weight:800;color:${dl.color}">${dl.text}</span> · ${E(new Date(x.deadline).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'}))}`
+          : 'No deadline set'}</div>
+      </div>
+      <div class="trm-bar"><i style="--w:${p}%"></i></div>
+      <div class="trm-barlbl"><span>${d} of ${x.cells||0} entered</span><b>${p}%</b></div>
+      <div class="trm-rows">${rows}</div>
+      <button class="trm-open" onclick="_trOpenExam(${i})">Enter ${n} score${n===1?'':'s'} →</button>
+    </div>`;
+  }).join('');
+
+  const blk = (id,l) => `<div class="trm-blk"><b id="trm-${id}">00</b><span>${l}</span></div>`;
+  const nudge = pct>=80 ? 'Almost there — finish strong 💪' : pct>=40 ? 'Good progress, keep going' : 'Let’s get these scores in';
+
   m.innerHTML = `
-    <div class="modal-box" style="max-width:520px;max-height:86vh;overflow:auto">
-      <div class="modal-hdr"><h3>${urgent?'🚨 Deadline getting close':'⏰ Scores still waiting for you'}</h3><button class="modal-close" onclick="document.getElementById('tr-remind-modal').remove()">✕</button></div>
-      <div class="modal-body">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">You have <b>${total}</b> score${total===1?'':'s'} still to enter across <b>${items.length}</b> exam${items.length===1?'':'s'}. Please finish before the deadline.</div>
-        ${items.map((x,i)=>{
-          const dl = x.deadline ? _peDeadlineInfo(x.deadline) : null;
-          const n = x.subs.reduce((a,y)=>a+y.students.length,0);
-          return `<div style="border:1.5px solid ${dl?dl.color:'var(--border-strong)'};border-radius:var(--radius-md);padding:12px 14px;margin-bottom:12px;background:var(--surface2)">
-            <div style="font-size:13px;font-weight:800;color:var(--text)">${E(x.compound)}</div>
-            <div style="font-size:12px;margin:4px 0 8px">${dl
-              ? `<span class="pe-countdown-badge" data-deadline="${x.deadline}" style="font-weight:800;color:${dl.color}">${dl.text}</span> <span style="color:var(--text3)">· due ${E(new Date(x.deadline).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'}))}</span>`
-              : '<span style="color:var(--text3)">No deadline set</span>'}</div>
-            ${x.subs.map(y=>`<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0;border-top:1px dashed var(--border)">
-                <span style="font-weight:700;color:var(--text)">${E(y.subject)}</span>
-                <span style="color:var(--red);font-weight:700;white-space:nowrap" title="${E(y.students.slice(0,15).join(', ')+(y.students.length>15?' …':''))}">${y.students.length} missing</span>
-              </div>`).join('')}
-            <button class="btn btn-green btn-sm" style="margin-top:10px;width:100%" onclick="_trOpenExam(${i})">Open Quick Entry · ${n} to enter →</button>
-          </div>`;
-        }).join('')}
-        <div style="display:flex;justify-content:flex-end"><button class="btn btn-outline btn-sm" onclick="document.getElementById('tr-remind-modal').remove()">Remind me later</button></div>
+    <div class="modal-box trm-box" style="--tr-c:${accent}">
+      <button class="trm-x" onclick="_trCloseModal()" aria-label="Close">✕</button>
+      <div class="trm-hero">
+        <div class="trm-ring">
+          <svg viewBox="0 0 72 72" width="76" height="76"><circle class="trm-ring-bg" cx="36" cy="36" r="30"/><circle class="trm-ring-fg" cx="36" cy="36" r="30" style="--c:${C.toFixed(1)};--off:${(C*(1-pct/100)).toFixed(1)}"/></svg>
+          <div class="trm-pct"><b>${pct}</b><small>%</small></div>
+        </div>
+        <div class="trm-hello">
+          <span class="trm-pill">${urgent?'🚨 Deadline getting close':'⏰ Score reminder'}</span>
+          <div class="trm-greet">${greet}${who?`, <b>${E(who)}</b>`:''}</div>
+          <div class="trm-sub"><b class="trm-count" data-to="${total}">0</b> score${total===1?'':'s'} left · ${items.length} exam${items.length===1?'':'s'}</div>
+        </div>
+      </div>
+      ${first?`<div class="trm-clock" id="trm-clock" data-deadline="${first.deadline}">
+        <div class="trm-clock-l">Next deadline · ${E(first.compound)}</div>
+        <div class="trm-blks">${blk('d','days')}${blk('h','hrs')}${blk('m','min')}${blk('s','sec')}</div>
+      </div>`:''}
+      <div class="trm-scroll"><div class="trm-nudge">${nudge}</div>${cards}</div>
+      <div class="trm-foot">
+        <button class="trm-later" onclick="_trCloseModal()">Later</button>
+        <button class="trm-go" onclick="_trOpenExam(${Math.max(0,items.indexOf(first||items[0]))})">Enter scores now →</button>
       </div>
     </div>`;
   window._trItems = items;
   document.body.appendChild(m);
+
+  // live clock + count-up
+  clearInterval(window._trClockT);
+  if(first){ _trClockTick(); window._trClockT = setInterval(_trClockTick, 1000); }
+  const cnt = m.querySelector('.trm-count');
+  if(cnt){
+    const to = +cnt.dataset.to, t0 = performance.now();
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+    if(reduce){ cnt.textContent = to; }
+    else (function step(t){ const k=Math.min(1,(t-t0)/800); cnt.textContent = Math.round(to*(1-Math.pow(1-k,3))); if(k<1 && document.body.contains(cnt)) requestAnimationFrame(step); else cnt.textContent = to; })(t0);
+  }
 }
+function _trClockTick(){
+  const el = document.getElementById('trm-clock');
+  if(!el){ clearInterval(window._trClockT); return; }
+  let ms = Math.max(0, (+el.dataset.deadline) - Date.now());
+  const d = Math.floor(ms/86400000), h = Math.floor(ms%86400000/3600000), mi = Math.floor(ms%3600000/60000), se = Math.floor(ms%60000/1000);
+  const set=(id,v)=>{ const n=document.getElementById('trm-'+id); if(n){ const t=String(v).padStart(2,'0'); if(n.textContent!==t) n.textContent=t; } };
+  set('d',d); set('h',h); set('m',mi); set('s',se);
+}
+function _trCloseModal(){
+  clearInterval(window._trClockT);
+  const m = document.getElementById('tr-remind-modal'); if(!m) return;
+  m.classList.add('trm-out');
+  setTimeout(()=>{ if(m.parentNode) m.remove(); }, 220);
+}
+window._trCloseModal = _trCloseModal;
 function _trOpenExam(i){
   const x = (window._trItems||[])[i]; if(!x) return;
-  const m = document.getElementById('tr-remind-modal'); if(m) m.remove();
+  _trCloseModal();
   navTo('quickentry', document.querySelector('.nav-item[data-label="Quick Entry"]'));
   setTimeout(()=>{
     const g = document.getElementById('qe-grade'), t = document.getElementById('qe-term');
@@ -21654,7 +21822,7 @@ function _liveEditMiniUpdate(){
   const esaCount = Object.keys(_esaActiveSessions||{}).length;
   const qeCount  = Object.keys(_qeActiveSessions||{}).length; // 0 for non-admins, never watched
   const total = esaCount + qeCount;
-  if(!total){ el.classList.remove('on'); el.setAttribute('aria-hidden','true'); return; }
+  if(!total){ el.classList.remove('on'); el.setAttribute('aria-hidden','true'); document.body.classList.remove('lem-on'); return; }
   let label;
   if(esaCount && qeCount) label = `${esaCount} editing scores · ${qeCount} in Quick Entry`;
   else if(esaCount) label = esaCount === 1 ? '1 person editing a score' : `${esaCount} people editing scores`;
@@ -21667,6 +21835,7 @@ function _liveEditMiniUpdate(){
   }
   _liveEditMiniPlace();
   el.classList.add('on');
+  document.body.classList.add('lem-on');
   el.removeAttribute('aria-hidden');
 }
 
@@ -21843,7 +22012,7 @@ function _esaCleanup(){
   const lModal = document.getElementById('esa-live-list-modal');
   if(lModal) lModal.classList.remove('on');
   const miniEl = document.getElementById('live-edit-mini');
-  if(miniEl){ miniEl.classList.remove('on','bump'); miniEl.setAttribute('aria-hidden','true'); }
+  if(miniEl){ miniEl.classList.remove('on','bump'); miniEl.setAttribute('aria-hidden','true'); document.body.classList.remove('lem-on'); }
   _esaStopPresence();
 }
 window._esaCleanup = _esaCleanup;
