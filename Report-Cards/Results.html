@@ -2132,16 +2132,6 @@
                         </svg>
                             Continue with Google
                         </button>
-                        <button id="sign-in-fingerprint-btn" class="btn btn-outline">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-
-
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
-
-
-                        </svg>
-                            Sign in with Fingerprint
-                        </button>
                     </div>
                     <p class="lg-note">🔒 Authorized staff only · Secured by Google</p>
                 </div>
@@ -2709,7 +2699,6 @@ toggleBtn.addEventListener('click', () => {
         const signInSection = document.getElementById('sign-in-section');
         const dataSection = document.getElementById('data-section');
         const signInGoogleBtn = document.getElementById('sign-in-google-btn');
-        const signInFingerprintBtn = document.getElementById('sign-in-fingerprint-btn');
         const signOutBtn = document.getElementById('sign-out-btn');
         const excelUploadSection = document.getElementById('excel-upload-section');
         const manualEntrySection = document.getElementById('manual-entry-section');
@@ -2854,37 +2843,6 @@ toggleBtn.addEventListener('click', () => {
             }
         };
 
-        // Fingerprint = device unlock for an existing Firebase session (client-side lock).
-        // Firebase custom tokens must be minted server-side, so the credential ID can never be one.
-        const signInWithFingerprint = async () => {
-            if (!window.PublicKeyCredential) {
-                showModal("Fingerprint authentication not supported on this device or browser.");
-                return;
-            }
-            const user = auth.currentUser;
-            const credId = user && localStorage.getItem(`fpCred_${user.uid}`);
-            if (!credId) {
-                showModal("Sign in with Google once first. You will then be offered fingerprint unlock on this device.");
-                return;
-            }
-            try {
-                await navigator.credentials.get({
-                    publicKey: {
-                        challenge: crypto.getRandomValues(new Uint8Array(32)),
-                        rpId: window.location.hostname,
-                        userVerification: 'required',
-                        timeout: 60000,
-                        allowCredentials: [{ type: 'public-key', id: b64ToBuf(credId) }]
-                    }
-                });
-                sessionStorage.setItem('fpUnlocked', '1');
-                location.reload(); // session persists, gate now passes
-            } catch (error) {
-                console.error("Error during fingerprint unlock:", error);
-                showModal(`Fingerprint authentication failed: ${error.message}`);
-            }
-        };
-
         const signOutUser = async () => {
             try {
                 sessionStorage.removeItem('fpUnlocked');
@@ -2918,8 +2876,6 @@ toggleBtn.addEventListener('click', () => {
 
                 // Attach AFTER auth is ready
                 if (signInGoogleBtn) signInGoogleBtn.addEventListener('click', signInWithGoogle);
-                if (signInFingerprintBtn) signInFingerprintBtn.addEventListener('click', signInWithFingerprint);
-
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         // ── Advanced Admin gate ──────────────────────────────────────
@@ -2945,37 +2901,6 @@ toggleBtn.addEventListener('click', () => {
                             return; // onAuthStateChanged will re-fire with user=null and reset the UI
                         }
 
-                        // ── Fingerprint lock / enrolment ─────────────────────────────
-                        const fpKey = `fpCred_${user.uid}`;
-                        if (localStorage.getItem(fpKey) && !fpUnlocked) {
-                            loader.classList.add('hidden');
-                            document.body.classList.add('user-logged-out');
-                            document.body.classList.remove('user-logged-in');
-                            signInSection.classList.remove('hidden');
-                            signOutBtn.classList.remove('hidden');
-                            showModal('🔒 Locked. Tap "Sign in with Fingerprint" to continue.');
-                            return;
-                        }
-                        if (!localStorage.getItem(fpKey) && !localStorage.getItem(fpKey + '_no') && window.PublicKeyCredential) {
-                            if (confirm('Enable fingerprint unlock on this device?')) {
-                                try {
-                                    const cred = await navigator.credentials.create({
-                                        publicKey: {
-                                            challenge: crypto.getRandomValues(new Uint8Array(32)),
-                                            rp: { name: "Kanyadet Results", id: window.location.hostname },
-                                            user: { id: new TextEncoder().encode(user.uid), name: user.email || user.uid, displayName: user.email || user.uid },
-                                            pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
-                                            authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-                                            timeout: 60000,
-                                            attestation: "none"
-                                        }
-                                    });
-                                    localStorage.setItem(fpKey, btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
-                                } catch (e) { console.warn('Fingerprint enrolment skipped:', e); }
-                            } else {
-                                localStorage.setItem(fpKey + '_no', '1');
-                            }
-                        }
                         fpUnlocked = true;
                         sessionStorage.setItem('fpUnlocked', '1');
 
