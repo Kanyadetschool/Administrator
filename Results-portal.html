@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
@@ -2722,6 +2722,50 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
 .auth-toggle .track{box-shadow:var(--clay-pressed);}
 .auth-toggle .thumb{box-shadow:2px 3px 6px rgba(0,0,0,.3), inset 1px 1px 2px rgba(255,255,255,.9);}
 
+#cc-maint-overlay .cc-maint-card{width:min(100%,520px);padding:24px;border:1px solid rgba(127,156,190,.2);border-radius:24px;background:var(--surface,rgba(255,255,255,.06));box-shadow:0 24px 70px rgba(0,0,0,.2);}
+#cc-maint-overlay .cc-maint-scene{position:relative;height:170px;overflow:hidden;margin:0 auto 20px;border-radius:18px;background:linear-gradient(180deg,#a9e4ff 0%,#e8f7ff 74%,#c5e9c1 74%,#9bd58f 100%);}
+#cc-maint-overlay .cc-maint-sun{position:absolute;top:18px;right:34px;width:34px;height:34px;border-radius:50%;background:#ffd166;box-shadow:0 0 0 8px rgba(255,209,102,.22);animation:ccMaintSun 3s ease-in-out infinite;}
+#cc-maint-overlay .cc-maint-cloud{position:absolute;top:34px;left:12%;font-size:25px;opacity:.8;animation:ccMaintCloud 13s linear infinite;}
+#cc-maint-overlay .cc-maint-cloud.cc-maint-cloud-two{top:66px;left:68%;font-size:18px;animation-duration:17s;animation-direction:reverse;}
+#cc-maint-overlay .cc-maint-building{position:absolute;right:7%;bottom:26%;width:72px;height:78px;border-radius:5px 5px 0 0;background:#91a9c5;box-shadow:inset 0 8px rgba(255,255,255,.2);}
+#cc-maint-overlay .cc-maint-building:before{position:absolute;inset:12px 10px;content:"";background:repeating-linear-gradient(90deg,transparent 0 14px,#d9efff 14px 20px,transparent 20px 28px),repeating-linear-gradient(0deg,transparent 0 16px,#d9efff 16px 22px,transparent 22px 30px);}
+#cc-maint-overlay .cc-maint-cone{position:absolute;bottom:16%;z-index:2;font-size:25px;animation:ccMaintCone 1.8s ease-in-out infinite;}
+#cc-maint-overlay .cc-maint-cone-one{left:8%;}
+#cc-maint-overlay .cc-maint-cone-two{right:9%;animation-delay:.35s;}
+#cc-maint-overlay .cc-maint-worker{position:absolute;bottom:13%;z-index:3;font-size:67px;line-height:1;filter:drop-shadow(0 4px 2px rgba(28,52,76,.18));transform-origin:50% 100%;animation:ccMaintWork 1.15s ease-in-out infinite;}
+#cc-maint-overlay .cc-maint-worker-one{left:29%;animation-delay:-.2s;}
+#cc-maint-overlay .cc-maint-worker-two{left:53%;animation-delay:-.75s;}
+#cc-maint-overlay .cc-maint-tool{position:absolute;z-index:4;font-size:25px;transform-origin:80% 80%;animation:ccMaintTool .8s ease-in-out infinite alternate;}
+#cc-maint-overlay .cc-maint-tool-one{left:41%;top:42%;}
+#cc-maint-overlay .cc-maint-tool-two{left:60%;top:52%;animation-delay:-.4s;}
+#cc-maint-overlay .cc-maint-dust{position:absolute;left:47%;bottom:17%;font-size:20px;opacity:.7;animation:ccMaintDust 1.5s ease-out infinite;}
+#cc-maint-overlay .cc-maint-progress{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto 15px;color:var(--text2,var(--text));font-size:11px;font-weight:800;letter-spacing:.08em;}
+#cc-maint-overlay .cc-maint-progress i{width:78px;height:6px;overflow:hidden;border-radius:99px;background:rgba(127,156,190,.25);}
+#cc-maint-overlay .cc-maint-progress i:after{display:block;width:68%;height:100%;border-radius:inherit;content:"";background:linear-gradient(90deg,#38bdf8,#34d399);animation:ccMaintProgress 2.4s ease-in-out infinite alternate;}
+#cc-maint-overlay .cc-maint-card h2{margin:5px 0 8px;font-size:25px;}
+#cc-maint-overlay .cc-maint-copy{margin:0 auto;color:var(--text);opacity:.82;line-height:1.6;}
+#cc-maint-overlay #cc-maint-until{min-height:1em;margin:10px 0 0;color:var(--text2,var(--text));opacity:.78;font-size:12px;}
+#cc-maint-overlay .cc-maint-keep{margin:14px 0 13px;color:var(--text2,var(--text));opacity:.76;font-size:12px;line-height:1.6;}
+#cc-maint-overlay .cc-maint-cheer{padding:9px 14px;border:1px solid rgba(52,211,153,.35);border-radius:999px;background:rgba(52,211,153,.12);color:var(--text);font:inherit;font-size:13px;font-weight:750;cursor:pointer;transition:transform .2s ease,background .2s ease;}
+#cc-maint-overlay .cc-maint-cheer:hover{transform:translateY(-2px);background:rgba(52,211,153,.2);}
+#cc-maint-overlay .cc-maint-cheer:focus-visible{outline:3px solid #34d399;outline-offset:3px;}
+#cc-maint-overlay .cc-maint-cheer:active{transform:scale(.97);}
+#cc-maint-overlay .cc-maint-cheer-status{min-height:1.4em;margin:8px 0 0;color:var(--text2,var(--text));font-size:12px;opacity:.8;}
+#cc-maint-overlay.cc-maint-cheered .cc-maint-worker{animation:ccMaintCheer .65s ease-in-out 3;}
+#cc-maint-overlay.cc-maint-cheered .cc-maint-tool{animation:ccMaintToolCheer .65s ease-in-out 3;}
+#cc-maint-overlay{overflow-y:auto;}
+@keyframes ccMaintWork{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-5px) rotate(2deg)}}
+@keyframes ccMaintTool{from{transform:rotate(-28deg) translateY(0)}to{transform:rotate(24deg) translateY(-5px)}}
+@keyframes ccMaintToolCheer{0%,100%{transform:rotate(-25deg)}50%{transform:rotate(45deg) translateY(-8px)}}
+@keyframes ccMaintCheer{0%,100%{transform:translateY(0) rotate(0)}35%{transform:translateY(-13px) rotate(-8deg)}70%{transform:translateY(-6px) rotate(8deg)}}
+@keyframes ccMaintDust{0%{opacity:0;transform:translate(0,0) scale(.6)}35%{opacity:.75}100%{opacity:0;transform:translate(-12px,-18px) scale(1.3)}}
+@keyframes ccMaintCloud{from{transform:translateX(-35px)}to{transform:translateX(220px)}}
+@keyframes ccMaintSun{50%{transform:scale(1.08);box-shadow:0 0 0 12px rgba(255,209,102,.12)}}
+@keyframes ccMaintCone{50%{transform:translateY(-4px) rotate(5deg)}}
+@keyframes ccMaintProgress{to{width:88%}}
+@media(max-width:480px){#cc-maint-overlay{padding:16px!important}#cc-maint-overlay .cc-maint-card{padding:18px 16px;border-radius:20px}#cc-maint-overlay .cc-maint-scene{height:145px}#cc-maint-overlay .cc-maint-worker{font-size:58px}#cc-maint-overlay .cc-maint-card h2{font-size:22px}}
+@media(prefers-reduced-motion:reduce){#cc-maint-overlay *,#cc-maint-overlay *:before,#cc-maint-overlay *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
 @media print{
   .card, .kpi-card, .table-wrap, .data-table th, #qe-table-card{background:#fff!important;box-shadow:none!important;}
 }
@@ -4135,11 +4179,11 @@ setInterval(_rotateAuthTip, 5000);
           <section class="cc-group" data-cc="staff">
             <header class="cc-group-hdr"><span class="cc-group-ico">🔑</span><div><h3>Staff &amp; Access</h3><p>Who can sign in, what they can see and what they can do</p></div><span class="cc-group-count"></span></header>
             <div class="settings-menu-grid">
-              <button class="settings-tile" data-target="admin-account-section" data-kw="profile name password account" onclick="openSettingsModal('admin-account-section','👤 My Admin Account')">
+              <button class="settings-tile" data-target="admin-account-section" data-kw="profile name password account" onclick="openSettingsModal('admin-account-section','👤 My Profile')">
                 <span class="settings-tile-icon">👤</span>
                 <span class="settings-tile-body">
-                  <span class="settings-tile-title">My Admin Account</span>
-                  <span class="settings-tile-desc">Display name &amp; password</span>
+                  <span class="settings-tile-title">My Profile</span>
+                  <span class="settings-tile-desc">Your name, phone, subject &amp; password</span>
                 </span>
                 <span class="settings-tile-arrow">›</span>
               </button>
@@ -4447,28 +4491,9 @@ setInterval(_rotateAuthTip, 5000);
           </div>
 
           <div class="settings-section" id="admin-account-section">
-            <h3 class="settings-section-title">Admin Account</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Display Name</label>
-                <input type="text" id="setting-admin-name" value="Administrator" placeholder="Your name">
-              </div>
-              <div class="form-group">
-                <label>Role</label>
-                <input type="text" value="Super Admin" disabled style="opacity:.6">
-              </div>
-              <div class="form-group">
-                <label>New Password</label>
-                <input type="password" id="setting-new-pass" placeholder="Leave blank to keep current">
-              </div>
-              <div class="form-group">
-                <label>Confirm Password</label>
-                <input type="password" id="setting-confirm-pass" placeholder="Confirm new password">
-              </div>
-            </div>
-            <div style="margin-top:14px">
-              <button class="btn btn-blue btn-sm" onclick="saveSettings()">💾 Save Settings</button>
-            </div>
+            <h3 class="settings-section-title">My Profile</h3>
+            <p style="font-size:13px;color:var(--text3);line-height:1.6;margin:0 0 14px">Your name, phone, subject and password are managed on the <b>My Profile</b> page, which saves to your real account.</p>
+            <button class="btn btn-blue btn-sm" onclick="closeSettingsModal();navTo('profile',document.getElementById('nav-profile'))">Open My Profile</button>
           </div>
           <!-- add-teacher-panel, grade-assignment-panel, adv-role-panel are appended
                here dynamically by their render functions -->
@@ -5631,7 +5656,7 @@ body.lem-on .tr-chip{top:calc(var(--tr-top,calc(env(safe-area-inset-top,0px) + 1
             <ul>
               <li><b>System &amp; Appearance</b> — Database Connection (leave alone unless you know what you're doing) and Appearance &amp; Preferences (theme, auto-refresh, photos).</li>
               <li><b>Terms, Exams &amp; Records</b> — Term Lock freezes a past term so marks can't be edited; also Pending Exam Entries, Score Entry Deadlines, Extra Subjects and Fix Missing Gender.</li>
-              <li><b>Staff &amp; Access</b> — My Admin Account, plus (Advanced Admin) teacher accounts, grade assignments, admin roles, import permissions and login access.</li>
+              <li><b>Staff &amp; Access</b> — My Profile, plus (Advanced Admin) teacher accounts, grade assignments, admin roles, import permissions and login access.</li>
             </ul>
           </div></div>
         </div>
@@ -17371,7 +17396,18 @@ function _ccMaintRender(){
   if(show&&!ov){
     ov=document.createElement('div'); ov.id='cc-maint-overlay';
     ov.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--bg,#0c1525);color:var(--text,#fff)';
-    ov.innerHTML='<div style="max-width:420px"><div style="font-size:54px">🚧</div><h2 style="margin:10px 0 6px">Portal under maintenance</h2><p id="cc-maint-text" style="opacity:.85;line-height:1.6"></p><p id="cc-maint-until" style="opacity:.75;font-size:12px"></p><p style="opacity:.7;font-size:12px;margin-top:14px">✅ Please keep this page open — it will reopen automatically when maintenance ends. Don’t refresh, so nothing on your screen is lost.</p></div>';
+    ov.innerHTML='<div class="cc-maint-card"><div class="cc-maint-scene" role="img" aria-label="Two animated workers are busy updating the portal"><span class="cc-maint-sun"></span><span class="cc-maint-cloud">☁️</span><span class="cc-maint-cloud cc-maint-cloud-two">☁️</span><span class="cc-maint-building"></span><span class="cc-maint-cone cc-maint-cone-one">🚧</span><span class="cc-maint-cone cc-maint-cone-two">🚧</span><span class="cc-maint-worker cc-maint-worker-one" aria-hidden="true">👷🏽‍♀️</span><span class="cc-maint-worker cc-maint-worker-two" aria-hidden="true">👷🏻‍♂️</span><span class="cc-maint-tool cc-maint-tool-one" aria-hidden="true">🔨</span><span class="cc-maint-tool cc-maint-tool-two" aria-hidden="true">🛠️</span><span class="cc-maint-dust" aria-hidden="true">✨</span></div><div class="cc-maint-progress" aria-hidden="true">CREW AT WORK <i></i> ⚡</div><h2>Portal under maintenance</h2><p id="cc-maint-text" class="cc-maint-copy"></p><p id="cc-maint-until"></p><p class="cc-maint-keep">✅ Please keep this page open — it will reopen automatically when maintenance ends. Don’t refresh, so nothing on your screen is lost.</p><button type="button" class="cc-maint-cheer">👏 Send the crew a cheer</button><p class="cc-maint-cheer-status" aria-live="polite"></p></div>';
+    var cheerButton=ov.querySelector('.cc-maint-cheer'), cheerStatus=ov.querySelector('.cc-maint-cheer-status'), cheers=['The crew heard you — back to work! 💪','Team morale boosted! ✨','Thanks for cheering on the crew! 👏'];
+    var cheerCount=0, cheerTimer;
+    cheerButton.addEventListener('click',function(){
+      cheerCount++;
+      ov.classList.remove('cc-maint-cheered');
+      void ov.offsetWidth;
+      ov.classList.add('cc-maint-cheered');
+      cheerStatus.textContent=cheers[(cheerCount-1)%cheers.length];
+      clearTimeout(cheerTimer);
+      cheerTimer=setTimeout(function(){ov.classList.remove('cc-maint-cheered');},2100);
+    });
     document.body.appendChild(ov);
   }
   if(ov){ if(!show) ov.remove(); else{ ov.querySelector('#cc-maint-text').textContent=_ccMaint.message||'We are updating the portal. Please check back shortly.'; ov.querySelector('#cc-maint-until').textContent=_ccMaint.until?'Expected back: '+_ccFmt(_ccMaint.until):''; } }
