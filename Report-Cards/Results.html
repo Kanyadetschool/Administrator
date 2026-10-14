@@ -10,9 +10,729 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tabulator -->
-    <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
+    <!-- DataGrid: built-in table engine (replaces Tabulator; no external library) -->
+    <script>
+/* ════════════════════════════════════════════════════════════════════
+   DataGrid — self-contained data table engine (no external library).
+   Sorting (multi), header filters, pagination, grouping, row selection,
+   frozen + resizable + draggable columns. API-compatible with the small
+   Tabulator subset this portal used, so the rest of the app is unchanged.
+════════════════════════════════════════════════════════════════════ */
+(function (global) {
+    'use strict';
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
+    var isEmpty = function (v) { return v === undefined || v === null || v === '' || v === '-'; };
+    var NUM_RE = /^-?\d+(\.\d+)?$/;
+    var numOf = function (v) { return typeof v === 'number' ? v : parseFloat(String(v).replace(/,/g, '')); };
+    var strictNum = function (v) { return typeof v === 'number' || NUM_RE.test(String(v).trim()); };
+    var SEL_W = 46;
+
+    function DataGrid(target, opts) {
+        this.el = typeof target === 'string' ? document.querySelector(target) : target;
+        if (!this.el) throw new Error('DataGrid: container not found');
+        this.o = Object.assign({ index: 'id', pagination: false, paginationSize: 25, paginationSizeSelector: [10, 25, 50, 100],
+            paginationButtonCount: 5, selectable: false, movableColumns: false, groupStartOpen: true }, opts || {});
+        this._ev = {}; this._k = 0; this._destroyed = false; this._dirty = true; this._cache = [];
+        this.pageSize = this.o.paginationSize; this.page = 1;
+        this.sorters = []; this.filters = []; this.hf = {};
+        this.groupField = this.o.groupBy || '';
+        this.selected = new Set(); this.groupState = {};
+        var self = this;
+        this._cols = (this.o.columns || []).map(function (def, i) {
+            return { def: def, field: def.field, id: i, visible: def.visible !== false, frozen: !!def.frozen, w: 100 };
+        });
+        this._order = this._cols.slice();
+        this._rows = []; this._map = new Map();
+        (this.o.data || []).forEach(function (d) { self._addRowInternal(d); });
+        this._buildDom();
+        this._autoWidths();
+        this._renderAll();
+        this._onWinResize = function () { self._applyWidths(); };
+        if (typeof ResizeObserver !== 'undefined') {
+            this._ro = new ResizeObserver(function () { if (self._lastCW !== self.holder.clientWidth) self._applyWidths(); });
+            this._ro.observe(this.holder);
+        } else window.addEventListener('resize', this._onWinResize);
+        setTimeout(function () { if (!self._destroyed) self._emit('tableBuilt'); }, 0);
+    }
+
+    var P = DataGrid.prototype;
+
+    /* ── events ─────────────────────────────────────────────────── */
+    P.on = function (name, fn) { (this._ev[name] = this._ev[name] || []).push(fn); };
+    P.off = function (name, fn) {
+        if (!fn) { delete this._ev[name]; this.o[name] = null; return; }
+        this._ev[name] = (this._ev[name] || []).filter(function (f) { return f !== fn; });
+    };
+    P._emit = function (name) {
+        var args = Array.prototype.slice.call(arguments, 1), self = this;
+        try { if (typeof this.o[name] === 'function') this.o[name].apply(this, args); } catch (e) { console.error('[DataGrid]', name, e); }
+        (this._ev[name] || []).slice().forEach(function (f) { try { f.apply(self, args); } catch (e) { console.error('[DataGrid]', name, e); } });
+    };
+
+    /* ── rows ───────────────────────────────────────────────────── */
+    P._addRowInternal = function (d) {
+        var row = { k: ++this._k, data: d, comp: null };
+        this._rows.push(row);
+        var id = d[this.o.index]; if (id !== undefined) this._map.set(String(id), row);
+        return row;
+    };
+    P._rowComp = function (row) {
+        var g = this;
+        if (!row.comp) row.comp = {
+            getData: function () { return row.data; },
+            getIndex: function () { return row.data[g.o.index]; },
+            getElement: function () { return g.el.querySelector('tr[data-k="' + row.k + '"]'); },
+            update: function (d) {
+                var old = row.data[g.o.index]; Object.assign(row.data, d);
+                if (d && d[g.o.index] !== undefined && d[g.o.index] !== old) { g._map.delete(String(old)); g._map.set(String(d[g.o.index]), row); }
+                g._dataChanged(); return Promise.resolve();
+            },
+            delete: function () { g._removeRow(row); return Promise.resolve(); },
+            isSelected: function () { return g.selected.has(row); },
+            select: function () { g.selected.add(row); g._syncSel(); },
+            deselect: function () { g.selected.delete(row); g._syncSel(); }
+        };
+        return row.comp;
+    };
+    P._removeRow = function (row) {
+        var i = this._rows.indexOf(row); if (i > -1) this._rows.splice(i, 1);
+        this._map.delete(String(row.data[this.o.index])); this.selected.delete(row);
+        this._dataChanged();
+    };
+    P._dataChanged = function () { this._dirty = true; this._renderBody(); this._renderFoot(); this._emit('dataFiltered', this.filters, this._cache.map(function (r) { return r.data; })); };
+    P.getRow = function (id) { var r = this._map.get(String(id)); return r ? this._rowComp(r) : false; };
+    P.addRow = function (d, top) {
+        var row = this._addRowInternal(d);
+        if (top) { this._rows.pop(); this._rows.unshift(row); }
+        this._dataChanged(); return Promise.resolve(this._rowComp(row));
+    };
+    P.replaceData = function (arr) {
+        var self = this; this._rows = []; this._map.clear(); this.selected.clear();
+        (arr || []).forEach(function (d) { self._addRowInternal(d); });
+        this._dirty = true; this._renderBody(); this._renderFoot(); this._syncSel();
+        this._emit('dataFiltered', this.filters, this._cache.map(function (r) { return r.data; }));
+        return Promise.resolve();
+    };
+    P.setData = P.replaceData;
+    P.getDataCount = function () { return this._rows.length; };
+    P.getData = function (type) {
+        if (type === 'active') return this._getActive().map(function (r) { return r.data; });
+        if (type === 'selected') return this.getSelectedData();
+        return this._rows.map(function (r) { return r.data; });
+    };
+    P.getSelectedData = function () { return this._rows.filter(function (r) { return this.selected.has(r); }, this).map(function (r) { return r.data; }); };
+    P.getSelectedRows = function () { var g = this; return this._rows.filter(function (r) { return g.selected.has(r); }).map(function (r) { return g._rowComp(r); }); };
+    P.deselectRow = function () { this.selected.clear(); this._syncSel(); };
+
+    /* ── columns ────────────────────────────────────────────────── */
+    P._colByField = function (f) { for (var i = 0; i < this._cols.length; i++) if (this._cols[i].field === f) return this._cols[i]; return null; };
+    P._colComp = function (c) {
+        var g = this;
+        if (!c.comp) c.comp = {
+            getField: function () { return c.field; }, isVisible: function () { return c.visible; },
+            getDefinition: function () { return c.def; },
+            show: function () { c.visible = true; g._relayout(); }, hide: function () { c.visible = false; g._relayout(); },
+            toggle: function () { c.visible = !c.visible; g._relayout(); }
+        };
+        return c.comp;
+    };
+    P.getColumns = function () { var g = this; return this._order.map(function (c) { return g._colComp(c); }); };
+    P._visList = function () {
+        var vis = this._order.filter(function (c) { return c.visible; });
+        var list = vis.filter(function (c) { return c.frozen; }).concat(vis.filter(function (c) { return !c.frozen; }));
+        if (this.o.selectable) list.unshift({ sel: true, w: SEL_W, frozen: true });
+        return list;
+    };
+    P._autoWidths = function () {
+        var sample = this._rows.slice(0, 60);
+        this._cols.forEach(function (c) {
+            var d = c.def, minW = d.minWidth || 70;
+            if (d.width) { c.w = d.width; return; }
+            var est = String(d.title || d.field || '').length * 8.4 + 46;
+            sample.forEach(function (r) { var v = r.data[c.field]; if (!isEmpty(v)) est = Math.max(est, Math.min(String(v).length, 40) * 7.4 + 30); });
+            c.w = Math.round(Math.min(Math.max(est, minW, 90), 340));
+        });
+    };
+    P._effW = function (vis) {
+        var sum = vis.reduce(function (a, c) { return a + c.w; }, 0);
+        var cw = this.holder.clientWidth || 0; this._lastCW = cw;
+        var eff = vis.map(function (c) { return c.w; });
+        if (cw > sum && eff.length) eff[eff.length - 1] += (cw - sum);
+        return eff;
+    };
+    P._lefts = function (vis, eff) {
+        var l = 0; return vis.map(function (c, i) { var cur = l; if (c.frozen) l += eff[i]; return cur; });
+    };
+    P._applyWidths = function () {
+        if (this._destroyed) return;
+        var vis = this._visList(), eff = this._effW(vis), lefts = this._lefts(vis, eff);
+        var cols = this.table.querySelectorAll('col');
+        var total = 0;
+        for (var i = 0; i < cols.length; i++) { cols[i].style.width = eff[i] + 'px'; total += eff[i]; }
+        this.table.style.width = total + 'px';
+        var fz = this.table.querySelectorAll('[data-ci]');
+        for (var j = 0; j < fz.length; j++) { var ix = +fz[j].getAttribute('data-ci'); if (vis[ix] && vis[ix].frozen) fz[j].style.left = lefts[ix] + 'px'; }
+    };
+    P._relayout = function () { this._renderHead(); this._renderBody(); this._renderFoot(); };
+    P.redraw = function (force) { if (force) this._autoWidths(); this._relayout(); };
+
+    /* ── filter / sort / group ──────────────────────────────────── */
+    function cmpType(a, type, val) {
+        var sa = String(a == null ? '' : a), sv = String(val == null ? '' : val);
+        switch (type) {
+            case '=': case '==': return sa === sv || (strictNum(sa) && strictNum(sv) && numOf(sa) === numOf(sv));
+            case '!=': return !(sa === sv);
+            case 'like': return sa.toLowerCase().indexOf(sv.toLowerCase()) > -1;
+            case '<': return numOf(a) < numOf(val); case '<=': return numOf(a) <= numOf(val);
+            case '>': return numOf(a) > numOf(val); case '>=': return numOf(a) >= numOf(val);
+            case 'in': return Array.isArray(val) && val.map(String).indexOf(sa) > -1;
+        }
+        return true;
+    }
+    function hfMatch(v, mode, q) {
+        var s = String(v == null ? '' : v);
+        if (mode === 'select') return s.toLowerCase() === String(q).toLowerCase();
+        if (mode === 'number') {
+            var m = String(q).match(/^\s*(>=|<=|>|<|=)?\s*(-?\d+(?:\.\d+)?)\s*$/);
+            if (m && !isEmpty(v)) { var n = numOf(v), t = parseFloat(m[2]); if (isNaN(n)) return false;
+                switch (m[1]) { case '>': return n > t; case '>=': return n >= t; case '<': return n < t; case '<=': return n <= t; default: return n === t; } }
+        }
+        return s.toLowerCase().indexOf(String(q).toLowerCase()) > -1;
+    }
+    P._matches = function (row) {
+        var i, f;
+        for (i = 0; i < this.filters.length; i++) {
+            f = this.filters[i];
+            if (typeof f.fn === 'function') { if (!f.fn(row.data)) return false; }
+            else if (!cmpType(row.data[f.field], f.type, f.value)) return false;
+        }
+        for (var field in this.hf) {
+            var q = this.hf[field]; if (q === '' || q == null) continue;
+            var col = this._colByField(field); if (!col) continue;
+            if (!hfMatch(row.data[field], col.def.headerFilter, q)) return false;
+        }
+        return true;
+    };
+    P._getActive = function () {
+        if (!this._dirty) return this._cache;
+        var self = this, list = this._rows.filter(function (r) { return self._matches(r); });
+        if (this.sorters.length) {
+            var S = this.sorters.map(function (s) { var c = self._colByField(s.field); return { f: s.field, d: s.dir === 'desc' ? -1 : 1, num: !!(c && c.def.sorter === 'number') }; });
+            list.sort(function (a, b) {
+                for (var i = 0; i < S.length; i++) {
+                    var s = S[i], av = a.data[s.f], bv = b.data[s.f], ae = isEmpty(av), be = isEmpty(bv);
+                    if (ae || be) { if (ae && be) continue; return ae ? 1 : -1; }
+                    var r;
+                    if (s.num || (strictNum(av) && strictNum(bv))) r = numOf(av) - numOf(bv);
+                    else r = String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: 'base' });
+                    if (r) return r * s.d;
+                }
+                return a.k - b.k;
+            });
+        }
+        if (this.groupField) {
+            var groups = new Map();
+            list.forEach(function (r) { var gk = String(r.data[self.groupField] == null ? '' : r.data[self.groupField]); if (!groups.has(gk)) groups.set(gk, []); groups.get(gk).push(r); });
+            list = []; groups.forEach(function (arr) { list = list.concat(arr); });
+        }
+        this._cache = list; this._dirty = false; return list;
+    };
+    P.addFilter = function (a, b, c) {
+        if (typeof a === 'function') this.filters.push({ fn: a });
+        else if (Array.isArray(a)) { var g = this; a.forEach(function (f) { g.filters.push({ field: f.field, type: f.type, value: f.value }); }); }
+        else this.filters.push({ field: a, type: b, value: c });
+        this.page = 1; this._filtersChanged();
+    };
+    P.setFilter = function (a, b, c) { this.filters = []; this.addFilter(a, b, c); };
+    P.clearFilter = function (includeHeader) {
+        this.filters = [];
+        if (includeHeader) { this.hf = {}; var ins = this.el.querySelectorAll('.dg-fi'); for (var i = 0; i < ins.length; i++) ins[i].value = ''; }
+        this.page = 1; this._filtersChanged();
+    };
+    P._filtersChanged = function () {
+        this._dirty = true; this._renderBody(true); this._renderFoot();
+        this._emit('dataFiltered', this.filters, this._getActive().map(function (r) { return r.data; }));
+    };
+    P.setSort = function (a, b) {
+        var list = Array.isArray(a) ? a : [{ field: a, dir: b || 'asc' }];
+        this.sorters = list.map(function (s) { return { field: s.field || s.column, dir: (s.dir === 'desc' ? 'desc' : 'asc') }; });
+        this._sortChanged();
+    };
+    P.clearSort = function () { this.sorters = []; this._sortChanged(); };
+    P._sortChanged = function () {
+        this._dirty = true; this._renderHead(); this._renderBody(); this._renderFoot();
+        this._emit('dataSorted', this.sorters.slice(), []);
+    };
+    P.getSorters = function () { return this.sorters.slice(); };
+    P.setGroupBy = function (f) { this.groupField = f || ''; this._dirty = true; this._renderBody(true); this._renderFoot(); };
+    P.setPageSize = function (n) { this.pageSize = +n || this.pageSize; this.page = 1; this._renderBody(true); this._renderFoot(); this._emit('pageLoaded', 1); };
+    P.setPage = function (n) {
+        var pages = this._pages(); this.page = Math.max(1, Math.min(pages, +n || 1));
+        this._renderBody(true); this._renderFoot(); this._emit('pageLoaded', this.page);
+    };
+    P.getPage = function () { return this.page; };
+    P._pages = function () { return this.o.pagination ? Math.max(1, Math.ceil(this._getActive().length / this.pageSize)) : 1; };
+
+    /* ── DOM ────────────────────────────────────────────────────── */
+    P._buildDom = function () {
+        var g = this, o = this.o;
+        this.el.innerHTML = '';
+        this.root = document.createElement('div'); this.root.className = 'dg';
+        if (o.height) this.root.style.height = typeof o.height === 'number' ? o.height + 'px' : o.height;
+        if (o.minHeight) this.root.style.minHeight = o.minHeight + 'px';
+        this.root.innerHTML = '<div class="dg-holder"><table class="dg-table"><colgroup></colgroup><thead></thead><tbody></tbody></table></div><div class="dg-footer"></div>';
+        this.el.appendChild(this.root);
+        this.holder = this.root.querySelector('.dg-holder'); this.table = this.root.querySelector('.dg-table');
+        this.colgroup = this.table.querySelector('colgroup'); this.thead = this.table.querySelector('thead');
+        this.tbody = this.table.querySelector('tbody'); this.footer = this.root.querySelector('.dg-footer');
+
+        this.holder.addEventListener('click', function (e) { g._onClick(e); });
+        this.holder.addEventListener('dblclick', function (e) {
+            var tr = e.target.closest && e.target.closest('tr.dg-row'); if (!tr) return;
+            var row = g._byK(tr.getAttribute('data-k')); if (row) g._emit('rowDblClick', e, g._rowComp(row));
+        });
+        this.holder.addEventListener('change', function (e) { g._onChange(e); });
+        var t = null;
+        this.holder.addEventListener('input', function (e) {
+            if (!e.target.classList.contains('dg-fi') || e.target.tagName === 'SELECT') return;
+            clearTimeout(t); t = setTimeout(function () { g._setHF(e.target); }, 170);
+        });
+        this.holder.addEventListener('mousedown', function (e) { if (e.target.classList.contains('dg-rs')) g._startResize(e); });
+        this.holder.addEventListener('dragstart', function (e) {
+            var th = e.target.closest && e.target.closest('th[data-ci]'); if (!th) return;
+            g._dragCi = +th.getAttribute('data-ci'); try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'col'); } catch (x) {}
+        });
+        this.holder.addEventListener('dragover', function (e) { if (g._dragCi != null) e.preventDefault(); });
+        this.holder.addEventListener('drop', function (e) {
+            if (g._dragCi == null) return; e.preventDefault();
+            var th = e.target.closest && e.target.closest('th[data-ci]'); if (!th) { g._dragCi = null; return; }
+            g._moveCol(g._dragCi, +th.getAttribute('data-ci')); g._dragCi = null;
+        });
+        this.holder.addEventListener('dragend', function () { g._dragCi = null; });
+        this.footer.addEventListener('click', function (e) {
+            var b = e.target.closest && e.target.closest('button[data-page]'); if (b && !b.disabled) g.setPage(+b.getAttribute('data-page'));
+        });
+        this.footer.addEventListener('change', function (e) { if (e.target.classList.contains('dg-size')) g.setPageSize(e.target.value); });
+    };
+    P._byK = function (k) { k = +k; for (var i = 0; i < this._rows.length; i++) if (this._rows[i].k === k) return this._rows[i]; return null; };
+
+    P._onClick = function (e) {
+        var t = e.target, g = this;
+        if (t.classList.contains('dg-rs')) return;
+        var th = t.closest('th[data-ci]');
+        if (th && !t.closest('.dg-fi') && !th.classList.contains('dg-fth') && !t.classList.contains('dg-cb')) {
+            var vis = this._visList(), c = vis[+th.getAttribute('data-ci')];
+            if (c && !c.sel && c.def.headerSort !== false) this._toggleSort(c.field, e.shiftKey);
+            return;
+        }
+        var gr = t.closest('tr.dg-group');
+        if (gr) { var gk = gr.getAttribute('data-g'); this.groupState[gk] = this.groupState[gk] === undefined ? !this.o.groupStartOpen : !this.groupState[gk]; this._renderBody(); this._renderFoot(); return; }
+        var tr = t.closest('tr.dg-row'); if (!tr) return;
+        if (t.classList.contains('dg-cb') || t.closest('.dg-cbw')) return;
+        var row = this._byK(tr.getAttribute('data-k')); if (!row) return;
+        if (this.o.selectable && (e.ctrlKey || e.metaKey)) { this.selected.has(row) ? this.selected.delete(row) : this.selected.add(row); this._syncSel(); return; }
+        this._emit('rowClick', e, this._rowComp(row));
+    };
+    P._onChange = function (e) {
+        var t = e.target;
+        if (t.classList.contains('dg-all')) {
+            var act = this._getActive();
+            if (t.checked) act.forEach(function (r) { this.selected.add(r); }, this); else act.forEach(function (r) { this.selected.delete(r); }, this);
+            this._syncSel(); return;
+        }
+        if (t.classList.contains('dg-cb') && t.hasAttribute('data-k')) {
+            var row = this._byK(t.getAttribute('data-k')); if (!row) return;
+            t.checked ? this.selected.add(row) : this.selected.delete(row); this._syncSel(); return;
+        }
+        if (t.classList.contains('dg-fi') && t.tagName === 'SELECT') this._setHF(t);
+    };
+    P._setHF = function (inp) {
+        this.hf[inp.getAttribute('data-f')] = inp.value; this.page = 1; this._filtersChanged();
+    };
+    P._toggleSort = function (field, multi) {
+        var cur = this.sorters.filter(function (s) { return s.field === field; })[0];
+        var next = !cur ? 'asc' : cur.dir === 'asc' ? 'desc' : null;
+        if (multi) {
+            this.sorters = this.sorters.filter(function (s) { return s.field !== field; });
+            if (next) this.sorters.push({ field: field, dir: next });
+        } else this.sorters = next ? [{ field: field, dir: next }] : [];
+        this._sortChanged();
+    };
+    P._syncSel = function () {
+        var g = this, cbs = this.tbody.querySelectorAll('.dg-cb[data-k]');
+        for (var i = 0; i < cbs.length; i++) {
+            var row = this._byK(cbs[i].getAttribute('data-k')), on = !!row && this.selected.has(row);
+            cbs[i].checked = on; var tr = cbs[i].closest('tr'); if (tr) tr.classList.toggle('dg-sel', on);
+        }
+        var all = this.thead.querySelector('.dg-all');
+        if (all) {
+            var act = this._getActive(), n = act.filter(function (r) { return g.selected.has(r); }).length;
+            all.checked = act.length > 0 && n === act.length; all.indeterminate = n > 0 && n < act.length;
+        }
+        this._renderFoot();
+        this._emit('rowSelectionChanged', this.getSelectedData());
+    };
+    P._startResize = function (e) {
+        e.preventDefault(); e.stopPropagation();
+        var g = this, vis = this._visList(), th = e.target.closest('th'), c = vis[+th.getAttribute('data-ci')];
+        if (!c || c.sel || c.def.resizable === false) return;
+        var x0 = e.clientX, w0 = c.w, minW = c.def.minWidth || 50;
+        document.body.classList.add('dg-resizing');
+        var mv = function (ev) { c.w = Math.max(minW, Math.round(w0 + ev.clientX - x0)); g._applyWidths(); };
+        var up = function () { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); document.body.classList.remove('dg-resizing'); };
+        document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+    };
+    P._moveCol = function (fromIx, toIx) {
+        var vis = this._visList(), a = vis[fromIx], b = vis[toIx];
+        if (!a || !b || a === b || a.sel || b.sel || a.frozen || b.frozen) return;
+        var from = this._order.indexOf(a), to = this._order.indexOf(b);
+        this._order.splice(from, 1); this._order.splice(this._order.indexOf(b) + (from < to ? 1 : 0), 0, a);
+        this._relayout();
+    };
+
+    /* ── rendering ──────────────────────────────────────────────── */
+    P._renderAll = function () { this._renderHead(); this._renderBody(true); this._renderFoot(); };
+    P._renderHead = function () {
+        var g = this, vis = this._visList(), eff = this._effW(vis), lefts = this._lefts(vis, eff), lastFz = -1, anyF = false;
+        vis.forEach(function (c, i) { if (c.frozen) lastFz = i; if (!c.sel && c.def.headerFilter) anyF = true; });
+        this.colgroup.innerHTML = eff.map(function (w) { return '<col style="width:' + w + 'px">'; }).join('');
+        this.table.style.width = eff.reduce(function (a, b) { return a + b; }, 0) + 'px';
+        var r1 = '', r2 = '';
+        vis.forEach(function (c, i) {
+            var fz = c.frozen ? ' dg-fz' + (i === lastFz ? ' dg-fz-last' : '') : '', st = c.frozen ? ' style="left:' + lefts[i] + 'px"' : '';
+            if (c.sel) {
+                r1 += '<th class="dg-th dg-fz dg-fz-sel' + (i === lastFz ? ' dg-fz-last' : '') + '" data-ci="' + i + '"' + st + '><label class="dg-cbw"><input type="checkbox" class="dg-cb dg-all" aria-label="Select all"></label></th>';
+                r2 += '<th class="dg-fth dg-fz' + (i === lastFz ? ' dg-fz-last' : '') + '" data-ci="' + i + '"' + st + '></th>'; return;
+            }
+            var d = c.def, al = d.headerHozAlign || d.hozAlign, sortable = d.headerSort !== false;
+            var s = g.sorters.map(function (x, ix) { return x.field === c.field ? { dir: x.dir, n: ix + 1 } : null; }).filter(Boolean)[0];
+            var drag = g.o.movableColumns && !c.frozen ? ' draggable="true"' : '';
+            r1 += '<th class="dg-th' + fz + (sortable ? ' dg-sortable' : '') + (al === 'center' ? ' dg-al-c' : '') + (s ? ' dg-sorted' : '') + '" data-ci="' + i + '"' + st + drag + '>' +
+                '<div class="dg-thin"><span class="dg-title" title="' + esc(d.title || d.field) + '">' + esc(d.title || d.field) + '</span>' +
+                (sortable ? '<span class="dg-si' + (s ? ' dg-' + s.dir : '') + '">' + (s && g.sorters.length > 1 ? '<b>' + s.n + '</b>' : '') + '</span>' : '') + '</div>' +
+                (d.resizable !== false ? '<i class="dg-rs"></i>' : '') + '</th>';
+            var f = '';
+            if (d.headerFilter) {
+                var val = g.hf[c.field] == null ? '' : g.hf[c.field];
+                if (d.headerFilter === 'select') {
+                    var vals = (d.headerFilterParams && d.headerFilterParams.values) || {}, opts = Array.isArray(vals) ? vals.map(function (v) { return [v, v]; }) : Object.keys(vals).map(function (k) { return [k, vals[k]]; });
+                    f = '<select class="dg-fi" data-f="' + esc(c.field) + '">' + opts.map(function (p) { return '<option value="' + esc(p[0]) + '"' + (String(p[0]) === String(val) ? ' selected' : '') + '>' + esc(p[1]) + '</option>'; }).join('') + '</select>';
+                } else f = '<input class="dg-fi" data-f="' + esc(c.field) + '" value="' + esc(val) + '" placeholder="' + esc(d.headerFilterPlaceholder || (d.headerFilter === 'number' ? '> 50' : 'Filter…')) + '" autocomplete="off">';
+            }
+            r2 += '<th class="dg-fth' + fz + '" data-ci="' + i + '"' + st + '>' + f + '</th>';
+        });
+        this.thead.innerHTML = '<tr class="dg-hr">' + r1 + '</tr>' + (anyF ? '<tr class="dg-fr">' + r2 + '</tr>' : '');
+        this.root.classList.toggle('dg-has-filters', anyF);
+    };
+    P._renderBody = function (resetScroll) {
+        var g = this, vis = this._visList(), eff = this._effW(vis), lefts = this._lefts(vis, eff);
+        var list = this._getActive(), total = list.length, o = this.o;
+        if (o.pagination) { var pages = this._pages(); if (this.page > pages) this.page = pages; }
+        var slice = o.pagination ? list.slice((this.page - 1) * this.pageSize, this.page * this.pageSize) : list;
+        var lastFz = -1; vis.forEach(function (c, i) { if (c.frozen) lastFz = i; });
+        var sl = this.holder.scrollLeft, st = this.holder.scrollTop, html = '', prevG = null, alt = 0, closed = false;
+        var gCounts = null;
+        if (this.groupField) { gCounts = {}; list.forEach(function (r) { var k = String(r.data[g.groupField] == null ? '' : r.data[g.groupField]); gCounts[k] = (gCounts[k] || 0) + 1; }); }
+        slice.forEach(function (row) {
+            if (g.groupField) {
+                var gk = String(row.data[g.groupField] == null ? '' : row.data[g.groupField]);
+                if (gk !== prevG) {
+                    prevG = gk; var open = g.groupState[gk] === undefined ? o.groupStartOpen !== false : g.groupState[gk]; closed = !open; alt = 0;
+                    var label = typeof o.groupHeader === 'function' ? o.groupHeader(gk, gCounts[gk], null, null) : esc(gk) + ' (' + gCounts[gk] + ')';
+                    html += '<tr class="dg-group' + (open ? '' : ' dg-closed') + '" data-g="' + esc(gk) + '"><td colspan="' + vis.length + '"><span class="dg-gin"><i class="dg-caret"></i>' + label + '</span></td></tr>';
+                }
+                if (closed) return;
+            }
+            var sel = g.selected.has(row), cells = '';
+            vis.forEach(function (c, i) {
+                var fz = c.frozen ? ' dg-fz' + (i === lastFz ? ' dg-fz-last' : '') : '', sty = c.frozen ? ' style="left:' + lefts[i] + 'px"' : '';
+                if (c.sel) { cells += '<td class="dg-td dg-fz dg-fz-sel' + (i === lastFz ? ' dg-fz-last' : '') + '" data-ci="' + i + '"' + sty + '><label class="dg-cbw"><input type="checkbox" class="dg-cb" data-k="' + row.k + '"' + (sel ? ' checked' : '') + '></label></td>'; return; }
+                var d = c.def, val = row.data[c.field], out;
+                if (typeof d.formatter === 'function') {
+                    try { out = d.formatter({ getValue: function () { return val; }, getRow: function () { return g._rowComp(row); }, getData: function () { return row.data; }, getField: function () { return c.field; } }); }
+                    catch (err) { out = esc(val); }
+                    if (out == null) out = '';
+                } else out = esc(val);
+                var tip = d.tooltip && !isEmpty(val) && c.field !== '_actions' ? ' title="' + esc(val) + '"' : '';
+                cells += '<td class="dg-td' + fz + (d.hozAlign === 'center' ? ' dg-al-c' : '') + '" data-ci="' + i + '"' + sty + tip + '>' + out + '</td>';
+            });
+            html += '<tr class="dg-row' + (sel ? ' dg-sel' : '') + (alt++ % 2 ? ' dg-alt' : '') + '" data-k="' + row.k + '">' + cells + '</tr>';
+        });
+        if (!slice.length) html = '<tr class="dg-empty"><td colspan="' + vis.length + '"><div class="dg-empty-in">' + (this._rows.length ? 'No matching students.' : 'No data.') + '</div></td></tr>';
+        this.tbody.innerHTML = html;
+        if (resetScroll) { this.holder.scrollTop = 0; } else { this.holder.scrollTop = st; }
+        this.holder.scrollLeft = sl;
+        var all = this.thead.querySelector('.dg-all');
+        if (all) { var n = list.filter(function (r) { return g.selected.has(r); }).length; all.checked = list.length > 0 && n === list.length; all.indeterminate = n > 0 && n < list.length; }
+    };
+    P._renderFoot = function () {
+        var o = this.o, g = this, total = this._getActive().length, all = this._rows.length, ns = this.getSelectedData().length;
+        var info;
+        if (o.pagination) {
+            var a = total ? (this.page - 1) * this.pageSize + 1 : 0, b = Math.min(total, this.page * this.pageSize);
+            info = 'Showing <b>' + a + '–' + b + '</b> of <b>' + total + '</b>' + (total !== all ? ' <span class="dg-mute">(filtered from ' + all + ')</span>' : '');
+        } else info = '<b>' + total + '</b> rows';
+        var h = '<div class="dg-info">' + info + (ns ? ' <span class="dg-selchip">' + ns + ' selected</span>' : '') + '</div>';
+        if (o.pagination) {
+            var pages = this._pages(), cur = this.page, bc = o.paginationButtonCount || 5;
+            var start = Math.max(1, Math.min(cur - Math.floor(bc / 2), pages - bc + 1)), end = Math.min(pages, start + bc - 1);
+            var btn = function (p, label, dis, act) { return '<button type="button" class="dg-pb' + (act ? ' dg-act' : '') + '" data-page="' + p + '"' + (dis ? ' disabled' : '') + '>' + label + '</button>'; };
+            var pg = btn(1, '«', cur === 1) + btn(cur - 1, '‹', cur === 1);
+            for (var p = start; p <= end; p++) pg += btn(p, p, false, p === cur);
+            pg += btn(cur + 1, '›', cur === pages) + btn(pages, '»', cur === pages);
+            var sizes = (o.paginationSizeSelector || []).slice(); if (sizes.indexOf(this.pageSize) < 0) sizes.push(this.pageSize); sizes.sort(function (x, y) { return x - y; });
+            h += '<div class="dg-pager">' + pg + '</div><label class="dg-sizew">Rows <select class="dg-size">' + sizes.map(function (s) { return '<option value="' + s + '"' + (s === g.pageSize ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></label>';
+        }
+        this.footer.innerHTML = h;
+    };
+    P.destroy = function () {
+        this._destroyed = true; if (this._ro) this._ro.disconnect(); window.removeEventListener('resize', this._onWinResize);
+        this.el.innerHTML = ''; this._ev = {};
+    };
+
+    global.DataGrid = DataGrid;
+})(window);
+
+/* ── CardGrid: same data engine as DataGrid (sort/filter/page/group/select), rendered as student cards ── */
+(function (global) {
+    'use strict';
+    var DG = global.DataGrid;
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
+    function CG(target, opts) { DG.call(this, target, opts); }
+    CG.prototype = Object.create(DG.prototype); CG.prototype.constructor = CG;
+    var P = CG.prototype;
+
+    P._buildDom = function () {
+        var g = this, o = this.o;
+        this.el.innerHTML = '';
+        this.root = document.createElement('div'); this.root.className = 'dg cg';
+        try { this.view = localStorage.getItem('kanyadet_results_view') === 'list' ? 'list' : 'cards'; } catch (e) { this.view = 'cards'; }
+        if (this.view === 'list') this.root.classList.add('cg-list');
+        this.quick = { level: '', gender: '', risk: false };
+        this.root.innerHTML = '<div class="cg-stats"></div><div class="cg-quick"></div><div class="cg-bar"></div><div class="dg-holder"><div class="cg-grid"></div></div><div class="dg-footer"></div>';
+        this.el.appendChild(this.root);
+        this.statsEl = this.root.querySelector('.cg-stats'); this.quickEl = this.root.querySelector('.cg-quick');
+        this.bar = this.root.querySelector('.cg-bar'); this.holder = this.root.querySelector('.dg-holder');
+        this.grid = this.root.querySelector('.cg-grid'); this.footer = this.root.querySelector('.dg-footer');
+        this.thead = this.bar; this.tbody = this.grid; this.table = this.grid;
+        this.root.addEventListener('click', function (e) { g._onClick(e); });
+        this.root.addEventListener('change', function (e) { g._onChange(e); });
+        this.holder.addEventListener('dblclick', function (e) {
+            var c = e.target.closest && e.target.closest('.cg-card'); if (!c) return;
+            var row = g._byK(c.getAttribute('data-k')); if (row) g._emit('rowDblClick', e, g._rowComp(row));
+        });
+        this.footer.addEventListener('click', function (e) {
+            var b = e.target.closest && e.target.closest('button[data-page]'); if (b && !b.disabled) g.setPage(+b.getAttribute('data-page'));
+        });
+        this.footer.addEventListener('change', function (e) { if (e.target.classList.contains('dg-size')) g.setPageSize(e.target.value); });
+    };
+    P._applyWidths = function () {};
+    P._onClick = function (e) {
+        var t = e.target;
+        var qc = t.closest('.cg-qc');
+        if (qc) {
+            var qk = qc.getAttribute('data-q'), qv = qc.getAttribute('data-v');
+            if (qk === 'all') this.quick = { level: '', gender: '', risk: false };
+            else if (qk === 'risk') this.quick.risk = !this.quick.risk;
+            else this.quick[qk] = this.quick[qk] === qv ? '' : qv;
+            this.page = 1; this._filtersChanged(); return;
+        }
+        var ab = t.closest('[data-act]');
+        if (ab) {
+            e.stopPropagation();
+            var ac = ab.closest('.cg-card'), ar = ac && this._byK(ac.getAttribute('data-k'));
+            if (ar) {
+                var txt = this._summary(ar);
+                if (ab.getAttribute('data-act') === 'wa') window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener');
+                else this._copy(txt, 'Marks summary copied');
+            }
+            return;
+        }
+        var vb = t.closest('.cg-vbtn');
+        if (vb) {
+            this.view = vb.getAttribute('data-v'); this.root.classList.toggle('cg-list', this.view === 'list');
+            try { localStorage.setItem('kanyadet_results_view', this.view); } catch (x) {}
+            this._renderHead(); return;
+        }
+        if (t.closest('.cg-dir')) { if (this.sorters[0]) { this.sorters[0].dir = this.sorters[0].dir === 'asc' ? 'desc' : 'asc'; this._sortChanged(); } return; }
+        if (t.closest('.cg-bar')) return;
+        var gr = t.closest('.cg-group');
+        if (gr) { var gk = gr.getAttribute('data-g'); this.groupState[gk] = this.groupState[gk] === undefined ? !this.o.groupStartOpen : !this.groupState[gk]; this._renderBody(); this._renderFoot(); return; }
+        if (t.closest('.dg-cbw') || t.classList.contains('dg-cb')) return;
+        var card = t.closest('.cg-card'); if (!card) return;
+        var row = this._byK(card.getAttribute('data-k')); if (!row) return;
+        if (this.o.selectable && (e.ctrlKey || e.metaKey)) { this.selected.has(row) ? this.selected.delete(row) : this.selected.add(row); this._syncSel(); return; }
+        this._emit('rowClick', e, this._rowComp(row));
+    };
+    P._onChange = function (e) {
+        var t = e.target;
+        if (t.classList.contains('cg-sortsel')) { t.value ? this.setSort(t.value, (this.sorters[0] && this.sorters[0].dir) || 'asc') : this.clearSort(); return; }
+        DG.prototype._onChange.call(this, e);
+    };
+    P._syncSel = function () {
+        var g = this, cbs = this.grid.querySelectorAll('.dg-cb[data-k]');
+        for (var i = 0; i < cbs.length; i++) {
+            var row = this._byK(cbs[i].getAttribute('data-k')), on = !!row && this.selected.has(row);
+            cbs[i].checked = on; var c = cbs[i].closest('.cg-card'); if (c) c.classList.toggle('dg-sel', on);
+        }
+        var all = this.bar.querySelector('.dg-all');
+        if (all) { var act = this._getActive(), n = act.filter(function (r) { return g.selected.has(r); }).length; all.checked = act.length > 0 && n === act.length; all.indeterminate = n > 0 && n < act.length; }
+        this._renderFoot(); this._renderSelBar(); this._emit('rowSelectionChanged', this.getSelectedData());
+    };
+    P._renderHead = function () {
+        var cur = this.sorters[0] || null;
+        var opts = this._order.filter(function (c) { return c.visible && c.def.headerSort !== false && c.field !== '_actions' && c.field !== 'Image'; })
+            .map(function (c) { return '<option value="' + esc(c.field) + '"' + (cur && cur.field === c.field ? ' selected' : '') + '>' + esc(c.def.title || c.field) + '</option>'; }).join('');
+        var v = this.view || 'cards';
+        var seg = '<div class="cg-seg" role="group" aria-label="View">' +
+            '<button type="button" class="cg-vbtn' + (v === 'cards' ? ' on' : '') + '" data-v="cards" title="Card view">▦ Cards</button>' +
+            '<button type="button" class="cg-vbtn' + (v === 'list' ? ' on' : '') + '" data-v="list" title="Compact list">☰ List</button></div>';
+        this.bar.innerHTML = seg + '<label class="cg-lbl">Sort by <select class="cg-sortsel"><option value="">Default order</option>' + opts + '</select></label>' +
+            '<button type="button" class="cg-dir"' + (cur ? '' : ' disabled') + '>' + (cur && cur.dir === 'desc' ? '↓ High → Low' : '↑ Low → High') + '</button>' +
+            (this.o.selectable ? '<label class="cg-lbl cg-selall"><input type="checkbox" class="dg-cb dg-all"> Select all</label>' : '');
+    };
+    P._cellHtml = function (row, c) {
+        var g = this, d = c.def, val = row.data[c.field], out;
+        if (typeof d.formatter === 'function') {
+            try { out = d.formatter({ getValue: function () { return val; }, getRow: function () { return g._rowComp(row); }, getData: function () { return row.data; }, getField: function () { return c.field; } }); } catch (e) { out = esc(val); }
+            return out == null ? '' : out;
+        }
+        return esc(val);
+    };
+    P._renderBody = function (resetScroll) {
+        var g = this, o = this.o, list = this._getActive();
+        if (o.pagination) { var pages = this._pages(); if (this.page > pages) this.page = pages; }
+        var slice = o.pagination ? list.slice((this.page - 1) * this.pageSize, this.page * this.pageSize) : list;
+        var st = this.holder.scrollTop, html = '', prevG = null, closed = false, counts = {};
+        var ranks = this._ranksCache = this._ranks();
+        this.grid.classList.toggle('cg-anim', !!resetScroll);
+        if (this.groupField) list.forEach(function (r) { var k = String(r.data[g.groupField] == null ? '' : r.data[g.groupField]); counts[k] = (counts[k] || 0) + 1; });
+        slice.forEach(function (row) {
+            if (g.groupField) {
+                var gk = String(row.data[g.groupField] == null ? '' : row.data[g.groupField]);
+                if (gk !== prevG) {
+                    prevG = gk; var open = g.groupState[gk] === undefined ? o.groupStartOpen !== false : g.groupState[gk]; closed = !open;
+                    var label = typeof o.groupHeader === 'function' ? o.groupHeader(gk, counts[gk]) : esc(gk) + ' (' + counts[gk] + ')';
+                    html += '<div class="cg-group' + (open ? '' : ' dg-closed') + '" data-g="' + esc(gk) + '"><span class="cg-gin"><i class="dg-caret"></i>' + label + '</span></div>';
+                }
+                if (closed) return;
+            }
+            var ctx = {
+                esc: esc, d: row.data,
+                has: function (f) { var c = g._colByField(f); return !!(c && c.visible); },
+                cell: function (f) { var c = g._colByField(f); return c ? g._cellHtml(row, c) : ''; },
+                rank: function () { return ranks ? (ranks.get(row) || null) : null; }
+            };
+            var acc = '';
+            if (typeof o.accent === 'function') { try { acc = o.accent(row.data) || ''; } catch (er) {} }
+            var body;
+            if (typeof o.card === 'function') { try { body = o.card(row.data, ctx); } catch (err) { console.error('[CardGrid]', err); body = ''; } }
+            else body = '<div class="cg-name">' + esc(row.data[Object.keys(row.data)[0]]) + '</div>';
+            var sel = g.selected.has(row);
+            html += '<div class="cg-card' + (sel ? ' dg-sel' : '') + '" data-k="' + row.k + '"' + (acc ? ' style="--acc:' + esc(acc) + '"' : '') + '>' +
+                (o.selectable ? '<label class="dg-cbw cg-ck"><input type="checkbox" class="dg-cb" data-k="' + row.k + '"' + (sel ? ' checked' : '') + '></label>' : '') + body + '</div>';
+        });
+        if (!slice.length) html = '<div class="cg-empty">' + (this._rows.length ? 'No matching students.' : 'No data.') + '</div>';
+        this.grid.innerHTML = html;
+        this.holder.scrollTop = resetScroll ? 0 : st;
+        this._renderTop(); this._renderSelBar();
+        var all = this.bar.querySelector('.dg-all');
+        if (all) { var n = list.filter(function (r) { return g.selected.has(r); }).length; all.checked = list.length > 0 && n === list.length; all.indeterminate = n > 0 && n < list.length; }
+    };
+
+    /* quick filters (level / gender / needs-attention) combine with the normal filters */
+    P._quickOk = function (row) {
+        var q = this.quick, o = this.o.quick || {};
+        if (q.level && String(row.data[o.level]) !== q.level) return false;
+        if (q.gender && String(row.data[o.gender] || '').toLowerCase() !== q.gender) return false;
+        if (q.risk) { var v = parseFloat(row.data[o.score]); if (isNaN(v) || v >= o.risk) return false; }
+        return true;
+    };
+    P._matches = function (row) { return DG.prototype._matches.call(this, row) && this._quickOk(row); };
+    P.resetQuick = function () { this.quick = { level: '', gender: '', risk: false }; this.page = 1; this._filtersChanged(); };
+    P._ranks = function () {
+        var rb = this.o.rankBy; if (!rb) return null;
+        var rg = this.o.rankGroup, groups = {}, m = new Map();
+        this._rows.forEach(function (r) { var k = rg ? String(r.data[rg]) : ''; (groups[k] = groups[k] || []).push(r); });
+        Object.keys(groups).forEach(function (k) {
+            var arr = groups[k].filter(function (r) { return !isNaN(parseFloat(r.data[rb])); }).sort(function (a, b) { return parseFloat(b.data[rb]) - parseFloat(a.data[rb]); });
+            var pos = 0, prev = null, i = 0;
+            arr.forEach(function (r) { i++; var v = parseFloat(r.data[rb]); if (v !== prev) { pos = i; prev = v; } m.set(r, { pos: pos, of: arr.length }); });
+        });
+        return m;
+    };
+    P._renderTop = function () {
+        var o = this.o, g = this, qo = o.quick;
+        if (typeof o.stats === 'function') {
+            var items = []; try { items = o.stats(this._getActive().map(function (r) { return r.data; })) || []; } catch (e) {}
+            this.statsEl.innerHTML = items.map(function (it) {
+                return '<div class="cg-stat cg-t-' + (it.tone || 'blue') + '"><small>' + esc(it.label) + '</small><b>' + esc(it.value) + '</b>' + (it.sub ? '<span title="' + esc(it.sub) + '">' + esc(it.sub) + '</span>' : '') + '</div>';
+            }).join('');
+        }
+        if (!qo) { this.quickEl.innerHTML = ''; return; }
+        var lv = {}, gd = {}, risk = 0, tot = 0;
+        this._rows.forEach(function (r) {
+            if (!DG.prototype._matches.call(g, r)) return; tot++;
+            var l = r.data[qo.level]; if (l) lv[l] = (lv[l] || 0) + 1;
+            var ge = String(r.data[qo.gender] || '').toLowerCase(); if (ge) gd[ge] = (gd[ge] || 0) + 1;
+            var v = parseFloat(r.data[qo.score]); if (!isNaN(v) && v < qo.risk) risk++;
+        });
+        var q = this.quick, none = !q.level && !q.gender && !q.risk;
+        var chip = function (k, v, label, n, on, color) {
+            return '<button type="button" class="cg-qc' + (on ? ' on' : '') + '" data-q="' + k + '" data-v="' + esc(v) + '"' + (color ? ' style="--c:' + color + '"' : '') + '>' + esc(label) + (n != null ? ' <i>' + n + '</i>' : '') + '</button>';
+        };
+        var h = chip('all', '', 'All', tot, none);
+        (qo.levels || Object.keys(lv)).forEach(function (l) { if (lv[l]) h += chip('level', l, l, lv[l], q.level === l, (qo.colors || {})[l]); });
+        ['male', 'female'].forEach(function (x) { if (gd[x]) h += chip('gender', x, x.charAt(0).toUpperCase() + x.slice(1), gd[x], q.gender === x, x === 'male' ? '#2b6cb0' : '#b83280'); });
+        if (risk || q.risk) h += chip('risk', '1', '⚠ Needs attention', risk, q.risk, '#e5484d');
+        this.quickEl.innerHTML = h;
+    };
+    /* share / copy / export */
+    P._summary = function (row) {
+        if (typeof this.o.summary === 'function') { try { var rk = this._ranksCache; return this.o.summary(row.data, rk ? rk.get(row) : null); } catch (e) {} }
+        return Object.keys(row.data).filter(function (k) { return k !== 'id' && k !== '_actions'; }).map(function (k) { return k + ': ' + row.data[k]; }).join('\n');
+    };
+    P._toast = function (msg) {
+        var t = document.createElement('div'); t.className = 'cg-toast'; t.textContent = msg; document.body.appendChild(t);
+        setTimeout(function () { t.classList.add('in'); }, 10);
+        setTimeout(function () { t.classList.remove('in'); setTimeout(function () { t.remove(); }, 300); }, 2200);
+    };
+    P._copy = function (txt, msg) {
+        var g = this, done = function () { g._toast(msg); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () { g._fallbackCopy(txt); done(); });
+        else { this._fallbackCopy(txt); done(); }
+    };
+    P._fallbackCopy = function (txt) { var ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); };
+    P._renderSelBar = function () {
+        var g = this, n = this.getSelectedData().length;
+        if (!n) { if (this._selbar) { this._selbar.remove(); this._selbar = null; } return; }
+        if (!this._selbar) {
+            var b = document.createElement('div'); b.className = 'cg-selbar';
+            b.addEventListener('click', function (e) { var a = e.target.closest('[data-sb]'); if (a) g._selAction(a.getAttribute('data-sb')); });
+            document.body.appendChild(b); this._selbar = b;
+        }
+        this._selbar.innerHTML = '<span class="cg-sbn">' + n + ' selected</span><button type="button" data-sb="copy">Copy summaries</button><button type="button" data-sb="csv">Export CSV</button><button type="button" data-sb="clear" class="x">Clear</button>';
+    };
+    P._selAction = function (a) {
+        var g = this, rows = this._rows.filter(function (r) { return g.selected.has(r); });
+        if (a === 'clear') { this.selected.clear(); this._syncSel(); }
+        else if (a === 'copy') this._copy(rows.map(function (r) { return g._summary(r); }).join('\n\n'), rows.length + ' summaries copied');
+        else if (a === 'csv') {
+            var cols = this._order.filter(function (c) { return c.visible && c.field !== '_actions' && c.field !== 'Image'; });
+            var q = function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; };
+            var lines = [cols.map(function (c) { return q(c.def.title || c.field); }).join(',')];
+            rows.forEach(function (r) { lines.push(cols.map(function (c) { return q(r.data[c.field]); }).join(',')); });
+            var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+            var url = URL.createObjectURL(blob), el = document.createElement('a');
+            el.href = url; el.download = 'selected-students.csv'; document.body.appendChild(el); el.click(); el.remove();
+            setTimeout(function () { URL.revokeObjectURL(url); }, 1500); this._toast('Exported ' + rows.length + ' students');
+        }
+    };
+    P.destroy = function () { if (this._selbar) { this._selbar.remove(); this._selbar = null; } DG.prototype.destroy.call(this); };
+        global.CardGrid = CG;
+})(window);
+
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -654,170 +1374,33 @@
         #tabulator-table { border: none !important; font-family: 'Plus Jakarta Sans', sans-serif !important; background: transparent !important; }
 
         /* Column headers */
-        #tabulator-table .tabulator-header {
-            background: var(--navy) !important;
-            border-bottom: 2px solid var(--gold) !important;
-            border-top: none !important;
-        }
-        #tabulator-table .tabulator-col {
-            background: var(--navy) !important;
-            border-right: 1px solid rgba(255,255,255,.1) !important;
-            color: rgba(255,255,255,.9) !important;
-        }
-        #tabulator-table .tabulator-col:hover { background: var(--navy-mid) !important; }
-        #tabulator-table .tabulator-col-title {
-            font-size: .73rem !important; font-weight: 600 !important;
-            letter-spacing: .04em !important; color: rgba(255,255,255,.9) !important;
-        }
         /* Sort arrows */
-        #tabulator-table .tabulator-col .tabulator-col-sorter .tabulator-arrow { border-bottom-color: rgba(255,255,255,.5) !important; }
-        #tabulator-table .tabulator-col.tabulator-col-sorter-element .tabulator-col-sorter .tabulator-arrow { border-bottom-color: var(--gold) !important; }
 
         /* Rows */
-        #tabulator-table .tabulator-row {
-            border-bottom: 1px solid var(--border) !important;
-            font-size: .82rem !important; color: var(--text2) !important;
-            cursor: pointer;
-        }
-        #tabulator-table .tabulator-row:nth-child(even) { background: var(--surface2) !important; }
-        #tabulator-table .tabulator-row:hover { background: #e8effa !important; }
-        #tabulator-table .tabulator-row.tabulator-selected { background: var(--gold-dim) !important; }
-        #tabulator-table .tabulator-cell {
-            border-right: 1px solid var(--border) !important;
-            padding: .55rem .9rem !important;
-            color: var(--text2) !important;
-        }
 
         /* Frozen actions column */
-        #tabulator-table .tabulator-frozen { background: inherit !important; }
-        #tabulator-table .tabulator-frozen.tabulator-frozen-left { border-right: 2px solid var(--border2) !important; }
-        #tabulator-table .tabulator-col.tabulator-frozen { background: var(--navy) !important; }
 
         /* Footer / pagination */
-        #tabulator-table .tabulator-footer {
-            background: var(--surface2) !important;
-            border-top: 1px solid var(--border) !important;
-            padding: .5rem 1rem !important;
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-            display: flex !important;
-            align-items: center !important;
-            flex-wrap: wrap !important;
-            gap: .35rem !important;
-        }
-        #tabulator-table .tabulator-footer .tabulator-paginator {
-            display: flex !important;
-            align-items: center !important;
-            flex-wrap: wrap !important;
-            gap: .3rem !important;
-            flex: 1 !important;
-        }
         /* Tabulator v6 page buttons — both .tabulator-page and button[data-page] */
-        #tabulator-table .tabulator-footer .tabulator-page,
-        #tabulator-table .tabulator-footer button[data-page] {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            background: var(--surface) !important;
-            border: 1.5px solid var(--border) !important;
-            border-radius: 7px !important;
-            color: var(--text2) !important;
-            font-size: .8rem !important;
-            font-weight: 500 !important;
-            padding: .3rem .75rem !important;
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-            transition: all .12s !important;
-            cursor: pointer !important;
-            min-width: 2rem !important;
-        }
-        #tabulator-table .tabulator-footer .tabulator-page:hover:not([disabled]),
-        #tabulator-table .tabulator-footer button[data-page]:hover:not([disabled]) {
-            background: var(--navy) !important; color: #fff !important; border-color: var(--navy) !important;
-        }
-        #tabulator-table .tabulator-footer .tabulator-page.active,
-        #tabulator-table .tabulator-footer button[data-page].active {
-            background: var(--navy) !important; color: #fff !important;
-            border-color: var(--navy) !important; font-weight: 700 !important;
-        }
-        #tabulator-table .tabulator-footer .tabulator-page[disabled],
-        #tabulator-table .tabulator-footer button[data-page][disabled] {
-            background: var(--surface3) !important; color: var(--slate-lt) !important;
-            cursor: not-allowed !important; opacity: .5 !important;
-        }
-        #tabulator-table .tabulator-footer .tabulator-page-size {
-            font-family: 'Plus Jakarta Sans', sans-serif !important; border: 1.5px solid var(--border) !important;
-            border-radius: 7px !important; padding: .3rem .5rem !important; font-size: .8rem !important;
-        }
-        #tabulator-table .tabulator-footer .tabulator-counter {
-            font-size: .8rem !important; color: var(--slate) !important;
-            font-family: 'Plus Jakarta Sans', sans-serif !important; margin-left: auto !important;
-        }
 
         /* Column resize handle */
-        #tabulator-table .tabulator-col-resize-handle { background: rgba(255,255,255,.15) !important; }
 
         /* Row group headers */
-        #tabulator-table .tabulator-row.tabulator-group {
-            background: var(--navy-mid) !important;
-            color: #fff !important; font-weight: 700 !important;
-            border-bottom: 1px solid rgba(255,255,255,.1) !important;
-            font-size: .8rem !important;
-        }
-        #tabulator-table .tabulator-row.tabulator-group span { color: var(--gold) !important; }
 
         /* Column header filter inputs */
-        #tabulator-table .tabulator-header-filter input,
-        #tabulator-table .tabulator-header-filter select {
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-            border: 1.5px solid rgba(255,255,255,.25) !important;
-            background: rgba(255,255,255,.1) !important;
-            color: #fff !important;
-            border-radius: 5px !important;
-            padding: .25rem .5rem !important;
-            font-size: .72rem !important;
-        }
-        #tabulator-table .tabulator-header-filter input::placeholder { color: rgba(255,255,255,.4) !important; }
 
         /* Tooltip */
-        .tabulator-tooltip {
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-            background: var(--navy) !important; color: #fff !important;
-            border-radius: 6px !important; font-size: .75rem !important;
-        }
 
         /* Edit cell highlight */
-        #tabulator-table .tabulator-cell.tabulator-editing {
-            border: 2px solid var(--navy-lt) !important;
-            box-shadow: 0 0 0 3px rgba(30,64,128,.15) !important;
-            background: #fff !important;
-        }
-        #tabulator-table .tabulator-cell.tabulator-editing input {
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-        }
 
         /* Row hover → shows it is clickable (opens edit drawer) */
-        #tabulator-table .tabulator-row { cursor: pointer !important; }
-        #tabulator-table .tabulator-row:hover .tabulator-cell:not(.tabulator-frozen) {
-            background: #e8effa !important;
-        }
         /* Image cell keeps default cursor since it opens PDF */
-        #tabulator-table .tabulator-cell[tabulator-field="Image"] { cursor: default !important; }
 
         /* Scrollbar */
-        #tabulator-table .tabulator-tableholder::-webkit-scrollbar { height: 7px; width: 7px; }
-        #tabulator-table .tabulator-tableholder::-webkit-scrollbar-track { background: var(--surface2); }
-        #tabulator-table .tabulator-tableholder::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
         /* Column visibility toggle menu */
-        .tabulator-col-header-menu { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 10px !important; box-shadow: var(--shadow-lg) !important; }
-        .tabulator-col-header-menu .tabulator-menu-item { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: .83rem !important; padding: .45rem 1rem !important; }
-        .tabulator-col-header-menu .tabulator-menu-item:hover { background: var(--surface3) !important; }
 
         /* Spreadsheet range selection */
-        #tabulator-table .tabulator-cell.tabulator-range-selected { background: rgba(30,64,128,.12) !important; }
-        #tabulator-table .tabulator-cell.tabulator-range-top { border-top: 2px solid var(--navy-lt) !important; }
-        #tabulator-table .tabulator-cell.tabulator-range-bottom { border-bottom: 2px solid var(--navy-lt) !important; }
-        #tabulator-table .tabulator-cell.tabulator-range-left { border-left: 2px solid var(--navy-lt) !important; }
-        #tabulator-table .tabulator-cell.tabulator-range-right { border-right: 2px solid var(--navy-lt) !important; }
 
         /* Tabulator toolbar extras */
         .tab-toolbar {
@@ -938,10 +1521,6 @@
         #tabulator-table{box-shadow:var(--clay-pressed);}
         #student-table thead tr, #tabulator-table .tabulator-header{box-shadow:inset 0 3px 6px rgba(255,255,255,.08), inset 0 -3px 6px rgba(0,0,0,.25);}
         #student-table tbody td{border-bottom-color:rgba(170,135,60,.14);}
-        #tabulator-table .tabulator-footer{border-radius:0 0 var(--clay-r-md) var(--clay-r-md);}
-        #tabulator-table .tabulator-footer button[data-page]{border:none !important;border-radius:var(--clay-r-sm) !important;box-shadow:var(--clay-raised-sm);}
-        #tabulator-table .tabulator-footer button[data-page].active{box-shadow:var(--clay-pressed), 0 0 0 2px rgba(30,64,128,.25);}
-        .tabulator-col-header-menu{border:none !important;border-radius:var(--clay-r-md) !important;box-shadow:var(--clay-raised) !important;}
 
         /* SweetAlert */
         .swal2-popup{border-radius:var(--clay-r-lg) !important;background:var(--clay-fill) !important;
@@ -949,7 +1528,475 @@
         .swal2-confirm, .swal2-cancel{border-radius:var(--clay-r-sm) !important;}
 
         @media print{ .card, .toolbar, .modal-box, #edit-drawer{background:#fff !important;box-shadow:none !important;} }
-</style>
+        /* ══ SIGN-IN — Pesapal-style redesign ═════════════════════════════ */
+        #sign-in-section.pp {
+            --pp-blue:#2980b9; --pp-blue-dk:#1a5276; --pp-navy:#0c1e33; --pp-ink:#1b2a4a; --pp-mute:#5b6b8c;
+            --pp-tint:#fbf3dc; --pp-line:#efe3c4; --pp-green:#12b76a; --pp-orange:#e67e22;
+            flex-direction: column !important; align-items: stretch; justify-content: flex-start;
+            background: #fff !important; color: var(--pp-ink); font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        }
+        #sign-in-section.pp * { box-sizing: border-box; }
+        .pp-nav { display:flex; align-items:center; justify-content:space-between; padding:18px clamp(20px,5vw,64px); border-bottom:1px solid var(--pp-line); background:#fff; position:sticky; top:0; z-index:5; }
+        .pp-brand { display:flex; align-items:center; gap:12px; font-weight:800; color:var(--pp-navy); font-size:1rem; letter-spacing:-.01em; }
+        .pp-brand img { width:40px; height:40px; object-fit:contain; border-radius:10px; }
+        .pp-brand small { display:block; font-weight:600; color:var(--pp-mute); font-size:.72rem; letter-spacing:0; }
+        .pp-secure { display:inline-flex; align-items:center; gap:8px; font-size:.78rem; font-weight:700; color:var(--pp-blue); background:var(--pp-tint); padding:8px 14px; border-radius:999px; }
+        .pp-hero { flex:1; display:grid; grid-template-columns: 1.05fr .95fr; gap:clamp(24px,4vw,64px); align-items:center; padding:clamp(28px,6vw,72px) clamp(20px,5vw,64px); max-width:1280px; width:100%; margin:0 auto; }
+        .pp-eyebrow { display:inline-flex; align-items:center; gap:8px; background:var(--pp-tint); color:var(--pp-blue); font-weight:800; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase; padding:7px 14px; border-radius:999px; margin-bottom:18px; }
+        .pp-eyebrow i { width:8px; height:8px; border-radius:50%; background:var(--pp-green); display:inline-block; }
+        .pp-hero h1 { font-size:clamp(2rem,4.6vw,3.4rem); line-height:1.08; font-weight:900; color:var(--pp-navy); letter-spacing:-.03em; margin:0 0 16px; }
+        .pp-hero h1 span { color:var(--pp-blue); }
+        .pp-lead { font-size:1.02rem; line-height:1.65; color:var(--pp-mute); max-width:520px; margin:0 0 28px; font-weight:500; }
+        .pp-actions { display:flex; flex-direction:column; gap:12px; max-width:380px; }
+        .pp-actions .btn { width:100%; justify-content:center; gap:10px; padding:15px 24px; font-size:.95rem; font-weight:800; border-radius:999px; margin:0; box-shadow:none; transform:none; }
+        .pp-actions .btn:hover { transform: translateY(-1px); }
+        .pp-actions #sign-in-google-btn { background:var(--pp-blue) !important; color:#fff !important; border:2px solid var(--pp-blue) !important; box-shadow:0 10px 24px rgba(41,128,185,.28); }
+        .pp-actions #sign-in-google-btn:hover { background:var(--pp-blue-dk) !important; border-color:var(--pp-blue-dk) !important; }
+        .pp-actions #sign-in-google-btn svg { background:#fff; border-radius:50%; padding:3px; width:24px; height:24px; }
+        .pp-actions #sign-in-fingerprint-btn { background:#fff !important; color:var(--pp-blue) !important; border:2px solid var(--pp-line) !important; }
+        .pp-actions #sign-in-fingerprint-btn:hover { border-color:var(--pp-blue) !important; background:var(--pp-tint) !important; }
+        .pp-trust { display:flex; flex-wrap:wrap; gap:18px; margin-top:26px; font-size:.8rem; color:var(--pp-mute); font-weight:600; }
+        .pp-trust span { display:inline-flex; align-items:center; gap:7px; }
+        .pp-trust b { color:var(--pp-green); }
+        .pp-visual { position:relative; min-height:420px; border-radius:32px; background:linear-gradient(160deg,#fbf3dc 0%,#d6e6ff 100%); padding:32px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+        .pp-visual::before { content:''; position:absolute; width:320px; height:320px; border-radius:50%; background:rgba(41,128,185,.10); top:-110px; right:-90px; }
+        .pp-visual::after { content:''; position:absolute; width:200px; height:200px; border-radius:50%; background:rgba(255,138,31,.16); bottom:-70px; left:-60px; }
+        .pp-card { position:relative; z-index:1; background:#fff; border-radius:22px; padding:22px; width:100%; max-width:340px; box-shadow:0 24px 60px rgba(12,30,51,.16); }
+        .pp-card-h { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; font-weight:800; color:var(--pp-navy); font-size:.9rem; }
+        .pp-card-h em { font-style:normal; font-size:.7rem; color:var(--pp-green); background:#e7f8f0; padding:4px 10px; border-radius:999px; }
+        .pp-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; font-size:.78rem; font-weight:700; color:var(--pp-ink); }
+        .pp-row span:first-child { width:74px; flex-shrink:0; }
+        .pp-bar { flex:1; height:9px; border-radius:99px; background:var(--pp-tint); overflow:hidden; }
+        .pp-bar i { display:block; height:100%; border-radius:99px; background:var(--pp-blue); }
+        .pp-row b { width:30px; text-align:right; color:var(--pp-navy); }
+        .pp-chip { position:absolute; z-index:2; background:#fff; border-radius:16px; padding:12px 16px; box-shadow:0 14px 34px rgba(12,30,51,.16); font-size:.74rem; font-weight:800; color:var(--pp-navy); display:flex; align-items:center; gap:10px; }
+        .pp-chip small { display:block; font-weight:600; color:var(--pp-mute); font-size:.68rem; }
+        .pp-chip .ic { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+        .pp-chip-1 { top:26px; left:20px; } .pp-chip-1 .ic { background:#fff1e3; }
+        .pp-chip-2 { bottom:26px; right:20px; } .pp-chip-2 .ic { background:#e7f8f0; }
+        .pp-foot { text-align:center; padding:18px; font-size:.75rem; color:var(--pp-mute); border-top:1px solid var(--pp-line); font-weight:600; }
+        @media (max-width: 900px) {
+            .pp-hero { grid-template-columns:1fr; }
+            .pp-visual { min-height:340px; order:2; }
+            .pp-actions { max-width:none; }
+            .pp-secure { display:none; }
+        }
+            /* ══════════════════════════════════════════════════════════════
+           PESAPAL-STYLE SYSTEM THEME — replaces the clay look app-wide.
+           Edit the tokens below to restyle everything at once.
+        ══════════════════════════════════════════════════════════════ */
+        :root{
+            --navy:#0c1e33; --navy-mid:#12306a; --navy-lt:#2980b9;
+            --gold:#e67e22; --gold-lt:#ffb066; --gold-dim:rgba(255,138,31,.14);
+            --surface:#ffffff; --surface2:#fdfaf2; --surface3:#fbf3dc; --cream:#fdfaf2;
+            --text:#0c1e33; --text2:#4a5b7d; --text3:#8b99b5;
+            --border:#efe3c4; --border2:#e5d5a6;
+            --success:#12b76a; --success-lt:#e7f8f0; --danger:#e5484d; --danger-lt:#fdecec; --info:#2980b9; --info-lt:#fbf3dc;
+            --radius:14px; --radius-sm:10px; --radius-md:16px; --radius-lg:22px; --radius-xl:28px;
+            --shadow-sm:0 1px 2px rgba(12,30,51,.05), 0 0 0 1px #efe3c4;
+            --shadow:0 8px 28px rgba(12,30,51,.08);
+            --shadow-lg:0 18px 50px rgba(12,30,51,.14);
+            --bg:#fdfaf2;
+            --clay-r-lg:22px; --clay-r-md:16px; --clay-r-sm:12px;
+            --clay-fill:#ffffff; --clay-fill-soft:#fdfaf2;
+            --clay-raised:0 8px 30px rgba(12,30,51,.07), 0 0 0 1px #efe3c4;
+            --clay-raised-sm:0 2px 8px rgba(12,30,51,.06), 0 0 0 1px #efe3c4;
+            --clay-pressed:inset 0 0 0 1.5px #e8dcb8;
+            --clay-color-in:none;
+        }
+        body{ background:linear-gradient(180deg,#fdfaf2 0%,#ffffff 420px) !important; background-attachment:fixed; }
+        body::before{ background:radial-gradient(ellipse 50% 40% at 100% 0%, rgba(41,128,185,.08) 0%, transparent 65%) !important; opacity:1 !important; }
+
+        /* Top bar: clean white, like a modern fintech header */
+        .topbar{ background:#fff !important; border-radius:0 !important; border-bottom:1px solid var(--border) !important; box-shadow:0 4px 20px rgba(12,30,51,.05) !important; height:68px; }
+        .topbar-logo{ filter:none !important; box-shadow:none !important; border-radius:10px !important; }
+        .topbar-title{ color:var(--navy) !important; letter-spacing:-.01em; }
+        .topbar-sub{ color:var(--text3) !important; }
+        #user-id-display{ color:var(--text2) !important; box-shadow:none !important; background:var(--surface3); padding:5px 14px 5px 6px; border-radius:999px; }
+        #user-id-display img{ border:2px solid #fff !important; box-shadow:0 0 0 2px var(--navy-lt); }
+        #sign-out-btn, .topbar .btn-ghost{ background:#fff !important; color:var(--navy-lt) !important; border:1.5px solid var(--border2) !important; box-shadow:none !important; border-radius:999px !important; }
+        #sign-out-btn:hover, .topbar .btn-ghost:hover{ background:var(--surface3) !important; border-color:var(--navy-lt) !important; }
+
+        /* Buttons: flat pills */
+        .btn{ border-radius:999px !important; font-weight:700; padding:.58rem 1.15rem; }
+        .btn-sm{ border-radius:999px !important; }
+        .btn-primary{ background:var(--navy-lt) !important; box-shadow:0 8px 20px rgba(41,128,185,.25) !important; }
+        .btn-primary:hover{ background:#1a5276 !important; }
+        .btn-danger{ background:var(--danger) !important; box-shadow:0 8px 20px rgba(229,72,77,.22) !important; }
+        .btn-success{ background:var(--success) !important; box-shadow:0 8px 20px rgba(18,183,106,.22) !important; }
+        .btn-gold{ background:var(--gold) !important; color:#fff !important; box-shadow:0 8px 20px rgba(255,138,31,.28) !important; }
+        .btn-outline{ background:#fff !important; color:var(--navy-lt) !important; border:1.5px solid var(--border2) !important; box-shadow:none !important; }
+        .btn-outline:hover{ background:var(--surface3) !important; color:var(--navy-lt) !important; border-color:var(--navy-lt) !important; }
+        .export-btn, .grade-toggle-btn, .tab-toolbar-btn, .pagination-btn, .drawer-cancel-btn{ background:#fff !important; color:var(--navy) !important; border:1.5px solid var(--border) !important; box-shadow:none !important; border-radius:999px !important; }
+        .export-btn:hover, .grade-toggle-btn:hover, .grade-toggle-btn.active, .tab-toolbar-btn:hover, .tab-toolbar-btn.active, .pagination-btn:hover, .pagination-btn.active{ background:var(--navy-lt) !important; color:#fff !important; border-color:var(--navy-lt) !important; box-shadow:0 6px 16px rgba(41,128,185,.25) !important; }
+        .drawer-save-btn{ background:var(--navy-lt) !important; box-shadow:0 8px 20px rgba(41,128,185,.25) !important; border-radius:999px !important; }
+        .btn-edit, .btn-del{ border-radius:999px !important; }
+
+        /* Surfaces */
+        .card{ background:#fff !important; border:1px solid var(--border) !important; border-radius:22px !important; box-shadow:0 8px 30px rgba(12,30,51,.06) !important; }
+        .card-header{ background:#fff !important; border-bottom:1px solid var(--border) !important; padding:1.1rem 1.4rem !important; }
+        .card-title{ font-size:.98rem !important; color:var(--navy) !important; letter-spacing:-.01em; }
+        .card-icon{ background:var(--surface3) !important; color:var(--navy-lt) !important; border-radius:12px !important; width:34px !important; height:34px !important; }
+        .card-icon svg{ stroke:var(--navy-lt); }
+        .card-body{ padding:1.4rem !important; }
+        .modal-box, #edit-drawer{ background:#fff !important; border-radius:24px !important; box-shadow:0 30px 80px rgba(12,30,51,.28) !important; }
+        .warning-banner{ border-radius:16px !important; box-shadow:none !important; border:1px solid #ffd9b0 !important; }
+        .swal2-popup{ background:#fff !important; border-radius:24px !important; box-shadow:0 30px 80px rgba(12,30,51,.28) !important; }
+        .swal2-confirm, .swal2-cancel{ border-radius:999px !important; }
+        .swal2-confirm{ background:var(--navy-lt) !important; }
+
+        /* Fields */
+        .field input, .field select, .drawer-field input, input[type="text"], input[type="email"], input[type="number"], select, #search-input{
+            background:#fff !important; border:1.5px solid var(--border2) !important; border-radius:12px !important; box-shadow:none !important; color:var(--navy);
+        }
+        input[type="text"]:focus, input[type="email"]:focus, input[type="number"]:focus, select:focus, .field input:focus, .drawer-field input:focus, #search-input:focus{
+            outline:none; border-color:var(--navy-lt) !important; box-shadow:0 0 0 4px rgba(41,128,185,.14) !important;
+        }
+        .drop-zone{ background:var(--surface2) !important; border:2px dashed var(--border2) !important; box-shadow:none !important; border-radius:18px !important; }
+        .drop-zone:hover{ border-color:var(--navy-lt) !important; background:var(--surface3) !important; box-shadow:none !important; }
+        .level-badge, .tab-count-badge{ background:var(--surface3) !important; color:var(--navy-lt) !important; border:none !important; box-shadow:none !important; border-radius:999px !important; font-weight:800; }
+        .student-image{ box-shadow:0 0 0 2px #fff, 0 0 0 3px var(--border2) !important; }
+        .divider{ box-shadow:none !important; background:var(--border) !important; height:1px !important; }
+
+        /* Tables: light blue header, airy rows */
+        #tabulator-table, #student-table{ border:1px solid var(--border) !important; border-radius:18px !important; box-shadow:none !important; overflow:hidden; }
+        #student-table thead tr, #tabulator-table .tabulator-header{ background:var(--surface3) !important; border-bottom:1px solid var(--border2) !important; box-shadow:none !important; }
+        #student-table thead th{ color:var(--navy) !important; }
+
+        /* Loader + scrollbar polish */
+        .loader-ring{ border-color:var(--surface3) !important; border-top-color:var(--navy-lt) !important; }
+        ::selection{ background:rgba(41,128,185,.18); }
+        ::-webkit-scrollbar{ width:10px; height:10px; } ::-webkit-scrollbar-thumb{ background:#e5d5a6; border-radius:99px; border:2px solid #fff; } ::-webkit-scrollbar-track{ background:transparent; }
+        @media print{ body{ background:#fff !important; } .topbar{ display:none !important; } }
+            /* ══════════════════════════════════════════════════════════════
+           DATAGRID — built-in table engine styling (no external library)
+        ══════════════════════════════════════════════════════════════ */
+        #tabulator-table{ background:#fff !important; border:1px solid var(--border) !important; border-radius:20px !important; box-shadow:0 8px 30px rgba(12,30,51,.05) !important; overflow:hidden; }
+        .dg{ display:flex; flex-direction:column; background:#fff; font-family:'Plus Jakarta Sans',sans-serif; color:var(--text2); }
+        .dg-holder{ flex:1; min-height:0; overflow:auto; position:relative; scrollbar-width:thin; scrollbar-color:#e5d5a6 transparent; }
+        .dg-table{ border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:.84rem; }
+        .dg-table th, .dg-table td{ box-sizing:border-box; }
+        /* header */
+        .dg-th{ position:sticky; top:0; z-index:4; height:48px; padding:0 14px; text-align:left; background:#fbf3dc; color:var(--navy);
+            font-size:.7rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; user-select:none; border-bottom:1px solid #e8d9ae; }
+        .dg-th.dg-sortable{ cursor:pointer; }
+        .dg-th.dg-sortable:hover{ background:#f6e9c4; }
+        .dg-th.dg-sorted{ color:var(--navy-lt); }
+        .dg-thin{ display:flex; align-items:center; gap:6px; height:100%; overflow:hidden; }
+        .dg-al-c .dg-thin{ justify-content:center; }
+        .dg-title{ overflow:hidden; text-overflow:ellipsis; }
+        .dg-si{ flex:none; display:inline-flex; align-items:center; gap:2px; width:10px; height:12px; position:relative; opacity:.35; }
+        .dg-si::before, .dg-si::after{ content:''; position:absolute; left:1px; border:4px solid transparent; }
+        .dg-si::before{ top:-1px; border-bottom:5px solid currentColor; border-top:0; }
+        .dg-si::after{ bottom:-1px; border-top:5px solid currentColor; border-bottom:0; }
+        .dg-si.dg-asc, .dg-si.dg-desc{ opacity:1; color:var(--navy-lt); }
+        .dg-si.dg-asc::after{ display:none; } .dg-si.dg-desc::before{ display:none; }
+        .dg-si b{ position:absolute; left:11px; top:-2px; font-size:.6rem; color:var(--navy-lt); }
+        .dg-rs{ position:absolute; right:0; top:10px; bottom:10px; width:7px; cursor:col-resize; z-index:2; }
+        .dg-rs::after{ content:''; position:absolute; right:3px; top:0; bottom:0; width:1px; background:#e5d5a6; }
+        .dg-rs:hover::after{ width:2px; right:2px; background:var(--navy-lt); }
+        body.dg-resizing{ cursor:col-resize !important; user-select:none; }
+        .dg-th[draggable="true"]:active{ opacity:.6; }
+        /* filter row */
+        .dg-fth{ position:sticky; top:48px; z-index:4; background:#fdfaf2; padding:8px 10px; border-bottom:1px solid #e8d9ae; }
+        .dg-fi{ width:100%; height:32px; border:1.5px solid #e8dcb8 !important; border-radius:999px !important; padding:0 12px !important; font-size:.78rem; font-family:inherit; background:#fff !important; color:var(--navy); box-shadow:none !important; outline:none; }
+        .dg-fi:focus{ border-color:var(--navy-lt) !important; box-shadow:0 0 0 3px rgba(41,128,185,.14) !important; }
+        /* body */
+        .dg-td{ height:56px; padding:6px 14px; background:#fff; border-bottom:1px solid #f3ead2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle; color:var(--text2); }
+        .dg-al-c{ text-align:center; }
+        .dg-alt .dg-td{ background:#fdfaf2; }
+        .dg-row{ cursor:pointer; }
+        .dg-row:hover .dg-td{ background:#fbf3dc; }
+        .dg-row.dg-sel .dg-td{ background:#f3e6c0; }
+        .dg-row.dg-sel .dg-td:first-child{ box-shadow:inset 3px 0 0 var(--navy-lt); }
+        .dg-fz{ position:sticky; z-index:3; }
+        .dg-th.dg-fz{ z-index:6; } .dg-fth.dg-fz{ z-index:6; }
+        .dg-fz-last{ box-shadow:8px 0 10px -8px rgba(12,30,51,.25); }
+        .dg-td.dg-fz-last{ border-right:1px solid #efe3c4; }
+        .dg-cbw{ display:flex; align-items:center; justify-content:center; height:100%; cursor:pointer; margin:0; }
+        .dg-cb{ appearance:auto; width:17px; height:17px; accent-color:var(--navy-lt); cursor:pointer; }
+        .dg-td .student-image{ width:38px; height:38px; border-radius:50%; object-fit:cover; display:block; margin:0 auto; box-shadow:0 0 0 2px #fff, 0 0 0 3px #e5d5a6 !important; }
+        .dg-td .action-wrap{ display:flex; gap:6px; align-items:center; }
+        /* groups */
+        .dg-group td{ background:#fcf6e4; color:var(--navy); font-weight:800; padding:0; height:42px; border-bottom:1px solid #e8d9ae; border-top:1px solid #e8d9ae; cursor:pointer; }
+        .dg-gin{ position:sticky; left:14px; display:inline-flex; align-items:center; gap:10px; height:42px; }
+        .dg-caret{ width:0; height:0; border:5px solid transparent; border-top:6px solid var(--navy-lt); border-bottom:0; transition:transform .15s; }
+        .dg-closed .dg-caret{ transform:rotate(-90deg); }
+        .dg-empty td{ background:#fff; }
+        .dg-empty-in{ padding:3rem 1rem; text-align:center; color:var(--text3); font-weight:600; position:sticky; left:0; }
+        /* footer */
+        .dg-footer{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:12px 18px; border-top:1px solid var(--border); background:#fff; font-size:.78rem; color:var(--text2); }
+        .dg-info b{ color:var(--navy); } .dg-mute{ color:var(--text3); }
+        .dg-selchip{ display:inline-block; margin-left:8px; background:var(--surface3); color:var(--navy-lt); font-weight:800; padding:3px 10px; border-radius:999px; }
+        .dg-pager{ display:flex; gap:6px; flex-wrap:wrap; }
+        .dg-pb{ min-width:34px; height:34px; padding:0 10px; border-radius:999px; border:1.5px solid var(--border); background:#fff; color:var(--navy); font-weight:700; font-size:.78rem; font-family:inherit; }
+        .dg-pb:hover:not(:disabled){ border-color:var(--navy-lt); background:var(--surface3); }
+        .dg-pb.dg-act{ background:var(--navy-lt); border-color:var(--navy-lt); color:#fff; box-shadow:0 6px 14px rgba(41,128,185,.28); }
+        .dg-pb:disabled{ opacity:.4; cursor:not-allowed !important; }
+        .dg-sizew{ display:inline-flex; align-items:center; gap:8px; font-weight:700; color:var(--navy); }
+        .dg-size{ height:34px; padding:0 10px !important; border-radius:999px !important; border:1.5px solid var(--border2) !important; background:#fff !important; font-weight:700; font-family:inherit; }
+        @media (max-width:700px){ .dg-footer{ justify-content:center; } }
+            /* ══ CARDGRID — student cards (replaces the table view) ══ */
+        #tab-toggle-filters, #tab-freeze-cols, #tab-fit-cols{ display:none !important; }
+        .cg-bar{ display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:12px 18px; border-bottom:1px solid var(--border); background:#fdfaf2; }
+        .cg-lbl{ display:inline-flex; align-items:center; gap:8px; font-size:.78rem; font-weight:700; color:var(--navy); margin:0; }
+        .cg-sortsel{ height:34px; padding:0 12px !important; border-radius:999px !important; border:1.5px solid var(--border2) !important; background:#fff !important; font-weight:700; font-family:inherit; font-size:.78rem; }
+        .cg-dir{ height:34px; padding:0 14px; border-radius:999px; border:1.5px solid var(--border2); background:#fff; color:var(--navy-lt); font-weight:800; font-size:.76rem; font-family:inherit; }
+        .cg-dir:disabled{ opacity:.45; cursor:not-allowed; }
+        .cg-dir:not(:disabled):hover{ background:var(--surface3); border-color:var(--navy-lt); }
+        .cg-selall{ margin-left:auto; cursor:pointer; }
+        .cg-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; padding:18px; align-content:start; }
+        .cg-card{ position:relative; background:#fff; border:1px solid var(--border); border-radius:20px; padding:16px; cursor:pointer; display:flex; flex-direction:column; gap:14px;
+            box-shadow:0 2px 10px rgba(12,30,51,.04); transition:transform .15s, box-shadow .15s, border-color .15s; }
+        .cg-card:hover{ transform:translateY(-3px); border-color:#d9c48a; box-shadow:0 16px 34px rgba(41,128,185,.14); }
+        .cg-card.dg-sel{ border-color:var(--navy-lt); box-shadow:0 0 0 3px rgba(41,128,185,.18); background:#f5f9ff; }
+        .cg-ck{ position:absolute; top:10px; right:10px; width:26px; height:26px; margin:0; border-radius:8px; background:#fff; z-index:2; }
+        .cg-top{ display:flex; align-items:center; gap:12px; padding-right:26px; }
+        .cg-av .student-image{ width:52px; height:52px; border-radius:50%; object-fit:cover; display:block; box-shadow:0 0 0 2px #fff, 0 0 0 3px #e5d5a6 !important; }
+        .cg-id{ min-width:0; flex:1; }
+        .cg-name{ font-weight:800; color:var(--navy); font-size:.95rem; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .cg-sub{ font-size:.74rem; color:var(--text3); font-weight:600; margin-top:3px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+        .cg-chip{ background:var(--surface3); color:var(--navy-lt); font-weight:800; font-size:.68rem; padding:2px 9px; border-radius:999px; }
+        .cg-subj{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px 12px; }
+        .cg-s{ position:relative; display:flex; justify-content:space-between; align-items:baseline; font-size:.74rem; font-weight:700; color:var(--text2); padding-bottom:7px; }
+        .cg-s b{ font-size:.86rem; }
+        .cg-s i{ position:absolute; left:0; bottom:0; height:4px; border-radius:99px; opacity:.9; }
+        .cg-s::before{ content:''; position:absolute; left:0; right:0; bottom:0; height:4px; border-radius:99px; background:#f3ead2; }
+        .cg-s i{ z-index:1; }
+        .cg-bot{ display:flex; align-items:center; gap:14px; border-top:1px dashed var(--border2); padding-top:12px; margin-top:auto; }
+        .cg-kpi small{ display:block; font-size:.64rem; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); font-weight:800; }
+        .cg-kpi b{ font-size:1.05rem; color:var(--navy); }
+        .cg-act{ margin-left:auto; }
+        .cg-group{ grid-column:1/-1; display:flex; align-items:center; padding:10px 14px; border-radius:14px; background:#fbf3dc; color:var(--navy); font-weight:800; cursor:pointer; }
+        .cg-gin{ display:inline-flex; align-items:center; gap:10px; }
+        .cg-empty{ grid-column:1/-1; padding:3rem 1rem; text-align:center; color:var(--text3); font-weight:600; }
+            /* ── CardGrid polish: no clipping, view toggle, calmer layout ── */
+        .cg .dg-holder{ overflow:visible; flex:none; }
+        .cg-bar{ position:static; gap:10px 14px; }
+        .cg-lbl{ white-space:nowrap; }
+        .cg-seg{ display:inline-flex; background:#f6ecd0; border-radius:999px; padding:3px; gap:2px; }
+        .cg-vbtn{ border:0; background:transparent; color:var(--text2); font:800 .76rem 'Plus Jakarta Sans',sans-serif; padding:7px 14px; border-radius:999px; cursor:pointer; white-space:nowrap; }
+        .cg-vbtn.on{ background:#fff; color:var(--navy-lt); box-shadow:0 2px 8px rgba(12,30,51,.12); }
+        .cg .dg-sizew{ display:none; }
+        .cg .dg-footer{ justify-content:space-between; }
+        .cg-grid{ padding:20px; gap:18px; }
+        .cg-chip{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .cg-sub{ flex-wrap:nowrap; min-width:0; }
+        .cg-sub span:first-child{ flex:none; }
+        /* compact list mode */
+        .cg-list .cg-grid{ grid-template-columns:1fr; gap:8px; padding:14px 18px; }
+        .cg-list .cg-card{ flex-direction:row; align-items:center; gap:18px; padding:10px 16px; border-radius:16px; }
+        .cg-list .cg-card:hover{ transform:none; }
+        .cg-list .cg-ck{ position:static; order:-1; flex:none; }
+        .cg-list .cg-top{ flex:0 0 340px; padding-right:0; min-width:0; }
+        .cg-list .cg-av .student-image{ width:40px; height:40px; }
+        .cg-list .cg-subj{ display:flex; flex-wrap:wrap; gap:6px 14px; flex:1; min-width:0; }
+        .cg-list .cg-s{ padding:0; gap:6px; background:#fdfaf2; border-radius:999px; padding:4px 10px; font-size:.7rem; }
+        .cg-list .cg-s i, .cg-list .cg-s::before{ display:none; }
+        .cg-list .cg-bot{ border:0; padding:0; margin:0 0 0 auto; flex:none; }
+        @media (max-width:900px){
+            .cg-list .cg-card{ flex-direction:column; align-items:stretch; gap:10px; }
+            .cg-list .cg-top{ flex:none; }
+            .cg-list .cg-ck{ position:absolute; order:0; }
+            .cg-list .cg-bot{ margin:0; }
+            .cg-selall{ margin-left:0; }
+        }
+        @media (max-width:560px){ .cg-grid{ grid-template-columns:1fr; padding:12px; } .cg-bar{ padding:10px 12px; } }
+            /* ── CardGrid v2: stats, quick filters, rank, actions, selection bar ── */
+        .cg-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; padding:18px 18px 0; }
+        .cg-stats:empty{ display:none; }
+        .cg-stat{ position:relative; overflow:hidden; background:#fff; border:1px solid var(--border); border-radius:18px; padding:14px 16px; box-shadow:0 2px 10px rgba(12,30,51,.04); }
+        .cg-stat::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tc,#2980b9); }
+        .cg-stat small{ display:block; font-size:.66rem; text-transform:uppercase; letter-spacing:.07em; color:var(--text3); font-weight:800; }
+        .cg-stat b{ display:block; font-size:1.55rem; color:var(--navy); letter-spacing:-.02em; margin-top:2px; line-height:1.15; }
+        .cg-stat span{ display:block; font-size:.72rem; color:var(--text2); font-weight:600; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .cg-t-green{ --tc:#12a15a; } .cg-t-orange{ --tc:#e67e22; } .cg-t-red{ --tc:#e5484d; } .cg-t-blue{ --tc:#2980b9; }
+        .cg-quick{ display:flex; flex-wrap:wrap; gap:8px; padding:16px 18px 2px; }
+        .cg-quick:empty{ display:none; }
+        .cg-qc{ --c:#2980b9; display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 14px; border-radius:999px; border:1.5px solid var(--border2); background:#fff; color:var(--navy); font:800 .76rem 'Plus Jakarta Sans',sans-serif; cursor:pointer; transition:all .15s; }
+        .cg-qc i{ font-style:normal; font-size:.68rem; background:#fbf3dc; color:var(--c); padding:1px 8px; border-radius:999px; }
+        .cg-qc:hover{ border-color:var(--c); }
+        .cg-qc.on{ background:var(--c); border-color:var(--c); color:#fff; box-shadow:0 6px 16px rgba(12,30,51,.2); }
+        .cg-qc.on i{ background:rgba(255,255,255,.25); color:#fff; }
+        .cg-card::before{ content:''; position:absolute; left:18px; right:18px; top:0; height:3px; border-radius:0 0 6px 6px; background:var(--acc,transparent); }
+        .cg-list .cg-card::before{ left:0; right:auto; top:12px; bottom:12px; width:3px; height:auto; border-radius:0 6px 6px 0; }
+        .cg-kpi em{ font-style:normal; font-size:.7rem; color:var(--text3); font-weight:700; }
+        .cg-qa{ display:flex; gap:6px; margin-left:auto; }
+        .cg-qa button{ width:32px; height:32px; border-radius:50%; border:1.5px solid var(--border); background:#fff; font-size:.9rem; line-height:1; cursor:pointer; transition:all .15s; }
+        .cg-qa button:hover{ background:var(--surface3); border-color:var(--navy-lt); transform:scale(1.08); }
+        .cg-qa + .cg-act{ margin-left:0; }
+        @keyframes cgIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+        .cg-anim .cg-card{ animation:cgIn .38s cubic-bezier(.2,.7,.3,1) both; }
+        .cg-anim .cg-card:nth-child(1){ animation-delay:0ms; }
+        .cg-anim .cg-card:nth-child(2){ animation-delay:35ms; }
+        .cg-anim .cg-card:nth-child(3){ animation-delay:70ms; }
+        .cg-anim .cg-card:nth-child(4){ animation-delay:105ms; }
+        .cg-anim .cg-card:nth-child(5){ animation-delay:140ms; }
+        .cg-anim .cg-card:nth-child(6){ animation-delay:175ms; }
+        .cg-anim .cg-card:nth-child(7){ animation-delay:210ms; }
+        .cg-anim .cg-card:nth-child(8){ animation-delay:245ms; }
+        .cg-anim .cg-card:nth-child(9){ animation-delay:280ms; }
+        .cg-anim .cg-card:nth-child(10){ animation-delay:315ms; }
+        .cg-anim .cg-card:nth-child(11){ animation-delay:350ms; }
+        .cg-anim .cg-card:nth-child(12){ animation-delay:385ms; }
+        @media (prefers-reduced-motion:reduce){ .cg-anim .cg-card{ animation:none; } }
+        .cg-selbar{ position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:9000; display:flex; align-items:center; gap:8px; background:var(--navy); color:#fff; padding:10px 12px 10px 20px; border-radius:999px; box-shadow:0 18px 50px rgba(12,30,51,.4); animation:cgIn .25s both; max-width:calc(100vw - 24px); flex-wrap:wrap; justify-content:center; }
+        .cg-sbn{ font-weight:800; font-size:.84rem; margin-right:6px; }
+        .cg-selbar button{ border:0; border-radius:999px; padding:9px 16px; font:800 .76rem 'Plus Jakarta Sans',sans-serif; background:rgba(255,255,255,.14); color:#fff; cursor:pointer; }
+        .cg-selbar button:hover{ background:rgba(255,255,255,.26); }
+        .cg-selbar button.x{ background:#fff; color:var(--navy); }
+        .cg-toast{ position:fixed; left:50%; bottom:86px; transform:translate(-50%,12px); opacity:0; z-index:9100; background:#12a15a; color:#fff; font:800 .82rem 'Plus Jakarta Sans',sans-serif; padding:11px 20px; border-radius:999px; box-shadow:0 12px 30px rgba(18,161,90,.35); transition:all .25s; pointer-events:none; }
+        .cg-toast.in{ opacity:1; transform:translate(-50%,0); }
+        @media (max-width:560px){ .cg-stats{ grid-template-columns:repeat(2,1fr); padding:12px 12px 0; gap:10px; } .cg-stat b{ font-size:1.25rem; } .cg-quick{ padding:12px 12px 0; } }
+            /* ══════════════════════════════════════════════════════════════
+           ADVANCED ADMIN PORTAL DESIGN — warm cream/gold canvas, blue +
+           orange accents, glass topbar, sidebar shell, wave-split login
+        ══════════════════════════════════════════════════════════════ */
+        :root{
+            --rp-w:260px;
+            --blue:#2980b9; --blue-dk:#1a5276; --blue-lt:#5dade2; --blue-glow:rgba(41,128,185,.35);
+            --orange:#e67e22; --orange-dk:#d35400;
+            --navy:#0c1e33; --navy-mid:#1a5276; --navy-lt:#2980b9;
+            --gold:#e67e22; --gold-lt:#f39c12; --gold-dim:rgba(230,126,34,.14);
+            --surface:#ffffff; --surface2:#fdfaf2; --surface3:#f8eed6; --cream:#fdfaf2;
+            --text:#0c1e33; --text2:#5a5342; --text3:#a89b7a;
+            --border:rgba(211,164,55,.22); --border2:rgba(211,164,55,.45);
+            --success:#27ae60; --success-lt:#e6f6ec; --danger:#e74c3c; --danger-lt:#fdecea; --info:#2980b9; --info-lt:#e9f3fb;
+            --radius:12px; --radius-sm:8px; --radius-md:12px; --radius-lg:18px; --radius-xl:24px;
+            --shadow-sm:0 2px 10px rgba(211,164,55,.12); --shadow:0 4px 20px rgba(211,164,55,.14); --shadow-lg:0 20px 50px rgba(10,30,60,.2);
+            --bg:linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%);
+            --clay-raised:0 4px 20px rgba(211,164,55,.14), 0 0 0 1px rgba(211,164,55,.2);
+            --clay-raised-sm:0 2px 8px rgba(211,164,55,.12), 0 0 0 1px rgba(211,164,55,.2);
+            --clay-pressed:inset 0 0 0 1.5px rgba(211,164,55,.25);
+        }
+        body{ background:var(--bg) !important; background-attachment:fixed !important; color:var(--text); }
+        body::before{ content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:1 !important;
+            background:radial-gradient(circle at 10% 10%, rgba(41,128,185,.20), transparent 26%), radial-gradient(circle at 88% 92%, rgba(230,126,34,.20), transparent 24%), linear-gradient(120deg, rgba(255,255,255,.08), transparent 60%) !important; }
+        body::after{ content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+            background-image:linear-gradient(rgba(41,128,185,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(41,128,185,.045) 1px, transparent 1px);
+            background-size:26px 26px; -webkit-mask-image:radial-gradient(circle at center, black 50%, transparent 92%); mask-image:radial-gradient(circle at center, black 50%, transparent 92%); }
+        .page-wrap{ position:relative; z-index:1; }
+        ::-webkit-scrollbar-thumb{ background:rgba(211,164,55,.45) !important; border:0 !important; }
+
+        /* ── Sidebar ── */
+        #rp-sidebar{ position:fixed; top:0; left:0; bottom:0; width:var(--rp-w); z-index:600; display:none; flex-direction:column; overflow-y:auto; overflow-x:hidden;
+            background:linear-gradient(180deg,#faf6ea,rgba(255,255,255,.66)); border-right:1px solid var(--border); box-shadow:0 0 0 1px rgba(255,255,255,.2) inset; transition:transform .3s; }
+        body.user-logged-in #rp-sidebar{ display:flex; }
+        .rp-brand{ padding:20px 20px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-shrink:0; background:linear-gradient(90deg,rgba(41,128,185,.12),rgba(243,156,18,.08)); }
+        .rp-logo{ width:42px; height:42px; border-radius:12px; flex:none; overflow:hidden; background:linear-gradient(135deg,#0f4c81,#3f8fc5,#ffb84d); box-shadow:0 6px 20px rgba(20,63,110,.35); }
+        .rp-logo img{ width:100%; height:100%; object-fit:cover; display:block; }
+        .rp-bname{ font-size:14px; font-weight:900; letter-spacing:.01em; color:var(--text); }
+        .rp-brole{ font-size:10px; color:#2980b9; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+        .rp-sec{ padding:16px 12px 6px; }
+        .rp-lbl{ font-size:9px; font-weight:800; color:var(--text3); letter-spacing:.12em; text-transform:uppercase; padding:0 8px; margin-bottom:6px; }
+        .rp-nav{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; cursor:pointer; transition:all .25s cubic-bezier(.4,0,.2,1); font-size:13px; font-weight:700; color:var(--text2); margin-bottom:2px; border:1px solid transparent; user-select:none; white-space:nowrap; }
+        .rp-nav:hover{ background:rgba(41,128,185,.12); color:var(--text); transform:translateX(2px); }
+        .rp-nav.active{ background:linear-gradient(135deg,rgba(41,128,185,.25),rgba(41,128,185,.12)); color:#1a5276; border-color:rgba(41,128,185,.32); box-shadow:0 6px 18px rgba(41,128,185,.15); }
+        .rp-ic{ font-size:16px; width:18px; text-align:center; flex:none; }
+        .rp-foot{ margin-top:auto; padding:14px 12px; border-top:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+        .rp-av{ width:34px; height:34px; border-radius:10px; flex:none; background:linear-gradient(135deg,#8e44ad,#6c3483); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; overflow:hidden; }
+        .rp-av img{ width:100%; height:100%; object-fit:cover; }
+        .rp-me{ min-width:0; flex:1; }
+        .rp-me-name{ font-size:12px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .rp-me-role{ font-size:10px; color:var(--text2); }
+        .rp-out{ background:none; border:none; color:var(--text3); cursor:pointer; padding:6px; flex:none; }
+        .rp-out:hover{ color:var(--danger); }
+        .rp-backdrop{ display:none; position:fixed; inset:0; z-index:590; background:rgba(5,12,22,.45); backdrop-filter:blur(2px); }
+        .rp-backdrop.show{ display:block; }
+
+        /* ── Shell: content shifts right of the sidebar ── */
+        body.user-logged-in .page-wrap{ max-width:none; margin:0 0 0 var(--rp-w); padding:0; }
+        body.user-logged-in #data-section{ padding:0 clamp(12px,2.5vw,28px) 3rem; }
+        body.user-logged-in #data-section > .topbar{
+            position:sticky; top:0; z-index:550; height:auto; min-height:64px; padding:12px clamp(12px,2.5vw,28px) !important;
+            margin:0 calc(-1 * clamp(12px,2.5vw,28px)) 24px; border-radius:0 !important;
+            background:linear-gradient(90deg,rgba(255,255,255,.72),rgba(255,255,255,.4)) !important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+            border-bottom:1px solid var(--border) !important; box-shadow:0 10px 24px rgba(0,0,0,.05) !important; }
+        .rp-tleft{ display:flex; align-items:center; gap:14px; min-width:0; }
+        .rp-burger{ display:none; width:36px; height:36px; border-radius:10px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); font-size:15px; cursor:pointer; flex:none; }
+        .rp-ptitle{ font-size:18px; font-weight:900; color:var(--text); letter-spacing:-.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .rp-pcrumb{ font-size:11px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .rp-dot{ width:8px; height:8px; border-radius:50%; background:var(--success); box-shadow:0 0 8px var(--success); animation:rpPulse 2s infinite; flex:none; }
+        @keyframes rpPulse{ 0%,100%{ opacity:1 } 50%{ opacity:.6 } }
+        .topbar-right{ gap:10px; }
+        #user-id-display{ background:rgba(41,128,185,.12) !important; color:var(--text2) !important; }
+
+        /* ── Panels, headings, buttons, inputs (design tokens) ── */
+        .card, .cg-stat, .cg-card{ background:linear-gradient(165deg,rgba(255,255,255,.9),rgba(255,255,255,.66)) !important; border:1px solid var(--border) !important; box-shadow:var(--shadow) !important; }
+        .card{ border-radius:18px !important; }
+        .card-header{ background:transparent !important; border-bottom:1px solid var(--border) !important; }
+        .toolbar-title, .card-title{ font-weight:900 !important; color:var(--text) !important; display:flex; align-items:center; gap:8px; }
+        .toolbar-title::before{ content:''; display:block; width:4px; height:18px; background:linear-gradient(180deg,var(--blue),#16a085); border-radius:2px; }
+        .card-icon{ background:rgba(41,128,185,.12) !important; color:var(--blue) !important; }
+        .btn, .export-btn, .grade-toggle-btn, .tab-toolbar-btn, .pagination-btn, .drawer-cancel-btn, .drawer-save-btn, #sign-out-btn, .btn-edit, .btn-del{ border-radius:12px !important; font-weight:700; letter-spacing:0; }
+        .btn-primary, .drawer-save-btn{ background:linear-gradient(135deg,var(--blue),var(--blue-dk)) !important; color:#fff !important; border:0 !important; box-shadow:0 3px 12px var(--blue-glow) !important; }
+        .btn-primary:hover{ transform:translateY(-2px); }
+        .btn-gold{ background:linear-gradient(135deg,var(--orange),var(--orange-dk)) !important; color:#fff !important; box-shadow:0 3px 12px rgba(230,126,34,.35) !important; }
+        .btn-success{ background:linear-gradient(135deg,#27ae60,#1d8a4e) !important; box-shadow:0 3px 12px rgba(39,174,96,.3) !important; }
+        .btn-danger{ background:linear-gradient(135deg,#e74c3c,#c0392b) !important; box-shadow:0 3px 12px rgba(231,76,60,.3) !important; }
+        .btn-outline, #sign-out-btn, .export-btn, .grade-toggle-btn, .tab-toolbar-btn{ background:transparent !important; border:1.5px solid var(--border2) !important; color:var(--text2) !important; box-shadow:none !important; }
+        .btn-outline:hover, #sign-out-btn:hover, .export-btn:hover, .grade-toggle-btn:hover, .tab-toolbar-btn:hover, .grade-toggle-btn.active, .tab-toolbar-btn.active{ border-color:var(--blue) !important; color:var(--blue) !important; background:rgba(41,128,185,.08) !important; box-shadow:none !important; }
+        input[type="text"], input[type="email"], input[type="number"], select, #search-input, .field input, .drawer-field input{ border-radius:10px !important; border:1.5px solid var(--border2) !important; background:#fff !important; }
+        input:focus, select:focus, #search-input:focus{ border-color:var(--blue) !important; box-shadow:0 0 0 4px rgba(41,128,185,.14) !important; }
+        .tab-count-badge{ background:rgba(41,128,185,.12) !important; color:var(--blue-dk) !important; }
+        /* KPI tiles — same anatomy as the admin dashboard */
+        .cg-stats{ grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr)); }
+        .cg-stat{ border-radius:18px !important; padding:18px 20px; }
+        .cg-stat::before{ display:none; }
+        .cg-stat::after{ content:''; position:absolute; right:-20px; bottom:-20px; width:80px; height:80px; border-radius:50%; background:radial-gradient(circle,var(--tc,#2980b9),transparent 65%); opacity:.22; }
+        .cg-stat small{ font-size:10px; font-weight:700; letter-spacing:.09em; }
+        .cg-stat b{ font-size:28px; font-weight:900; letter-spacing:-.04em; margin-top:8px; font-variant-numeric:tabular-nums; }
+        .cg-stat span{ margin-top:8px; font-weight:700; }
+        .cg-stat:hover{ transform:translateY(-2px); border-color:var(--border2) !important; }
+
+        /* ── Wave-split login (exact layout of the admin portal) ── */
+        #sign-in-section.lg{ position:fixed; inset:0; z-index:2000; flex-direction:row !important; align-items:center; justify-content:center; overflow-y:auto; padding:0; min-height:0; margin:0; border-radius:0; background:var(--bg) !important; --auth-panel-w:min(42%,600px); --auth-wave-amp:72px; }
+        #sign-in-section.lg::before{ content:''; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.6; background:radial-gradient(ellipse 55% 45% at 90% 88%,rgba(243,156,18,.18) 0%,transparent 65%), radial-gradient(ellipse 45% 40% at 10% 8%,rgba(211,164,55,.08) 0%,transparent 60%); }
+        .lg-panel, .lg-wave{ display:none; }
+        .lg-wrap{ flex:1; min-width:0; display:flex; align-items:flex-start; justify-content:center; padding:20px; position:relative; z-index:1; }
+        @media(min-height:600px){ .lg-wrap{ align-items:center; } }
+        .lg-card{ position:relative; z-index:1; width:100%; max-width:380px; background:var(--surface); border-radius:28px; padding:2.3rem 2.1rem 2.1rem; border:1px solid var(--border); box-shadow:0 30px 90px rgba(10,30,60,.28), 0 0 0 1px rgba(41,128,185,.07); animation:lgUp .5s cubic-bezier(.34,1.56,.64,1); }
+        @keyframes lgUp{ from{ transform:translateY(24px); opacity:0 } to{ transform:none; opacity:1 } }
+        .lg-logo{ width:54px; height:54px; border-radius:16px; margin:0 auto 1.1rem; overflow:hidden; display:grid; place-items:center; font-size:24px; background:linear-gradient(135deg,var(--blue),var(--blue-dk)); box-shadow:0 10px 26px var(--blue-glow); }
+        .lg-logo img{ width:100%; height:100%; object-fit:cover; }
+        .lg-card h1{ text-align:center; font-size:1.55rem; font-weight:900; letter-spacing:-.01em; color:var(--text); margin:0 0 .25rem; }
+        .lg-sub{ text-align:center; font-size:.83rem; color:var(--text2); font-weight:500; margin:0 0 1.5rem; }
+        .lg-actions{ display:flex; flex-direction:column; gap:.7rem; }
+        .lg-actions .btn{ width:100%; justify-content:center; gap:10px; padding:13px 18px; font-size:.88rem; border-radius:14px !important; margin:0; }
+        .lg-actions #sign-in-google-btn svg{ background:#fff; border-radius:50%; padding:3px; width:24px; height:24px; }
+        .lg-note{ text-align:center; font-size:.72rem; color:var(--text3); font-weight:600; margin:1.2rem 0 0; }
+        @media(min-width:901px){
+            .lg-panel{ display:flex; flex-direction:column; align-items:center; justify-content:center; width:var(--auth-panel-w); flex-shrink:0; min-height:100vh; position:relative; overflow:hidden; padding:4rem 3rem; color:#fff; }
+            .lg-panel::before{ content:''; position:absolute; top:0; bottom:0; left:0; right:var(--auth-wave-amp); background:linear-gradient(160deg,#1a5276 0%,#132a45 55%,#0a1c30 100%); }
+            .lg-blob{ position:absolute; border-radius:50%; pointer-events:none; }
+            .lg-blob-1{ width:360px; height:360px; top:-130px; right:-130px; background:rgba(255,255,255,.055); }
+            .lg-blob-2{ width:280px; height:280px; bottom:-110px; left:-90px; background:rgba(93,173,226,.18); }
+            .lg-dot{ position:absolute; border-radius:50%; background:rgba(255,255,255,.22); }
+            .lg-dot-1{ width:14px; height:14px; top:16%; right:20%; } .lg-dot-2{ width:10px; height:10px; bottom:22%; left:14%; background:#5dade2; opacity:.9; }
+            .lg-illus{ position:relative; z-index:1; width:100%; max-width:320px; margin:0 auto 2.4rem; }
+            .lg-illus svg{ width:100%; height:auto; display:block; }
+            .lg-brand{ position:relative; z-index:1; text-align:center; }
+            .lg-brand-name{ font-size:1.5rem; font-weight:900; margin-bottom:.6rem; letter-spacing:-.01em; }
+            .lg-brand-tag{ font-size:.88rem; color:rgba(255,255,255,.72); font-weight:500; line-height:1.55; max-width:320px; margin:0 auto; min-height:2.7em; transition:opacity .35s ease; }
+            .lg-brand-tag.fading{ opacity:0; }
+            .lg-tip-dots{ display:flex; justify-content:center; gap:.4rem; margin-top:1.1rem; position:relative; z-index:1; }
+            .lg-tip-dot{ width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.28); transition:background .25s,width .25s; }
+            .lg-tip-dot.active{ background:#5dade2; width:18px; border-radius:3px; }
+            .lg-wave{ display:block; position:absolute; top:0; bottom:0; left:calc(var(--auth-panel-w) - var(--auth-wave-amp)); width:calc(var(--auth-wave-amp) * 2); z-index:2; pointer-events:none; }
+            .lg-wave svg{ width:100%; height:100%; display:block; }
+            .lg-wrap{ min-height:100vh; padding:40px 4vw; }
+            .lg-card{ box-shadow:none; border:none; background:transparent; max-width:400px; }
+        }
+
+        /* ── Phones / tablets: sidebar becomes a drawer ── */
+        @media(max-width:900px){
+            #rp-sidebar{ transform:translateX(-100%); box-shadow:20px 0 50px rgba(0,0,0,.25); }
+            #rp-sidebar.open{ transform:none; }
+            body.user-logged-in .page-wrap{ margin-left:0; }
+            .rp-burger{ display:inline-flex; align-items:center; justify-content:center; }
+            .rp-pcrumb{ display:none; }
+        }
+    </style>
 </head>
 
 <body class="user-logged-out">
@@ -993,119 +2040,131 @@
     <!-- ══════════════════════════════════════
          PAGE WRAP
     ══════════════════════════════════════ -->
+    <!-- ══ ADMIN-PORTAL STYLE SIDEBAR ══ -->
+    <div id="rp-backdrop" class="rp-backdrop"></div>
+    <aside id="rp-sidebar" aria-label="Portal navigation">
+        <div class="rp-brand">
+            <div class="rp-logo"><img src="../images/logo.png" alt="" onerror="this.style.display='none'"></div>
+            <div><div class="rp-bname">Kanyadet School</div><div class="rp-brole">Results Portal</div></div>
+        </div>
+        <div class="rp-sec">
+            <div class="rp-lbl">Navigation</div>
+            <div class="rp-nav" data-href="../index.html"><span class="rp-ic">🏠</span>Admin Portal</div>
+            <div class="rp-nav active" data-scroll="records-card"><span class="rp-ic">🎓</span>Student Records</div>
+            <div class="rp-nav" data-scroll="excel-upload-section"><span class="rp-ic">📤</span>Upload Results</div>
+            <div class="rp-nav" data-scroll="manual-entry-section"><span class="rp-ic">➕</span>Add Student</div>
+        </div>
+        <div class="rp-sec">
+            <div class="rp-lbl">Tools</div>
+            <div class="rp-nav" data-click="tab-dup-scanner-btn"><span class="rp-ic">🔎</span>Duplicate Scanner</div>
+            <div class="rp-nav" data-click="tab-missing-marks-btn"><span class="rp-ic">🧾</span>Missing Marks</div>
+            <div class="rp-nav" data-text="grade chart"><span class="rp-ic">📈</span>Grade Chart</div>
+            <div class="rp-nav" data-click="print-all-btn"><span class="rp-ic">⬇️</span>Export All</div>
+            <div class="rp-nav" data-click="print-grade-btn"><span class="rp-ic">🖨️</span>Export Grade</div>
+        </div>
+        <div class="rp-foot">
+            <div class="rp-av" id="rp-me-av">U</div>
+            <div class="rp-me"><div class="rp-me-name" id="rp-me-name">Signed in</div><div class="rp-me-role">Results Portal</div></div>
+            <button class="rp-out" id="rp-logout" title="Sign out" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </div>
+    </aside>
+
     <div class="page-wrap">
 
         <!-- ── SIGN-IN SECTION ───────────────────────── -->
-        <div id="sign-in-section" class="hidden">
-            <div class="auth-blob auth-blob-1"></div>
-            <div class="auth-blob auth-blob-2"></div>
-
-            <!-- DESKTOP SIDE PANEL -->
-            <div class="auth-side-panel" aria-hidden="true">
-                <div class="asp-blob asp-blob-1"></div>
-                <div class="asp-blob asp-blob-2"></div>
-                <div class="asp-dot asp-dot-1"></div>
-                <div class="asp-dot asp-dot-2"></div>
-                <div class="asp-illustration">
+        <div id="sign-in-section" class="lg hidden">
+            <div class="lg-panel" aria-hidden="true">
+                <div class="lg-blob lg-blob-1"></div><div class="lg-blob lg-blob-2"></div>
+                <div class="lg-dot lg-dot-1"></div><div class="lg-dot lg-dot-2"></div>
+                <div class="lg-illus">
                     <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="160" cy="130" r="112" fill="rgba(255,255,255,.06)"/>
-                        <rect x="96" y="30" width="128" height="200" rx="24" fill="rgba(255,255,255,.09)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
-                        <rect x="118" y="54" width="84" height="10" rx="5" fill="rgba(255,255,255,.35)"/>
-                        <g transform="translate(160,150)">
-                            <rect x="-38" y="10" width="16" height="34" rx="3" fill="rgba(255,255,255,.28)"/>
-                            <rect x="-16" y="-6" width="16" height="50" rx="3" fill="var(--gold-lt)"/>
-                            <rect x="6" y="-24" width="16" height="68" rx="3" fill="var(--gold-lt)"/>
-                            <rect x="28" y="4" width="16" height="40" rx="3" fill="rgba(255,255,255,.28)"/>
-                            <path d="M-38 -16 L-8 -30 L14 -40 L38 -52" fill="none" stroke="var(--gold-lt)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                        </g>
-                        <rect x="118" y="196" width="84" height="10" rx="5" fill="rgba(255,255,255,.25)"/>
-                        <circle cx="66" cy="52" r="18" fill="var(--gold-lt)" opacity=".45"/>
-                        <circle cx="258" cy="204" r="14" fill="rgba(255,255,255,.2)"/>
-                        <path d="M46 200 q16 -34 44 -10" stroke="var(--gold-lt)" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
-                        <path d="M244 50 l14 -14 m0 14 l-14 -14" stroke="rgba(255,255,255,.5)" stroke-width="3.5" stroke-linecap="round"/>
+                        <rect x="82" y="30" width="156" height="200" rx="22" fill="rgba(255,255,255,.09)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+                        <rect x="104" y="54" width="70" height="10" rx="5" fill="rgba(255,255,255,.4)"/>
+                        <circle cx="208" cy="59" r="10" fill="#ffb84d"/>
+                        <rect x="104" y="140" width="20" height="50" rx="6" fill="#5dade2"/>
+                        <rect x="132" y="116" width="20" height="74" rx="6" fill="rgba(255,255,255,.55)"/>
+                        <rect x="160" y="94" width="20" height="96" rx="6" fill="#ffb84d"/>
+                        <rect x="188" y="124" width="20" height="66" rx="6" fill="#5dade2"/>
+                        <rect x="104" y="204" width="104" height="9" rx="4.5" fill="rgba(255,255,255,.25)"/>
+                        <circle cx="62" cy="54" r="18" fill="#5dade2" opacity=".45"/>
+                        <circle cx="262" cy="206" r="14" fill="rgba(255,255,255,.2)"/>
+                        <path d="M44 202 q16 -34 44 -10" stroke="#5dade2" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
+                        <path d="M250 52 l14 -14 m0 14 l-14 -14" stroke="rgba(255,255,255,.5)" stroke-width="3.5" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <div class="asp-brand">
-                    <div class="asp-brand-name">Kanyadet Pri &amp; Junior School</div>
-                    <div class="asp-brand-name">Results Printing Portal</div>
-                    <div class="asp-brand-tag">Student results, analytics, and report cards — all in one secure portal.</div>
+                <div class="lg-brand">
+                    <div class="lg-brand-name">Kanyadet PRI &amp; Junior School</div>
+                    <div class="lg-brand-tag" id="lg-tip-text">Enter marks, rank classes and print report cards — all in one secure portal.</div>
+                    <div class="lg-tip-dots" id="lg-tip-dots"></div>
                 </div>
             </div>
-
-            <!-- WAVE DIVIDER -->
-            <div class="auth-divider-wave" aria-hidden="true">
+            <div class="lg-wave" aria-hidden="true">
                 <svg viewBox="0 0 144 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="resultsAuthWaveGrad" x1="0" y1="0" x2="0.4" y2="1">
-                            <stop offset="0%"  stop-color="#1e4080"/>
-                            <stop offset="55%" stop-color="#152d4a"/>
-                            <stop offset="100%" stop-color="#0d1f35"/>
-                        </linearGradient>
-                    </defs>
-                    <path fill="url(#resultsAuthWaveGrad)" d="M88,0 L103.7,16 L101.8,32 L96.3,48 L100.9,64 L114.1,80 L120.3,96 L105.6,112 L73.2,128 L41.4,144 L27.7,160 L33.5,176 L44.2,192 L45.2,208 L37.4,224 L35.5,240 L52.7,256 L85.5,272 L115.6,288 L125.5,304 L114.7,320 L98.4,336 L91.9,352 L95.3,368 L94.4,384 L76.6,400 L45.2,416 L18.6,432 L13.5,448 L30,464 L51.8,480 L63,496 L62.6,512 L64.4,528 L81,544 L109.2,560 L131,576 L130.5,592 L108.4,608 L81.8,624 L67.4,640 L66.6,656 L65.7,672 L52.1,688 L28.6,704 L12.3,720 L18.5,736 L45.4,752 L75.5,768 L91.3,784 L91.5,800 L0,800 L0,0 Z"/>
+                    <defs><linearGradient id="lgWaveGrad" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0%" stop-color="#1a5276"/><stop offset="55%" stop-color="#132a45"/><stop offset="100%" stop-color="#0a1c30"/></linearGradient></defs>
+                    <path fill="url(#lgWaveGrad)" d="M88,0 L103.7,16 L101.8,32 L96.3,48 L100.9,64 L114.1,80 L120.3,96 L105.6,112 L73.2,128 L41.4,144 L27.7,160 L33.5,176 L44.2,192 L45.2,208 L37.4,224 L35.5,240 L52.7,256 L85.5,272 L115.6,288 L125.5,304 L114.7,320 L98.4,336 L91.9,352 L95.3,368 L94.4,384 L76.6,400 L45.2,416 L18.6,432 L13.5,448 L30,464 L51.8,480 L63,496 L62.6,512 L64.4,528 L81,544 L109.2,560 L131,576 L130.5,592 L108.4,608 L81.8,624 L67.4,640 L66.6,656 L65.7,672 L52.1,688 L28.6,704 L12.3,720 L18.5,736 L45.4,752 L75.5,768 L91.3,784 L91.5,800 L0,800 L0,0 Z"/>
                 </svg>
             </div>
+            <div class="lg-wrap">
+                <div class="lg-card">
+                    <div class="lg-logo"><img src="../images/logo.png" alt="School Logo" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span style="display:none">🏫</span></div>
+                    <h1>Results Portal</h1>
+                    <p class="lg-sub">Student results, ranking &amp; report cards</p>
+                    <div class="lg-actions">
+                        <button id="sign-in-google-btn" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
 
-            <div class="auth-cards-wrap">
-                <div class="signin-card">
-                    <div class="signin-illustration">
-                        <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="112" cy="76" r="64" fill="var(--surface3)"/>
-                            <rect x="66" y="24" width="92" height="106" rx="16" fill="var(--surface)" stroke="var(--border2)" stroke-width="2"/>
-                            <rect x="80" y="40" width="64" height="8" rx="4" fill="var(--gold-lt)" opacity=".6"/>
-                            <g transform="translate(112,90)">
-                                <rect x="-30" y="6" width="12" height="26" rx="2" fill="var(--border2)"/>
-                                <rect x="-12" y="-6" width="12" height="38" rx="2" fill="var(--gold)"/>
-                                <rect x="6" y="-18" width="12" height="50" rx="2" fill="var(--navy-lt)"/>
-                                <rect x="24" y="2" width="12" height="30" rx="2" fill="var(--border2)"/>
-                            </g>
-                            <rect x="80" y="118" width="40" height="8" rx="4" fill="var(--border2)"/>
-                            <circle cx="38" cy="36" r="13" fill="var(--gold-lt)" opacity=".4"/>
-                            <circle cx="188" cy="120" r="10" fill="var(--navy-lt)" opacity=".22"/>
-                            <path d="M170 40 l10 -10 m0 10 l-10 -10" stroke="var(--gold-lt)" stroke-width="3" stroke-linecap="round" opacity=".6"/>
-                        </svg>
-                        <div class="signin-logo">📊</div>
-                    </div>
-                    <h2 style="text-align: center;" >Welcome Back </h2>
-                    <h3 style="text-align: center;">Class Results Printing Portal</h3>
-                    
-                    <p>Sign in to access student results and analytics</p>
 
-                    <button id="sign-in-google-btn" class="btn btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
                             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+
+
                             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+
+
                             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+
+
                             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+
+
                         </svg>
-                        Continue with Google
-                    </button>
-                    <button id="sign-in-fingerprint-btn" class="btn btn-outline">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            Continue with Google
+                        </button>
+                        <button id="sign-in-fingerprint-btn" class="btn btn-outline">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+
+
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
+
+
                         </svg>
-                        Sign in with Fingerprint
-                    </button>
+                            Sign in with Fingerprint
+                        </button>
+                    </div>
+                    <p class="lg-note">🔒 Authorized staff only · Secured by Google</p>
                 </div>
             </div>
         </div>
 
-        <!-- ── MAIN DATA SECTION ─────────────────────── -->
+<!-- ── MAIN DATA SECTION ─────────────────────── -->
         <main id="data-section" class="hidden">
 
               <!-- ══════════════════════════════════════
          TOP BAR
     ══════════════════════════════════════ -->
     <header class="topbar">
-        <div class="topbar-brand">
-            <img src="../images/logo.png" alt="School Logo" class="topbar-logo">
+        <div class="rp-tleft">
+            <button class="rp-burger" id="rp-burger" type="button" aria-label="Menu">☰</button>
             <div>
-                <div class="topbar-title">Kanyadet Pri &amp; Junior School</div>
-                <div class="topbar-sub">Student Results Portal</div>
+                <div class="rp-ptitle">Student Results</div>
+                <div class="rp-pcrumb">Kanyadet Pri &amp; Junior School · Results Portal</div>
             </div>
         </div>
 
         <div class="topbar-right">
+            <span class="rp-dot" title="System online"></span>
             <span id="user-id-display"></span>
             <button id="sign-out-btn" class="btn btn-ghost hidden">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1188,7 +2247,7 @@
             <section id="stats-section" class="mb-8" hidden></section>
 
             <!-- Student Records Table -->
-            <div class="card">
+            <div class="card" id="records-card">
                 <!-- Toolbar -->
                 <div class="toolbar">
                     <div class="toolbar-title">Student Records</div>
@@ -1538,7 +2597,7 @@ toggleBtn.addEventListener('click', () => {
 
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, signInWithCustomToken, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getDatabase, ref, set, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -1771,11 +2830,27 @@ toggleBtn.addEventListener('click', () => {
             fpUnlocked = true; // fresh Google sign-in = already verified
             try {
                 const provider = new GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' });
                 await signInWithPopup(auth, provider);
             } catch (error) {
-                fpUnlocked = sessionStorage.getItem('fpUnlocked') === '1';
                 console.error("Error during Google sign-in:", error);
-                showModal(`Failed to sign in with Google: ${error.message}`);
+                // Popup blocked / closed / cross-origin issue -> fall back to full-page redirect
+                const popupFailed = ['auth/popup-blocked', 'auth/popup-closed-by-user',
+                    'auth/cancelled-popup-request', 'auth/operation-not-supported-in-this-environment'].includes(error.code);
+                if (popupFailed) {
+                    try {
+                        sessionStorage.setItem('fpUnlockedPending', '1');
+                        await signInWithRedirect(auth, new GoogleAuthProvider());
+                        return;
+                    } catch (e2) { console.error("Redirect sign-in failed:", e2); error = e2; }
+                }
+                fpUnlocked = sessionStorage.getItem('fpUnlocked') === '1';
+                const hints = {
+                    'auth/unauthorized-domain': 'This domain is not authorized in Firebase Console > Authentication > Settings > Authorized domains.',
+                    'auth/network-request-failed': 'Network problem. Check your connection and disable ad blockers for this site.',
+                    'auth/operation-not-allowed': 'Google sign-in is not enabled in Firebase Console > Authentication > Sign-in method.'
+                };
+                showModal(`Failed to sign in with Google (${error.code || 'error'}): ${hints[error.code] || error.message}`);
             }
         };
 
@@ -1830,6 +2905,15 @@ toggleBtn.addEventListener('click', () => {
                 auth = getAuth(app);
                 db = getDatabase(app);
                 firestoreDb = getFirestore(app);
+                // Complete a redirect-based sign-in if the popup fallback was used
+                if (sessionStorage.getItem('fpUnlockedPending') === '1') {
+                    fpUnlocked = true;
+                    sessionStorage.removeItem('fpUnlockedPending');
+                }
+                getRedirectResult(auth).catch(err => {
+                    console.error('Redirect sign-in error:', err);
+                    showModal(`Failed to sign in with Google (${err.code || 'error'}): ${err.message}`);
+                });
                 // Photos are now loaded from the server's ./student_images/ folder, not the DB.
 
                 // Attach AFTER auth is ready
@@ -1842,18 +2926,21 @@ toggleBtn.addEventListener('click', () => {
                         // Only users whose Firestore users/{uid} doc has
                         // Advancedadmin === true are permitted into Results.html.
                         // Mirrors the access-control pattern used in index.html.
-                        let allowed = false;
+                        let allowed = false, checkError = null;
                         try {
                             const userDocSnap = await getDoc(doc(firestoreDb, 'users', user.uid));
                             allowed = userDocSnap.exists() && userDocSnap.data().Advancedadmin === true;
                         } catch (err) {
                             console.error('[AdvancedAdmin] Profile check failed:', err);
+                            checkError = err;
                             allowed = false;
                         }
 
                         if (!allowed) {
                             loader.classList.add('hidden');
-                            showModal('⛔ Access restricted to Advanced Admins only.');
+                            showModal(checkError
+                                ? `⚠️ Could not verify your access (${checkError.code || 'error'}). Disable ad blockers / check your connection and Firestore rules, then try again.`
+                                : '⛔ Access restricted to Advanced Admins only.');
                             await signOut(auth);
                             return; // onAuthStateChanged will re-fire with user=null and reset the UI
                         }
@@ -3145,7 +4232,60 @@ gradeFilterSelect.addEventListener('change', () => {
             const rowData = students.map(s => ({ ...s, _actions: '' }));
             const columns = buildTabulatorColumns(students);
 
-            tabulatorTable = new Tabulator('#tabulator-table', {
+            const SHORT = {'Mathematics':'Maths','Integrated Science':'Int. Science','Creative Arts & Social studies':'CA & SST','Creative Arts & Sports':'CA & Sports','Creative Arts':'Creative Arts','Social studies':'Social St.','Pre-Technical Studies':'Pre-Tech','Integrated Learning Area':'ILA','Agriculture':'Agric'};
+            const markColor = n => n >= 75 ? '#12a15a' : n >= 58 ? '#2980b9' : n >= 41 ? '#e0a100' : '#e5484d';
+            const LEVEL_COLORS = {EE1:'#276749',EE2:'#38a169',ME1:'#2b6cb0',ME2:'#4299e1',AE1:'#d69e2e',AE2:'#ed8936',BE1:'#e53e3e',BE2:'#c53030'};
+            const hasVal = v => v !== undefined && v !== null && v !== '' && v !== '-';
+            const subjectsOf = (d, has) => [...NUMERIC_COLS].filter(f => f !== 'Total Marks' && f !== 'Perc Avrg' && (!has || has(f)) && hasVal(d[f]) && !isNaN(parseFloat(d[f])));
+            const medal = p => p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : '';
+            const summaryOf = (d, rk) => {
+                const subs = subjectsOf(d).map(f => `${SHORT[f] || f} ${parseFloat(d[f])}`).join(', ');
+                const tail = [hasVal(d['Total Marks']) ? `Total ${d['Total Marks']}` : '', hasVal(d['Perc Avrg']) ? `Average ${d['Perc Avrg']}%` : '', d.Level ? `Level ${d.Level}` : '', rk ? `Position ${rk.pos}/${rk.of}` : ''].filter(Boolean).join(' | ');
+                return [`${d['Official Student Name'] || 'Student'} (${d['Assessment No'] || '-'})`, d.Grade || '', subs, tail].filter(Boolean).join('\n');
+            };
+            const statsOf = rows => {
+                if (!rows.length) return [];
+                const avgs = rows.map(r => ({ n: r['Official Student Name'] || '', v: parseFloat(r['Perc Avrg']) })).filter(x => !isNaN(x.v));
+                const top = avgs.reduce((m, x) => !m || x.v > m.v ? x : m, null);
+                const low = avgs.reduce((m, x) => !m || x.v < m.v ? x : m, null);
+                const mean = avgs.length ? avgs.reduce((a, b) => a + b.v, 0) / avgs.length : null;
+                const pass = avgs.filter(x => x.v >= 41).length;
+                return [
+                    { label: 'Students', value: rows.length, tone: 'blue' },
+                    mean !== null && { label: 'Class mean', value: mean.toFixed(1) + '%', tone: 'blue' },
+                    top && { label: 'Top average', value: top.v.toFixed(1) + '%', sub: top.n, tone: 'green' },
+                    low && { label: 'Lowest average', value: low.v.toFixed(1) + '%', sub: low.n, tone: 'orange' },
+                    avgs.length && { label: 'Scoring 41%+', value: Math.round(pass / avgs.length * 100) + '%', sub: `${avgs.length - pass} need attention`, tone: pass / avgs.length >= .7 ? 'green' : 'red' }
+                ].filter(Boolean);
+            };
+            const cardTemplate = (d, x) => {
+                const subj = subjectsOf(d, x.has).map(f => { const n = parseFloat(d[f]), c = markColor(n); return `<div class="cg-s"><span>${x.esc(SHORT[f] || f)}</span><b style="color:${c}">${n}</b><i style="width:${Math.max(0, Math.min(100, n))}%;background:${c}"></i></div>`; }).join('');
+                const total = d['Total Marks'], avg = d['Perc Avrg'], rk = x.rank();
+                return `<div class="cg-top">
+                    <div class="cg-av">${x.cell('Image')}</div>
+                    <div class="cg-id">
+                        <div class="cg-name" title="${x.esc(d['Official Student Name'] || '')}">${x.esc(d['Official Student Name'] || 'Unnamed')}</div>
+                        <div class="cg-sub"><span>${x.esc(d['Assessment No'] || '')}</span>${d.Grade ? `<span class="cg-chip" title="${x.esc(d.Grade)}">${x.esc(d.Grade)}</span>` : ''}${d.Gender ? `<span>${x.esc(d.Gender)}</span>` : ''}</div>
+                    </div>
+                    <div class="cg-lvl">${x.cell('Level')}</div>
+                </div>
+                ${subj ? `<div class="cg-subj">${subj}</div>` : ''}
+                <div class="cg-bot">
+                    ${hasVal(total) ? `<div class="cg-kpi"><small>Total</small><b>${x.esc(total)}</b></div>` : ''}
+                    ${hasVal(avg) ? `<div class="cg-kpi"><small>Average</small><b>${x.esc(avg)}%</b></div>` : ''}
+                    ${rk ? `<div class="cg-kpi" title="Position in ${x.esc(d.Grade || 'class')}"><small>Position</small><b>${medal(rk.pos)} ${rk.pos}<em>/${rk.of}</em></b></div>` : ''}
+                    <div class="cg-qa"><button type="button" data-act="copy" title="Copy marks summary">📋</button><button type="button" data-act="wa" title="Share on WhatsApp">💬</button></div>
+                    <div class="cg-act">${x.cell('_actions')}</div>
+                </div>`;
+            };
+
+            tabulatorTable = new CardGrid('#tabulator-table', {
+                card: cardTemplate,
+                summary: summaryOf,
+                stats: statsOf,
+                accent: d => { const v = parseFloat(d['Perc Avrg']); return isNaN(v) ? '' : markColor(v); },
+                rankBy: 'Total Marks', rankGroup: 'Grade',
+                quick: { level: 'Level', gender: 'Gender', score: 'Perc Avrg', risk: 41, levels: ['EE1','EE2','ME1','ME2','AE1','AE2','BE1','BE2'], colors: LEVEL_COLORS },
                 data: rowData,
                 columns: columns,
                 index: 'id',
@@ -3274,6 +4414,8 @@ gradeFilterSelect.addEventListener('change', () => {
 
 
         
+        document.getElementById('tab-clear-filters').addEventListener('click', () => { if (tabulatorTable && tabulatorTable.resetQuick) tabulatorTable.resetQuick(); });
+
         // ══ EDIT DRAWER ═══════════════════════════════════════════
         const editDrawer = document.getElementById('edit-drawer');
         const editDrawerOverlay = document.getElementById('edit-drawer-overlay');
@@ -7424,5 +8566,60 @@ const exportToPdf = async () => {
 </script>
 <script src="https://kanyadet-school-admin.web.app/js/nav-buttons.js"></script>
 
+
+    <script>
+    /* Admin-Portal shell: sidebar behaviour, login tips, user chip mirror */
+    (function () {
+        var $ = function (q) { return document.querySelector(q); };
+        var sb = $('#rp-sidebar'), bd = $('#rp-backdrop');
+        if (!sb) return;
+        var open = function () { sb.classList.add('open'); bd.classList.add('show'); };
+        var close = function () { sb.classList.remove('open'); bd.classList.remove('show'); };
+        var burger = $('#rp-burger'); if (burger) burger.addEventListener('click', function () { sb.classList.contains('open') ? close() : open(); });
+        bd.addEventListener('click', close);
+        var setActive = function (el) { [].forEach.call(sb.querySelectorAll('.rp-nav'), function (n) { n.classList.remove('active'); }); el.classList.add('active'); };
+        sb.addEventListener('click', function (e) {
+            var it = e.target.closest('.rp-nav'); if (!it) return;
+            var d = it.dataset;
+            if (d.scroll) { var t = document.getElementById(d.scroll); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); setActive(it); } }
+            else if (d.click) { var b = document.getElementById(d.click); if (b) b.click(); }
+            else if (d.text) { var f = [].filter.call(document.querySelectorAll('button'), function (x) { return x.textContent.toLowerCase().indexOf(d.text) > -1 && !sb.contains(x); })[0]; if (f) f.click(); }
+            else if (d.href) { location.href = d.href; return; }
+            if (window.innerWidth <= 900) close();
+        });
+        /* highlight the section being viewed */
+        if ('IntersectionObserver' in window) {
+            var map = {}; [].forEach.call(sb.querySelectorAll('.rp-nav[data-scroll]'), function (n) { map[n.dataset.scroll] = n; });
+            var io = new IntersectionObserver(function (ents) { ents.forEach(function (en) { if (en.isIntersecting && map[en.target.id]) setActive(map[en.target.id]); }); }, { rootMargin: '-20% 0px -65% 0px' });
+            Object.keys(map).forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
+        }
+        var lo = $('#rp-logout'); if (lo) lo.addEventListener('click', function () { var b = $('#sign-out-btn'); if (b) b.click(); });
+        /* mirror the signed-in user into the sidebar footer */
+        var ud = $('#user-id-display');
+        var sync = function () {
+            if (!ud) return;
+            var txt = (ud.textContent || '').trim() || 'Signed in', img = ud.querySelector('img'), av = $('#rp-me-av');
+            $('#rp-me-name').textContent = txt;
+            if (img && img.src) av.innerHTML = '<img src="' + img.src + '" alt="">'; else av.textContent = txt.slice(0, 2).toUpperCase();
+        };
+        if (ud) { new MutationObserver(sync).observe(ud, { childList: true, subtree: true, characterData: true }); sync(); }
+        /* rotating tips on the login panel */
+        var tips = ['Enter marks, rank classes and print report cards — all in one secure portal.',
+            'Student cards show marks, level and class position at a glance.',
+            'Share a learner\u2019s results with parents on WhatsApp in one tap.',
+            'Spot duplicates and missing marks before they reach a report card.'];
+        var tipEl = $('#lg-tip-text'), dotsEl = $('#lg-tip-dots');
+        if (tipEl && dotsEl) {
+            var i = 0; dotsEl.innerHTML = tips.map(function (_, k) { return '<span class="lg-tip-dot' + (k ? '' : ' active') + '"></span>'; }).join('');
+            setInterval(function () {
+                tipEl.classList.add('fading');
+                setTimeout(function () {
+                    i = (i + 1) % tips.length; tipEl.textContent = tips[i]; tipEl.classList.remove('fading');
+                    [].forEach.call(dotsEl.children, function (d, k) { d.classList.toggle('active', k === i); });
+                }, 350);
+            }, 5200);
+        }
+    })();
+    </script>
 </body>
 </html>

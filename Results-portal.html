@@ -1236,126 +1236,6 @@ body::before{
   .modal-footer .btn{flex:1;justify-content:center;font-size:11px;padding:8px 10px;}
 }
 
-/* ── Live Score Entry Sessions modal (lsm) ───────────────────────────── */
-#qe-live-sessions-modal .modal-box{width:min(700px,100%);max-height:min(88vh,860px);}
-.lsm-hdr-l{display:flex;align-items:center;gap:12px;min-width:0}
-.lsm-hdr-ic{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));box-shadow:0 6px 18px var(--blue-glow)}
-.lsm-sub{font-size:11px;color:var(--text3);font-weight:600;margin-top:2px}
-.lsm-live-pill{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.7px;color:var(--green);background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.32);padding:4px 9px;border-radius:99px;margin-left:auto;flex-shrink:0}
-.lsm-pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:lsmPulse 1.8s infinite}
-@keyframes lsmPulse{0%{box-shadow:0 0 0 0 rgba(39,174,96,.6)}70%{box-shadow:0 0 0 7px rgba(39,174,96,0)}100%{box-shadow:0 0 0 0 rgba(39,174,96,0)}}
-.lsm-top{padding:14px 22px 0;flex-shrink:0}
-.lsm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-.lsm-stat{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;position:relative;overflow:hidden}
-.lsm-stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--lsm-c,var(--blue))}
-.lsm-stat b{display:block;font-size:22px;font-weight:900;line-height:1.1;color:var(--text)}
-.lsm-stat span{font-size:9.5px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
-.lsm-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--border)}
-.lsm-search{flex:1;min-width:150px;background:var(--surface2);border:1.5px solid var(--border);border-radius:99px;padding:7px 14px;font-size:12px;color:var(--text);outline:none;transition:var(--transition);font-family:inherit}
-.lsm-search:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
-.lsm-chip{border:1.5px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:700;padding:6px 11px;border-radius:99px;cursor:pointer;transition:var(--transition);font-family:inherit}
-.lsm-chip:hover{border-color:var(--blue-lt)}
-.lsm-chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
-.lsm-chip em{font-style:normal;opacity:.75;margin-left:3px}
-#qe-live-sessions-modal .modal-body{padding:14px 22px 18px}
-.lsm-group{margin-bottom:16px}
-.lsm-group:last-child{margin-bottom:0}
-.lsm-group-hdr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 2px 8px}
-.lsm-group-name{font-size:12px;font-weight:900;color:var(--text);letter-spacing:.2px}
-.lsm-tag{font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--surface3);color:var(--text2);border:1px solid var(--border)}
-.lsm-tag.collab{background:rgba(142,68,173,.12);color:var(--purple);border-color:rgba(142,68,173,.35)}
-.lsm-cards{display:grid;gap:8px}
-.lsm-card{--lsm-c:var(--text3);background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--lsm-c);border-radius:var(--radius-md);padding:11px 13px;cursor:pointer;transition:var(--transition);outline:none}
-.lsm-card:hover,.lsm-card:focus-visible{border-color:var(--lsm-c);transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,0,0,.18)}
-.lsm-card.s-typing{--lsm-c:var(--green)}
-.lsm-card.s-active{--lsm-c:var(--blue-lt)}
-.lsm-card.s-opened{--lsm-c:var(--teal)}
-.lsm-card.s-idle{--lsm-c:var(--gold)}
-.lsm-card.s-stale{--lsm-c:var(--red)}
-.lsm-card-top{display:flex;align-items:center;gap:10px}
-.lsm-who{flex:1;min-width:0}
-.lsm-name{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lsm-meta{font-size:10.5px;color:var(--text3);margin-top:1px}
-.lsm-pill{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:4px 9px;border-radius:99px;color:var(--lsm-c);background:color-mix(in srgb,var(--lsm-c) 14%,transparent);border:1px solid color-mix(in srgb,var(--lsm-c) 38%,transparent)}
-.lsm-card.s-typing .lsm-pill i{width:6px;height:6px;border-radius:50%;background:var(--green);animation:lsmPulse 1.4s infinite}
-.lsm-cell{display:flex;align-items:center;gap:10px;margin-top:9px;padding:8px 10px;background:var(--surface3);border-radius:10px}
-.lsm-cell-l{flex:1;min-width:0}
-.lsm-cell-k{font-size:9px;font-weight:800;letter-spacing:.7px;color:var(--text3);text-transform:uppercase}
-.lsm-cell-stu{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lsm-cell-sub{font-size:10.5px;color:var(--text3);margin-top:1px}
-.lsm-subj{display:inline-block;font-weight:700;color:var(--blue-lt);background:rgba(93,173,226,.12);border-radius:6px;padding:1px 7px;margin-right:4px}
-.lsm-score{flex-shrink:0;min-width:48px;text-align:center;font-size:20px;font-weight:900;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px 10px}
-.lsm-score.empty{font-size:12px;font-weight:700;color:var(--text3);font-style:italic}
-.lsm-nocell{margin-top:9px;padding:8px 10px;border:1.5px dashed var(--border);border-radius:10px;font-size:11px;color:var(--text3);font-style:italic}
-.lsm-card-ft{display:flex;align-items:center;gap:10px;margin-top:9px}
-.lsm-bar{flex:1;height:4px;border-radius:4px;background:var(--surface3);overflow:hidden}
-.lsm-bar i{display:block;height:100%;border-radius:4px;background:var(--lsm-c);transition:width .6s ease}
-.lsm-open{font-size:10.5px;font-weight:800;color:var(--lsm-c);white-space:nowrap;transition:var(--transition)}
-.lsm-card:hover .lsm-open{transform:translateX(3px)}
-.lsm-empty{text-align:center;padding:34px 10px}
-.lsm-empty .ic{font-size:38px;margin-bottom:8px;opacity:.85}
-.lsm-empty b{display:block;font-size:13px;color:var(--text);margin-bottom:4px}
-.lsm-empty span{font-size:11.5px;color:var(--text3);line-height:1.5}
-.lsm-foot{display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center;padding:10px 22px;border-top:1px solid var(--border);font-size:10.5px;color:var(--text3);flex-shrink:0}
-.lsm-foot span{display:inline-flex;align-items:center;gap:5px}
-.lsm-foot i{width:8px;height:8px;border-radius:50%;display:inline-block}
-@media(max-width:600px){
-  .lsm-top{padding:12px 16px 0}
-  #qe-live-sessions-modal .modal-body{padding:12px 16px 16px}
-  .lsm-stats{grid-template-columns:repeat(2,1fr)}
-  .lsm-foot{padding:10px 16px}
-  .lsm-live-pill{display:none}
-}
-@media(prefers-reduced-motion:reduce){.lsm-pulse,.lsm-card.s-typing .lsm-pill i{animation:none}.lsm-card,.lsm-open{transition:none}}
-
-/* ── Live Sessions modal: tabs + Awaiting-entry reminders (lsm) ─────── */
-.lsm-tabs{display:flex;gap:6px;padding:10px 22px 0;flex-shrink:0;border-bottom:1px solid var(--border)}
-.lsm-tab{background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-1px;padding:8px 12px;font-size:12px;font-weight:800;color:var(--text3);cursor:pointer;font-family:inherit;transition:var(--transition)}
-.lsm-tab:hover{color:var(--text)}
-.lsm-tab.on{color:var(--text);border-bottom-color:var(--blue-lt)}
-.lsm-tab em{font-style:normal;font-size:10px;font-weight:900;margin-left:5px;padding:1px 7px;border-radius:99px;background:var(--surface3);color:var(--text2)}
-.lsm-tab.on em{background:var(--blue);color:#fff}
-.lsm-pane{display:flex;flex-direction:column;min-height:0;flex:1}
-.lsm-tools .lsm-btn,.lsm-btn{border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11px;font-weight:800;padding:6px 12px;border-radius:99px;cursor:pointer;font-family:inherit;transition:var(--transition);white-space:nowrap}
-.lsm-btn:hover{border-color:var(--blue-lt);color:var(--text)}
-.lsm-btn.wa{background:#25D366;border-color:#25D366;color:#fff}
-.lsm-btn.wa:hover{filter:brightness(1.08);color:#fff}
-.lsm-btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
-.lsm-btn[disabled]{opacity:.45;cursor:not-allowed}
-.lsm-card.s-live{--lsm-c:var(--green)}
-.lsm-card.s-nophone{--lsm-c:var(--red)}
-.lsm-card.s-ready{--lsm-c:var(--orange)}
-.lsm-card.s-reminded{--lsm-c:var(--purple)}
-.lsm-card.static{cursor:default}
-.lsm-card.static:hover{transform:none;box-shadow:none}
-.lsm-owes{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:10.5px;font-weight:700;color:var(--orange)}
-.lsm-owes span{background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.3);border-radius:99px;padding:2px 8px;color:var(--text2)}
-.lsm-owes b{color:var(--orange)}
-.lsm-ex{margin-bottom:18px}
-.lsm-ex-hdr{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:8px}
-.lsm-ex-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.lsm-prog{height:6px;border-radius:6px;background:var(--surface3);overflow:hidden;margin-top:8px}
-.lsm-prog i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--blue-lt))}
-.lsm-ex-meta{font-size:10.5px;color:var(--text3);margin-top:5px;font-weight:600}
-.lsm-warn{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:11px;color:var(--text2);line-height:1.5}
-.lsm-warn b{color:var(--red)}
-.lsm-det{margin-top:7px;background:var(--surface3);border-radius:10px;padding:6px 10px;font-size:11px}
-.lsm-det summary{cursor:pointer;font-weight:700;color:var(--text);list-style:none;display:flex;align-items:center;gap:6px}
-.lsm-det summary::-webkit-details-marker{display:none}
-.lsm-det summary b{margin-left:auto;font-size:10px;color:var(--orange);background:rgba(230,126,34,.12);padding:1px 8px;border-radius:99px}
-.lsm-det ul{margin:6px 0 2px;padding-left:18px;color:var(--text2);columns:2;column-gap:18px}
-.lsm-det pre{margin:6px 0 2px;white-space:pre-wrap;word-break:break-word;font:11px/1.45 inherit;color:var(--text2)}
-.lsm-ph{display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap}
-.lsm-phin{flex:1;min-width:150px;background:var(--surface);border:1.5px solid var(--border);border-radius:99px;padding:7px 13px;font-size:12px;color:var(--text);outline:none;font-family:inherit}
-.lsm-phin:focus{border-color:var(--blue-lt);box-shadow:0 0 0 3px var(--blue-glow)}
-.lsm-act{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;align-items:center}
-.lsm-act .lsm-btn.wa{flex:1;min-width:150px;text-align:center}
-.lsm-queue{background:linear-gradient(135deg,rgba(37,211,102,.14),rgba(41,128,185,.12));border:1px solid rgba(37,211,102,.4);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:12px}
-.lsm-queue b{font-size:12px;color:var(--text)}
-.lsm-queue .nx{font-size:11px;color:var(--text2);margin:3px 0 8px}
-.lsm-rem{font-size:10.5px;color:var(--purple);font-weight:700}
-@media(max-width:600px){.lsm-tabs{padding:8px 16px 0}.lsm-det ul{columns:1}}
-
 /* Quick Entry "Two ways to enter scores" popup — always centred on every
    screen size (overrides the bottom-sheet layout other modals use on
    phones), with an auto-dismiss progress bar along the top edge. */
@@ -2419,6 +2299,85 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
 .qe-lp-chk.s0{border-left-color:#e74c3c;} .qe-lp-chk.s1{border-left-color:#f39c12;}
 .qe-lp-ic{font-size:16px;line-height:1.2;} .qe-lp-ct{font-size:12px;font-weight:800;color:var(--text);} .qe-lp-ct em{font-style:normal;font-size:9.5px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-left:6px;}
 .qe-lp-cx{font-size:11.5px;color:var(--text2);margin-top:2px;line-height:1.4;}
+.qe-kbd-hint{font-size:11px;color:var(--text3);padding:2px 4px 8px;line-height:1.5}
+.qe-kbd-hint b{color:var(--text2);background:var(--surface2);border:1px solid var(--border-strong);border-radius:4px;padding:0 5px;font-weight:600;font-size:10.5px}
+#qe-table-card input[data-student]:focus{outline:2px solid var(--blue-lt);outline-offset:1px}
+#qe-undo-btn:disabled,#qe-redo-btn:disabled{opacity:.45;cursor:not-allowed}
+/* Entry Progress Board */
+#ep-card .ep-tab{border:1px solid var(--border-strong);background:var(--surface2);color:var(--text2);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer}
+#ep-card .ep-tab.on{background:var(--blue);border-color:var(--blue);color:#fff}
+#ep-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.ep-row{border:1px solid var(--border-strong);border-radius:12px;padding:12px 14px;background:var(--surface2)}
+.ep-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.ep-grade{background:var(--blue);color:#fff;border-radius:6px;padding:1px 8px;font-size:11px;font-weight:700}
+.ep-name{font-weight:700;font-size:12.5px;color:var(--text);flex:1;min-width:0;overflow-wrap:anywhere}
+.ep-dl{font-size:11px;font-weight:700;white-space:nowrap}
+.ep-bar{height:8px;border-radius:6px;background:rgba(127,127,127,.2);overflow:hidden}
+.ep-bar i{display:block;height:100%;border-radius:6px;transition:width .4s}
+.ep-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text2);margin:7px 0}
+.ep-chips{display:flex;flex-wrap:wrap;gap:5px}
+.ep-chip{font-size:10.5px;border-radius:12px;padding:2px 8px;border:1px solid;cursor:default}
+.ep-chip.ok{color:var(--green);border-color:var(--green);background:rgba(39,174,96,.1)}
+.ep-chip.part{color:var(--orange);border-color:var(--orange);background:rgba(255,159,10,.1)}
+.ep-chip.none{color:var(--red);border-color:var(--red);background:rgba(231,76,60,.1)}
+.ep-btn{padding:2px 8px!important;font-size:11px!important}
+.ep-done{color:var(--green);font-weight:700;font-size:11px}
+.ep-wa{background:#25D366;color:#fff;text-decoration:none;border-radius:8px;padding:3px 10px;font-size:11px;font-weight:700}
+.ep-empty{grid-column:1/-1;padding:18px;text-align:center;font-size:12px;color:var(--text2)}
+.ep-warn{grid-column:1/-1;background:rgba(255,159,10,.12);border:1px solid var(--orange);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text)}
+/* Live Score Entry Sessions — live sheet board */
+#qe-live-sessions-modal .modal-box{max-width:900px;width:min(900px,100%)}
+#qe-live-sessions-modal .modal-body{padding-top:6px}
+.qs-bar0{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+#qs-sum{flex:1;min-width:220px;font-size:13px;color:var(--text2)}
+#qs-sum b{color:var(--text);font-weight:700}#qs-sum b.g{color:var(--green)}#qs-sum b.o{color:var(--orange)}
+#qs-search{width:210px;max-width:100%;padding:7px 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:12px}
+.qs-seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.qs-seg button{border:0;background:transparent;color:var(--text2);padding:7px 12px;font-size:12px;cursor:pointer;box-shadow:none}
+.qs-seg button.on{background:var(--blue);color:#fff}
+.qs-list{max-height:min(64vh,620px);overflow-y:auto;padding-right:4px}
+/* needs attention */
+.qs-attn{margin-bottom:16px;padding:2px 0 2px 14px;border-left:3px solid var(--orange)}
+.qs-attn h4{margin:0 0 6px;font-size:12.5px;font-weight:700;color:var(--text)}
+.qs-att{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;font-size:12.5px;color:var(--text2);border-top:1px solid var(--border)}
+.qs-att:first-of-type{border-top:0}.qs-att b{color:var(--text)}
+/* a sheet */
+.qs-sheet{padding:16px 0 18px;border-top:1px solid var(--border)}
+.qs-sheet:first-child,.qs-attn+.qs-sheet{border-top:0;padding-top:4px}
+.qs-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.qs-title{display:flex;flex-direction:column;gap:2px;min-width:0}.qs-title b{font-size:15px;color:var(--text);overflow-wrap:anywhere}.qs-title span{font-size:11.5px;color:var(--text3)}
+.qs-pct{display:flex;flex-direction:column;align-items:flex-end}.qs-pct b{font-size:22px;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}.qs-pct span{font-size:11px;color:var(--text3);margin-top:3px}
+.qs-meter{height:4px;border-radius:3px;background:rgba(127,127,127,.18);margin:10px 0 12px;overflow:hidden}.qs-meter i{display:block;height:100%;background:var(--blue-lt);border-radius:3px;transition:width .6s}
+/* subject tiles: filled to completion, teachers sit on the tile they're typing in */
+.qs-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin-bottom:12px}
+.qs-tile{position:relative;height:60px;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--border);
+  background:linear-gradient(to top,var(--tint) var(--f),transparent var(--f)),var(--surface);overflow:hidden}
+.qs-tile.ok{--tint:rgba(39,174,96,.22);border-color:rgba(39,174,96,.45)}.qs-tile.part{--tint:rgba(52,152,219,.22)}.qs-tile.none{--tint:transparent;border-color:rgba(231,76,60,.5)}
+.qs-tn{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 4px)}
+.qs-tile b{font-size:16px;color:var(--text);font-family:'JetBrains Mono',ui-monospace,monospace;font-weight:700}.qs-tile b small{font-size:11px;color:var(--text3);font-weight:500}
+.qs-tile.none b{color:var(--red)}
+.qs-on{position:absolute;right:6px;bottom:6px;display:flex}.qs-on .qs-av+.qs-av{margin-left:-4px}
+/* avatars */
+.qs-av{--s:26px;width:var(--s);height:var(--s);border-radius:50%;background:var(--c);color:#fff;font-size:calc(var(--s)*.38);font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 2px var(--surface)}
+.qs-av.typing{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--green);animation:qsR 1.6s infinite}
+.qs-av.idle{filter:grayscale(1);opacity:.7}
+@keyframes qsR{50%{box-shadow:0 0 0 2px var(--surface),0 0 0 6px rgba(39,174,96,.25)}}
+/* teacher rows */
+.qs-trows{display:flex;flex-direction:column}
+.qs-trow{display:grid;grid-template-columns:28px 150px 1fr auto;align-items:center;gap:12px;padding:9px 0 9px 6px;border-top:1px solid var(--border)}
+.qs-trow:first-child{border-top:0}
+.qs-tname{display:flex;flex-direction:column;min-width:0}.qs-tname b{font-size:12.5px;color:var(--text)}.qs-tname span{font-size:11px;color:var(--text3)}
+.qs-what{font-size:12.5px;color:var(--text2);min-width:0;overflow-wrap:anywhere}
+.qs-subj{font-size:11px;font-weight:700;color:var(--c);margin-right:4px}.qs-arrow{color:var(--text3)}.qs-val{color:var(--text);font-family:'JetBrains Mono',ui-monospace,monospace}.qs-when{color:var(--text3);font-size:11.5px;margin-left:4px}
+.qs-do{display:flex;align-items:center;gap:10px}
+.qs-btn{border:1px solid var(--border-strong,var(--border));background:var(--surface);color:var(--text);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:none}
+.qs-btn:hover{border-color:var(--blue-lt);color:var(--blue)}
+.qs-link{border:0;background:transparent;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer;padding:4px 2px;box-shadow:none}.qs-link:hover{text-decoration:underline}
+.qs-btn:focus-visible,.qs-link:focus-visible{outline:2px solid var(--blue-lt);outline-offset:2px}
+.qs-empty{text-align:center;padding:40px 12px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--text2)}.qs-empty b{font-size:14px;color:var(--text)}
+.qs-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text3)}
+@media (max-width:640px){.qs-trow{grid-template-columns:28px 1fr;row-gap:4px}.qs-what,.qs-do{grid-column:2}}
+@media (prefers-reduced-motion:reduce){.qs-av.typing{animation:none}}
 /* Key Insights */
 .ins-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:10px;}
 .ins{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:10px;background:var(--surface2);min-width:0;}
@@ -3354,6 +3313,20 @@ setInterval(_rotateAuthTip, 5000);
           </div>
         </div>
 
+        <!-- Entry Progress Board (Advanced Admin): live score-entry progress for every pending exam. See renderEntryBoard. -->
+        <div class="card" id="ep-card" style="margin-bottom:18px;display:none">
+          <div class="card-hdr">
+            <div class="card-title">📋 Entry Progress Board</div>
+            <div class="actions-row" style="gap:6px;flex-wrap:wrap">
+              <span class="chart-note" id="ep-sub" style="margin:0"></span>
+              <button class="ep-tab on" data-v="exam" onclick="setEntryBoardView('exam')">By exam</button>
+              <button class="ep-tab" data-v="teacher" onclick="setEntryBoardView('teacher')">By teacher</button>
+              <button class="btn btn-outline btn-sm" id="ep-refresh" onclick="loadEntryBoard(true)">🔄 Refresh</button>
+            </div>
+          </div>
+          <div id="ep-body"></div>
+        </div>
+
         <!-- Key Insights: auto-written findings for the user's own scope. See renderInsights. -->
         <div class="card" id="ins-card" style="margin-bottom:18px">
           <div class="card-hdr">
@@ -4080,6 +4053,14 @@ setInterval(_rotateAuthTip, 5000);
                 </span>
                 <span class="settings-tile-arrow">›</span>
               </button>
+              <button class="settings-tile" id="tile-restore" style="display:none" data-target="restore-section" data-kw="restore backup recover import json rollback" onclick="openSettingsModal('restore-section','♻️ Backup Restore')">
+                <span class="settings-tile-icon">♻️</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Backup Restore <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Restore results from a backup file, with a preview</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
             </div>
           </section>
           <section class="cc-group" data-cc="exam">
@@ -4138,6 +4119,14 @@ setInterval(_rotateAuthTip, 5000);
                 <span class="settings-tile-body">
                   <span class="settings-tile-title">Term Automations <em class="cc-badge">Advanced</em></span>
                   <span class="settings-tile-desc">Scheduled term locks &amp; deadline reminders</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-grade-scale" style="display:none" data-target="grade-scale-section" data-kw="grading scale cbc bands cutoff thresholds ee me ae be levels" onclick="openSettingsModal('grade-scale-section','📐 Grading Scale')">
+                <span class="settings-tile-icon">📐</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Grading Scale <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Edit the CBC level cut-offs (EE, ME, AE, BE)</span>
                 </span>
                 <span class="settings-tile-arrow">›</span>
               </button>
@@ -4210,6 +4199,30 @@ setInterval(_rotateAuthTip, 5000);
                 </span>
                 <span class="settings-tile-arrow">›</span>
               </button>
+              <button class="settings-tile" id="tile-sec-status" style="display:none" data-target="sec-status-section" data-kw="security passkey biometric two-step 2fa enrolled remind reset device" onclick="openSettingsModal('sec-status-section','🔏 Staff Security Status')">
+                <span class="settings-tile-icon">🔏</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Staff Security Status <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Who has a passkey set up — remind or reset</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-access-attempts" style="display:none" data-target="access-attempts-section" data-kw="access attempts denied blocked security log unauthorized control centre" onclick="openSettingsModal('access-attempts-section','🚫 Access Attempts')">
+                <span class="settings-tile-icon">🚫</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Access Attempts <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">Who tried to open restricted Control Centre tools</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
+              <button class="settings-tile" id="tile-sessions" style="display:none" data-target="sessions-section" data-kw="sessions signed in online devices logout sign out active" onclick="openSettingsModal('sessions-section','🖥️ Active Sessions')">
+                <span class="settings-tile-icon">🖥️</span>
+                <span class="settings-tile-body">
+                  <span class="settings-tile-title">Active Sessions <em class="cc-badge">Advanced</em></span>
+                  <span class="settings-tile-desc">See who is signed in, on which device</span>
+                </span>
+                <span class="settings-tile-arrow">›</span>
+              </button>
             </div>
           </section>
         </div>
@@ -4217,6 +4230,36 @@ setInterval(_rotateAuthTip, 5000);
         <!-- Hidden home for settings content — moved into the universal modal on open,
              and moved back here on close. Keeps every existing id/handler intact. -->
         <div id="settings-content-store" style="display:none">
+          <div class="settings-section" id="restore-section">
+            <h3 class="settings-section-title">Backup Restore</h3>
+            <div class="setting-row" style="display:block"><div class="setting-info" style="margin-bottom:8px"><h4>Restore results from a backup file</h4><p>Use a file made by “Data Backup”. Tip: turn on Maintenance Mode first so nobody saves during the restore. A safety backup of the current data downloads automatically before anything changes.</p></div>
+              <input class="cc-in" id="bk-file" type="file" accept=".json,application/json" onchange="bkLoad(this.files[0])"></div>
+            <div id="bk-report"></div>
+            <div class="setting-row" style="gap:8px;flex-wrap:wrap"><select class="cc-in" id="bk-mode" style="width:auto" onchange="bkAnalyse()"><option value="merge">Merge — add missing, update changed</option><option value="replace">Replace — also remove records not in the file</option></select><button class="btn btn-red btn-sm" id="bk-apply" disabled onclick="bkApply()">♻️ Restore now</button></div>
+          </div>
+          <div class="settings-section" id="grade-scale-section">
+            <h3 class="settings-section-title">Grading Scale</h3>
+            <div class="setting-row"><div class="setting-info"><h4>CBC level cut-offs</h4><p>Lowest average for each level. Used for learner levels and report-card comments. Chart colour bands on the dashboards keep their fixed cut-offs.</p></div></div>
+            <div id="gs-list"></div>
+            <p id="gs-impact" style="font-size:12px;color:var(--text2);margin:8px 0"></p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="gsPreview()">🔍 Preview impact</button><button class="btn btn-blue btn-sm" onclick="gsSave()">💾 Save scale</button><button class="btn btn-outline btn-sm" onclick="gsReset()">↺ Reset to default</button></div>
+          </div>
+          <div class="settings-section" id="sec-status-section">
+            <h3 class="settings-section-title">Staff Security Status</h3>
+            <div class="setting-row" style="gap:8px;flex-wrap:wrap"><div class="setting-info"><h4 id="ss-summary">Loading…</h4><p>Passkey (fingerprint / face / PIN) is this portal’s second step. A person shows as enrolled after signing in on the device that holds their passkey.</p></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap"><select class="cc-in" id="ss-filter" style="width:auto" onchange="secRender()"><option value="all">Everyone</option><option value="no">Not enrolled</option></select><button class="btn btn-blue btn-sm" onclick="secRemindAll()">🔔 Remind all not enrolled</button></div></div>
+            <div id="ss-list"></div>
+          </div>
+          <div class="settings-section" id="access-attempts-section">
+            <h3 class="settings-section-title">Access Attempts</h3>
+            <div class="setting-row"><div class="setting-info"><h4 id="ac-summary">Loading…</h4><p>Recorded when a signed-in user who isn’t an Advanced Admin opens the Control Center or tries an Advanced-only tool in it, and whenever the database rules refuse one of their reads or writes. Entries can’t be edited or deleted.</p></div><span style="display:flex;gap:6px;align-items:center"><select class="cc-in" id="ac-range" onchange="acRender()" style="width:auto"><option value="24">Last 24 h</option><option value="168">Last 7 days</option><option value="0">All loaded</option></select><button class="btn btn-outline btn-sm" onclick="acLoad()">↻ Refresh</button></span></div>
+            <div id="ac-list"></div>
+          </div>
+          <div class="settings-section" id="sessions-section">
+            <h3 class="settings-section-title">Active Sessions</h3>
+            <div class="setting-row"><div class="setting-info"><h4 id="se-summary">Loading…</h4><p>Counts a device as signed in if it checked in within the last 3 minutes. Refreshes automatically.</p></div><button class="btn btn-outline btn-sm" onclick="sessLoad()">↻ Refresh</button></div>
+            <div id="se-list"></div>
+          </div>
           <style>.cc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:8px 0}.cc-grid label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:var(--text2)}.cc-in{padding:8px 10px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:13px;width:100%}.cc-pills{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.cc-pills label{flex-direction:row;align-items:center;gap:5px;font-weight:600;padding:5px 10px;border:1px solid var(--border);border-radius:99px}</style>
           <div class="settings-section" id="term-wizard-section">
             <h3 class="settings-section-title">Term Setup Wizard</h3>
@@ -4262,10 +4305,10 @@ setInterval(_rotateAuthTip, 5000);
           </div>
           <div class="settings-section" id="maint-section">
             <h3 class="settings-section-title">Maintenance Mode</h3>
-            <div class="setting-row"><div class="setting-info"><h4>Pause the portal for everyone except Advanced Admins</h4><p id="maint-status">Off</p></div><div class="toggle-sw" id="maint-toggle" onclick="ccMaintToggle()"></div></div>
+            <div class="setting-row"><div class="setting-info"><h4>Lock out teachers and reject their saves</h4><p id="maint-status">Off</p></div><div class="toggle-sw" id="maint-toggle" onclick="ccMaintToggle()"></div></div>
             <div class="setting-row" style="display:block"><div class="setting-info" style="margin-bottom:8px"><h4>Message shown to staff</h4></div>
               <textarea id="maint-msg" rows="3" style="width:100%;padding:9px 12px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:13px" placeholder="We are updating the portal. Please check back shortly."></textarea>
-              <div style="margin-top:8px"><button class="btn btn-blue btn-sm" onclick="ccMaintSave()">💾 Save message</button></div></div>
+              <div class="cc-grid"><label>Starts at (optional — blank means now)<input class="cc-in" id="maint-from" type="datetime-local"></label><label>Ends automatically (optional)<input class="cc-in" id="maint-until" type="datetime-local"></label></div><div style="margin-top:4px"><button class="btn btn-blue btn-sm" onclick="ccMaintSave()">💾 Save message &amp; times</button></div></div>
           </div>
           <div class="settings-section" id="bulk-perms-section">
             <h3 class="settings-section-title">Bulk Permissions</h3>
@@ -4278,16 +4321,16 @@ setInterval(_rotateAuthTip, 5000);
             <div class="setting-row">
               <div class="setting-info">
                 <h4>Database URL</h4>
-                <p id="setting-db-url" style="font-family:'JetBrains Mono',monospace;font-size:10px">kanyadet-school-admin-default-rtdb.firebaseio.com</p>
+                <p id="setting-db-url" style="font-family:'JetBrains Mono',monospace;font-size:10px">Checking…</p>
               </div>
-              <span class="bdg green">Connected</span>
+              <span class="bdg" id="setting-db-status">Checking…</span>
             </div>
             <div class="setting-row">
               <div class="setting-info">
                 <h4>Data Path</h4>
-                <p style="font-family:'JetBrains Mono',monospace;font-size:10px">Results/default-app-id/students</p>
+                <p id="setting-db-path" style="font-family:'JetBrains Mono',monospace;font-size:10px">…</p>
               </div>
-              <span class="bdg blue">Active</span>
+              <span class="bdg" id="setting-db-records">…</span>
             </div>
           </div>
 
@@ -4312,7 +4355,7 @@ setInterval(_rotateAuthTip, 5000);
                 <h4>Show Student Photos</h4>
                 <p>Display student photos in report cards and directory</p>
               </div>
-              <div class="toggle-sw on" id="toggle-photos" onclick="this.classList.toggle('on')"></div>
+              <div class="toggle-sw on" id="toggle-photos" onclick="this.classList.toggle('on');toggleStudentPhotos(this)"></div>
             </div>
           </div>
 
@@ -4756,6 +4799,8 @@ setInterval(_rotateAuthTip, 5000);
               <input type="text" id="qe-search" class="sel" placeholder="🔍 Search student…" oninput="_qeFilterTable(this.value)" style="width:180px;padding:6px 10px;font-size:12px">
               <button class="btn btn-outline btn-sm" id="qe-reset-filters-btn" onclick="_qeResetAllFilters()" title="Clear the search box and every column filter in one go">🔄 Reset Filters</button>
               <button class="btn btn-outline btn-sm" id="qe-lp-btn" onclick="_qeLivePreviewToggle()" title="Live analytics of the scores as you type — class average, bands, subjects, ranking and data checks">📊 Live Preview<span id="qe-lp-btn-count" class="qe-lp-badge bad" style="display:none"></span></button>
+              <button class="btn btn-outline btn-sm" id="qe-undo-btn" onclick="_qeUndo()" disabled title="Nothing to undo">↶ Undo</button>
+              <button class="btn btn-outline btn-sm" id="qe-redo-btn" onclick="_qeRedo()" disabled title="Nothing to redo">↷ Redo</button>
               <button class="btn btn-outline btn-sm" onclick="_qeJumpToMissing()" title="Jump to the next empty score in a subject you can enter">🎯 Jump to Missing</button>
               <span id="qe-save-status" style="font-size:11px;color:var(--text2)"></span>
               <span id="qe-final-status" style="font-size:11px;font-weight:700"></span>
@@ -4776,6 +4821,7 @@ setInterval(_rotateAuthTip, 5000);
               <button type="button" id="qe-mobile-marking-badge" onclick="_qeOpenMobileMarkingModal()">📊 Percentage</button>
             </div>
           </div>
+          <div class="qe-kbd-hint">⌨️ <b>Enter</b> next learner · <b>Shift+Enter</b> back · <b>Arrows</b> move · <b>paste</b> a column or block from Excel · <b>Ctrl+Z</b> undo</div>
           <div id="qe-search-empty" style="display:none;padding:14px 4px;font-size:12px;color:var(--text2)">No students match your search.</div>
           <!-- Standing reminder — unlike qe-rawmode-banner below (which only
                appears once a subject is actually SET to raw mode), this one
@@ -5008,57 +5054,21 @@ setInterval(_rotateAuthTip, 5000);
   </div>
 </div>
 
-<!-- LIVE QUICK ENTRY SESSIONS MODAL (Advanced Admin only) -->
+<!-- LIVE QUICK ENTRY SESSIONS MODAL (Advanced Admin only) — live sheet board -->
 <div class="modal-overlay" id="qe-live-sessions-modal" onclick="if(event.target===this)_qeCloseLiveSessionsModal()">
   <div class="modal-box">
     <div class="modal-hdr">
-      <div class="lsm-hdr-l">
-        <div class="lsm-hdr-ic">👀</div>
-        <div style="min-width:0">
-          <h3>Live Score Entry Sessions</h3>
-          <div class="lsm-sub" id="qe-lsm-sub">Watching Quick Entry in real time</div>
-        </div>
-      </div>
-      <span class="lsm-live-pill"><span class="lsm-pulse"></span>LIVE</span>
-      <button class="modal-close" onclick="_qeCloseLiveSessionsModal()" aria-label="Close">✕</button>
-    </div>
-    <div class="lsm-tabs">
-      <button class="lsm-tab on" id="qe-lsm-tab-live" onclick="_lsmSwitchTab('live')">🟢 Live now<em id="qe-lsm-tab-live-n">0</em></button>
-      <button class="lsm-tab" id="qe-lsm-tab-await" onclick="_lsmSwitchTab('await')">⏳ Awaiting entry<em id="qe-lsm-tab-await-n">…</em></button>
-    </div>
-    <div class="lsm-pane" id="qe-lsm-pane-live">
-    <div class="lsm-top">
-      <div class="lsm-stats" id="qe-lsm-stats"></div>
-      <div class="lsm-tools">
-        <input type="search" class="lsm-search" id="qe-lsm-search" placeholder="🔍 Search teacher, exam, student or subject…" oninput="_lsmSetQuery(this.value)" autocomplete="off">
-        <div id="qe-lsm-chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-      </div>
+      <h3>👀 Live Score Entry Sessions</h3>
+      <button class="modal-close" onclick="_qeCloseLiveSessionsModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div id="qe-live-sessions-list"></div>
-    </div>
-    <div class="lsm-foot">
-      <span><i style="background:var(--green)"></i>Entering now (&lt;30s)</span>
-      <span><i style="background:var(--blue-lt)"></i>Active (&lt;3 min)</span>
-      <span><i style="background:var(--gold)"></i>Idle</span>
-      <span><i style="background:var(--red)"></i>Connection quiet</span>
-      <span style="margin-left:auto">Tap a card to join that sheet &amp; watch scores arrive</span>
-    </div>
-    </div>
-    <div class="lsm-pane" id="qe-lsm-pane-await" style="display:none">
-      <div class="lsm-top">
-        <div class="lsm-stats" id="qe-lsm-aw-stats"></div>
-        <div class="lsm-tools">
-          <div id="qe-lsm-aw-chips" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
-          <button class="lsm-btn" onclick="_lsmLoadAwaiting({force:true,users:true})" title="Re-check every sheet and reload teacher contacts">↻ Refresh</button>
-          <button class="lsm-btn wa" id="qe-lsm-queue-btn" onclick="_lsmStartQueue(null)">▶ Remind queue</button>
-        </div>
+      <div class="qs-bar0">
+        <div id="qs-sum"></div>
+        <input type="search" id="qs-search" placeholder="Search teacher, exam or subject" oninput="_qsSet('q',this.value)">
+        <div class="qs-seg" id="qs-filter"><button data-v="all" class="on" onclick="_qsSet('filter','all')">All sessions</button><button data-v="attn" onclick="_qsSet('filter','attn')">Needs attention</button></div>
       </div>
-      <div class="modal-body"><div id="qe-lsm-aw-list"></div></div>
-      <div class="lsm-foot">
-        <span>💬 Opens WhatsApp with the message pre-filled — you tap Send</span>
-        <span style="margin-left:auto">🔔 Every reminder is logged so nobody gets nagged twice by accident</span>
-      </div>
+      <div id="qe-live-sessions-list" class="qs-list"></div>
+      <div class="qs-foot"><span id="qs-upd"></span><button class="qs-btn" onclick="_qsCopy()">Copy summary</button></div>
     </div>
   </div>
 </div>
@@ -5816,6 +5826,7 @@ function _loadImg(src){
 }
 
 async function loadStudentPhoto(name, grade, studentId){
+  if(window._showStudentPhotos===false) return null; // Appearance → Show Student Photos is off
   // Local file paths
   const g=(grade||'').match(/Grade\s*\d+/i)?.[0]||grade||'';
   const cleanName=(name||'').trim();
@@ -7219,6 +7230,7 @@ const PK = {
     map[email] = { credId, uid, name: name || '' };
     localStorage.setItem(this._key, JSON.stringify(map));
     localStorage.setItem(this._lastKey, email);
+    try{ if(typeof ccMirrorPasskey==='function') ccMirrorPasskey(email, uid); }catch(_e){}
   },
   remove(email) {
     const map = this.all();
@@ -8730,6 +8742,7 @@ function _applyTeacherProfile(data, uid){
     // behavior) unless an Advanced Admin has explicitly revoked it by
     // setting canImportData:false on this teacher's users/{uid} doc.
     canImportData = data.canImportData !== false && !(data.tempImportUntil && Date.now() > data.tempImportUntil);
+    window._tempImportUntil = data.tempImportUntil || 0;
     if(importNav) importNav.style.display = canImportData ? 'flex' : 'none';
 
     // Support both legacy assignedGrade (string) and new assignedGrades (array)
@@ -10714,7 +10727,7 @@ window._iprToggleAccess = async function(uid, name, allow){
   }
 
   try{
-    var payload = { canImportData: allow, canImportDataUpdatedAt: new Date().toISOString(), canImportDataUpdatedBy: currentAdminName || 'Admin' };
+    var payload = { ...(allow?{tempImportUntil:null}:{}), canImportData: allow, canImportDataUpdatedAt: new Date().toISOString(), canImportDataUpdatedBy: currentAdminName || 'Admin' };
     await window._fb.updateDoc(window._fb.doc(firestoreDb, 'users', uid), payload);
     var action = allow ? 'allowed' : 'blocked';
     notify('Import Data access ' + action + ' for <strong>' + name + '</strong>.', 'success', 6000);
@@ -11639,6 +11652,7 @@ function renderAll(){
   try{ renderMeetTrend(); }catch(e){ console.warn('meet trend',e); }
   renderMovement();
   try{ renderInsights(); }catch(e){ console.warn('insights',e); }
+  try{ renderEntryBoard(); loadEntryBoard(false); }catch(e){ console.warn('entry board',e); }
   try{ renderBandMatrix(); }catch(e){ console.warn('band matrix',e); }
   renderTopStudents();
   renderActivityLog();
@@ -11836,13 +11850,16 @@ window.updateDistChart=updateDistChart;
 // independent (non-overlapping, exhaustive) range test — matches exactly
 // the cascading if/else-if this replaced, just expressed so every band can
 // be evaluated per exam term instead of just once for a single snapshot.
+/* Band cut-offs follow GRADE_SCALE, so a change in Control Centre → Grading Scale
+   is reflected in labels and counts (levels 5-6 form AE, 7-8 form BE). */
+const _gsMin = i => GRADE_SCALE[i].min;
 const DIST_BANDS = [
-  { label:'EE1 (90-100)', color:'#27ae60', test:a=>a>=90 },
-  { label:'EE2 (75-89)',  color:'#5dade2', test:a=>a>=75 && a<90 },
-  { label:'ME1 (58-74)',  color:'#f39c12', test:a=>a>=58 && a<75 },
-  { label:'ME2 (41-57)',  color:'#e67e22', test:a=>a>=41 && a<58 },
-  { label:'AE (21-40)',   color:'#e74c3c', test:a=>a>=21 && a<41 },
-  { label:'BE (<21)',     color:'#8e44ad', test:a=>a<21 },
+  { get label(){ return `EE1 (${_gsMin(0)}-100)`; },                         color:'#27ae60', test:a=>a>=_gsMin(0) },
+  { get label(){ return `EE2 (${_gsMin(1)}-${Math.ceil(_gsMin(0))-1})`; },   color:'#5dade2', test:a=>a>=_gsMin(1) && a<_gsMin(0) },
+  { get label(){ return `ME1 (${_gsMin(2)}-${Math.ceil(_gsMin(1))-1})`; },   color:'#f39c12', test:a=>a>=_gsMin(2) && a<_gsMin(1) },
+  { get label(){ return `ME2 (${_gsMin(3)}-${Math.ceil(_gsMin(2))-1})`; },   color:'#e67e22', test:a=>a>=_gsMin(3) && a<_gsMin(2) },
+  { get label(){ return `AE (${_gsMin(5)}-${Math.ceil(_gsMin(3))-1})`; },    color:'#e74c3c', test:a=>a>=_gsMin(5) && a<_gsMin(3) },
+  { get label(){ return `BE (<${_gsMin(5)})`; },                             color:'#8e44ad', test:a=>a<_gsMin(5) },
 ];
 
 let distView='bands';
@@ -11863,7 +11880,7 @@ function _assessStats(vals){
   const s=[...vals].sort((a,b)=>a-b), mean=s.reduce((a,b)=>a+b,0)/n;
   return { n, mean, median:_quantile(s,.5), q1:_quantile(s,.25), q3:_quantile(s,.75),
     sd:Math.sqrt(s.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n),
-    meet:s.filter(v=>v>=41).length/n*100, exceed:s.filter(v=>v>=75).length/n*100, below:s.filter(v=>v<41).length/n*100 };
+    meet:s.filter(v=>v>=_gsMin(3)).length/n*100, exceed:s.filter(v=>v>=_gsMin(1)).length/n*100, below:s.filter(v=>v<_gsMin(3)).length/n*100 };
 }
 
 /** Performance Distribution — three views of the same results:
@@ -12123,8 +12140,8 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 ══════════════════════════════════════════ */
 let mtMetric='meeting', mtLevel='all', mtFocus=null, mtChart=null, _mtLgLast={i:-1,t:0};
 const MT_METRICS={
-  meeting:  { label:'Meeting expectation (41%+)', noun:'meeting expectation', test:v=>v>=41, goodUp:true  },
-  exceeding:{ label:'Exceeding (75%+)',           noun:'exceeding',           test:v=>v>=75, goodUp:true  },
+  meeting:  { get label(){ return `Meeting expectation (${_gsMin(3)}%+)`; }, noun:'meeting expectation', test:v=>v>=_gsMin(3), goodUp:true  },
+  exceeding:{ get label(){ return `Exceeding (${_gsMin(1)}%+)`; },           noun:'exceeding',           test:v=>v>=_gsMin(1), goodUp:true  },
   below:    { label:'Below expectation (under 41%)', noun:'below expectation', test:v=>v<41,  goodUp:false },
 };
 function setMtMetric(m){ mtMetric=m; renderMeetTrend(); }
@@ -12390,6 +12407,14 @@ function _qeLivePreviewSchedule(){
   clearTimeout(_qeLpTimer); _qeLpTimer=setTimeout(()=>_qeLivePreviewRender(),120);
 }
 function _qeLpSetTab(t){ _qeLpTab=t; _qeLpOpenRow=null; _qeLpSigLast=''; _qeLivePreviewRender(true); }
+/* Click outside the panel closes it. Score boxes, the toggle button and the
+   panel itself are exempt so you can keep typing while it updates live. */
+document.addEventListener('mousedown',e=>{
+  if(!_qeLpOpen) return;
+  const t=e.target; if(!t || !t.closest) return;
+  if(t.closest('#qe-lp') || t.closest('#qe-lp-btn') || t.closest('input[data-student][data-subject]') || t.closest('.modal-overlay,[id$="-modal"]')) return;
+  _qeLivePreviewClose();
+});
 window._qeLivePreviewToggle=_qeLivePreviewToggle; window._qeLivePreviewClose=_qeLivePreviewClose; window._qeLivePreviewSchedule=_qeLivePreviewSchedule; window._qeLpSetTab=_qeLpSetTab;
 
 /** Previous assessment for the same grade (latest one chronologically before
@@ -13848,6 +13873,7 @@ window.auditRestoreEdit=async function(i){
 window.auditRestoreDeleted=async function(i){
   const a=_auditEntryAt(i);
   if(!a||!a.before||!a.targetId){notify('Nothing to restore for this entry.','error');return;}
+  if(isTermLocked(a.before)){notify('🔒 This record belongs to a locked term. Unlock it in Control Center first.','error',6000);return;}
   const ok=await showConfirm(
     '♻️ Restore Deleted Record',
     `Recreate the record for <strong>${a.targetName||a.targetId}</strong> using its last known data?`,
@@ -13875,6 +13901,7 @@ window.auditUndoAdd=async function(i){
   if(!a||!a.targetId){notify('Nothing to undo for this entry.','error');return;}
   const rec=allData.find(r=>r.id===a.targetId);
   if(!rec){notify('Record no longer exists.','warn');return;}
+  if(isTermLocked(rec)){notify('🔒 This record belongs to a locked term. Unlock it in Control Center first.','error',6000);return;}
   const ok=await showConfirm(
     '↶ Undo Add',
     `Remove the record created for <strong>${a.targetName||rec['Official Student Name']||a.targetId}</strong>? This cannot be undone.`,
@@ -16643,8 +16670,9 @@ async function applyMissingGenderFixes(){
   // Single multi-path write instead of one round-trip per record — much
   // faster for a bigger batch, and avoids a slow connection making the
   // button look "stuck" for minutes while records get updated one by one.
-  const updates = {};
+  const updates = {}; let _gLockSkipped = 0;
   _genderFixCandidates.forEach(({rec, found}) => {
+    if(rec.id && isTermLocked(rec)){ _gLockSkipped++; return; }
     if(rec.id) updates[`${DB_PATH}/${rec.id}/Gender`] = found;
   });
 
@@ -16652,7 +16680,7 @@ async function applyMissingGenderFixes(){
     const {ref, update} = window._fb;
     await update(ref(db), updates);
     const fixed = Object.keys(updates).length;
-    notify(`.Gender backfilled on ${fixed} record(s).`,'success',6000);
+    notify(`.Gender backfilled on ${fixed} record(s).`+(_gLockSkipped?` ${_gLockSkipped} record(s) in locked terms were skipped.`:''),'success',6000);
     logActivity(`🩹 Backfilled missing Gender on ${fixed} record(s)`,'act-blue',currentAdminName,{category:'import'});
     setTimeout(refreshData, 1000);
   }catch(e){
@@ -16728,6 +16756,8 @@ async function deleteExtraSubject(key, subject, grade){
   // permanently strip that subject's scores from every affected record too.
   const affectedRecords = allData.filter(r => gShort(r['Grade'])===grade && getSubjects(r).includes(subject));
   const hasRealData = affectedRecords.length > 0;
+  const _lockedAff = affectedRecords.filter(r => isTermLocked(r));
+  if(_lockedAff.length){ notify(`🔒 "${subject}" has scores in ${_lockedAff.length} locked record(s) for ${grade}. Unlock those terms in Control Center first.`,'error',7000); return; }
 
   const ok = await showConfirm(
     hasRealData ? '⚠️ Permanently Delete Subject Data?' : '🗑️ Remove Extra Subject',
@@ -16786,6 +16816,7 @@ window.deleteExtraSubject=deleteExtraSubject;
    it back to its hidden home in #settings-content-store on close.
 ══════════════════════════════════════════ */
 function openSettingsModal(elId, title){
+  if(_CC_ADV_SECTIONS.indexOf(elId)>-1 && !_ccAdv()){ _ccLogAttempt('control-centre-open', elId); notify('⛔ Advanced Admin only.','error'); return; }
   const el   = document.getElementById(elId);
   const body = document.getElementById('settings-item-modal-body');
   if(!el || !body) return;
@@ -16797,6 +16828,12 @@ function openSettingsModal(elId, title){
   if(elId==='term-wizard-section'){ var _y=document.getElementById('tw-year'); if(_y&&!_y.value) _y.value=new Date().getFullYear(); twPreview(); }
   if(elId==='term-auto-section') taRender();
   if(elId==='temp-access-section') txLoad();
+  if(elId==='sec-status-section') secLoad();
+  if(elId==='sessions-section') sessLoad();
+  if(elId==='access-attempts-section') acLoad();
+  if(elId==='firebase-config-section') ccDbStatus();
+  if(elId==='restore-section') bkReset();
+  if(elId==='grade-scale-section') gsRender();
   body.appendChild(el);
   el.style.display = '';
   document.getElementById('settings-item-modal').classList.add('on');
@@ -16881,7 +16918,7 @@ window.ccRefresh=ccRefresh; window.ccSetChip=ccSetChip; window.ccTrackUse=ccTrac
 ══════════════════════════════════════════ */
 function _ccAdv(){ return typeof isAdvancedAdmin!=='undefined' && isAdvancedAdmin===true; }
 function _ccGateTiles(){
-  ['tile-backup','tile-maint','tile-bulk-perms','tile-term-wizard','tile-term-auto','tile-temp-access'].forEach(function(id){
+  ['tile-backup','tile-maint','tile-bulk-perms','tile-term-wizard','tile-term-auto','tile-temp-access','tile-sec-status','tile-sessions','tile-access-attempts','tile-grade-scale','tile-restore'].forEach(function(id){
     var t=document.getElementById(id); if(!t) return;
     var want=_ccAdv()?'':'none'; if(t.style.display!==want) t.style.display=want;
   });
@@ -16910,43 +16947,66 @@ async function ccBackupNow(){
   btn.disabled=false; btn.textContent='⬇️ Backup now';
 }
 window.ccBackupNow=ccBackupNow;
-/* ── Maintenance Mode ── */
-var _ccMaint={on:false,message:''}, _ccMaintUnsub=null;
+/* ── Maintenance Mode ──
+   Single source of truth: Realtime Database /maintenance {on,message,from,until,updatedBy,updatedAt}.
+   The database rules read this same node: from <= now < until  ⇒ teachers' saves are rejected server-side.
+   'from' lets an admin schedule it (teachers get a countdown warning first); 'until' makes it end by itself. */
+var _ccMaint={on:false,message:'',from:0,until:0}, _ccMaintOff=null;
+function _ccMaintLive(){ return _ccMaint.on && (!_ccMaint.until || Date.now()<_ccMaint.until); }            // active or scheduled
+function _ccMaintActive(){ return _ccMaintLive() && (!_ccMaint.from || Date.now()>=_ccMaint.from); }       // locking right now
+function _ccMaintPending(){ return _ccMaintLive() && _ccMaint.from && Date.now()<_ccMaint.from; }          // scheduled, not started
+function _ccBar(id,bg,txt,click){
+  var el=document.getElementById(id);
+  if(txt===null){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.id=id; el.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99998;padding:7px 12px;text-align:center;font-size:12px;font-weight:800;color:#fff;background:'+bg+(click?';cursor:pointer':''); if(click) el.onclick=click; document.body.appendChild(el); }
+  el.textContent=txt;
+}
+function _ccOpenMaint(){ try{ navTo('settings',document.querySelector('.nav-item[data-label="Control Center"]')); openSettingsModal('maint-section','🚧 Maintenance Mode'); }catch(e){} }
 function _ccMaintRender(){
+  var act=_ccMaintActive(), pend=_ccMaintPending(), signed=!!(window._currentUser&&window._currentUser.uid), adv=_ccAdv();
   var tg=document.getElementById('maint-toggle'), st=document.getElementById('maint-status');
-  if(tg) tg.classList.toggle('on',_ccMaint.on);
-  if(st) st.textContent=_ccMaint.on?'ON — non-admins are locked out':'Off';
-  var ov=document.getElementById('cc-maint-overlay'), show=_ccMaint.on && !_ccAdv() && !!(window.currentUser||typeof currentAdminName!=='undefined');
-  if(show && !ov){
+  if(tg) tg.classList.toggle('on',_ccMaintLive());
+  if(st) st.textContent=act?'ON — teachers are locked out and their saves are rejected'+(_ccMaint.until?' · ends '+_ccFmt(_ccMaint.until):''):pend?'Scheduled — starts '+_ccFmt(_ccMaint.from)+'; teachers see a countdown':(_ccMaint.on?'Ended automatically':'Off');
+  var ov=document.getElementById('cc-maint-overlay'), show=act&&signed&&!adv;
+  if(show&&!ov){
     ov=document.createElement('div'); ov.id='cc-maint-overlay';
     ov.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--bg,#0c1525);color:var(--text,#fff)';
-    ov.innerHTML='<div style="max-width:420px"><div style="font-size:54px">🚧</div><h2 style="margin:10px 0 6px">Portal under maintenance</h2><p id="cc-maint-text" style="opacity:.85;line-height:1.6"></p><button class="btn btn-blue" style="margin-top:16px" onclick="location.reload()">↻ Try again</button></div>';
+    ov.innerHTML='<div style="max-width:420px"><div style="font-size:54px">🚧</div><h2 style="margin:10px 0 6px">Portal under maintenance</h2><p id="cc-maint-text" style="opacity:.85;line-height:1.6"></p><p id="cc-maint-until" style="opacity:.75;font-size:12px"></p><p style="opacity:.7;font-size:12px;margin-top:14px">✅ Please keep this page open — it will reopen automatically when maintenance ends. Don’t refresh, so nothing on your screen is lost.</p></div>';
     document.body.appendChild(ov);
   }
-  if(ov){ if(!show) ov.remove(); else ov.querySelector('#cc-maint-text').textContent=_ccMaint.message||'We are updating the portal. Please check back shortly.'; }
+  if(ov){ if(!show) ov.remove(); else{ ov.querySelector('#cc-maint-text').textContent=_ccMaint.message||'We are updating the portal. Please check back shortly.'; ov.querySelector('#cc-maint-until').textContent=_ccMaint.until?'Expected back: '+_ccFmt(_ccMaint.until):''; } }
+  // countdown warning for teachers before a scheduled start / reminder bar for admins
+  if(pend&&signed&&!adv){ var mins=Math.max(1,Math.ceil((_ccMaint.from-Date.now())/60000)); _ccBar('cc-maint-warn','#d68910','🚧 Maintenance starts in '+(mins>=60?Math.floor(mins/60)+' h '+(mins%60)+' min':mins+' min')+' ('+_ccFmt(_ccMaint.from)+'). Please finish and save your work now.'); } else _ccBar('cc-maint-warn','',null);
+  if(signed&&adv&&(act||pend)) _ccBar('cc-maint-bar',act?'#e67e22':'#d68910',act?'🚧 Maintenance Mode is ON — staff are locked out. Click to manage.':'🚧 Maintenance scheduled for '+_ccFmt(_ccMaint.from)+'. Click to manage.',_ccOpenMaint); else _ccBar('cc-maint-bar','',null);
 }
 function _ccMaintStart(){
-  if(_ccMaintUnsub||typeof firestoreDb==='undefined'||!firestoreDb||!window._fb||!window._fb.onSnapshot) return;
-  try{ _ccMaintUnsub=window._fb.onSnapshot(window._fb.doc(firestoreDb,'config','maintenanceMode'),function(sn){
-      var d=sn.exists()?sn.data():{}; _ccMaint={on:d.on===true,message:d.message||''};
-      var m=document.getElementById('maint-msg'); if(m&&document.activeElement!==m) m.value=_ccMaint.message;
-      _ccMaintRender();
-    },function(){ _ccMaintUnsub=null; }); }catch(e){ _ccMaintUnsub=null; }
+  if(_ccMaintOff||typeof db==='undefined'||!db||!window._fb||!window._fb.onValue) return;
+  try{ var r=window._fb.ref(db,'maintenance'), loc=function(ms){ return ms?new Date(ms-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16):''; };
+    var h=window._fb.onValue(r,function(sn){ var d=sn.val()||{}; _ccMaint={on:d.on===true,message:d.message||'',from:d.from||0,until:d.until||0};
+        var m=document.getElementById('maint-msg'); if(m&&document.activeElement!==m) m.value=_ccMaint.message;
+        var f=document.getElementById('maint-from'); if(f&&document.activeElement!==f) f.value=loc(_ccMaint.from);
+        var u=document.getElementById('maint-until'); if(u&&document.activeElement!==u) u.value=loc(_ccMaint.until);
+        _ccMaintRender(); },function(){ _ccMaintOff=null; });
+    _ccMaintOff=function(){ try{ window._fb.off(r,'value',h); }catch(e){} };
+  }catch(e){ _ccMaintOff=null; }
 }
 setInterval(function(){ _ccMaintStart(); _ccMaintRender(); },2500);
 async function ccMaintSave(on){
-  if(!_ccAdv()) return;
-  var msg=(document.getElementById('maint-msg').value||'').trim();
-  try{ await window._fb.setDoc(window._fb.doc(firestoreDb,'config','maintenanceMode'),{on:on===undefined?_ccMaint.on:on,message:msg,updatedBy:currentAdminName||'Admin',updatedAt:new Date().toISOString()});
-    notify(on===undefined?'Maintenance message saved.':(on?'Maintenance mode is ON.':'Maintenance mode is OFF.'),'success'); }
-  catch(e){ notify('Could not save: '+e.message,'error'); }
+  if(!_ccAdv()) return false;
+  var msg=(document.getElementById('maint-msg').value||'').trim().slice(0,300), from=_ccMs('maint-from'), until=_ccMs('maint-until'), next=on===undefined?_ccMaint.on:on, now=Date.now();
+  if(from&&from<=now) from=0;                                   // a start in the past just means "now"
+  if(next&&until&&until<=now){ notify('The end time must be in the future.','warn'); return false; }
+  if(next&&until&&from&&until<=from){ notify('The end time must be after the start time.','warn'); return false; }
+  try{ await window._fb.set(window._fb.ref(db,'maintenance'),{on:next,message:msg,from:next&&from?from:null,until:next&&until?until:null,updatedBy:currentAdminName||'Admin',updatedAt:now});
+    notify(on===undefined?'Maintenance settings saved.':(on?(from?'Maintenance scheduled for '+_ccFmt(from)+'.':'Maintenance Mode is ON — teachers are now locked out.'):'Maintenance Mode is OFF.'),'success'); return true; }
+  catch(e){ notify('Could not change Maintenance Mode. Your account needs the “admin” role in the database staff list. ('+e.message+')','error',9000); return false; }
 }
 async function ccMaintToggle(){
-  var next=!_ccMaint.on;
-  var ok=await showConfirm(next?'Turn on Maintenance Mode':'Turn off Maintenance Mode',next?'Everyone except Advanced Admins will be blocked until you turn this off.':'Staff will be able to use the portal again.','🚧',next?'Turn ON':'Turn OFF',next?'btn-red':'btn-green');
+  var next=!_ccMaintLive(), from=_ccMs('maint-from'), sched=next&&from&&from>Date.now();
+  var ok=await showConfirm(next?(sched?'Schedule Maintenance Mode':'Turn on Maintenance Mode'):'Turn off Maintenance Mode',
+    next?(sched?'Teachers will see a countdown warning, then be locked out from '+_ccFmt(from):'Teachers will be locked out immediately and the database will reject their saves')+(_ccMs('maint-until')?' until '+_ccFmt(_ccMs('maint-until')):' until you turn this off')+'. Admins keep full access.':'Staff will be able to use and save in the portal again (a scheduled start is cancelled).','🚧',next?(sched?'Schedule':'Turn ON'):'Turn OFF',next?'btn-red':'btn-green');
   if(!ok) return;
-  await ccMaintSave(next);
-  logActivity('Maintenance mode '+(next?'enabled':'disabled'),next?'act-orange':'act-green',currentAdminName,{category:'system'});
+  if(await ccMaintSave(next)) logActivity('Maintenance mode '+(next?(sched?'scheduled':'enabled'):'disabled'),next?'act-orange':'act-green',currentAdminName,{category:'system'});
 }
 window.ccMaintSave=ccMaintSave; window.ccMaintToggle=ccMaintToggle;
 /* ── Bulk Permissions ── */
@@ -16971,7 +17031,7 @@ async function ccBulkImport(allow){
   var ids=_bpSel(); if(!ids.length){ notify('Select at least one teacher first.','warn'); return; }
   var ok=await showConfirm(allow?'Allow Import Data':'Block Import Data',(allow?'Allow ':'Block ')+ids.length+' teacher(s) '+(allow?'to use':'from using')+' Import Data?','🧩',allow?'Allow':'Block',allow?'btn-green':'btn-red');
   if(!ok) return; var done=0;
-  for(var i=0;i<ids.length;i++){ try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',ids[i]),{canImportData:allow,canImportDataUpdatedAt:new Date().toISOString(),canImportDataUpdatedBy:currentAdminName||'Admin'}); done++; }catch(e){} }
+  for(var i=0;i<ids.length;i++){ try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',ids[i]),{...(allow?{tempImportUntil:null}:{}),canImportData:allow,canImportDataUpdatedAt:new Date().toISOString(),canImportDataUpdatedBy:currentAdminName||'Admin'}); done++; }catch(e){} }
   notify('Import access '+(allow?'allowed':'blocked')+' for '+done+' of '+ids.length+' teacher(s).',done===ids.length?'success':'warn',6000);
   logActivity('Bulk import access '+(allow?'allowed':'blocked')+' for '+done+' teacher(s)',allow?'act-green':'act-orange',currentAdminName,{category:'system'});
   ccBulkLoad();
@@ -17095,6 +17155,278 @@ async function txGrant(){
 }
 window.twPreview=twPreview; window.twCreate=twCreate; window.taToggleRem=taToggleRem; window.taSaveRem=taSaveRem; window.taAddLock=taAddLock; window.ccAutoSweep=ccAutoSweep; window.txGrant=txGrant;
 
+/* ══════════════════════════════════════════
+   CONTROL CENTER — Staff Security Status + Active Sessions
+   Firestore: sessions/{uid}_{deviceId} {uid,name,email,deviceId,device,startedAt,lastSeen,revoked}
+              users/{uid}.passkeyDevices.{deviceId} = {at,label}  (mirrored when a passkey is set up / seen on sign-in)
+══════════════════════════════════════════ */
+function _ccDeviceId(){ var d=''; try{ d=localStorage.getItem('kps_device_id')||''; if(!d){ d='d'+Math.random().toString(36).slice(2,10)+Date.now().toString(36); localStorage.setItem('kps_device_id',d); } }catch(e){ d='d'+Date.now().toString(36); } return d; }
+function _ccDeviceLabel(){ var u=navigator.userAgent||'', b=/Edg\//.test(u)?'Edge':/OPR\//.test(u)?'Opera':/Chrome\//.test(u)?'Chrome':/Firefox\//.test(u)?'Firefox':/Safari\//.test(u)?'Safari':'Browser';
+  var o=/Android/.test(u)?'Android':/iPhone|iPad/.test(u)?'iOS':/Windows/.test(u)?'Windows':/Mac OS/.test(u)?'macOS':/Linux/.test(u)?'Linux':'Unknown OS'; return b+' · '+o; }
+function _ccAgo(ms){ var m=Math.round((Date.now()-ms)/60000); return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' d ago'; }
+/* passkey mirror */
+function ccMirrorPasskey(email,uid){
+  if(!uid||typeof firestoreDb==='undefined'||!firestoreDb||!window._fb) return;
+  var u={}; u['passkeyDevices.'+_ccDeviceId()]={at:new Date().toISOString(),label:_ccDeviceLabel()};
+  window._fb.updateDoc(window._fb.doc(firestoreDb,'users',uid),u).catch(function(){});
+}
+/* session heartbeat + remote sign-out */
+var _ccSess={ready:false,unsub:null,uid:''};
+async function _ccSessBeat(){
+  var F=window._fb, cu=window._currentUser;
+  if(!F||typeof firestoreDb==='undefined'||!firestoreDb) return;
+  if(!cu||!cu.uid){ if(_ccSess.ready){ if(_ccSess.unsub){try{_ccSess.unsub();}catch(e){}} F.deleteDoc(F.doc(firestoreDb,'sessions',_ccSess.uid+'_'+_ccDeviceId())).catch(function(){}); _ccSess={ready:false,unsub:null,uid:''}; } return; }
+  var ref=F.doc(firestoreDb,'sessions',cu.uid+'_'+_ccDeviceId()), now=Date.now(), em=(typeof auth!=='undefined'&&auth&&auth.currentUser&&auth.currentUser.email)||cu.email||'';
+  try{
+    if(!_ccSess.ready||_ccSess.uid!==cu.uid){
+      try{ await F.deleteDoc(ref); }catch(e){}
+      await F.setDoc(ref,{uid:cu.uid,name:currentAdminName||cu.name||'',email:em,deviceId:_ccDeviceId(),device:_ccDeviceLabel(),startedAt:now,lastSeen:now,revoked:false});
+      _ccSess={ready:true,unsub:null,uid:cu.uid};
+      _ccSess.unsub=F.onSnapshot(ref,function(sn){ if(sn.exists()&&sn.data().revoked===true){ try{ notify('You were signed out by an administrator.','warn',6000); }catch(e){} (typeof doSignOut==='function'?doSignOut():F.signOut(auth)); } },function(){});
+      try{ var pk=(typeof PK!=='undefined')&&em&&PK.get(em); if(pk) ccMirrorPasskey(em,cu.uid); }catch(e){}
+    } else { await F.setDoc(ref,{lastSeen:now,name:currentAdminName||cu.name||''},{merge:true}); }
+  }catch(e){}
+}
+setInterval(_ccSessBeat,60000); setTimeout(_ccSessBeat,6000);
+/* Active Sessions panel */
+async function sessLoad(){
+  var box=document.getElementById('se-list'); if(!box||!_ccAdv()) return;
+  try{ var sn=await window._fb.getDocs(window._fb.collection(firestoreDb,'sessions')), rows=[], now=Date.now(), me=_ccDeviceId();
+    sn.forEach(function(d){ var o=d.data(); o._id=d.id; rows.push(o); });
+    rows=rows.filter(function(r){return now-(r.lastSeen||0)<864e5;}).sort(function(a,b){return b.lastSeen-a.lastSeen;});
+    var live=rows.filter(function(r){return now-r.lastSeen<18e4&&!r.revoked;});
+    document.getElementById('se-summary').textContent=live.length+' signed in now · '+rows.length+' device(s) in the last 24 h';
+    box.innerHTML=''; if(!rows.length){ box.innerHTML='<p class="cc-empty">No sessions recorded yet. Devices appear after their next sign-in.</p>'; return; }
+    rows.forEach(function(r){ var on=now-r.lastSeen<18e4&&!r.revoked, row=document.createElement('div'); row.className='setting-row';
+      row.innerHTML='<div class="setting-info"><h4></h4><p></p></div><span style="display:flex;align-items:center;gap:8px"><span class="bdg"></span><button class="btn btn-outline btn-sm">Sign out</button></span>';
+      row.querySelector('h4').textContent=(r.name||r.email||'Unknown')+(r.deviceId===me?' (this device)':'');
+      row.querySelector('p').textContent=r.device+' · '+(r.email||'')+' · active '+_ccAgo(r.lastSeen)+' · since '+_ccFmt(r.startedAt);
+      var b=row.querySelector('.bdg'); b.textContent=r.revoked?'Signed out':on?'Online':'Idle'; b.className='bdg '+(r.revoked?'red':on?'green':'');
+      var btn=row.querySelector('button'); if(r.revoked||r.deviceId===me||!on) btn.style.display='none';
+      btn.addEventListener('click',async function(){ var ok=await showConfirm('Sign out device','Sign out '+(r.name||r.email)+' on '+r.device+'? They will be signed out within a minute.','🖥️','Sign out','btn-red'); if(!ok) return;
+        try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'sessions',r._id),{revoked:true}); logActivity('Signed out device: '+(r.name||r.email)+' ('+r.device+')','act-orange',currentAdminName,{category:'system'}); notify('Sign-out sent.','success'); sessLoad(); }catch(e){ notify('Failed: '+e.message,'error'); } });
+      box.appendChild(row); });
+  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load: '+String(e.message).replace(/</g,'&lt;')+'</p>'; }
+}
+setInterval(function(){ var p=document.getElementById('se-list'); if(p&&p.offsetParent) sessLoad(); },20000);
+window.sessLoad=sessLoad; window.ccMirrorPasskey=ccMirrorPasskey;
+/* ── Access Attempts: logged to RTDB /access_attempts (write-once, admin-read per database rules) ── */
+var _CC_ADV_SECTIONS=['backup-section','maint-section','bulk-perms-section','term-wizard-section','term-auto-section','temp-access-section','sec-status-section','sessions-section','access-attempts-section','grade-scale-section','restore-section'];
+var _ccAttemptSeen={};
+function _ccLogAttempt(op,path){
+  try{
+    var F=window._fb, u=F&&F.getAuth&&F.getAuth().currentUser; if(!u||!F.push||!db) return; // rules require a signed-in user
+    var k=op+'|'+path, now=Date.now(); if(_ccAttemptSeen[k]&&now-_ccAttemptSeen[k]<60000) return; _ccAttemptSeen[k]=now;
+    var rec={uid:u.uid,op:String(op).slice(0,60),path:String(path).slice(0,250),ts:now,name:String(currentAdminName||u.displayName||'').slice(0,80),email:String(u.email||'').slice(0,120),device:String(typeof _ccDeviceLabel==='function'?_ccDeviceLabel():navigator.userAgent).slice(0,120)};
+    F.push(F.ref(db,'access_attempts'),rec).catch(function(){});
+  }catch(e){}
+}
+window._ccLogAttempt=_ccLogAttempt;
+/* Database permission_denied monitor: wraps the RTDB helpers so any read/write the rules refuse is
+   recorded too (op "db-read-denied" / "db-write-denied", path = the database path). Errors still
+   reach the caller untouched; the log write itself is never monitored (no loops). */
+function _ccDeniedPath(args){
+  try{
+    var a0=args[0], base=String(a0&&a0.toString?a0.toString():'').replace(/^https?:\/\/[^\/]+/,'').replace(/\?.*$/,'')||'/';
+    var u=args[1]; if(base==='/'&&u&&typeof u==='object'&&!Array.isArray(u)){ var k=Object.keys(u).slice(0,3); if(k.length) return '/'+k.join(', /')+(Object.keys(u).length>3?' …':''); }
+    return base;
+  }catch(e){ return '/'; }
+}
+function _ccIsDenied(e){ return !!e&&(e.code==='PERMISSION_DENIED'||/permission[_ ]denied/i.test(String(e.message||e))); }
+var _ccDeniedCount=0;
+function _ccDenied(op,args,e){
+  if(!_ccIsDenied(e)||_ccDeniedCount>=25) return;
+  var path=_ccDeniedPath(args); if(/^\/?access_attempts/.test(path)) return;
+  _ccDeniedCount++; _ccLogAttempt('db-'+op+'-denied',path);
+}
+function _ccWrapFb(){
+  var F=window._fb; if(!F||F._ccWrapped||typeof F.set!=='function') return false; F._ccWrapped=true;
+  [['set','write'],['update','write'],['remove','write'],['push','write'],['get','read']].forEach(function(x){
+    var f=F[x[0]]; if(typeof f!=='function') return;
+    F[x[0]]=function(){ var args=arguments, r=f.apply(this,args);
+      try{ if(r&&typeof r.catch==='function') r.catch(function(e){ _ccDenied(x[1],args,e); }); }catch(_){}
+      return r; };
+  });
+  if(typeof F.onValue==='function'){ var ov=F.onValue;
+    F.onValue=function(){ var a=Array.prototype.slice.call(arguments), orig=a[0];
+      var cb=function(e){ _ccDenied('read',[orig],e); };
+      if(typeof a[2]==='function'){ var u=a[2]; a[2]=function(e){ cb(e); return u.apply(this,arguments); }; }
+      else if(a.length===2) a.push(cb);
+      return ov.apply(this,a); }; }
+  return true;
+}
+if(!_ccWrapFb()){ var _ccWrapT=setInterval(function(){ if(_ccWrapFb()) clearInterval(_ccWrapT); },500); }
+var _acRows=[];
+async function acLoad(){
+  var box=document.getElementById('ac-list'); if(!box||!_ccAdv()) return;
+  try{ var F=window._fb, sn=await F.get(F.query(F.ref(db,'access_attempts'),F.orderByChild('ts'),F.limitToLast(300)));
+    _acRows=[]; sn.forEach(function(c){ var o=c.val(); if(o) _acRows.push(o); }); _acRows.sort(function(a,b){return b.ts-a.ts;}); acRender();
+  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load: '+String(e.message).replace(/</g,'&lt;')+(/permission/i.test(e.message)?' — reading needs your user to be listed as <b>admin</b> under /staff in the database.':'')+'</p>'; }
+}
+function acRender(){
+  var box=document.getElementById('ac-list'); if(!box) return; var h=parseInt((document.getElementById('ac-range')||{}).value||'24',10);
+  var L=_acRows.filter(function(r){return !h||Date.now()-r.ts<h*36e5;}), who={}; L.forEach(function(r){ who[r.uid]=1; });
+  document.getElementById('ac-summary').textContent=L.length+' attempt'+(L.length===1?'':'s')+' from '+Object.keys(who).length+' user'+(Object.keys(who).length===1?'':'s');
+  box.innerHTML=''; if(!L.length){ box.innerHTML='<p class="cc-empty">No blocked attempts in this period. 🎉</p>'; return; }
+  L.forEach(function(r){ var row=document.createElement('div'); row.className='setting-row';
+    row.innerHTML='<div class="setting-info"><h4></h4><p></p></div><span class="bdg red"></span>';
+    row.querySelector('h4').textContent=(r.name||r.email||r.uid||'Unknown');
+    row.querySelector('p').textContent=(r.email||'')+' · '+(r.device||'')+' · '+new Date(r.ts).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'});
+    row.querySelector('.bdg').textContent=r.op==='open-control-centre'?'Opened Control Center':r.op==='control-centre-open'?'Tried: '+r.path:r.op==='db-write-denied'?'Write blocked: '+r.path:r.op==='db-read-denied'?'Read blocked: '+r.path:r.op+': '+r.path; box.appendChild(row); });
+}
+window.acLoad=acLoad; window.acRender=acRender;
+/* Staff Security Status panel */
+var _secUsers=[];
+async function secLoad(){
+  var box=document.getElementById('ss-list'); if(!box||!_ccAdv()) return;
+  try{ var sn=await window._fb.getDocs(window._fb.collection(firestoreDb,'users')); _secUsers=[];
+    sn.forEach(function(d){ var o=d.data(); _secUsers.push({uid:d.id,name:o.name||o.displayName||o.email||d.id,email:o.email||'',adv:o.Advancedadmin===true,devices:Object.keys(o.passkeyDevices||{}).length,req:o.passkeyRequired===true,offer:o.passkeyOffer===true}); });
+    _secUsers.sort(function(a,b){return (a.devices>0)-(b.devices>0)||a.name.localeCompare(b.name);}); secRender();
+  }catch(e){ box.innerHTML='<p class="cc-empty">Could not load: '+String(e.message).replace(/</g,'&lt;')+'</p>'; }
+}
+function secRender(){
+  var box=document.getElementById('ss-list'); if(!box) return; var only=(document.getElementById('ss-filter')||{}).value==='no';
+  var done=_secUsers.filter(function(u){return u.devices>0;}).length;
+  document.getElementById('ss-summary').textContent=done+' of '+_secUsers.length+' staff have a passkey recorded';
+  box.innerHTML=''; var L=_secUsers.filter(function(u){return !only||u.devices===0;});
+  if(!L.length){ box.innerHTML='<p class="cc-empty">Everyone has a passkey recorded. 🎉</p>'; return; }
+  L.forEach(function(u){ var r=document.createElement('div'); r.className='setting-row';
+    r.innerHTML='<div class="setting-info"><h4></h4><p></p></div><span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end"><span class="bdg"></span><button class="btn btn-outline btn-sm" data-a="remind">🔔 Remind</button><button class="btn btn-outline btn-sm" data-a="reset">♻️ Reset</button></span>';
+    r.querySelector('h4').textContent=u.name+(u.adv?' · Advanced Admin':''); r.querySelector('p').textContent=u.email+(u.req?' · passkey required':u.offer?' · reminder on':'');
+    var b=r.querySelector('.bdg'); b.textContent=u.devices?'Enrolled · '+u.devices+' device'+(u.devices>1?'s':''):'Not enrolled'; b.className='bdg '+(u.devices?'green':'red');
+    if(u.devices) r.querySelector('[data-a=remind]').style.display='none'; else r.querySelector('[data-a=reset]').style.display='none';
+    r.querySelector('[data-a=remind]').addEventListener('click',function(){ secSet(u,{passkeyOffer:true},'Reminder sent to '+u.name+' — the passkey prompt appears at their next sign-in.'); });
+    r.querySelector('[data-a=reset]').addEventListener('click',async function(){ var ok=await showConfirm('Reset passkey record','Clear '+u.name+'’s recorded passkey devices and prompt them to set one up again at next sign-in?','♻️','Reset','btn-red'); if(ok) secSet(u,{passkeyDevices:{},passkeyOffer:true},'Reset done for '+u.name+'.'); });
+    box.appendChild(r); });
+}
+async function secSet(u,payload,msg){
+  try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',u.uid),payload); logActivity('Passkey '+(payload.passkeyDevices?'reset':'reminder')+' for '+u.name,'act-blue',currentAdminName,{category:'system'}); notify(msg,'success',6000); secLoad(); }
+  catch(e){ notify('Failed: '+e.message,'error'); }
+}
+async function secRemindAll(){
+  var L=_secUsers.filter(function(u){return u.devices===0&&!u.offer;}); if(!L.length){ notify('Everyone not enrolled already has a reminder on.','info'); return; }
+  var ok=await showConfirm('Remind all','Turn on the passkey prompt for '+L.length+' staff who have not set one up?','🔔','Remind','btn-blue'); if(!ok) return;
+  var n=0; for(var i=0;i<L.length;i++){ try{ await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',L[i].uid),{passkeyOffer:true}); n++; }catch(e){} }
+  logActivity('Passkey reminder turned on for '+n+' staff','act-blue',currentAdminName,{category:'system'}); notify('Reminder turned on for '+n+' staff.','success'); secLoad();
+}
+window.secRender=secRender; window.secRemindAll=secRemindAll;
+
+
+/* ══════════════════════════════════════════
+   CONTROL CENTER — Backup Restore, Grading Scale
+══════════════════════════════════════════ */
+function _ccStable(o){ if(o===null||typeof o!=='object') return JSON.stringify(o); if(Array.isArray(o)) return '['+o.map(_ccStable).join(',')+']'; return '{'+Object.keys(o).sort().map(function(k){return JSON.stringify(k)+':'+_ccStable(o[k]);}).join(',')+'}'; }
+function _ccCompound(grade,y,t,st,type){ var L=(typeof _TERM_LETTER!=='undefined'&&_TERM_LETTER[t])||'A', lab=/\bterm\b/i.test(type)?type.replace(/\s+Term\b/i,'-Term')+' '+t:type+' Term '+t; return grade+'-'+y+'-'+L+st+'-'+lab; }
+async function _ccBatchUpdate(updates){ var F=window._fb, k=Object.keys(updates), n=0; for(var i=0;i<k.length;i+=300){ var chunk={}; k.slice(i,i+300).forEach(function(x){chunk[x]=updates[x];}); await F.update(F.ref(db),chunk); n+=Object.keys(chunk).length; } return n; }
+/* ── Backup Restore ── */
+var _bk=null;
+function bkReset(){ _bk=null; var r=document.getElementById('bk-report'); if(r) r.innerHTML=''; var a=document.getElementById('bk-apply'); if(a) a.disabled=true; var f=document.getElementById('bk-file'); if(f) f.value=''; }
+async function bkLoad(file){
+  if(!file) return; var rep=document.getElementById('bk-report');
+  try{ var d=JSON.parse(await file.text()); if(!d||typeof d.students!=='object'||d.students===null||Array.isArray(d.students)) throw new Error('This is not a Data Backup file (no student results found).');
+    _bk=d; bkAnalyse(); }
+  catch(e){ _bk=null; rep.innerHTML='<p class="cc-empty">⚠️ '+String(e.message).replace(/</g,'&lt;')+'</p>'; document.getElementById('bk-apply').disabled=true; }
+}
+function bkAnalyse(){
+  if(!_bk) return; var mode=_ccFv('bk-mode'), cur={}; allData.forEach(function(r){ if(r.id){ var c=Object.assign({},r); delete c.id; cur[r.id]=c; } });
+  var add=[],chg=[],ext=[],lockSk=0;
+  Object.keys(_bk.students).forEach(function(id){ var b=_bk.students[id]; if(!b||typeof b!=='object') return;
+    if(!(id in cur)){ if(isTermLocked(b)) lockSk++; else add.push(id); } else if(_ccStable(cur[id])!==_ccStable(b)){ if(isTermLocked(b)||isTermLocked(cur[id])) lockSk++; else chg.push(id); } });
+  if(mode==='replace') Object.keys(cur).forEach(function(id){ if(!(id in _bk.students)){ if(isTermLocked(cur[id])) lockSk++; else ext.push(id); } });
+  _bk.plan={add:add,chg:chg,ext:ext};
+  var rep=document.getElementById('bk-report'), nb=Object.keys(_bk.students).length;
+  rep.innerHTML='<div class="setting-row" style="display:block;line-height:1.8"></div>'; var box=rep.firstChild;
+  box.innerHTML='<b></b><br>📄 '+nb+' record(s) in file · 💾 '+allData.length+' currently loaded<br>➕ <b>'+add.length+'</b> will be added · ✏️ <b>'+chg.length+'</b> will be restored to the backup version'+(mode==='replace'?' · 🗑️ <b>'+ext.length+'</b> will be removed':'')+(lockSk?'<br>🔒 '+lockSk+' skipped (locked term)':'');
+  box.querySelector('b').textContent='Backup from '+(_bk.createdAt?_ccFmt(Date.parse(_bk.createdAt)):'unknown date')+(_bk.createdBy?' by '+_bk.createdBy:'');
+  document.getElementById('bk-apply').disabled=!(add.length+chg.length+ext.length);
+}
+async function bkApply(){
+  if(!_bk||!_bk.plan||!_ccAdv()) return; var pl=_bk.plan, n=pl.add.length+pl.chg.length+pl.ext.length; if(!n) return;
+  var ok=await showConfirm('Restore from backup','This will change '+n+' record(s)'+(pl.ext.length?', including DELETING '+pl.ext.length:'')+'. A safety backup of the current data downloads first. Continue?','♻️','Restore','btn-red'); if(!ok) return;
+  var btn=document.getElementById('bk-apply'); btn.disabled=true; btn.textContent='⏳ Restoring…';
+  try{ await ccBackupNow();
+    var u={}; pl.add.concat(pl.chg).forEach(function(id){ u[DB_PATH+'/'+id]=_bk.students[id]; }); pl.ext.forEach(function(id){ u[DB_PATH+'/'+id]=null; });
+    var done=await _ccBatchUpdate(u); logActivity('Backup restored: '+done+' record(s) changed','act-orange',currentAdminName,{category:'system'});
+    notify(done+' record(s) restored.','success',7000); setTimeout(refreshData,1000); bkReset();
+  }catch(e){ notify('Restore stopped: '+e.message,'error',9000); }
+  btn.textContent='♻️ Restore now'; if(_bk) btn.disabled=false;
+}
+window.bkLoad=bkLoad; window.bkAnalyse=bkAnalyse; window.bkApply=bkApply;
+/* ── Grading Scale ── (saved at RTDB /gradingScale {mins:[8]}; GRADE_SCALE is edited in place) */
+var _gsDefault=GRADE_SCALE.map(function(g){return g.min;}), _gsOff=null;
+function _gsValid(m){ if(!Array.isArray(m)||m.length!==8) return false; for(var i=0;i<8;i++){ if(typeof m[i]!=='number'||isNaN(m[i])) return false; if(i&&m[i]>=m[i-1]) return false; } return m[0]<=100&&m[7]>=1&&m[6]>m[7]; }
+function _gsApply(m){ m.forEach(function(v,i){ GRADE_SCALE[i].min=v; GRADE_SCALE[i].max=i===0?100:Math.round((m[i-1]-0.1)*10)/10; }); }
+function _gsStart(){
+  if(_gsOff||typeof db==='undefined'||!db||!window._fb||!window._fb.onValue) return;
+  try{ var r=window._fb.ref(db,'gradingScale'), h=window._fb.onValue(r,function(sn){ var d=sn.val(); _gsApply(d&&_gsValid(d.mins)?d.mins:_gsDefault); try{ if(typeof renderAll==='function') renderAll(); }catch(e){} var l=document.getElementById('gs-list'); if(l&&l.offsetParent) gsRender(); },function(){ _gsOff=null; });
+    _gsOff=function(){ try{ window._fb.off(r,'value',h); }catch(e){} }; }catch(e){ _gsOff=null; }
+}
+setInterval(_gsStart,3000);
+function gsRender(){ var l=document.getElementById('gs-list'); if(!l) return; l.innerHTML='';
+  GRADE_SCALE.forEach(function(g,i){ var r=document.createElement('div'); r.className='setting-row';
+    r.innerHTML='<div class="setting-info"><h4></h4><p></p></div><span style="display:flex;align-items:center;gap:6px"><span style="font-size:11px">from</span><input class="cc-in" type="number" step="0.1" style="width:80px"><span style="font-size:11px">%</span></span>';
+    r.querySelector('h4').textContent=g.level+' · '+g.pts+' pts'; r.querySelector('p').textContent=g.label;
+    var inp=r.querySelector('input'); inp.id='gs-min-'+i; inp.value=g.min; if(i===7){ inp.disabled=true; } else inp.addEventListener('input',function(){ document.getElementById('gs-impact').textContent=''; }); l.appendChild(r); }); }
+function _gsRead(){ var m=[]; for(var i=0;i<8;i++) m.push(parseFloat(document.getElementById('gs-min-'+i).value)); return m; }
+function _gsLevel(m,a){ for(var i=0;i<8;i++) if(a>=m[i]) return i; return 7; }
+function gsPreview(){ var m=_gsRead(), el=document.getElementById('gs-impact'); if(!_gsValid(m)){ el.textContent='⚠️ Cut-offs must go from high to low, with the top one at most 100 and the lowest above 1.'; return null; }
+  var cur=GRADE_SCALE.map(function(g){return g.min;}), n=0,ch=0; allData.forEach(function(r){ var a=parseFloat(calcStats(r).avg); if(isNaN(a)) return; n++; if(_gsLevel(cur,a)!==_gsLevel(m,a)) ch++; });
+  el.textContent='📊 '+ch+' of '+n+' records ('+(n?Math.round(ch/n*100):0)+'%) would move to a different level.'; return ch; }
+async function gsSave(){ if(!_ccAdv()) return; var m=_gsRead(), ch=gsPreview(); if(ch===null) return;
+  var ok=await showConfirm('Save grading scale','This changes learner levels and report-card comments for everyone. '+ch+' loaded record(s) would change level. Continue?','📐','Save','btn-blue'); if(!ok) return;
+  try{ await window._fb.set(window._fb.ref(db,'gradingScale'),{mins:m,updatedBy:currentAdminName||'Admin',updatedAt:Date.now()}); logActivity('Grading scale updated: '+m.join(' / '),'act-orange',currentAdminName,{category:'system'}); notify('Grading scale saved.','success'); }
+  catch(e){ notify('Could not save: '+e.message,'error',8000); } }
+async function gsReset(){ if(!_ccAdv()) return; var ok=await showConfirm('Reset grading scale','Go back to the standard CBC cut-offs (90 / 75 / 58 / 41 / 31 / 21 / 11 / 1)?','↺','Reset','btn-blue'); if(!ok) return;
+  try{ await window._fb.remove(window._fb.ref(db,'gradingScale')); logActivity('Grading scale reset to default','act-blue',currentAdminName,{category:'system'}); notify('Grading scale reset.','success'); }catch(e){ notify('Could not reset: '+e.message,'error'); } }
+window.gsRender=gsRender; window.gsPreview=gsPreview; window.gsSave=gsSave; window.gsReset=gsReset;
+
+/* ══════════════════════════════════════════
+   CONTROL CENTER — fixes: photos toggle, live DB status, persisted auto-refresh,
+   mid-session import expiry, live whitelist sign-out
+══════════════════════════════════════════ */
+window._showStudentPhotos = (function(){ try{ return localStorage.getItem('kps_show_photos')!=='0'; }catch(e){ return true; } })();
+window._tempImportUntil = 0;
+function _canImportNow(){ return isAdvancedAdmin===true || (canImportData && !(window._tempImportUntil && Date.now()>window._tempImportUntil)); }
+function toggleStudentPhotos(el){
+  window._showStudentPhotos = el.classList.contains('on');
+  try{ localStorage.setItem('kps_show_photos', window._showStudentPhotos?'1':'0'); }catch(e){}
+  try{ if(typeof renderAll==='function') renderAll(); }catch(e){}
+  notify(window._showStudentPhotos?'Student photos are on.':'Student photos are off — initials are shown instead.','info');
+}
+window.toggleStudentPhotos=toggleStudentPhotos;
+function ccDbStatus(){
+  var u=document.getElementById('setting-db-url'), pth=document.getElementById('setting-db-path'), st=document.getElementById('setting-db-status'), rc=document.getElementById('setting-db-records');
+  if(!u) return;
+  try{ u.textContent=((db&&db.app&&db.app.options&&db.app.options.databaseURL)||'').replace(/^https?:\/\//,'')||'Unknown'; }catch(e){ u.textContent='Unknown'; }
+  pth.textContent=DB_PATH;
+  rc.textContent=(typeof allData!=='undefined'&&allData.length!=null)?allData.length+' records loaded':'—'; rc.className='bdg blue';
+  try{ if(window._ccConnOff) window._ccConnOff();
+    var r=window._fb.ref(db,'.info/connected'), h=window._fb.onValue(r,function(sn){ var on=sn.val()===true; st.textContent=on?'Connected':'Offline'; st.className='bdg '+(on?'green':'red'); });
+    window._ccConnOff=function(){ try{ window._fb.off(r,'value',h); }catch(e){} };
+  }catch(e){ st.textContent='Unknown'; st.className='bdg'; }
+}
+window.ccDbStatus=ccDbStatus;
+/* live whitelist: sign out people already logged in when they are removed / the list is turned on */
+var _ccLacUnsub=null;
+function _ccLacStart(){
+  if(_ccLacUnsub||typeof firestoreDb==='undefined'||!firestoreDb||!window._fb||!window._fb.onSnapshot) return;
+  try{ _ccLacUnsub=window._fb.onSnapshot(window._fb.doc(firestoreDb,'config','loginAccessControl'),function(sn){
+    if(!sn.exists()||sn.data().enabled!==true||isAdvancedAdmin===true) return;
+    var em=((auth&&auth.currentUser&&auth.currentUser.email)||'').toLowerCase().trim();
+    var ok=Array.isArray(sn.data().allowedEmails)&&sn.data().allowedEmails.some(function(e){return String(e).toLowerCase().trim()===em;});
+    if(em&&!ok){ try{ notify('🚫 Your email is no longer authorized for this portal.','error',8000); }catch(e){} (typeof doSignOut==='function'?doSignOut():window._fb.signOut(auth)); }
+  },function(){ _ccLacUnsub=null; }); }catch(e){ _ccLacUnsub=null; }
+}
+function _ccLacStop(){ if(_ccLacUnsub){ try{_ccLacUnsub();}catch(e){} _ccLacUnsub=null; } }
+setInterval(function(){ if(window._currentUser&&window._currentUser.uid) _ccLacStart(); else _ccLacStop(); },5000);
+/* restore saved preferences once the page has finished loading */
+setTimeout(function(){
+  try{ var tp=document.getElementById('toggle-photos'); if(tp) tp.classList.toggle('on',window._showStudentPhotos!==false);
+    if(localStorage.getItem('kps_autorefresh')==='1' && !autoRefreshOn){ autoRefreshOn=true; autoRefreshTimer=setInterval(refreshData,300000); var tr=document.getElementById('toggle-refresh'); if(tr) tr.classList.add('on'); }
+  }catch(e){}
+},2500);
+
+
 
 (function(){
   function init(){
@@ -17147,6 +17479,8 @@ function navTo(view,el){
     view = 'dashboard';
     el = document.querySelector('.nav-item[data-label="Dashboard"]');
   }
+  // Monitor: anyone who isn't an Advanced Admin reaching the Control Center is recorded (see Access Attempts).
+  if(view==='settings' && !isAdvancedAdmin){ try{ _ccLogAttempt('open-control-centre','settings'); }catch(e){} }
   // ───────────────────────────────────────────────────────────────────────
 
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -19508,7 +19842,7 @@ function _setImportStatus(html){
 
 async function handleImportFile(file){
   if(!file)return;
-  if(!isAdvancedAdmin && !canImportData){
+  if(!_canImportNow()){
     notify('⛔ An Advanced Admin has disabled Import Data access for your account.','error',5000);
     return;
   }
@@ -19640,7 +19974,7 @@ function showImportPreview(rows,dupes){
 }
 
 async function commitImport(){
-  if(!isAdvancedAdmin && !canImportData){
+  if(!_canImportNow()){
     notify('⛔ An Advanced Admin has disabled Import Data access for your account.','error',5000);
     return;
   }
@@ -19658,7 +19992,7 @@ async function commitImport(){
   // The template's 'Term' column holds the compound Grade string
   const compoundCol = _importHeaders.includes('Term') ? 'Term' : null;
 
-  let count=0, skipped=0, created=0, invalidScoresSkipped=0;
+  let count=0, skipped=0, created=0, invalidScoresSkipped=0, lockSkipped=0;
   try{
     if(isTemplateUpload){
       // ── Template mode: ALWAYS create new records (new exam results) ───────
@@ -19710,7 +20044,7 @@ async function commitImport(){
         // ── Lock guard ────────────────────────────────────────────────────
         const _lk=_lockKeyFor(compound);
         if(_lockedTerms[_lk]&&_lockedTerms[_lk].locked){
-          skipped++;
+          lockSkipped++;
           continue;
         }
         // ─────────────────────────────────────────────────────────────────
@@ -19734,6 +20068,7 @@ async function commitImport(){
 
       let msg = `.Bulk upload complete — <strong>${created}</strong> new result records created.`;
       if(skipped) msg += ` <span style="color:var(--orange)">${skipped} skipped (already exist for this exam).</span>`;
+      if(lockSkipped) msg += ` <span style="color:var(--red)">🔒 ${lockSkipped} skipped (term is locked).</span>`;
       if(invalidScoresSkipped) msg += ` <span style="color:var(--red)">${invalidScoresSkipped} invalid score cell(s) ignored (out of 0–100 range).</span>`;
       notify(msg, 'success', 7000);
 
@@ -19747,16 +20082,17 @@ async function commitImport(){
           if(!mapped){const v=parseFloat(row[k]);if(!isNaN(v))rec[k]=v;}
         });
         if(!rec['Official Student Name']&&!rec['Assessment No'])continue;
+        if(isTermLocked(rec)){ lockSkipped++; continue; }
         await push(ref(db,DB_PATH),rec);
         count++;
       }
-      notify(`.Imported <strong>${count}</strong> records successfully!`,'success');
+      notify(`.Imported <strong>${count}</strong> records successfully!`+(lockSkipped?` <span style="color:var(--red)">🔒 ${lockSkipped} row(s) skipped — term is locked.</span>`:''),lockSkipped?'warn':'success',7000);
     }
 
     btn.textContent='.Done!';
     logActivity(`📥 Imported ${count} records via ${isTemplateUpload?'teacher bulk template':'CSV'} upload`,'act-green',currentAdminName,{
       category:'import',
-      extra:`File: ${window._lastImportFilename||'unknown'} · Created: ${created}${skipped?' · Skipped (dupes): '+skipped:''}`
+      extra:`File: ${window._lastImportFilename||'unknown'} · Created: ${created}${skipped?' · Skipped (dupes): '+skipped:''}${lockSkipped?' · Skipped (locked): '+lockSkipped:''}`
     });
     setTimeout(()=>{ refreshData(); btn.disabled=false; btn.textContent='.Commit to Database'; },1500);
   }catch(err){
@@ -21348,525 +21684,118 @@ function _qeUpdateLiveSessionsBadge(){
   badge.style.display = count ? 'flex' : 'none';
 }
 
-/* ── Live Score Entry Sessions: state + helpers ───────────────────────── */
-let _lsmFilter = 'all', _lsmQuery = '', _lsmRows = [], _lsmTimer = null, _lsmSig = '';
-const _lsmEsc = v => String(v==null?'':v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function _lsmAgo(ms){
-  const s = Math.max(0, Math.round(ms/1000));
-  if(s < 5) return 'just now';
-  if(s < 60) return s + 's ago';
-  const m = Math.floor(s/60);
-  if(m < 60) return m + ' min ago';
-  const h = Math.floor(m/60), r = m % 60;
-  return h + 'h' + (r ? ' ' + r + 'm' : '') + ' ago';
-}
-function _lsmDur(ms){
-  const m = Math.floor(Math.max(0, ms)/60000);
-  if(m < 1) return 'under a minute';
-  if(m < 60) return m + ' min';
-  const h = Math.floor(m/60), r = m % 60;
-  return h + 'h' + (r ? ' ' + r + 'm' : '');
-}
-const _LSM_META = {
-  typing:{label:'Entering now',  live:true},
-  active:{label:'Active',        live:true},
-  opened:{label:'Just opened',   live:true},
-  idle:  {label:'Idle',          live:false},
-  stale: {label:'Connection quiet', live:false}
-};
-function _lsmStatus(s, now){
-  const hb = now - (s.lastActive || s.startedAt || now);
-  if(hb > 90000) return 'stale';                       // heartbeat is every 25s
-  const cellAge = s.cell ? now - (s.cell.updatedAt || now) : null;
-  if(cellAge !== null && cellAge < 30000)  return 'typing';
-  if(cellAge !== null && cellAge < 180000) return 'active';
-  if(cellAge === null && now - (s.startedAt || now) < 120000) return 'opened';
-  return 'idle';
-}
-function _lsmSetFilter(f){ _lsmFilter = f; _qeRenderLiveSessionsList(); }
-function _lsmSetQuery(v){ _lsmQuery = (v||'').trim().toLowerCase(); _qeRenderLiveSessionsList(); }
-window._lsmSetFilter = _lsmSetFilter; window._lsmSetQuery = _lsmSetQuery;
-function _lsmJump(i){
-  const s = _lsmRows[i]; if(!s) return;
-  _qeJumpToSession(s.compound||'', s.grade||'', s.uid||'', s.name||'Teacher');
-}
-window._lsmJump = _lsmJump;
+/* ═══════════════ Live Score Entry Sessions — live sheet board ═══════════════
+   One block per open exam. Each subject is a tile filled to its completion; a teacher's avatar
+   sits on the subject tile they are typing into right now. Needs-attention items lead the view. */
+var _qs={filter:'all',q:'',list:[],timer:null,users:null};
+var _qsProg={};
+var _qsPal=['#2980b9','#27ae60','#e67e22','#8e44ad','#16a085','#c0392b','#d35400','#2c3e50'];
+function _qsCol(t){ var h=0; String(t||'').split('').forEach(function(c){ h=(h*31+c.charCodeAt(0))>>>0; }); return _qsPal[h%_qsPal.length]; }
+function _qsIni(n){ var p=String(n||'?').trim().split(/\s+/); return ((p[0]||'?')[0]+((p.length>1&&p[p.length-1][0])||'')).toUpperCase(); }
+function _qsAgo(ms){ var d=Math.max(0,Math.round((Date.now()-ms)/1000)); if(d<8) return 'just now'; if(d<60) return d+'s ago'; var m=Math.floor(d/60); if(m<60) return m+' min ago'; return Math.floor(m/60)+'h '+(m%60)+'m ago'; }
+function _qsDur(ms){ var m=Math.max(0,Math.floor((Date.now()-ms)/60000)); return m<1?'under a minute':m<60?m+' min':Math.floor(m/60)+'h '+(m%60)+'m'; }
+function _qsState(s){ var now=Date.now(), cu=(s.cell&&s.cell.updatedAt)||0, la=s.lastActive||s.startedAt||0;
+  if(la&&now-la>150000) return 'idle';               // heartbeat (every 25s) stopped — tab asleep or connection lost
+  if(cu&&now-cu<45000) return 'typing';
+  return now-Math.max(s.startedAt||0,cu)<300000?'active':'idle'; }   // idle = nothing typed for 5 min
+function _qsAv(s,size){ var st=s._st||_qsState(s);
+  return '<span class="qs-av '+st+'" style="--c:'+_qsCol(s.name)+';--s:'+(size||26)+'px" title="'+_gavgEsc((s.name||'Teacher')+' — '+(st==='typing'?'typing now':st==='active'?'on the sheet':'idle'))+'">'+_gavgEsc(_qsIni(s.name))+'</span>'; }
 
-/** Light 4s tick while the modal is open: refreshes relative times and the
- *  freshness bars in place (no flicker). If any session crossed a status
- *  threshold (typing → active → idle) it does a full re-render instead. */
-function _lsmTick(){
-  const now = Date.now();
-  if(_lsmTabNow==='await' && !_lsmAwait.loading && now - _lsmAwait.loadedAt > 90000) _lsmLoadAwaiting({force:true});
-  const sig = Object.values(_qeActiveSessions||{}).map(s=>(s.uid||'')+(s.compound||'')+_lsmStatus(s,now)).sort().join('|');
-  if(sig !== _lsmSig){ _qeRenderLiveSessionsList(); return; }
-  document.querySelectorAll('#qe-live-sessions-modal [data-lsm-ts]').forEach(el=>{
-    const ts = +el.dataset.lsmTs; if(!ts) return;
-    el.textContent = el.dataset.lsmKind === 'dur' ? _lsmDur(now - ts) : _lsmAgo(now - ts);
-  });
-  document.querySelectorAll('#qe-live-sessions-modal [data-lsm-bar]').forEach(el=>{
-    el.style.width = Math.max(0, 100 - (now - (+el.dataset.lsmBar)) / 1800) + '%';
-  });
+function _qsLoadProg(compound,grade){
+  var p=_qsProg[compound]; if(p&&(p.loading||Date.now()-p.ts<45000)) return;
+  _qsProg[compound]=Object.assign({},p||{},{loading:true,ts:p?p.ts:0});
+  computeLiveMissingScoresForExam(grade||gShort(compound),compound).then(function(r){
+    var n=r.students.length, subs=r.subjects.map(function(s){ return {subject:s,missing:(r.missingBySubject[s]||[]).length,total:n}; });
+    var total=n*subs.length, miss=subs.reduce(function(a,x){return a+x.missing;},0);
+    _qsProg[compound]={ts:Date.now(),loading:false,total:total,missing:miss,subs:subs,learners:n};
+  }).catch(function(){ _qsProg[compound]={ts:Date.now(),loading:false,err:true}; })
+  .then(function(){ if(document.getElementById('qe-live-sessions-modal')?.classList.contains('on')) _qeRenderLiveSessionsList(); });
 }
+function _qsPct(c){ var p=_qsProg[c]; return p&&p.total?Math.round((p.total-p.missing)/p.total*1000)/10:null; }
 
-function _qeOpenLiveSessionsModal(){
-  if(!isAdvancedAdmin){ notify('⛔ Advanced Admin only.','error'); return; }
-  _lsmFilter = 'all'; _lsmQuery = '';
-  const si = document.getElementById('qe-lsm-search'); if(si) si.value = '';
-  _lsmSwitchTab('live');
-  _lsmLoadAwaiting({});   // warm the Awaiting tab (cached 60s) so its badge + "still owes" lines are ready
-  _qeRenderLiveSessionsList();
-  document.getElementById('qe-live-sessions-modal').classList.add('on');
-  clearInterval(_lsmTimer);
-  _lsmTimer = setInterval(_lsmTick, 4000);
+function _qsAnalyse(){
+  var all=Object.values(_qeActiveSessions||{}), by={};
+  all.forEach(function(s){ s._st=_qsState(s); s._clash=false; });
+  all.forEach(function(s){ if(s.cell&&s.cell.subject&&s._st!=='idle'){ var k=s.compound+'|'+s.cell.subject; (by[k]=by[k]||[]).push(s); } });
+  var clashes=[]; Object.keys(by).forEach(function(k){ if(by[k].length>1){ by[k].forEach(function(s){ s._clash=true; }); clashes.push({subject:by[k][0].cell.subject,compound:by[k][0].compound,who:by[k]}); } });
+  return {all:all,clashes:clashes,idle:all.filter(function(s){return s._st==='idle';})};
 }
-window._qeOpenLiveSessionsModal = _qeOpenLiveSessionsModal;
+function _qsNames(a){ var n=a.map(function(s){return (s.name||'Teacher').split(' ')[0];}); return n.length<3?n.join(' and '):n.slice(0,-1).join(', ')+' and '+n[n.length-1]; }
 
-function _qeCloseLiveSessionsModal(){
-  document.getElementById('qe-live-sessions-modal').classList.remove('on');
-  clearInterval(_lsmTimer); _lsmTimer = null;
-  _lsmQueue = null;
+function _qsTile(x,onTile){
+  var d=x.total-x.missing, f=x.total?d/x.total:0, cls=x.missing===0?'ok':d===0?'none':'part';
+  return '<div class="qs-tile '+cls+'" style="--f:'+Math.round(f*100)+'%" title="'+_gavgEsc(x.subject)+': '+d+' of '+x.total+' entered"><span class="qs-tn">'+_gavgEsc(x.subject)+'</span><b>'+d+'<small>/'+x.total+'</small></b>'+
+    (onTile&&onTile.length?'<span class="qs-on">'+onTile.map(function(s){return _qsAv(s,22);}).join('')+'</span>':'')+'</div>';
 }
-window._qeCloseLiveSessionsModal = _qeCloseLiveSessionsModal;
-
+function _qsTeacherRow(s,i){
+  var c=s.cell, st=s._st, what;
+  if(c) what='<span class="qs-subj" style="--c:'+_qsCol(c.subject)+'">'+_gavgEsc(c.subject||'—')+'</span> '+_gavgEsc(c.studentName||'Student')+' <span class="qs-arrow">›</span> '+((c.value===undefined||c.value==='')?'<em>cleared</em>':'<b class="qs-val">'+_gavgEsc(c.value)+'</b>')+' <span class="qs-when">'+_qsAgo(c.updatedAt||Date.now())+'</span>';
+  else what='<span class="qs-when">Opened the sheet '+_qsAgo(s.startedAt||Date.now())+' — nothing entered yet</span>';
+  return '<div class="qs-trow">'+_qsAv(s,28)+'<div class="qs-tname"><b>'+_gavgEsc(s.name||'Teacher')+'</b><span>'+(st==='typing'?'Typing now':st==='active'?'On the sheet':'Idle')+' · '+_qsDur(s.startedAt||Date.now())+'</span></div><div class="qs-what">'+what+'</div>'+
+    '<div class="qs-do"><button class="qs-btn" onclick="_qsOpen('+i+')">Open sheet</button>'+(st==='idle'?'<button class="qs-link" onclick="_qsNudge('+i+')">Nudge</button>':'')+'</div></div>';
+}
 function _qeRenderLiveSessionsList(){
-  const box = document.getElementById('qe-live-sessions-list');
-  if(!box) return;
-  const now = Date.now();
-  const all = Object.values(_qeActiveSessions||{}).map(s=>({s, st:_lsmStatus(s, now), act:(s.cell&&s.cell.updatedAt)||s.startedAt||0}));
-  _lsmSig = all.map(r=>(r.s.uid||'')+(r.s.compound||'')+r.st).sort().join('|');
-  _lsmUpdateTabs(all.length);
-  if(_lsmTabNow==='await') _lsmRenderAwait();   // teacher "in session" state may have changed
+  var box=document.getElementById('qe-live-sessions-list'); if(!box) return;
+  var A=_qsAnalyse(), all=A.all, q=_qs.q.trim().toLowerCase();
+  var exams={}; all.forEach(function(s){ (exams[s.compound]=exams[s.compound]||[]).push(s); });
+  Object.keys(exams).forEach(function(c){ _qsLoadProg(c,exams[c][0].grade); });
+  var typing=all.filter(function(s){return s._st==='typing';}).length, nEx=Object.keys(exams).length;
+  var sum=document.getElementById('qs-sum');
+  sum.innerHTML=all.length?('<b>'+all.length+'</b> teacher'+(all.length>1?'s':'')+' on <b>'+nEx+'</b> sheet'+(nEx>1?'s':'')+' · <b class="g">'+typing+'</b> typing now'+(A.idle.length?' · <b class="o">'+A.idle.length+'</b> idle':'')):'No sheets open';
+  var upd=document.getElementById('qs-upd'); if(upd) upd.textContent='Live · updated '+new Date().toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.querySelectorAll('#qs-filter button').forEach(function(b){ b.classList.toggle('on',b.dataset.v===_qs.filter); });
+  if(!all.length){ box.innerHTML='<div class="qs-empty"><b>Nobody is entering scores right now</b><span>Teachers show up here the moment they open a sheet in Quick Entry.</span></div>'; _qs.list=[]; return; }
 
-  // ── Summary stats ──
-  const nTyping = all.filter(r=>r.st==='typing').length;
-  const nLive   = all.filter(r=>_LSM_META[r.st].live).length;
-  const nIdle   = all.length - nLive;
-  const sheets  = new Set(all.map(r=>r.s.compound)).size;
-  const stats = document.getElementById('qe-lsm-stats');
-  if(stats) stats.innerHTML = [
-    ['Teachers online', all.length, 'var(--blue)'],
-    ['Sheets open',     sheets,     'var(--purple)'],
-    ['Entering now',    nTyping,    'var(--green)'],
-    ['Idle / quiet',    nIdle,      'var(--gold)']
-  ].map(([l,v,c])=>`<div class="lsm-stat" style="--lsm-c:${c}"><b>${v}</b><span>${l}</span></div>`).join('');
-  const sub = document.getElementById('qe-lsm-sub');
-  if(sub) sub.textContent = all.length
-    ? `${all.length} teacher${all.length>1?'s':''} across ${sheets} sheet${sheets>1?'s':''} · updates in real time`
-    : 'Watching Quick Entry in real time';
+  _qs.list=[]; var idx=function(s){ _qs.list.push(s); return _qs.list.length-1; };
+  var html='';
+  var att=[];
+  A.clashes.forEach(function(c){ att.push('<div class="qs-att"><span>'+_gavgEsc(_qsNames(c.who))+' are both entering <b>'+_gavgEsc(c.subject)+'</b> in '+_gavgEsc(c.compound)+'.</span><button class="qs-link" onclick="_qsOpen('+idx(c.who[0])+')">Open sheet</button></div>'); });
+  A.idle.forEach(function(s){ var i=idx(s); att.push('<div class="qs-att"><span><b>'+_gavgEsc(s.name||'Teacher')+'</b> has had <b>'+_gavgEsc(s.compound)+'</b> open for '+_qsDur(s.startedAt||Date.now())+' and is idle'+(s.cell?' — last score '+_qsAgo(s.cell.updatedAt)+'':' — nothing entered')+'.</span><span class="qs-do"><button class="qs-link" onclick="_qsNudge('+i+')">Nudge</button><button class="qs-link" onclick="_qsOpen('+i+')">Open sheet</button></span></div>'); });
+  if(att.length) html+='<div class="qs-attn"><h4>Needs attention</h4>'+att.join('')+'</div>';
 
-  // ── Filter chips ──
-  const chips = document.getElementById('qe-lsm-chips');
-  if(chips) chips.innerHTML = [['all','All',all.length],['live','Working',nLive],['idle','Idle',nIdle]]
-    .map(([k,l,n])=>`<button class="lsm-chip${_lsmFilter===k?' on':''}" onclick="_lsmSetFilter('${k}')">${l}<em>${n}</em></button>`).join('');
-
-  if(!all.length){
-    _lsmRows = [];
-    box.innerHTML = `<div class="lsm-empty"><div class="ic">🌙</div><b>No teachers are entering scores right now</b><span>When a teacher opens a sheet in Quick Entry, they'll appear here instantly —<br>with the student, subject and score they last typed.</span></div>`;
-    return;
-  }
-
-  // ── Apply filter + search ──
-  let rows = all.filter(r=>{
-    if(_lsmFilter==='live' && !_LSM_META[r.st].live) return false;
-    if(_lsmFilter==='idle' &&  _LSM_META[r.st].live) return false;
-    if(_lsmQuery){
-      const c = r.s.cell||{};
-      const hay = [r.s.name, r.s.compound, r.s.grade, c.studentName, c.subject].join(' ').toLowerCase();
-      if(!hay.includes(_lsmQuery)) return false;
-    }
-    return true;
+  var shown=0;
+  Object.keys(exams).sort(function(a,b){ return Math.max.apply(null,exams[b].map(function(s){return (s.cell&&s.cell.updatedAt)||s.startedAt||0;}))-Math.max.apply(null,exams[a].map(function(s){return (s.cell&&s.cell.updatedAt)||s.startedAt||0;})); }).forEach(function(c){
+    var g=exams[c].filter(function(s){ return !q||((s.name||'')+' '+c+' '+((s.cell&&s.cell.subject)||'')).toLowerCase().indexOf(q)>-1; });
+    if(_qs.filter==='attn') g=g.filter(function(s){ return s._st==='idle'||s._clash; });
+    if(!g.length) return; shown++;
+    var p=_qsProg[c], pct=_qsPct(c), on={}; exams[c].forEach(function(s){ if(s.cell&&s._st!=='idle'){ (on[s.cell.subject]=on[s.cell.subject]||[]).push(s); } });
+    var tiles=p&&p.subs?p.subs.map(function(x){ return _qsTile(x,on[x.subject]); }).join(''):'';
+    var head='<div class="qs-head"><div class="qs-title"><b>'+_gavgEsc(c)+'</b><span>'+exams[c].length+' teacher'+(exams[c].length>1?'s':'')+' on this sheet</span></div>'+
+      '<div class="qs-pct">'+(pct===null?(p&&p.loading?'<span class="qs-when">Reading sheet…</span>':'<span class="qs-when">No progress</span>'):'<b>'+pct+'%</b><span>'+p.missing+' score'+(p.missing===1?'':'s')+' to go</span>')+'</div></div>'+
+      '<div class="qs-meter"><i style="width:'+(pct||0)+'%"></i></div>';
+    html+='<section class="qs-sheet">'+head+(tiles?'<div class="qs-tiles">'+tiles+'</div>':'')+'<div class="qs-trows">'+g.map(function(s){ return _qsTeacherRow(s,idx(s)); }).join('')+'</div></section>';
   });
-  if(!rows.length){
-    _lsmRows = [];
-    box.innerHTML = `<div class="lsm-empty"><div class="ic">🔍</div><b>No sessions match</b><span>Try a different search or switch the filter back to “All”.</span></div>`;
-    return;
-  }
-
-  // ── Group by exam sheet; most recently active sheet first ──
-  const groups = {};
-  rows.forEach(r=>{ (groups[r.s.compound||'—'] = groups[r.s.compound||'—'] || []).push(r); });
-  const ordered = Object.entries(groups).map(([k,list])=>{
-    list.sort((a,b)=>b.act-a.act);
-    return {k, list, latest:list[0].act};
-  }).sort((a,b)=>b.latest-a.latest);
-
-  _lsmRows = [];
-  box.innerHTML = ordered.map(g=>{
-    const grade = g.list[0].s.grade;
-    const collab = g.list.length > 1;
-    const cards = g.list.map(r=>{
-      const s = r.s, st = r.st, meta = _LSM_META[st];
-      const idx = _lsmRows.push(s) - 1;
-      const av = makePhotoAvatar(s.name||'Teacher', s.grade||'', 'stu-av-sm', 'flex-shrink:0');
-      const cell = s.cell || null;
-      let cellBlock;
-      if(cell){
-        const empty = (cell.value===undefined || cell.value===null || cell.value==='');
-        cellBlock = `<div class="lsm-cell">
-          ${makePhotoAvatar(cell.studentName||'Student', s.grade||'', 'stu-av-sm', 'flex-shrink:0')}
-          <div class="lsm-cell-l">
-            <div class="lsm-cell-k">Last entry</div>
-            <div class="lsm-cell-stu">${_lsmEsc(cell.studentName||'Student')}</div>
-            <div class="lsm-cell-sub"><span class="lsm-subj">${_lsmEsc(cell.subject||'—')}</span><span data-lsm-ts="${cell.updatedAt||0}" data-lsm-kind="ago">${_lsmAgo(now-(cell.updatedAt||now))}</span></div>
-          </div>
-          <div class="lsm-score${empty?' empty':''}">${empty?'cleared':_lsmEsc(cell.value)}</div>
-        </div>`;
-      } else {
-        cellBlock = `<div class="lsm-nocell">Hasn't entered a score yet — sheet opened <span data-lsm-ts="${s.startedAt||0}" data-lsm-kind="ago">${_lsmAgo(now-(s.startedAt||now))}</span></div>`;
-      }
-      const barPct = cell ? Math.max(0, 100 - (now-(cell.updatedAt||now))/1800) : 0;
-      return `<div class="lsm-card s-${st}" role="button" tabindex="0" onclick="_lsmJump(${idx})" onkeydown="if(event.key==='Enter')_lsmJump(${idx})">
-        <div class="lsm-card-top">
-          ${av}
-          <div class="lsm-who">
-            <div class="lsm-name">${_lsmEsc(s.name||'Teacher')}</div>
-            <div class="lsm-meta">⏱ In session <span data-lsm-ts="${s.startedAt||0}" data-lsm-kind="dur">${_lsmDur(now-(s.startedAt||now))}</span> · 📡 seen <span data-lsm-ts="${s.lastActive||s.startedAt||0}" data-lsm-kind="ago">${_lsmAgo(now-(s.lastActive||s.startedAt||now))}</span></div>
-          </div>
-          <span class="lsm-pill">${st==='typing'?'<i></i>':''}${meta.label}</span>
-        </div>
-        ${cellBlock}
-        ${_lsmOwesLine(s)}
-        <div class="lsm-card-ft">
-          <div class="lsm-bar" title="Entry freshness — drains over 3 minutes"><i data-lsm-bar="${cell?(cell.updatedAt||0):0}" style="width:${barPct}%"></i></div>
-          <span class="lsm-open">Open sheet →</span>
-        </div>
-      </div>`;
-    }).join('');
-    return `<div class="lsm-group">
-      <div class="lsm-group-hdr">
-        <span class="lsm-group-name">📝 ${_lsmEsc(g.k)}</span>
-        ${grade?`<span class="lsm-tag">${_lsmEsc(grade)}</span>`:''}
-        <span class="lsm-tag${collab?' collab':''}">${collab?`👥 ${g.list.length} teachers on this sheet`:'👤 1 teacher'}</span>
-      </div>
-      <div class="lsm-cards">${cards}</div>
-    </div>`;
-  }).join('');
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   AWAITING ENTRY — WhatsApp reminders for already-created Quick Entry exams
-   Source of truth: _pendingExams (exams) × Firestore users (teachers, their
-   assignedGrades/assignedSubjects and `phone`) × computeLiveMissingScoresForExam
-   (what is genuinely still blank, incl. unsubmitted shared-draft scores).
-   Reminder history lives in RTDB quickEntryReminders/{encCompound}/{uid}
-   (mirrored in localStorage so it still works if the rule isn't deployed).
-   wa.me can't be auto-sent from a browser: the admin taps once per teacher.
-   ═══════════════════════════════════════════════════════════════════════ */
-const QE_REMIND_PATH = 'quickEntryReminders';
-let _lsmTabNow = 'live';
-let _lsmAwait = {loadedAt:0, loading:false, exams:[], complete:0, error:''};
-let _lsmAwRows = [], _lsmAwFilter = 'all', _lsmQueue = null;
-let _lsmUsers = {at:0, list:[]};
-let _lsmRemindLog = {};     // "encCompound|uid" → {lastAt,count,by}
-
-const _lsmPhoneOk = raw => /^\d{11,15}$/.test(_waNormalizePhone(raw));
-function _lsmPhonePretty(raw){
-  const d = _waNormalizePhone(raw);
-  return /^254\d{9}$/.test(d) ? `+254 ${d.slice(3,6)} ${d.slice(6,9)} ${d.slice(9)}` : (d ? '+'+d : '');
-}
-function _lsmLocalLog(){ try{ return JSON.parse(localStorage.getItem('lsmRemindLog')||'{}'); }catch(e){ return {}; } }
-
-function _lsmUpdateTabs(liveCount){
-  const l = document.getElementById('qe-lsm-tab-live-n'), a = document.getElementById('qe-lsm-tab-await-n');
-  if(l && liveCount!==undefined) l.textContent = liveCount;
-  if(a) a.textContent = _lsmAwait.loadedAt ? _lsmAwait.exams.reduce((n,e)=>n+e.teachers.length,0) : '…';
-}
-function _lsmSwitchTab(tab){
-  _lsmTabNow = tab;
-  const L = document.getElementById('qe-lsm-pane-live'), A = document.getElementById('qe-lsm-pane-await');
-  if(L) L.style.display = tab==='live' ? 'flex' : 'none';
-  if(A) A.style.display = tab==='await' ? 'flex' : 'none';
-  document.getElementById('qe-lsm-tab-live')?.classList.toggle('on', tab==='live');
-  document.getElementById('qe-lsm-tab-await')?.classList.toggle('on', tab==='await');
-  if(tab==='await'){ _lsmRenderAwait(); _lsmLoadAwaiting({}); }
-}
-window._lsmSwitchTab = _lsmSwitchTab;
-
-/** "⏳ Still owes: Maths 5 · English 3" line for a Live-tab card. */
-function _lsmOwesLine(s){
-  if(!_lsmAwait.loadedAt) return '';
-  const ex = _lsmAwait.exams.find(e=>e.compound===s.compound);
-  const tr = ex && ex.teachers.find(x=>x.uid===s.uid);
-  if(!tr) return '';
-  return `<div class="lsm-owes">⏳ Still owes: ${tr.owed.map(o=>`<span>${_lsmEsc(o.subject)} <b>${o.students.length}</b></span>`).join('')}</div>`;
-}
-
-async function _lsmLoadAwaiting(opts={}){
-  if(_lsmAwait.loading) return;
-  if(!opts.force && _lsmAwait.loadedAt && Date.now()-_lsmAwait.loadedAt < 60000) return;
-  _lsmAwait.loading = true; _lsmAwait.error = '';
-  if(_lsmTabNow==='await') _lsmRenderAwait();
-  try{
-    if(!firestoreDb) throw new Error('Firestore is not ready yet');
-    // Teachers (cached 5 min; Refresh button forces a reload)
-    if(opts.users || Date.now()-_lsmUsers.at > 300000){
-      const {collection,getDocs} = window._fb;
-      const snap = await getDocs(collection(firestoreDb,'users'));
-      const list = []; snap.forEach(d=>list.push({uid:d.id,...d.data()}));
-      _lsmUsers = {at:Date.now(), list};
-    }
-    // Reminder history
-    let log = _lsmLocalLog();
-    try{
-      const {ref,get} = window._fb;
-      const s = await get(ref(db, QE_REMIND_PATH));
-      if(s.exists()) Object.entries(s.val()).forEach(([enc,byUid])=>Object.entries(byUid||{}).forEach(([uid,r])=>{ log[enc+'|'+uid] = r; }));
-    }catch(e){ /* rule/offline — local log only */ }
-    _lsmRemindLog = log;
-
-    const entries = Object.entries(_pendingExams||{}).filter(([k,pe])=>pe && pe.compound);
-    const results = await Promise.all(entries.map(async ([key,pe])=>{
-      const grade = pe.grade || gShort(pe.compound) || '';
-      try{ return {key,pe,grade,r:await computeLiveMissingScoresForExam(grade, pe.compound)}; }
-      catch(e){ return {key,pe,grade,r:null}; }
-    }));
-
-    const exams = []; let complete = 0;
-    results.forEach(({key,pe,grade,r})=>{
-      if(!r) return;
-      const miss = r.missingBySubject||{};
-      const missingN = Object.values(miss).reduce((n,a)=>n+a.length,0);
-      if(!missingN){ complete++; return; }
-      const totalN = (r.students||[]).length * (r.subjects||[]).length;
-      const teachers = _lsmUsers.list.filter(u=>{
-        if(u.Advancedadmin===true) return false;
-        if((u.role||'').trim().toLowerCase()==='admin') return false;
-        const gs = (Array.isArray(u.assignedGrades)&&u.assignedGrades.length) ? u.assignedGrades : (u.assignedGrade?[u.assignedGrade]:[]);
-        return gs.includes(grade);
-      }).map(u=>{
-        const assigned = (u.assignedSubjects && Array.isArray(u.assignedSubjects[grade])) ? u.assignedSubjects[grade] : [];
-        return {uid:u.uid, name:u.name||u.email||'Unnamed', phone:u.phone||'',
-                owed:assigned.filter(s=>miss[s]).map(s=>({subject:s, students:miss[s]}))};
-      }).filter(x=>x.owed.length);
-      const covered = new Set(); teachers.forEach(x=>x.owed.forEach(o=>covered.add(o.subject)));
-      const unassigned = Object.keys(miss).filter(s=>!covered.has(s)).map(s=>({subject:s,n:miss[s].length}));
-      exams.push({key, encKey:encodeURIComponent(pe.compound), compound:pe.compound, grade,
-                  deadline:pe.deadline||0, overdue:!!pe.deadline && pe.deadline<Date.now(),
-                  missingN, totalN, teachers, unassigned});
-    });
-    exams.sort((a,b)=>(b.overdue-a.overdue) || ((a.deadline||9e15)-(b.deadline||9e15)) || (b.missingN-a.missingN));
-    _lsmAwait = {loadedAt:Date.now(), loading:false, exams, complete, error:''};
-  }catch(e){
-    _lsmAwait.loading = false; _lsmAwait.error = e.message || String(e);
-  }
-  _lsmUpdateTabs();
-  if(_lsmTabNow==='await') _lsmRenderAwait();
-  if(document.getElementById('qe-live-sessions-modal')?.classList.contains('on') && _lsmTabNow==='live') _qeRenderLiveSessionsList();
-}
-window._lsmLoadAwaiting = _lsmLoadAwaiting;
-
-function _lsmMsg(ex, t, prevCount){
-  const first = (t.name.split(' ')[0]) || t.name;
-  const L = ['🏫 *KANYADET PRI & JUNIOR SCHOOL*', prevCount ? `⏰ *Quick Entry Reminder #${prevCount+1}*` : '⏰ *Quick Entry Reminder*', '',
-             `Hi ${first},`, '', `"*${ex.compound}*" is still awaiting scores in your subject(s):`, ''];
-  t.owed.forEach(o=>{
-    L.push(`📘 *${o.subject}* — ${o.students.length} student(s) missing:`);
-    o.students.slice(0,15).forEach(n=>L.push(`   • ${n}`));
-    if(o.students.length>15) L.push(`   • …and ${o.students.length-15} more`);
-    L.push('');
-  });
-  if(ex.deadline){
-    const di = _peDeadlineInfo(ex.deadline);
-    L.push(`🗓️ Deadline: ${new Date(ex.deadline).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'})} (${di.text.replace('⚠️ ','').replace('⏳ ','')})`, '');
-  }
-  L.push('Kindly log in to Quick Entry and submit these scores as soon as possible so results processing isn\'t delayed.');
-  if(/^https?:/.test(location.protocol)) L.push(`🔗 ${location.href.split('#')[0].split('?')[0]}`);
-  L.push('', 'Thank you!', '_Kanyadet School System_');
-  return L.join('\n');
-}
-
-function _lsmLogReminder(ex, t, newCount){
-  const key = ex.encKey+'|'+t.uid;
-  const rec = {lastAt:Date.now(), count:newCount, by:currentAdminName||'Admin', name:t.name};
-  _lsmRemindLog[key] = rec;
-  try{ const l=_lsmLocalLog(); l[key]=rec; localStorage.setItem('lsmRemindLog', JSON.stringify(l)); }catch(e){}
-  try{ const {ref,set}=window._fb; set(ref(db, `${QE_REMIND_PATH}/${ex.encKey}/${t.uid}`), rec).catch(()=>{}); }catch(e){}
-  try{ logActivity(`📲 WhatsApp reminder #${newCount} → ${t.name} for "${ex.compound}"`, 'act-orange', currentAdminName, {category:'system'}); }catch(e){}
-}
-
-function _lsmDoSend(ex, t){
-  if(!_lsmPhoneOk(t.phone)){ notify(`⚠️ ${t.name} has no valid WhatsApp number yet — add it first.`,'warn',3500); return false; }
-  const prev = (_lsmRemindLog[ex.encKey+'|'+t.uid]||{}).count || 0;
-  window.open(`https://wa.me/${_waNormalizePhone(t.phone)}?text=${encodeURIComponent(_lsmMsg(ex,t,prev))}`, '_blank', 'noopener');
-  _lsmLogReminder(ex, t, prev+1);
-  return true;
-}
-function _lsmSend(i){ const r=_lsmAwRows[i]; if(r && _lsmDoSend(r.ex, r.t)) _lsmRenderAwait(); }
-function _lsmCopy(i){
-  const r=_lsmAwRows[i]; if(!r) return;
-  const prev=(_lsmRemindLog[r.ex.encKey+'|'+r.t.uid]||{}).count||0;
-  navigator.clipboard.writeText(_lsmMsg(r.ex,r.t,prev)).then(()=>notify('📋 Message copied','success',2000));
-}
-function _lsmEditPhone(i){ const el=document.getElementById('lsm-ph-'+i); if(el){ el.style.display = el.style.display==='none' ? 'flex' : 'none'; el.querySelector('input')?.focus(); } }
-async function _lsmSavePhone(i){
-  const r=_lsmAwRows[i]; if(!r) return;
-  const inp=document.getElementById('lsm-phin-'+i); const raw=(inp?.value||'').trim();
-  if(!_lsmPhoneOk(raw)){ notify('⚠️ Enter a valid number, e.g. 0712 345 678','warn',3000); return; }
-  const phone = '+'+_waNormalizePhone(raw);
-  try{
-    const {doc,updateDoc}=window._fb;
-    await updateDoc(doc(firestoreDb,'users',r.t.uid), {phone, phoneUpdatedAt:Date.now(), phoneSource:'admin-live-sessions'});
-  }catch(e){ notify('❌ Could not save number: '+(e.message||e),'error',4500); return; }
-  _lsmAwait.exams.forEach(e=>e.teachers.forEach(x=>{ if(x.uid===r.t.uid) x.phone=phone; }));
-  const u=_lsmUsers.list.find(x=>x.uid===r.t.uid); if(u) u.phone=phone;
-  try{ logActivity(`📞 Saved WhatsApp number for ${r.t.name}`, 'act-blue', currentAdminName, {category:'system'}); }catch(e){}
-  notify(`✅ Saved ${_lsmPhonePretty(phone)} for ${r.t.name}`,'success',2500);
-  _lsmUpdateTabs(); _lsmRenderAwait();
-}
-window._lsmSend=_lsmSend; window._lsmCopy=_lsmCopy; window._lsmEditPhone=_lsmEditPhone; window._lsmSavePhone=_lsmSavePhone;
-function _lsmSetAwFilter(f){ _lsmAwFilter=f; _lsmRenderAwait(); }
-window._lsmSetAwFilter=_lsmSetAwFilter;
-
-/* ── One-tap-per-teacher queue (browsers block multiple auto-opened chats) ── */
-function _lsmStartQueue(exKey){
-  const items=[]; let skippedLive=0, noPhone=0;
-  _lsmAwait.exams.forEach(ex=>{
-    if(exKey && ex.key!==exKey) return;
-    ex.teachers.forEach(t=>{
-      if(_qeActiveSessions[t.uid+'|'+ex.compound]){ skippedLive++; return; }
-      if(!_lsmPhoneOk(t.phone)){ noPhone++; return; }
-      items.push({ex,t});
-    });
-  });
-  if(!items.length){ notify(`Nothing to queue${noPhone?` — ${noPhone} teacher(s) have no WhatsApp number`:''}${skippedLive?` · ${skippedLive} already in session`:''}.`,'info',4000); return; }
-  _lsmQueue={items,i:0,skippedLive,noPhone};
-  _lsmRenderAwait();
-}
-function _lsmQueueSend(){ const q=_lsmQueue; if(!q) return; const it=q.items[q.i]; if(it) _lsmDoSend(it.ex,it.t); _lsmQueueNext(); }
-function _lsmQueueNext(){ const q=_lsmQueue; if(!q) return; q.i++; if(q.i>=q.items.length){ _lsmQueue=null; notify('✅ Reminder queue finished','success',3000); } _lsmRenderAwait(); }
-function _lsmQueueStop(){ _lsmQueue=null; _lsmRenderAwait(); }
-window._lsmStartQueue=_lsmStartQueue; window._lsmQueueSend=_lsmQueueSend; window._lsmQueueNext=_lsmQueueNext; window._lsmQueueStop=_lsmQueueStop;
-
-function _lsmRenderAwait(){
-  const box=document.getElementById('qe-lsm-aw-list'); if(!box) return;
-  const ae=document.activeElement;
-  if(ae && ae.classList && ae.classList.contains('lsm-phin')) return;   // don't wipe a number mid-typing
-  const A=_lsmAwait, now=Date.now();
-  const rowsAll=A.exams.flatMap(e=>e.teachers.map(t=>({ex:e,t})));
-  const noContact=new Set(rowsAll.filter(r=>!_lsmPhoneOk(r.t.phone)).map(r=>r.t.uid)).size;
-  const stats=document.getElementById('qe-lsm-aw-stats');
-  if(stats) stats.innerHTML=[
-    ['Exams awaiting',A.exams.length,'var(--purple)'],
-    ['Scores missing',A.exams.reduce((n,e)=>n+e.missingN,0),'var(--orange)'],
-    ['Teachers to remind',rowsAll.length,'var(--blue)'],
-    ['No WhatsApp number',noContact,'var(--red)']
-  ].map(([l,v,c])=>`<div class="lsm-stat" style="--lsm-c:${c}"><b>${A.loadedAt||v?v:'…'}</b><span>${l}</span></div>`).join('');
-  const nOver=A.exams.filter(e=>e.overdue).length, nNew=rowsAll.filter(r=>!_lsmRemindLog[r.ex.encKey+'|'+r.t.uid]).length;
-  const chips=document.getElementById('qe-lsm-aw-chips');
-  if(chips) chips.innerHTML=[['all','All',rowsAll.length],['overdue','Overdue',nOver],['nocontact','No contact',noContact],['new','Not reminded',nNew]]
-    .map(([k,l,n])=>`<button class="lsm-chip${_lsmAwFilter===k?' on':''}" onclick="_lsmSetAwFilter('${k}')">${l}<em>${n}</em></button>`).join('');
-  const qb=document.getElementById('qe-lsm-queue-btn');
-  if(qb){ const n=rowsAll.filter(r=>_lsmPhoneOk(r.t.phone)&&!_qeActiveSessions[r.t.uid+'|'+r.ex.compound]).length; qb.disabled=!n; qb.textContent=`▶ Remind queue (${n})`; }
-
-  if(A.loading && !A.loadedAt){ box.innerHTML=`<div class="lsm-empty"><div class="ic">⏳</div><b>Checking every pending exam…</b><span>Comparing each sheet's live scores with who teaches what.</span></div>`; return; }
-  if(A.error && !A.loadedAt){ box.innerHTML=`<div class="lsm-empty"><div class="ic">⚠️</div><b>Couldn't load</b><span>${_lsmEsc(A.error)}<br>Tap Refresh to try again.</span></div>`; return; }
-  if(!A.exams.length){ box.innerHTML=`<div class="lsm-empty"><div class="ic">🎉</div><b>Nothing is awaiting entry</b><span>${A.complete?`All ${A.complete} pending exam${A.complete>1?'s are':' is'} fully entered.`:'No pending Quick Entry exams have been created yet.'}</span></div>`; return; }
-
-  _lsmAwRows=[];
-  let html='';
-  if(_lsmQueue){
-    const q=_lsmQueue, it=q.items[q.i];
-    html+=`<div class="lsm-queue"><b>📲 Reminder queue · ${q.i+1} of ${q.items.length}</b>
-      <div class="nx">Next: <strong>${_lsmEsc(it.t.name)}</strong> — ${_lsmEsc(it.ex.compound)} (${it.t.owed.reduce((n,o)=>n+o.students.length,0)} missing)${q.skippedLive?` · ${q.skippedLive} in-session skipped`:''}${q.noPhone?` · ${q.noPhone} without number skipped`:''}</div>
-      <div class="lsm-act" style="margin:0"><button class="lsm-btn wa" onclick="_lsmQueueSend()">💬 Open WhatsApp &amp; continue</button><button class="lsm-btn" onclick="_lsmQueueNext()">Skip</button><button class="lsm-btn" onclick="_lsmQueueStop()">Stop</button></div></div>`;
-  }
-  let shown=0;
-  A.exams.forEach(ex=>{
-    const teachers=ex.teachers.filter(t=>{
-      const ph=_lsmPhoneOk(t.phone), rem=_lsmRemindLog[ex.encKey+'|'+t.uid];
-      if(_lsmAwFilter==='overdue') return ex.overdue;
-      if(_lsmAwFilter==='nocontact') return !ph;
-      if(_lsmAwFilter==='new') return !rem;
-      return true;
-    });
-    if(!teachers.length && !(_lsmAwFilter==='all' && ex.unassigned.length)) return;
-    const pct=ex.totalN?Math.round((ex.totalN-ex.missingN)/ex.totalN*100):0;
-    const dl=ex.deadline?_peDeadlineInfo(ex.deadline):null;
-    const remindable=ex.teachers.filter(t=>_lsmPhoneOk(t.phone)&&!_qeActiveSessions[t.uid+'|'+ex.compound]).length;
-    html+=`<div class="lsm-ex"><div class="lsm-ex-hdr">
-      <div class="lsm-ex-row"><span class="lsm-group-name">📝 ${_lsmEsc(ex.compound)}</span>${ex.grade?`<span class="lsm-tag">${_lsmEsc(ex.grade)}</span>`:''}
-        ${dl?`<span class="lsm-tag pe-countdown-badge" data-deadline="${ex.deadline}" style="color:${dl.color}">${dl.text}</span>`:'<span class="lsm-tag">No deadline</span>'}
-        <button class="lsm-btn wa" style="margin-left:auto" ${remindable?'':'disabled'} onclick="_lsmStartQueue('${ex.key.replace(/'/g,"\\'")}')">▶ Remind all (${remindable})</button></div>
-      <div class="lsm-prog" title="${pct}% of scores entered"><i style="width:${pct}%"></i></div>
-      <div class="lsm-ex-meta">${pct}% entered · ${ex.missingN} of ${ex.totalN} scores missing · ${ex.teachers.length} teacher${ex.teachers.length!==1?'s':''} owe scores</div></div>`;
-    if(_lsmAwFilter==='all' && ex.unassigned.length) html+=`<div class="lsm-warn">⚠️ <b>No teacher assigned</b> for ${ex.unassigned.map(u=>`${_lsmEsc(u.subject)} (${u.n})`).join(', ')} — nobody can be reminded for these. Assign them in Control Center.</div>`;
-    html+='<div class="lsm-cards">';
-    teachers.forEach(t=>{
-      const i=_lsmAwRows.push({ex,t})-1;
-      const ph=_lsmPhoneOk(t.phone), rem=_lsmRemindLog[ex.encKey+'|'+t.uid], live=!!_qeActiveSessions[t.uid+'|'+ex.compound];
-      const st=live?'live':!ph?'nophone':rem?'reminded':'ready';
-      const pill={live:'🟢 In session now',nophone:'📵 No contact',reminded:'🔔 Reminded',ready:'⏳ Awaiting'}[st];
-      const total=t.owed.reduce((n,o)=>n+o.students.length,0);
-      const prev=(rem&&rem.count)||0;
-      html+=`<div class="lsm-card static s-${st}">
-        <div class="lsm-card-top">${makePhotoAvatar(t.name,ex.grade,'stu-av-sm','flex-shrink:0')}
-          <div class="lsm-who"><div class="lsm-name">${_lsmEsc(t.name)}</div>
-            <div class="lsm-meta">${ph?`📞 ${_lsmPhonePretty(t.phone)}`:'📞 No WhatsApp number on file'} · <strong>${total}</strong> score${total!==1?'s':''} missing</div></div>
-          <span class="lsm-pill">${pill}</span></div>
-        ${t.owed.map(o=>`<details class="lsm-det"><summary>📘 ${_lsmEsc(o.subject)}<b>${o.students.length} missing</b></summary><ul>${o.students.slice(0,40).map(n=>`<li>${_lsmEsc(n)}</li>`).join('')}${o.students.length>40?`<li>…and ${o.students.length-40} more</li>`:''}</ul></details>`).join('')}
-        ${rem?`<div class="lsm-rem" style="margin-top:7px">🔔 Reminded ${prev}× · last <span data-lsm-ts="${rem.lastAt}" data-lsm-kind="ago">${_lsmAgo(now-rem.lastAt)}</span>${rem.by?` by ${_lsmEsc(rem.by)}`:''}</div>`:''}
-        ${live?`<div class="lsm-rem" style="margin-top:7px;color:var(--green)">They have this sheet open right now — a reminder is optional.</div>`:''}
-        <div class="lsm-ph" id="lsm-ph-${i}" style="display:${ph?'none':'flex'}"><input class="lsm-phin" id="lsm-phin-${i}" type="tel" placeholder="WhatsApp number, e.g. 0712 345 678" value="${_lsmEsc(t.phone)}" onkeydown="if(event.key==='Enter')_lsmSavePhone(${i})"><button class="lsm-btn pri" onclick="_lsmSavePhone(${i})">💾 Save number</button></div>
-        <div class="lsm-act">
-          <button class="lsm-btn wa" ${ph?'':'disabled'} onclick="_lsmSend(${i})">💬 ${prev?'Send reminder #'+(prev+1):'Send WhatsApp reminder'}</button>
-          <button class="lsm-btn" onclick="_lsmCopy(${i})" title="Copy message">📋 Copy</button>
-          <button class="lsm-btn" onclick="_lsmEditPhone(${i})" title="Edit contact">✏️ ${ph?'Edit number':''}</button>
-        </div>
-        <details class="lsm-det"><summary>💬 Message preview</summary><pre>${_lsmEsc(_lsmMsg(ex,t,prev))}</pre></details>
-      </div>`;
-      shown++;
-    });
-    html+='</div></div>';
-  });
-  if(!html) html=`<div class="lsm-empty"><div class="ic">🔍</div><b>No teachers match this filter</b><span>Switch back to “All”.</span></div>`;
-  else if(A.complete) html+=`<div style="text-align:center;font-size:11px;color:var(--text3);padding:4px 0 2px">✅ ${A.complete} other pending exam${A.complete>1?'s are':' is'} fully entered</div>`;
+  if(!shown) html+='<div class="qs-empty"><b>No sessions match</b><span>Clear the search or switch back to All sessions.</span></div>';
   box.innerHTML=html;
 }
-
-/* ═══ Teacher-side contact capture ═════════════════════════════════════════
-   First time a teacher opens a Quick Entry sheet without a valid WhatsApp
-   number on their profile, ask once (snoozable 3 days) — saved to the same
-   users/{uid}.phone field the profile form and the reminders already use. */
-async function _qeMaybeAskContact(){
-  try{
-    const uid=window._currentUser?.uid;
-    if(!uid||isAdvancedAdmin||!firestoreDb) return;
-    if(sessionStorage.getItem('qeContactAsked')==='1') return;
-    if(Date.now() < (+localStorage.getItem('qeContactSnooze_'+uid)||0)) return;
-    sessionStorage.setItem('qeContactAsked','1');
-    const {doc,getDoc}=window._fb;
-    const snap=await getDoc(doc(firestoreDb,'users',uid));
-    const d=snap.exists()?snap.data():{};
-    if((d.role||'').trim().toLowerCase()==='admin' || _lsmPhoneOk(d.phone)) return;
-    _qeShowContactPrompt(uid,d.phone||'');
-  }catch(e){ /* best-effort */ }
+function _qsSet(k,v){ _qs[k]=v; _qeRenderLiveSessionsList(); }
+function _qsOpen(i){ var s=_qs.list[i]; if(s) _qeJumpToSession(s.compound,s.grade,s.uid,s.name); }
+async function _qsUsers(){
+  if(typeof _ep!=='undefined'&&_ep.users) return _ep.users; if(_qs.users) return _qs.users;
+  try{ var F=window._fb, sn=await F.getDocs(F.collection(firestoreDb,'users')), u=[]; sn.forEach(function(d){ u.push(Object.assign({uid:d.id},d.data())); }); _qs.users=u; return u; }catch(e){ return []; }
 }
-window._qeMaybeAskContact=_qeMaybeAskContact;
-function _qeShowContactPrompt(uid,prefill){
-  document.getElementById('qe-contact-modal')?.remove();
-  const m=document.createElement('div');
-  m.className='modal-overlay on'; m.id='qe-contact-modal';
-  m.innerHTML=`<div class="modal-box" style="max-width:420px"><div class="modal-hdr"><h3>📲 Add your WhatsApp number</h3><button class="modal-close" aria-label="Close" id="qcm-x">✕</button></div>
-    <div class="modal-body"><p style="font-size:12.5px;color:var(--text2);line-height:1.55;margin:0 0 12px">So the school can send you a quick WhatsApp reminder when scores you teach are still awaiting entry — with the exact learners missing, so you don't have to hunt for them.</p>
-    <input id="qcm-in" class="input" type="tel" placeholder="e.g. 0712 345 678" value="${_lsmEsc(prefill)}" style="width:100%">
-    <div id="qcm-err" style="font-size:11px;color:var(--red);min-height:16px;margin-top:6px"></div>
-    <p style="font-size:10.5px;color:var(--text3);margin:4px 0 14px">Used only for school score reminders. You can change it any time in your profile.</p>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-outline btn-sm" id="qcm-later">Remind me later</button><button class="btn btn-green btn-sm" id="qcm-save">💾 Save number</button></div></div></div>`;
-  document.body.appendChild(m);
-  const close=()=>m.remove();
-  const snooze=()=>{ try{ localStorage.setItem('qeContactSnooze_'+uid, String(Date.now()+3*864e5)); }catch(e){} close(); };
-  m.querySelector('#qcm-x').onclick=snooze; m.querySelector('#qcm-later').onclick=snooze;
-  m.querySelector('#qcm-save').onclick=async()=>{
-    const raw=m.querySelector('#qcm-in').value.trim();
-    if(!_lsmPhoneOk(raw)){ m.querySelector('#qcm-err').textContent='Enter a valid number, e.g. 0712 345 678'; return; }
-    try{
-      const {doc,updateDoc}=window._fb;
-      await updateDoc(doc(firestoreDb,'users',uid),{phone:'+'+_waNormalizePhone(raw),phoneUpdatedAt:Date.now(),phoneSource:'teacher-prompt'});
-      notify('✅ Thanks — your WhatsApp number is saved.','success',3000); close();
-    }catch(e){ m.querySelector('#qcm-err').textContent='Could not save: '+(e.message||e); }
-  };
+async function _qsNudge(i){
+  var s=_qs.list[i]; if(!s) return; var users=await _qsUsers(), u=users.find(function(x){return x.uid===s.uid;})||{};
+  var pr=_qsProg[s.compound], pct=_qsPct(s.compound);
+  var msg='🏫 *KANYADET PRI & JUNIOR SCHOOL*\n\nHi '+((s.name||'').split(' ')[0]||'there')+', your Quick Entry sheet for "*'+s.compound+'*" has been quiet for a while.'+(pct!==null?' It is '+pct+'% entered ('+pr.missing+' score(s) still missing).':'')+' Kindly continue and submit when done.\n\nThank you!\n_Kanyadet School System_';
+  var ph=_waNormalizePhone(u.phone||''); window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank','noopener');
+  if(!ph) notify('No phone on file for '+(s.name||'this teacher')+' — choose the contact in WhatsApp.','info',4000);
 }
+function _qsCopy(){
+  var A=_qsAnalyse(), L=['📋 Live score entry — '+new Date().toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'}),''];
+  A.all.forEach(function(s){ var c=s.cell, st=s._st==='typing'?'typing now':s._st==='active'?'on the sheet':'idle'; L.push('• '+(s.name||'Teacher')+' — '+s.compound+' — '+st+(c?' ('+c.subject+', '+c.studentName+')':'')+(_qsPct(s.compound)!==null?' — sheet '+_qsPct(s.compound)+'% entered':'')); });
+  navigator.clipboard.writeText(L.join('\n')).then(function(){ notify('📋 Summary copied','success',2000); });
+}
+function _qeOpenLiveSessionsModal(){
+  if(!isAdvancedAdmin){ notify('⛔ Advanced Admin only.','error'); return; }
+  _qeRenderLiveSessionsList();
+  document.getElementById('qe-live-sessions-modal').classList.add('on');
+  clearInterval(_qs.timer); _qs.timer=setInterval(function(){ if(document.getElementById('qe-live-sessions-modal')?.classList.contains('on')) _qeRenderLiveSessionsList(); else clearInterval(_qs.timer); },5000);
+}
+window._qeOpenLiveSessionsModal=_qeOpenLiveSessionsModal;
+function _qeCloseLiveSessionsModal(){ clearInterval(_qs.timer); document.getElementById('qe-live-sessions-modal').classList.remove('on'); }
+window._qeCloseLiveSessionsModal=_qeCloseLiveSessionsModal;
+window._qsSet=_qsSet; window._qsOpen=_qsOpen; window._qsNudge=_qsNudge; window._qsCopy=_qsCopy;
 
 /** Advanced Admin clicked a live session — jumps straight into that same
  *  grade/exam's Quick Entry sheet as a normal, fully-editable collaborator
@@ -22575,7 +22504,7 @@ async function loadQuickEntry(){
 
   // Announce presence to Advanced Admins (only meaningful for an actually
   // editable sheet — a locked exam isn't "being worked on" by this device).
-  if(viewOnly) _qeStopPresence(); else { _qeStartPresence(selCompound, selGrade); _qeMaybeAskContact(); }
+  if(viewOnly) _qeStopPresence(); else _qeStartPresence(selCompound, selGrade);
 
   _qeMaybeShowRawTip(); // one-time "percentage vs raw score" heads-up, first sheet opened this session
 }
@@ -23866,6 +23795,325 @@ function _qeOnScoreInput(inputEl){
 }
 window._qeOnScoreInput = _qeOnScoreInput;
 
+/* ═══════════════ School-wide Entry Progress Board (Advanced Admin) ═══════════════ */
+const _ep = { view:'exam', loading:false, ts:0, sig:'', exams:[], users:null, usersTs:0 };
+function _epPctColor(p){ return p>=100 ? 'var(--green)' : p>=60 ? 'var(--blue-lt)' : p>=25 ? 'var(--orange)' : 'var(--red)'; }
+function _epSig(){ return Object.entries(_pendingExams||{}).map(([k,p])=>k+'|'+(p&&p.deadline||'')).sort().join(','); }
+
+async function loadEntryBoard(force){
+  if(!isAdvancedAdmin || _ep.loading) return;
+  const sig = _epSig();
+  if(!force && sig===_ep.sig && Date.now()-_ep.ts<90000) return;
+  _ep.loading = true; renderEntryBoard();
+  try{
+    const entries = Object.entries(_pendingExams||{});
+    const out = [];
+    for(let i=0;i<entries.length;i+=3){
+      const chunk = entries.slice(i,i+3);
+      const res = await Promise.all(chunk.map(async ([key,pe])=>{
+        const compound = pe.compound || decodeURIComponent(key);
+        const grade = pe.grade || gShort(compound) || '';
+        try{
+          const r = await computeLiveMissingScoresForExam(grade, compound);
+          const n = r.students.length;
+          const subs = r.subjects.map(s=>({subject:s, missing:(r.missingBySubject[s]||[]).length, names:(r.missingBySubject[s]||[]).slice(0,12), total:n}));
+          const total = n*subs.length, missing = subs.reduce((a,s)=>a+s.missing,0);
+          return {key, compound, grade, deadline:pe.deadline||0, learners:n, subs, total, missing};
+        }catch(e){ return {key, compound, grade, deadline:pe.deadline||0, error:true, subs:[], total:0, missing:0, learners:0}; }
+      }));
+      out.push(...res);
+    }
+    _ep.exams = out; _ep.sig = sig;
+    if(firestoreDb && (force || !_ep.users || Date.now()-_ep.usersTs>300000)){
+      try{
+        const {collection, getDocs} = window._fb; const snap = await getDocs(collection(firestoreDb,'users'));
+        const u=[]; snap.forEach(d=>u.push({uid:d.id,...d.data()})); _ep.users=u; _ep.usersTs=Date.now();
+      }catch(e){ console.warn('[EntryBoard] users',e); }
+    }
+    _ep.ts = Date.now();
+  }catch(e){ console.warn('[EntryBoard]',e); }
+  finally{ _ep.loading=false; renderEntryBoard(); }
+}
+function setEntryBoardView(v){ _ep.view=v; renderEntryBoard(); }
+
+function _epTeachers(){
+  if(!_ep.users) return null;
+  return _ep.users.filter(u=>!(u.Advancedadmin===true) && (u.role||'').trim().toLowerCase()!=='admin').map(u=>{
+    const grades = (Array.isArray(u.assignedGrades)&&u.assignedGrades.length) ? u.assignedGrades : (u.assignedGrade?[u.assignedGrade]:[]);
+    const items = [];
+    _ep.exams.forEach(e=>{
+      if(e.error || !grades.includes(e.grade)) return;
+      const assigned = (u.assignedSubjects && Array.isArray(u.assignedSubjects[e.grade])) ? u.assignedSubjects[e.grade] : [];
+      e.subs.forEach(s=>{ if(assigned.includes(s.subject)) items.push({exam:e, subject:s.subject, missing:s.missing, total:s.total}); });
+    });
+    const missing = items.reduce((a,i)=>a+i.missing,0), total = items.reduce((a,i)=>a+i.total,0);
+    return {name:u.name||u.email||'Unnamed', phone:u.phone||'', items, missing, total};
+  }).filter(t=>t.items.length);
+}
+function _epTeacherMsg(t){
+  const by = {};
+  t.items.filter(i=>i.missing>0).forEach(i=>{ (by[i.exam.key] = by[i.exam.key] || {exam:i.exam, rows:[]}).rows.push(i); });
+  const L = ['🏫 *KANYADET PRI & JUNIOR SCHOOL*','⏰ *Quick Entry Reminder*','',`Hi ${(t.name.split(' ')[0])||t.name},`,'','You still have scores to enter:',''];
+  Object.values(by).forEach(g=>{
+    L.push(`📘 *${g.exam.grade}* · "${g.exam.compound}"` + (g.exam.deadline?` — due ${new Date(g.exam.deadline).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'})}`:''));
+    g.rows.forEach(r=>L.push(`   • ${r.subject} — ${r.missing} of ${r.total} missing`));
+    L.push('');
+  });
+  L.push('Kindly log in to Quick Entry and submit these scores as soon as possible.','','Thank you!','_Kanyadet School System_');
+  return L.join('\n');
+}
+
+function renderEntryBoard(){
+  const card = document.getElementById('ep-card'); if(!card) return;
+  if(!isAdvancedAdmin){ card.style.display='none'; return; }
+  card.style.display='';
+  const body = document.getElementById('ep-body'), sub = document.getElementById('ep-sub');
+  document.querySelectorAll('#ep-card .ep-tab').forEach(b=>b.classList.toggle('on', b.dataset.v===_ep.view));
+  const rf = document.getElementById('ep-refresh'); if(rf){ rf.disabled=_ep.loading; rf.textContent = _ep.loading ? '⏳ Loading…' : '🔄 Refresh'; }
+  const nPend = Object.keys(_pendingExams||{}).length;
+  if(!nPend){ sub.textContent=''; body.innerHTML='<div class="ep-empty">🎉 No pending exams right now — nothing waiting on score entry.</div>'; return; }
+  if(!_ep.exams.length){ sub.textContent=''; body.innerHTML='<div class="ep-empty">⏳ Checking every pending exam’s live Quick Entry sheet…</div>'; return; }
+  const ok = _ep.exams.filter(e=>!e.error);
+  const T = ok.reduce((a,e)=>a+e.total,0), M = ok.reduce((a,e)=>a+e.missing,0);
+  const pct = T ? Math.round((T-M)/T*1000)/10 : 0;
+  sub.textContent = `${nPend} pending exam${nPend>1?'s':''} · ${pct}% of scores entered · ${M} still missing` + (_ep.ts?` · updated ${new Date(_ep.ts).toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'})}`:'');
+
+  if(_ep.view==='exam'){
+    const list = [..._ep.exams].sort((a,b)=>(a.deadline||9e15)-(b.deadline||9e15));
+    body.innerHTML = list.map(e=>{
+      if(e.error) return `<div class="ep-row"><div class="ep-head"><span class="ep-grade">${_gavgEsc(e.grade)}</span><span class="ep-name">${_gavgEsc(e.compound)}</span></div><div class="ep-meta">⚠️ Couldn’t read this sheet — try Refresh.</div></div>`;
+      const p = e.total ? Math.round((e.total-e.missing)/e.total*1000)/10 : 0;
+      const dl = e.deadline ? _peDeadlineInfo(e.deadline) : null;
+      const chips = e.subs.map(s=>{
+        const done = s.total-s.missing, cls = s.missing===0?'ok':(done===0?'none':'part');
+        const tip = s.missing ? 'Missing: '+s.names.join(', ')+(s.missing>s.names.length?` …+${s.missing-s.names.length} more`:'') : 'Complete';
+        return `<span class="ep-chip ${cls}" title="${_gavgEsc(tip)}">${_gavgEsc(s.subject)} <b>${done}/${s.total}</b></span>`;
+      }).join('');
+      return `<div class="ep-row">
+        <div class="ep-head"><span class="ep-grade">${_gavgEsc(e.grade)}</span><span class="ep-name">${_gavgEsc(e.compound)}</span>
+          ${dl?`<span class="pe-countdown-badge ep-dl" data-deadline="${e.deadline}" style="color:${dl.color}">${dl.text}</span>`:'<span class="ep-dl" style="color:var(--text3)">No deadline</span>'}</div>
+        <div class="ep-bar"><i style="width:${p}%;background:${_epPctColor(p)}"></i></div>
+        <div class="ep-meta"><b>${p}%</b> · ${e.total-e.missing}/${e.total} scores · ${e.learners} learners · ${e.subs.length} subjects
+          ${e.missing?`<button class="btn btn-outline btn-sm ep-btn" data-key="${_gavgEsc(e.key)}" onclick="remindPendingExamTeachers(this.dataset.key)">📲 Remind teachers</button>`:'<span class="ep-done">✓ Fully entered</span>'}</div>
+        <div class="ep-chips">${chips}</div></div>`;
+    }).join('');
+  }else{
+    const teachers = _epTeachers();
+    if(!teachers){ body.innerHTML='<div class="ep-empty">Teacher list isn’t available yet — press Refresh.</div>'; return; }
+    teachers.sort((a,b)=>b.missing-a.missing || a.name.localeCompare(b.name));
+    // Subjects with missing scores that no teacher is assigned to
+    const covered = new Set(); teachers.forEach(t=>t.items.forEach(i=>covered.add(i.exam.key+'||'+i.subject)));
+    const orphan = [];
+    _ep.exams.forEach(e=>e.subs.forEach(s=>{ if(s.missing && !covered.has(e.key+'||'+s.subject)) orphan.push(`${e.grade} · ${s.subject} (${s.missing})`); }));
+    body.innerHTML = (orphan.length?`<div class="ep-warn">⚠️ No teacher assigned for: ${orphan.map(_gavgEsc).join(' · ')}. Check subject assignments in Control Center.</div>`:'')
+    + teachers.map(t=>{
+      const p = t.total ? Math.round((t.total-t.missing)/t.total*1000)/10 : 100;
+      const phone = _waNormalizePhone(t.phone);
+      const link = `https://wa.me/${phone||''}?text=${encodeURIComponent(_epTeacherMsg(t))}`;
+      const owed = t.items.filter(i=>i.missing>0).map(i=>`<span class="ep-chip part">${_gavgEsc(i.exam.grade)} · ${_gavgEsc(i.subject)} <b>${i.missing} left</b></span>`).join('');
+      return `<div class="ep-row"><div class="ep-head"><span class="ep-name">👤 ${_gavgEsc(t.name)}</span>
+        ${t.missing?`<a class="ep-wa" href="${link}" target="_blank" rel="noopener">💬 WhatsApp</a>`:'<span class="ep-done">✓ All entered</span>'}</div>
+        <div class="ep-bar"><i style="width:${p}%;background:${_epPctColor(p)}"></i></div>
+        <div class="ep-meta"><b>${p}%</b> · ${t.total-t.missing}/${t.total} scores${!t.phone&&t.missing?' · ⚠️ no phone on file':''}</div>
+        ${owed?`<div class="ep-chips">${owed}</div>`:''}</div>`;
+    }).join('') || '<div class="ep-empty">No teachers are assigned to the pending exams’ grades.</div>';
+  }
+}
+window.loadEntryBoard = loadEntryBoard; window.setEntryBoardView = setEntryBoardView; window.renderEntryBoard = renderEntryBoard;
+
+/* ═══════════════ Faster score entry: keyboard navigation, multi-cell paste, undo / redo ═══════════════ */
+let _qeUndoStack = [], _qeRedoStack = [], _qeUhCompound = null, _qeFocusVal = null;
+const _QE_IN = '#qe-table-card input[data-student][data-subject]';
+
+/** Rows in the order the teacher currently SEES them (sort + search applied),
+ *  including rows paged out of view — so Enter walks the whole filtered sheet. */
+function _qeOrderedRows(){
+  try{ if(typeof _qeDataTable!=='undefined' && _qeDataTable && _qeDataTable.rows) return _qeDataTable.rows({order:'current',search:'applied'}).nodes().toArray(); }catch(e){}
+  return Array.from(document.querySelectorAll('#qe-table-card tbody tr'));
+}
+/** Subject columns in on-screen order. editableOnly drops locked / not-assigned
+ *  columns; hidden columns (mobile one-subject view) are always dropped. */
+function _qeNavSubjects(editableOnly){
+  const row = document.querySelector('#qe-table-card tbody tr');
+  const rows = _qeOrderedRows();
+  const ref = (row && row.querySelector('input[data-subject]')) ? row : rows[0];
+  if(!ref) return [];
+  const out = [];
+  ref.querySelectorAll('input[data-subject]').forEach(i=>{
+    if(i.offsetParent===null && ref.isConnected) return;
+    if(editableOnly && i.disabled) return;
+    out.push(i.getAttribute('data-subject'));
+  });
+  return out;
+}
+function _qeInputIn(tr, subj){
+  if(!tr) return null;
+  return Array.from(tr.querySelectorAll('input[data-subject]')).find(i=>i.getAttribute('data-subject')===subj) || null;
+}
+function _qeFindInput(student, subj){
+  const rows = _qeOrderedRows();
+  for(const tr of rows){
+    const i = _qeInputIn(tr, subj);
+    if(i && i.getAttribute('data-student')===student) return i;
+  }
+  return null;
+}
+function _qeFocusCell(rows, ri, subj){
+  const tr = rows[ri]; if(!tr) return false;
+  if(!tr.isConnected && typeof _qeDataTable!=='undefined' && _qeDataTable){
+    try{
+      const len = _qeDataTable.page.len();
+      if(len>0) _qeDataTable.page(Math.floor(ri/len)).draw('page');
+    }catch(e){}
+  }
+  const inp = _qeInputIn(tr, subj);
+  if(!inp || inp.disabled) return false;
+  inp.focus({preventScroll:true});
+  try{ inp.select(); }catch(e){}
+  try{ inp.scrollIntoView({block:'nearest',inline:'nearest'}); }catch(e){}
+  return true;
+}
+/** dr/dc = row / column step. wrap=true (Enter) rolls to the next/previous
+ *  subject column at the end of a column, so one subject can be keyed straight
+ *  through the whole class and then carry on with the next subject. */
+function _qeMoveFrom(inp, dr, dc, wrap){
+  const rows = _qeOrderedRows(), subs = _qeNavSubjects(true);
+  let ri = rows.indexOf(inp.closest('tr')), si = subs.indexOf(inp.getAttribute('data-subject'));
+  if(ri<0 || si<0) return;
+  if(dc){
+    si += dc;
+    if(si<0 || si>=subs.length){
+      ri += dc; si = dc>0 ? 0 : subs.length-1;
+      if(ri<0 || ri>=rows.length) return;
+    }
+  }else{
+    ri += dr;
+    if(ri<0 || ri>=rows.length){
+      if(!wrap) return;
+      si += dr;
+      if(si<0 || si>=subs.length){
+        if(dr>0) notify('✅ You reached the end of the sheet.','info',2500);
+        return;
+      }
+      ri = dr>0 ? 0 : rows.length-1;
+    }
+  }
+  _qeFocusCell(rows, ri, subs[si]);
+}
+
+/* ── undo / redo ── */
+function _qeHistSync(){
+  const u = document.getElementById('qe-undo-btn'), r = document.getElementById('qe-redo-btn');
+  if(u){ u.disabled = !_qeUndoStack.length; u.title = _qeUndoStack.length ? `Undo (Ctrl+Z) — ${_qeUndoStack.length} step${_qeUndoStack.length>1?'s':''}` : 'Nothing to undo'; }
+  if(r){ r.disabled = !_qeRedoStack.length; r.title = _qeRedoStack.length ? `Redo (Ctrl+Y) — ${_qeRedoStack.length} step${_qeRedoStack.length>1?'s':''}` : 'Nothing to redo'; }
+}
+function _qeHistPush(cells){
+  if(_qeUhCompound !== _qeCompound){ _qeUndoStack = []; _qeRedoStack = []; _qeUhCompound = _qeCompound; }
+  cells = cells.filter(c=>String(c.from)!==String(c.to));
+  if(!cells.length) return;
+  _qeUndoStack.push({cells});
+  if(_qeUndoStack.length>300) _qeUndoStack.shift();
+  _qeRedoStack = [];
+  _qeHistSync();
+}
+function _qeHistApply(cells, useFrom){
+  let last = null;
+  cells.forEach(c=>{
+    const inp = _qeFindInput(c.student, c.subject);
+    if(!inp || inp.disabled) return;
+    inp.value = useFrom ? c.from : c.to;
+    _qeValidateScoreInput(inp, true);
+    _qeOnScoreInput(inp);
+    last = inp;
+  });
+  if(last){
+    const rows = _qeOrderedRows();
+    _qeFocusCell(rows, rows.indexOf(last.closest('tr')), last.getAttribute('data-subject'));
+  }
+}
+function _qeUndo(){
+  if(_qeLocked || _qeUhCompound!==_qeCompound) return;
+  const e = _qeUndoStack.pop(); if(!e) return;
+  _qeRedoStack.push(e); _qeHistApply(e.cells, true); _qeHistSync();
+}
+function _qeRedo(){
+  if(_qeLocked || _qeUhCompound!==_qeCompound) return;
+  const e = _qeRedoStack.pop(); if(!e) return;
+  _qeUndoStack.push(e); _qeHistApply(e.cells, false); _qeHistSync();
+}
+window._qeUndo = _qeUndo; window._qeRedo = _qeRedo;
+
+/* ── multi-cell paste (a block copied from Excel / Sheets) ── */
+function _qePasteBlock(startInp, text){
+  const lines = text.replace(/\r/g,'').split('\n');
+  while(lines.length && lines[lines.length-1].trim()==='') lines.pop();
+  const rows = _qeOrderedRows(), subs = _qeNavSubjects(false);
+  const ri0 = rows.indexOf(startInp.closest('tr')), si0 = subs.indexOf(startInp.getAttribute('data-subject'));
+  if(ri0<0 || si0<0) return;
+  const changes = []; let filled=0, blank=0, bad=0, locked=0, over=0, off=0;
+  lines.forEach((line,li)=>{
+    line.split('\t').forEach((raw,ci)=>{
+      const tr = rows[ri0+li], subj = subs[si0+ci];
+      if(!tr || !subj){ off++; return; }
+      const inp = _qeInputIn(tr, subj);
+      if(!inp){ off++; return; }
+      let v = raw.trim().replace(/%$/,'').replace(',','.');
+      if(v===''){ blank++; return; }
+      if(!/^\d+(\.\d+)?$/.test(v)){ bad++; return; }
+      if(inp.disabled){ locked++; return; }
+      const from = inp.value;
+      inp.value = v;
+      if(_qeValidateScoreInput(inp, true)){ over++; }
+      _qeOnScoreInput(inp);
+      if(String(from)!==String(inp.value)) changes.push({student:inp.getAttribute('data-student'), subject:subj, from, to:inp.value});
+      if(inp.value!=='') filled++;
+    });
+  });
+  _qeHistPush(changes);
+  const skipped = [];
+  if(blank) skipped.push(`${blank} blank`);
+  if(bad) skipped.push(`${bad} non-numeric (e.g. AB, –)`);
+  if(locked) skipped.push(`${locked} in locked/not-assigned subjects`);
+  if(over) skipped.push(`${over} above the maximum (cleared)`);
+  if(off) skipped.push(`${off} beyond the sheet`);
+  notify(`📋 Pasted ${filled} score${filled===1?'':'s'}${skipped.length?' · skipped '+skipped.join(', '):''}. Press Ctrl+Z to undo.`, over||bad||locked ? 'warn':'success', 6000);
+}
+
+document.addEventListener('focusin', e=>{
+  const t = e.target;
+  if(t && t.matches && t.matches(_QE_IN)){ _qeFocusVal = t.value; try{ t.select(); }catch(_){} }
+});
+document.addEventListener('change', e=>{
+  const t = e.target;
+  if(!(t && t.matches && t.matches(_QE_IN)) || _qeFocusVal===null) return;
+  _qeHistPush([{student:t.getAttribute('data-student'), subject:t.getAttribute('data-subject'), from:_qeFocusVal, to:t.value}]);
+  _qeFocusVal = t.value;
+});
+document.addEventListener('keydown', e=>{
+  const t = e.target;
+  if(!(t && t.matches && t.matches(_QE_IN)) || t.disabled) return;
+  const k = e.key, mod = e.ctrlKey || e.metaKey;
+  if(mod && !e.altKey){
+    const lk = k.toLowerCase();
+    if(lk==='z' && !e.shiftKey){ if(_qeUndoStack.length){ e.preventDefault(); _qeUndo(); } return; }
+    if(lk==='y' || (lk==='z' && e.shiftKey)){ if(_qeRedoStack.length){ e.preventDefault(); _qeRedo(); } return; }
+    return;
+  }
+  if(k==='Enter'){ e.preventDefault(); _qeMoveFrom(t, e.shiftKey?-1:1, 0, true); }
+  else if(k==='ArrowDown'){ e.preventDefault(); _qeMoveFrom(t, 1, 0, false); }
+  else if(k==='ArrowUp'){ e.preventDefault(); _qeMoveFrom(t, -1, 0, false); }
+  else if(k==='ArrowRight'){ e.preventDefault(); _qeMoveFrom(t, 0, 1, false); }
+  else if(k==='ArrowLeft'){ e.preventDefault(); _qeMoveFrom(t, 0, -1, false); }
+});
+document.addEventListener('paste', e=>{
+  const t = e.target;
+  if(!(t && t.matches && t.matches(_QE_IN)) || t.disabled || _qeLocked) return;
+  const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+  if(!/[\t\r\n]/.test(text.replace(/[\r\n]+$/,''))) return; // single value → normal paste
+  e.preventDefault();
+  _qePasteBlock(t, text);
+});
+
 /** Writes ONLY the cell(s) changed since the last save into the SHARED draft,
  *  as a single Firebase multi-path update — this is what lets two teachers
  *  edit different cells of the same sheet at the same time without either
@@ -24217,6 +24465,8 @@ function _qeUpdateFinalSubmitStatus(){
  *  otherwise creates a new one. Clears the draft on success. */
 async function submitQuickEntry(){
   if(!_qeStudents.length){ notify('Load students first.','warn'); return; }
+  { const _pe = Object.values(_pendingExams||{}).find(p => _normTermStr(p?.compound) === _normTermStr(_qeCompound));
+    if(_pe && _pe.deadline && _peDeadlineInfo(_pe.deadline).overdue && !isAdvancedAdmin){ notify('⏰ The deadline for this exam has passed. Ask an Advanced Admin to extend it.','error',7000); return; } }
 
   // ── Class Teacher gate — only the designated Class Teacher for this grade
   // (or an Advanced Admin) may perform FINAL submission. Anyone else can
@@ -24533,6 +24783,7 @@ window._qeResetToDefault = _qeResetToDefault;
 let autoRefreshOn=false;
 function toggleAutoRefresh(){
   autoRefreshOn=!autoRefreshOn;
+  try{ localStorage.setItem('kps_autorefresh', autoRefreshOn?'1':'0'); }catch(_e){}
   if(autoRefreshOn){ autoRefreshTimer=setInterval(refreshData,300000); notify('⏱ Auto-refresh enabled (5 min)','info'); }
   else{ clearInterval(autoRefreshTimer); notify('Auto-refresh disabled.','info'); }
 }
@@ -24938,15 +25189,8 @@ if (!document.getElementById('notification-styles')) {
 function getGradeFromScore(score) {
     const numScore = parseFloat(score);
     if (isNaN(numScore)) return { grade: 'N/A', comment: 'Not Assessed' };
-    
-    if (numScore >= 90) return { grade: '8.0', comment: 'Exceeding Expectation EE1' };
-    if (numScore >= 75) return { grade: '7.0', comment: 'Exceeding Expectation EE2' };
-    if (numScore >= 58) return { grade: '6.0', comment: 'Meeting Expectation ME1' };
-    if (numScore >= 41) return { grade: '5.0', comment: 'Meeting Expectation ME2' };
-    if (numScore >= 31) return { grade: '4.0', comment: 'Approaching Expectation AE1' };
-    if (numScore >= 21) return { grade: '3.0', comment: 'Approaching Expectation AE2' };
-    if (numScore >= 11) return { grade: '2.0', comment: 'Below Expectation BE1' };
-    return              { grade: '1.0', comment: 'Below Expectation BE2' };
+    const g = GRADE_SCALE.find(b => numScore >= b.min) || GRADE_SCALE[GRADE_SCALE.length-1];
+    return { grade: g.pts, comment: g.label.replace(/\s*\(.*\)\s*$/, '') + ' ' + g.level };
 }
 
 function calculateStudentStats(student) {
