@@ -8647,6 +8647,23 @@ async function _checkDisabledAndLogin(userData, auth, ui){
     }
   }
 
+  // ── Firestore is the source of truth for name/photo ─────────────────
+  // Firebase Auth's displayName can't be changed by an admin (or by teacher
+  // view) and may be stale. _ensureUserDoc() writes userData.name back to
+  // users/{uid} on every login, so without this an admin-edited name would
+  // be overwritten by the old Auth name the next time that person signs in.
+  try{
+    if(snap && snap.exists()){
+      const _d = snap.data() || {};
+      if(_d.name && String(_d.name).trim()){
+        userData.name = String(_d.name).trim();
+        if(_d.firstName) userData.firstName = _d.firstName;
+        if(_d.lastName !== undefined) userData.lastName = _d.lastName;
+      }
+      if(!userData.photoURL && _d.photoURL) userData.photoURL = _d.photoURL;
+    }
+  }catch(e){ console.warn('[Login] Could not apply Firestore profile name:', e.message); }
+
   showApp(userData);
 }
 
@@ -11375,9 +11392,13 @@ window.profSaveInfo = async function(){
     // Update Firestore doc
     await window._fb.updateDoc(window._fb.doc(firestoreDb,'users',uid), payload);
 
-    // Update Firebase Auth displayName
+    // Update Firebase Auth displayName — ONLY for the real signed-in user.
+    // While an Advanced Admin is in "Login as Teacher" view, auth.currentUser
+    // is still the ADMIN, so this would overwrite the admin's own name with
+    // the teacher's. The teacher's name lives in her Firestore doc (above).
     var auth = window._fb.getAuth();
-    if(auth.currentUser){
+    var _realUid = auth.currentUser && auth.currentUser.uid;
+    if(!_impersonationSession && _realUid && _realUid === uid){
       await window._fb.updateProfile(auth.currentUser, { displayName: fullName });
     }
 
@@ -11397,7 +11418,7 @@ window.profSaveInfo = async function(){
 
     profSetStatus('prof-info-status','Saved!','ok');
     notify('Profile updated successfully.','success',4000);
-    logActivity('Profile updated: '+fullName,'act-blue',fullName,{category:'system'});
+    logActivity(_impersonationSession ? ('Admin edited teacher profile (teacher view): '+fullName) : ('Profile updated: '+fullName),'act-blue',_impersonationSession ? _impersonationSession.name : fullName,{category:'system'});
   } catch(e){
     profSetStatus('prof-info-status','Error: '+e.message,'err');
     notify('Error saving profile: '+e.message,'error');
@@ -11415,6 +11436,13 @@ window.profSavePassword = async function(){
   if(!current){ profSetStatus('prof-pw-status','Enter your current password.','err'); return; }
   if(pw1.length < 8){ profSetStatus('prof-pw-status','New password must be at least 8 characters.','err'); return; }
   if(pw1 !== pw2){ profSetStatus('prof-pw-status','Passwords do not match.','err'); return; }
+
+  // Password change acts on the real Firebase Auth user (the admin), never the
+  // teacher being viewed — block it during teacher view.
+  if(_impersonationSession){
+    profSetStatus('prof-pw-status','Exit Teacher View first — a password can only be changed by the signed-in user.','err');
+    return;
+  }
 
   var btn = document.getElementById('prof-pw-btn');
   if(btn){ btn.disabled=true; btn.textContent='Updating...'; }
