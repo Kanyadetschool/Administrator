@@ -5213,6 +5213,13 @@ setInterval(_rotateAuthTip, 5000);
 </div>
 <style>
 @keyframes qeLivePulse{0%,100%{opacity:1}50%{opacity:.35}}
+/* Top-bar chip: scores a teacher still owes + live countdown (see _trUpdateChip) */
+.tr-chip{display:flex;align-items:center;gap:7px;border:1.5px solid var(--tr-c,var(--orange));background:var(--surface);color:var(--text);border-radius:999px;padding:5px 11px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;animation:trChipIn .4s cubic-bezier(.34,1.56,.64,1);}
+.tr-chip:active{transform:scale(.96);}
+.tr-chip-time{font-weight:800;}
+@keyframes trChipIn{from{opacity:0;transform:translateY(-8px) scale(.9)}to{opacity:1;transform:none}}
+@media(max-width:480px){.tr-chip-time{display:none;}.tr-chip{padding:5px 9px;}}
+@media(prefers-reduced-motion:reduce){.tr-chip{animation:none;}}
 /* Live-editing pill: centred under the top bar (so it never covers the mobile
    hamburger or the page title), glides in/out instead of popping. Top offset
    is measured from the real top bar by _liveEditMiniPlace(). */
@@ -8746,6 +8753,9 @@ function _applyTeacherProfile(data, uid){
   // delete; everyone gets the live list and a toast on new/updated posts.
   if(typeof _annWatchAll === 'function') setTimeout(_annWatchAll, 0);
 
+  // Subject-teacher login reminder: missing scores + deadline to beat (once per login).
+  if(typeof _trStart === 'function') setTimeout(_trStart, 1500);
+
   if(data.Advancedadmin === true){
     isAdvancedAdmin = true;
     canImportData = true; // Advanced Admins always retain Import Data access
@@ -11402,6 +11412,7 @@ function profSetStatus(elId, msg, type){
 }
 
 async function doSignOut(){
+  window._trShownUid = null; try{ clearInterval(_trTimer); clearInterval(window._trRefreshTimer); _trItemsLive=[]; const _m=document.getElementById('tr-remind-modal'); if(_m) _m.remove(); const _c=document.getElementById('tr-chip'); if(_c) _c.remove(); }catch(e){}
   if(typeof _qeStopPresence === 'function') _qeStopPresence();
   if(typeof _qeStopWatchingSharedDraft === 'function') _qeStopWatchingSharedDraft();
   if(typeof _qeStopWatchingRawConfig === 'function') _qeStopWatchingRawConfig();
@@ -12757,7 +12768,9 @@ function renderInsights(){
   // Full raw exam names (with the class, e.g. "Grade 4-2026-B2-End-Term 2"), one per class that sat it
   const rawOf=k=>[...new Set(rows.filter(x=>x.k===k).map(x=>x.t))].sort((x,y)=>x.localeCompare(y,undefined,{numeric:true}));
   const latestN=rawOf(latest).length===1?rawOf(latest)[0]:latest, prevN=prev?(rawOf(prev).length===1?rawOf(prev)[0]:prev):'';
-  if(sub) sub.textContent=`Based on ${rawOf(latest).join(', ')}${prev?' compared with '+rawOf(prev).join(', '):''}`;
+  // Only name the first two records per side, then "+N more" -- the full list (one per class) made this line huge.
+  const _insNames=k=>{ const n=rawOf(k); return n.slice(0,2).join(', ')+(n.length>2?` +${n.length-2} more`:''); };
+  if(sub) sub.textContent=`Based on ${_insNames(latest)}${prev?' compared with '+_insNames(prev):''}`;
 
   const E=_gavgEsc, mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
   const arrow=(d,u)=>`${d>=0.05?'▲':d<=-0.05?'▼':'•'} ${Math.abs(d).toFixed(1)}${u||''}`;
@@ -16366,6 +16379,163 @@ async function computeLiveMissingScoresForExam(grade, compound){
   return { students: finalStudents, subjects: [...subjSet], missingBySubject };
 }
 window.computeLiveMissingScoresForExam = computeLiveMissingScoresForExam;
+
+/* ═══════════════ Teacher login reminder — missing scores + deadline ═══════════════
+ *  When a subject teacher (or class teacher) signs in, show ONE popup per login
+ *  listing, for every open exam in their grade(s), the learners still missing in
+ *  the subjects THEY can enter, with a live deadline countdown and a shortcut
+ *  into that exam's Quick Entry sheet. Advanced Admins are skipped (they have
+ *  the Entry Progress board); locked and past-deadline exams are skipped (no
+ *  action possible). Re-uses computeLiveMissingScoresForExam, so "missing"
+ *  means exactly what Quick Entry and the admin reminders mean by it. */
+window._trShownUid = null;
+let _trRunning = false, _trItemsLive = [], _trTimer = null;
+function _trMyGrades(){
+  return (currentAssignedGrades && currentAssignedGrades.length)
+    ? currentAssignedGrades
+    : ((currentAssignedGrade && currentAssignedGrade !== '__NONE__') ? [currentAssignedGrade] : []);
+}
+/** Open exams in my grade(s) with the scores I still owe. null = data not ready yet. */
+async function _trCompute(){
+  if(isAdvancedAdmin || !window._teacherProfileResolved) return null;
+  const myGrades = _trMyGrades();
+  if(!myGrades.length) return [];
+  if(!(allData && allData.length) || !_pendingExams) return null;
+  const mine = new Set(myGrades.map(g=>gShort(g)));
+  const items = [];
+  for(const [key, pe] of Object.entries(_pendingExams||{})){
+    if(!pe) continue;
+    const compound = pe.compound || decodeURIComponent(key);
+    const grade = pe.grade || gShort(compound) || '';
+    if(!mine.has(gShort(grade))) continue;
+    const lk = _lockedTerms[_lockKeyFor(compound)];
+    if(lk && lk.locked) continue;
+    if(pe.deadline && _peDeadlineInfo(pe.deadline).overdue) continue;
+    let r; try{ r = await computeLiveMissingScoresForExam(grade, compound); }catch(e){ continue; }
+    const subs = Object.keys(r.missingBySubject||{}).filter(sj => _teacherCanEnterSubject(grade, sj))
+      .map(sj => ({subject:sj, students:r.missingBySubject[sj]}));
+    if(subs.length) items.push({compound, grade, deadline:pe.deadline||0, subs});
+  }
+  items.sort((a,b)=>(a.deadline||Infinity)-(b.deadline||Infinity)); // most urgent first
+  return items;
+}
+/** Urgency band of a deadline: 2 (<=2h), 24 (<=24h), 48 (<=48h), 999 = not close yet. */
+function _trBand(deadline){
+  if(!deadline) return 999;
+  const h = (deadline - Date.now()) / 3600000;
+  return h <= 2 ? 2 : h <= 24 ? 24 : h <= 48 ? 48 : 999;
+}
+function _trSeenKey(){ return 'tr_bands_' + ((window._currentUser && window._currentUser.uid) || ''); }
+function _trSeen(){ try{ return JSON.parse(localStorage.getItem(_trSeenKey())||'{}'); }catch(e){ return {}; } }
+function _trMarkSeen(items){
+  const o = _trSeen();
+  items.forEach(x=>{ o[x.compound] = Math.min(o[x.compound]||999, _trBand(x.deadline)); });
+  try{ localStorage.setItem(_trSeenKey(), JSON.stringify(o)); }catch(e){}
+}
+function _trUpdateChip(){
+  let chip = document.getElementById('tr-chip');
+  const items = _trItemsLive.filter(x=>!x.deadline || !_peDeadlineInfo(x.deadline).overdue);
+  if(!items.length || isAdvancedAdmin){ if(chip) chip.style.display = 'none'; return; }
+  if(!chip){
+    const host = document.querySelector('.topbar-right'); if(!host) return;
+    chip = document.createElement('button');
+    chip.id = 'tr-chip'; chip.type = 'button'; chip.className = 'tr-chip';
+    chip.title = 'Scores you still need to enter — tap for details';
+    chip.onclick = () => _trShowModal(_trItemsLive);
+    host.insertBefore(chip, host.firstChild);
+  }
+  const total = items.reduce((a,x)=>a+x.subs.reduce((b,y)=>b+y.students.length,0),0);
+  const next = items.find(x=>x.deadline);
+  const info = next ? _peDeadlineInfo(next.deadline) : null;
+  chip.style.display = '';
+  chip.style.setProperty('--tr-c', info ? info.color : 'var(--orange)');
+  chip.innerHTML = `<span class="tr-chip-n">⏰ ${total}</span>` + (next ? `<span class="tr-chip-time pe-countdown-badge" data-deadline="${next.deadline}">${info.text}</span>` : '');
+}
+async function _trRefresh(){
+  if(_trRunning) return;
+  _trRunning = true;
+  try{
+    const items = await _trCompute();
+    if(items === null) return;
+    _trItemsLive = items;
+    window._trItems = items;
+    _trUpdateChip();
+  }finally{ _trRunning = false; }
+}
+/** Every 30s: re-pop the reminder when a deadline crosses 48h / 24h / 2h. */
+function _trTick(){
+  if(isAdvancedAdmin || !_trItemsLive.length) return;
+  _trUpdateChip();
+  if(document.getElementById('tr-remind-modal')) return;
+  const seen = _trSeen();
+  const due = _trItemsLive.filter(x=>x.deadline && _trBand(x.deadline) < (seen[x.compound]||999));
+  if(!due.length) return;
+  _trMarkSeen(due);
+  _trShowModal(_trItemsLive, true);
+}
+async function _trStart(attempt){
+  attempt = attempt || 0;
+  const uid = window._currentUser && window._currentUser.uid;
+  if(!uid || isAdvancedAdmin || window._trShownUid === uid) return;
+  const items = await _trCompute();
+  if(items === null){ if(attempt<20) setTimeout(()=>_trStart(attempt+1), 1500); return; }
+  window._trShownUid = uid; // once per login, even if nothing was owed
+  _trItemsLive = items; window._trItems = items;
+  _trUpdateChip();
+  if(items.length){ _trMarkSeen(items); _trShowModal(items); }
+  clearInterval(_trTimer);
+  _trTimer = setInterval(_trTick, 30000);
+  clearInterval(window._trRefreshTimer);
+  window._trRefreshTimer = setInterval(_trRefresh, 120000);
+}
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && window._trShownUid) _trRefresh(); });
+function _trShowModal(items, urgent){
+  const old = document.getElementById('tr-remind-modal'); if(old) old.remove();
+  const E = _annEsc;
+  const total = items.reduce((a,x)=>a+x.subs.reduce((b,y)=>b+y.students.length,0),0);
+  const m = document.createElement('div');
+  m.className = 'modal-overlay on'; m.id = 'tr-remind-modal';
+  m.onclick = e => { if(e.target===m) m.remove(); };
+  m.innerHTML = `
+    <div class="modal-box" style="max-width:520px;max-height:86vh;overflow:auto">
+      <div class="modal-hdr"><h3>${urgent?'🚨 Deadline getting close':'⏰ Scores still waiting for you'}</h3><button class="modal-close" onclick="document.getElementById('tr-remind-modal').remove()">✕</button></div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">You have <b>${total}</b> score${total===1?'':'s'} still to enter across <b>${items.length}</b> exam${items.length===1?'':'s'}. Please finish before the deadline.</div>
+        ${items.map((x,i)=>{
+          const dl = x.deadline ? _peDeadlineInfo(x.deadline) : null;
+          const n = x.subs.reduce((a,y)=>a+y.students.length,0);
+          return `<div style="border:1.5px solid ${dl?dl.color:'var(--border-strong)'};border-radius:var(--radius-md);padding:12px 14px;margin-bottom:12px;background:var(--surface2)">
+            <div style="font-size:13px;font-weight:800;color:var(--text)">${E(x.compound)}</div>
+            <div style="font-size:12px;margin:4px 0 8px">${dl
+              ? `<span class="pe-countdown-badge" data-deadline="${x.deadline}" style="font-weight:800;color:${dl.color}">${dl.text}</span> <span style="color:var(--text3)">· due ${E(new Date(x.deadline).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'}))}</span>`
+              : '<span style="color:var(--text3)">No deadline set</span>'}</div>
+            ${x.subs.map(y=>`<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0;border-top:1px dashed var(--border)">
+                <span style="font-weight:700;color:var(--text)">${E(y.subject)}</span>
+                <span style="color:var(--red);font-weight:700;white-space:nowrap" title="${E(y.students.slice(0,15).join(', ')+(y.students.length>15?' …':''))}">${y.students.length} missing</span>
+              </div>`).join('')}
+            <button class="btn btn-green btn-sm" style="margin-top:10px;width:100%" onclick="_trOpenExam(${i})">Open Quick Entry · ${n} to enter →</button>
+          </div>`;
+        }).join('')}
+        <div style="display:flex;justify-content:flex-end"><button class="btn btn-outline btn-sm" onclick="document.getElementById('tr-remind-modal').remove()">Remind me later</button></div>
+      </div>
+    </div>`;
+  window._trItems = items;
+  document.body.appendChild(m);
+}
+function _trOpenExam(i){
+  const x = (window._trItems||[])[i]; if(!x) return;
+  const m = document.getElementById('tr-remind-modal'); if(m) m.remove();
+  navTo('quickentry', document.querySelector('.nav-item[data-label="Quick Entry"]'));
+  setTimeout(()=>{
+    const g = document.getElementById('qe-grade'), t = document.getElementById('qe-term');
+    if(!g || !t) return;
+    if([...g.options].some(o=>o.value===x.grade)){ g.value = x.grade; g.dispatchEvent(new Event('change')); }
+    setTimeout(()=>{
+      if([...t.options].some(o=>o.value===x.compound)){ t.value = x.compound; _qeAutoLoadOnTermChange(); }
+    }, 400);
+  }, 350);
+}
+window._trStart = _trStart; window._trOpenExam = _trOpenExam;
 
 async function remindPendingExamTeachers(key){
   const pe = _pendingExams?.[key];
