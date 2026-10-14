@@ -4796,6 +4796,10 @@ setInterval(_rotateAuthTip, 5000);
           <div class="card-hdr">
             <div class="card-title">2️⃣ Enter Scores</div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="qe-sort-mode" class="sel" onchange="_qeChangeSortMode(this.value)" title="Order of students on this sheet" style="width:auto;padding:6px 10px;font-size:12px">
+                <option value="asm">🔢 Order: Assessment No</option>
+                <option value="name">🔤 Order: Name A–Z</option>
+              </select>
               <input type="text" id="qe-search" class="sel" placeholder="🔍 Search student…" oninput="_qeFilterTable(this.value)" style="width:180px;padding:6px 10px;font-size:12px">
               <button class="btn btn-outline btn-sm" id="qe-reset-filters-btn" onclick="_qeResetAllFilters()" title="Clear the search box and every column filter in one go">🔄 Reset Filters</button>
               <button class="btn btn-outline btn-sm" id="qe-lp-btn" onclick="_qeLivePreviewToggle()" title="Live analytics of the scores as you type — class average, bands, subjects, ranking and data checks">📊 Live Preview<span id="qe-lp-btn-count" class="qe-lp-badge bad" style="display:none"></span></button>
@@ -4806,6 +4810,7 @@ setInterval(_rotateAuthTip, 5000);
               <span id="qe-final-status" style="font-size:11px;font-weight:700"></span>
               <button class="btn btn-outline btn-sm" id="qe-add-student-btn" onclick="_qeOpenAddStudentModal()">➕ Add Student</button>
               <button class="btn btn-outline btn-sm" id="qe-add-subject-btn" style="display:none" onclick="_qeAddSubjectToSheet()">➕ Add Subject</button>
+              <button class="btn btn-outline btn-sm" id="qe-clear-scores-btn" style="display:none;color:var(--red);border-color:var(--red)" onclick="_qeOpenClearScoresModal()" title="Advanced Admin — wipe every score in one subject column, or every score in one student's row">🧹 Clear Scores</button>
               <button class="btn btn-outline btn-sm" onclick="downloadQuickEntryMarkSheet()" title="Excel mark sheet with the current roster, in the same order shown below — fill in offline, then re-enter here">⬇️ Download Mark Sheet</button>
               <button class="btn btn-outline btn-sm" id="qe-import-draft-btn" onclick="_qeTriggerDraftImport()" title="Bulk-fill scores from a completed CSV/Excel mark sheet into THIS shared draft — matches existing students on the sheet, still requires Submit Final to write to the database">📥 Import to Draft</button>
               <input type="file" id="qe-import-file-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="_qeHandleDraftImportFile(this.files[0])">
@@ -5202,15 +5207,44 @@ setInterval(_rotateAuthTip, 5000);
      someone is editing, covering both the sidebar Edit-Score broadcasts (_esa)
      and admin-visible Quick Entry sessions (_qe). Hidden entirely when nothing
      is currently active. -->
-<div id="live-edit-mini" onclick="_liveEditMiniClick()"
-     style="display:none;position:fixed;top:16px;left:16px;z-index:10040;align-items:center;gap:8px;
-            background:var(--surface);border:1px solid var(--border-strong);border-radius:20px;
-            padding:7px 14px 7px 10px;box-shadow:0 4px 18px rgba(0,0,0,.25);cursor:pointer;
-            max-width:min(78vw,320px);user-select:none;">
-  <span id="live-edit-mini-dot" style="width:8px;height:8px;border-radius:50%;background:var(--orange);flex-shrink:0;animation:qeLivePulse 1.4s infinite"></span>
-  <span id="live-edit-mini-text" style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+<div id="live-edit-mini" onclick="_liveEditMiniClick()" role="status" aria-live="polite" aria-hidden="true">
+  <span id="live-edit-mini-dot"></span>
+  <span id="live-edit-mini-text"></span>
 </div>
-<style>@keyframes qeLivePulse{0%,100%{opacity:1}50%{opacity:.35}}</style>
+<style>
+@keyframes qeLivePulse{0%,100%{opacity:1}50%{opacity:.35}}
+/* Live-editing pill: centred under the top bar (so it never covers the mobile
+   hamburger or the page title), glides in/out instead of popping. Top offset
+   is measured from the real top bar by _liveEditMiniPlace(). */
+#live-edit-mini{
+  position:fixed;left:0;right:0;margin-inline:auto;width:max-content;max-width:min(88vw,340px);
+  top:var(--lem-top,calc(env(safe-area-inset-top,0px) + 12px));
+  z-index:10040;display:flex;align-items:center;gap:9px;
+  background:var(--surface);border:1px solid var(--border-strong);border-radius:999px;
+  padding:7px 16px 7px 12px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;
+  box-shadow:0 8px 26px rgba(0,0,0,.22),0 0 0 3px rgba(243,156,18,.10);
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-18px) scale(.9);
+  transition:opacity .22s ease,transform .28s cubic-bezier(.4,0,1,1),visibility 0s linear .28s,top .3s ease;
+}
+#live-edit-mini.on{
+  opacity:1;visibility:visible;pointer-events:auto;transform:none;
+  transition:opacity .3s ease,transform .55s cubic-bezier(.34,1.56,.64,1),visibility 0s,top .3s ease;
+}
+#live-edit-mini.on:active{transform:scale(.96);transition-duration:.12s;}
+#live-edit-mini.bump{animation:lemBump .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes lemBump{0%{transform:scale(1)}35%{transform:scale(1.08)}100%{transform:scale(1)}}
+#live-edit-mini-dot{width:8px;height:8px;border-radius:50%;background:var(--orange);flex-shrink:0;animation:lemRing 1.6s ease-out infinite;}
+@keyframes lemRing{0%{box-shadow:0 0 0 0 rgba(243,156,18,.6)}70%{box-shadow:0 0 0 8px rgba(243,156,18,0)}100%{box-shadow:0 0 0 0 rgba(243,156,18,0)}}
+#live-edit-mini-text{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* Mobile: step aside while the sidebar drawer is open */
+@media(max-width:768px){
+  body:has(.sidebar.open) #live-edit-mini.on{opacity:0;transform:translateY(-14px) scale(.92);pointer-events:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  #live-edit-mini,#live-edit-mini.on{transition:opacity .15s linear;transform:none;}
+  #live-edit-mini.bump,#live-edit-mini-dot{animation:none;}
+}
+</style>
 
 <!-- ADD/EDIT STUDENT MODAL -->
 <div class="modal-overlay" id="edit-modal" onclick="if(event.target===this)closeEditModal()">
@@ -21450,13 +21484,20 @@ function _liveEditMiniUpdate(){
   const esaCount = Object.keys(_esaActiveSessions||{}).length;
   const qeCount  = Object.keys(_qeActiveSessions||{}).length; // 0 for non-admins, never watched
   const total = esaCount + qeCount;
-  if(!total){ el.style.display = 'none'; return; }
+  if(!total){ el.classList.remove('on'); el.setAttribute('aria-hidden','true'); return; }
   let label;
   if(esaCount && qeCount) label = `${esaCount} editing scores · ${qeCount} in Quick Entry`;
   else if(esaCount) label = esaCount === 1 ? '1 person editing a score' : `${esaCount} people editing scores`;
   else label = qeCount === 1 ? '1 teacher in Quick Entry' : `${qeCount} teachers in Quick Entry`;
-  txt.textContent = '✏️ ' + label;
-  el.style.display = 'flex';
+  const _nextTxt = '✏️ ' + label;
+  if(txt.textContent !== _nextTxt){
+    const _wasOn = el.classList.contains('on');
+    txt.textContent = _nextTxt;
+    if(_wasOn){ el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } // little pop when the count changes
+  }
+  _liveEditMiniPlace();
+  el.classList.add('on');
+  el.removeAttribute('aria-hidden');
 }
 
 /** Tapping the mini indicator opens whichever fuller panel applies —
@@ -21469,6 +21510,19 @@ function _liveEditMiniClick(){
 }
 window._liveEditMiniUpdate = _liveEditMiniUpdate;
 window._liveEditMiniClick = _liveEditMiniClick;
+/** Keeps the pill centred just UNDER the real top bar (measured, so it adapts
+ *  to the mobile/desktop bar height and notches) — never on top of the
+ *  hamburger, page title or topbar buttons. */
+function _liveEditMiniPlace(){
+  const el = document.getElementById('live-edit-mini'); if(!el) return;
+  const tb = document.querySelector('.topbar');
+  const r = tb ? tb.getBoundingClientRect() : null;
+  if(r && r.height > 0) el.style.setProperty('--lem-top', (Math.max(0, r.bottom) + 10) + 'px');
+}
+window._liveEditMiniPlace = _liveEditMiniPlace;
+window.addEventListener('resize', _liveEditMiniPlace);
+window.addEventListener('orientationchange', ()=>setTimeout(_liveEditMiniPlace, 250));
+
 
 let _esaBroadcastActiveUid = null; // uid of the session whose popup is currently on-screen, if any
 let _esaBroadcastTimer = null;      // auto-dismiss timeout for the toast currently on-screen
@@ -21619,7 +21673,7 @@ function _esaCleanup(){
   const lModal = document.getElementById('esa-live-list-modal');
   if(lModal) lModal.classList.remove('on');
   const miniEl = document.getElementById('live-edit-mini');
-  if(miniEl) miniEl.style.display = 'none';
+  if(miniEl){ miniEl.classList.remove('on','bump'); miniEl.setAttribute('aria-hidden','true'); }
   _esaStopPresence();
 }
 window._esaCleanup = _esaCleanup;
@@ -22317,7 +22371,8 @@ async function loadQuickEntry(){
     const k = _qeStudentKey(stu);
     if(!_presentKeys.has(k)){ finalStudents.push(stu); _presentKeys.add(k); }
   });
-  finalStudents.sort((a,b)=>(a['Official Student Name']||'').localeCompare(b['Official Student Name']||''));
+  // Ordered by Assessment No (natural/alphanumeric order, blanks last); name only breaks ties.
+  finalStudents.sort(_qeStudentCmp);
 
   if(!finalStudents.length){
     notify('⚠️ No existing students found for that grade/exam yet — use "➕ Add Student" below to start building the sheet.','warn',6000);
@@ -22494,6 +22549,9 @@ async function loadQuickEntry(){
   _qeUpdateOnlineBanner();
   const addSubjectBtn = document.getElementById('qe-add-subject-btn');
   if(addSubjectBtn) addSubjectBtn.style.display = (isAdvancedAdmin && _qeWasPending && !viewOnly) ? '' : 'none';
+  { const _so = document.getElementById('qe-sort-mode'); if(_so) _so.value = _qeSortMode; }
+  const clearScoresBtn = document.getElementById('qe-clear-scores-btn');
+  if(clearScoresBtn) clearScoresBtn.style.display = (isAdvancedAdmin && !viewOnly) ? '' : 'none';
   const addStudentBtn = document.getElementById('qe-add-student-btn');
   if(addStudentBtn){
     const canAddStudent = !viewOnly && _isClassTeacherOfGrade(selGrade || gShort(selCompound));
@@ -22539,6 +22597,27 @@ function _qeGetExistingScores(){
   });
   return out;
 }
+
+/** Roster order for Quick Entry — user's choice, remembered on this device.
+ *  'asm'  = Assessment No (natural/alphanumeric, blanks last, name breaks ties)
+ *  'name' = Student name A–Z */
+let _qeSortMode = (function(){ try{ return localStorage.getItem('qe_sort_mode')==='name' ? 'name' : 'asm'; }catch(e){ return 'asm'; } })();
+function _qeStudentCmp(a,b){
+  const nm = (a['Official Student Name']||'').localeCompare(b['Official Student Name']||'');
+  if(_qeSortMode==='name') return nm;
+  const x = String(a['Assessment No']||'').trim(), y = String(b['Assessment No']||'').trim();
+  if(x && !y) return -1;
+  if(!x && y) return 1;
+  return x.localeCompare(y, undefined, {numeric:true, sensitivity:'base'}) || nm;
+}
+function _qeChangeSortMode(v){
+  _qeSortMode = (v==='name') ? 'name' : 'asm';
+  try{ localStorage.setItem('qe_sort_mode', _qeSortMode); }catch(e){}
+  if(!_qeStudents.length) return;
+  _qeStudents.sort(_qeStudentCmp);
+  renderQuickEntryTable(_qeCollectScores(), _qeLocked); // keeps whatever is typed on screen
+}
+window._qeChangeSortMode = _qeChangeSortMode;
 
 function _qeStudentKey(rec){
   return _qeRealId(rec['Assessment No']) || _qeRealId(rec['ULI']) || rec.id
@@ -23664,7 +23743,7 @@ function _qeConfirmAddStudent(){
     'Gender': _qeAddStudentGenderVal || ''
   };
   _qeStudents.push(newStudent);
-  _qeStudents.sort((a,b)=>(a['Official Student Name']||'').localeCompare(b['Official Student Name']||''));
+  _qeStudents.sort(_qeStudentCmp);
 
   // Persist so this survives a reload / shows up for other devices on this
   // exam — previously this only lived in memory and vanished on refresh.
@@ -23794,6 +23873,144 @@ function _qeOnScoreInput(inputEl){
   _qeRefreshMissingBadges();
 }
 window._qeOnScoreInput = _qeOnScoreInput;
+
+/* ═══════════════ Quick Entry — Clear Scores (Advanced Admin) ═══════════════
+ *  Wipes every score in ONE subject column (all students) or in ONE student's
+ *  row (all subjects). Cells are blanked through the normal _qeOnScoreInput
+ *  pipeline (so the shared draft, live badges and previews all update), AND the
+ *  already-submitted value is removed from the database — otherwise the score
+ *  would simply reappear from the saved record the next time the sheet loads.
+ *  Undo (Ctrl+Z) puts the values back on the sheet; Submit re-writes them. */
+let _qeClearMode = 'column';
+function _qeClearEnsureModal(){
+  let m = document.getElementById('qe-clear-scores-modal');
+  if(m) return m;
+  m = document.createElement('div');
+  m.className = 'modal-overlay';
+  m.id = 'qe-clear-scores-modal';
+  m.onclick = e => { if(e.target===m) _qeCloseClearScoresModal(); };
+  m.innerHTML = `
+    <div class="modal-box" style="max-width:440px">
+      <div class="modal-hdr">
+        <h3>🧹 Clear Scores</h3>
+        <button class="modal-close" onclick="_qeCloseClearScoresModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Advanced Admin only. Removes scores from this sheet <b>and</b> from the saved record in the database.</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button type="button" class="btn btn-outline btn-sm" id="qe-clear-tab-column" onclick="_qeClearSetMode('column')" style="flex:1">▥ Entire subject column</button>
+          <button type="button" class="btn btn-outline btn-sm" id="qe-clear-tab-row" onclick="_qeClearSetMode('row')" style="flex:1">▤ Entire student row</button>
+        </div>
+        <label id="qe-clear-label" style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px"></label>
+        <select class="sel" id="qe-clear-target" style="width:100%" onchange="_qeClearPreview()"></select>
+        <div id="qe-clear-preview" style="margin-top:12px;font-size:12px;padding:10px 12px;border-radius:var(--radius-md);background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);color:var(--red)"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+          <button class="btn btn-outline btn-sm" onclick="_qeCloseClearScoresModal()">Cancel</button>
+          <button class="btn btn-red btn-sm" id="qe-clear-go" onclick="_qeRunClearScores()">🧹 Clear</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  return m;
+}
+function _qeOpenClearScoresModal(){
+  if(!isAdvancedAdmin){ notify('⛔ Advanced Admin only.','error'); return; }
+  const card = document.getElementById('qe-table-card');
+  if(!card || card.style.display==='none' || !_qeCompound){ notify('⚠️ Load a grade/exam first.','warn'); return; }
+  if(_qeLocked){ notify('🔒 This exam is locked — unlock it before clearing scores.','warn'); return; }
+  _qeClearEnsureModal().classList.add('on');
+  _qeClearSetMode(_qeClearMode);
+}
+function _qeCloseClearScoresModal(){
+  const m = document.getElementById('qe-clear-scores-modal'); if(m) m.classList.remove('on');
+}
+function _qeClearSetMode(mode){
+  _qeClearMode = mode;
+  const sel = document.getElementById('qe-clear-target');
+  const lab = document.getElementById('qe-clear-label');
+  const on = 'var(--blue)', off = '';
+  ['column','row'].forEach(k=>{
+    const b = document.getElementById('qe-clear-tab-'+k); if(!b) return;
+    b.style.background = k===mode ? on : off; b.style.color = k===mode ? '#fff' : ''; b.style.borderColor = k===mode ? on : '';
+  });
+  if(mode==='column'){
+    lab.textContent = 'Subject to clear (every student)';
+    sel.innerHTML = _qeSubjects.map(s=>`<option value="${_qeEsc(s)}">${_qeEsc(s)}</option>`).join('');
+  } else {
+    lab.textContent = 'Student to clear (every subject)';
+    sel.innerHTML = _qeStudents.map((r,i)=>`<option value="${_qeEsc(_qeStudentKey(r))}">${i+1}. ${_qeEsc(r['Official Student Name']||'—')}</option>`).join('');
+  }
+  _qeClearPreview();
+}
+/** Cells (score inputs) the current choice would touch. */
+function _qeClearTargets(){
+  const v = (document.getElementById('qe-clear-target')||{}).value;
+  if(!v) return [];
+  return _qeGetAllScoreInputs().filter(inp => !inp.disabled && (_qeClearMode==='column'
+    ? inp.getAttribute('data-subject')===v
+    : inp.getAttribute('data-student')===v));
+}
+function _qeClearPreview(){
+  const box = document.getElementById('qe-clear-preview'), go = document.getElementById('qe-clear-go');
+  const n = _qeClearTargets().filter(i=>i.value.trim()!=='').length;
+  const v = (document.getElementById('qe-clear-target')||{}).value;
+  const what = _qeClearMode==='column' ? `the <b>${_qeEsc(v||'')}</b> column` : `this student's row`;
+  box.innerHTML = n ? `⚠️ ${n} score${n===1?'':'s'} will be cleared from ${what}.` : `Nothing to clear — ${what} has no scores.`;
+  if(go) go.disabled = !n;
+}
+async function _qeRunClearScores(){
+  if(!isAdvancedAdmin){ notify('⛔ Advanced Admin only.','error'); return; }
+  if(_qeLocked){ notify('🔒 This exam is locked.','warn'); return; }
+  const v = document.getElementById('qe-clear-target').value;
+  const inputs = _qeClearTargets().filter(i=>i.value.trim()!=='');
+  if(!inputs.length) return;
+  const stuByKey = {}; _qeStudents.forEach(r=>{ stuByKey[_qeStudentKey(r)] = r; });
+  const label = _qeClearMode==='column'
+    ? `${v} (whole column)`
+    : `${(stuByKey[v]&&stuByKey[v]['Official Student Name'])||'student'} (whole row)`;
+  const ok = await showConfirm('Clear scores?',
+    `Clear <strong>${inputs.length}</strong> score${inputs.length===1?'':'s'} — <strong>${_qeEsc(label)}</strong> — for <strong>${_qeEsc(_qeCompound)}</strong>?<br><br>They are removed from the sheet and from any already-submitted record. You can Undo on the sheet, but only until you leave it.`,
+    '🧹','Yes, clear','btn-red');
+  if(!ok) return;
+
+  // 1) Remove the already-submitted values first — if this fails, nothing on screen changes.
+  const dbUpdates = {};
+  inputs.forEach(inp=>{
+    const r = stuByKey[inp.getAttribute('data-student')]; if(!r) return;
+    const ex = _qeFindExisting(r), s = inp.getAttribute('data-subject');
+    if(ex && ex[s]!==undefined && ex[s]!==null && ex[s]!=='') dbUpdates[`${DB_PATH}/${ex.id}/${s}`] = null;
+  });
+  if(Object.keys(dbUpdates).length){
+    try{
+      const {ref, update} = window._fb;
+      await update(ref(db), dbUpdates);
+    }catch(e){ notify('❌ Could not clear saved scores: '+(e.message||e),'error',8000); return; }
+  }
+
+  // 2) Blank the cells through the normal pipeline (shared draft, badges, previews).
+  const changes = [];
+  inputs.forEach(inp=>{
+    const from = inp.value;
+    inp.value = '';
+    inp.classList.remove('qe-invalid-score');
+    _qeOnScoreInput(inp);
+    changes.push({student:inp.getAttribute('data-student'), subject:inp.getAttribute('data-subject'), from, to:''});
+  });
+  _qeHistPush(changes);
+  _qeCloseClearScoresModal();
+
+  try{
+    logActivity(`🗑️ Cleared ${inputs.length} score(s) in Quick Entry — ${label} · ${_qeCompound}`, 'act-red', currentAdminName,
+      { category:'delete', targetName: label, extra: `${Object.keys(dbUpdates).length} saved score(s) removed from the database` });
+  }catch(e){}
+  notify(`🧹 Cleared ${inputs.length} score${inputs.length===1?'':'s'} (${label}). Press Ctrl+Z to undo on the sheet.`,'success',6000);
+}
+window._qeOpenClearScoresModal = _qeOpenClearScoresModal;
+window._qeCloseClearScoresModal = _qeCloseClearScoresModal;
+window._qeClearSetMode = _qeClearSetMode;
+window._qeClearPreview = _qeClearPreview;
+window._qeRunClearScores = _qeRunClearScores;
+
 
 /* ═══════════════ School-wide Entry Progress Board (Advanced Admin) ═══════════════ */
 const _ep = { view:'exam', loading:false, ts:0, sig:'', exams:[], users:null, usersTs:0 };
