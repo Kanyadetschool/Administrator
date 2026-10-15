@@ -11,7 +11,7 @@
 // precached file, or returning users will keep seeing the old version.
 // ══════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'v4'; // Firebase SDK and app-shell integration update
+const CACHE_VERSION = 'v5'; // reminder deep links (?qe=) + cache only clean page URLs
 const SHELL_CACHE = `kanyadet-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `kanyadet-runtime-${CACHE_VERSION}`;
 
@@ -126,8 +126,13 @@ self.addEventListener('fetch', (event) => {
 async function networkFirst(request) {
   try {
     const fresh = await fetch(request);
-    const cache = await caches.open(SHELL_CACHE);
-    cache.put(request, fresh.clone());
+    if (fresh && fresh.ok) {
+      // Store under the URL WITHOUT ?query/#hash so deep links (?qe=...) don't create
+      // one cache entry per link, and an offline reload still finds the page.
+      const u = new URL(request.url); u.search = ''; u.hash = '';
+      const cache = await caches.open(SHELL_CACHE);
+      cache.put(u.href, fresh.clone());
+    }
     return fresh;
   } catch (err) {
     const cached = await caches.match(request, { ignoreSearch: true });

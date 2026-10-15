@@ -1431,6 +1431,118 @@ body::before{
 .ann-warn{background:rgba(230,126,34,.12);color:#e07826;}
 .ann-success{background:rgba(39,174,96,.12);color:#4dbb77;}
 
+/* ── Remind Subject Teachers modal (pe-remind-modal) ── */
+#pe-remind-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;}
+.prm-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-lg,18px);width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.4);overflow:hidden;animation:annPanelIn .18s ease;}
+.prm-hd{display:flex;gap:12px;align-items:flex-start;padding:18px 20px 14px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(37,211,102,.12),transparent 60%);}
+.prm-hd-ic{width:42px;height:42px;border-radius:13px;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;}
+.prm-hd h3{margin:0;font-size:16px;font-weight:800;color:var(--text);}
+.prm-hd p{margin:3px 0 0;font-size:11.5px;color:var(--text2);line-height:1.5;}
+.prm-x{margin-left:auto;border:1px solid var(--border);background:var(--surface2);color:var(--text2);border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:13px;flex-shrink:0;}
+.prm-x:hover{color:var(--red,#e74c3c);border-color:var(--red,#e74c3c);}
+.prm-body{padding:16px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
+.prm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.prm-stat{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;min-width:0;}
+.prm-stat b{display:block;font-size:17px;font-weight:800;color:var(--text);line-height:1.2;}
+.prm-stat span{font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.prm-stat.dl b{font-size:13px;}
+.prm-warn{background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.4);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--text);}
+.prm-warn ul{margin:6px 0 0;padding-left:18px;color:var(--text2);}
+.prm-link{display:flex;align-items:center;gap:10px;background:rgba(41,128,185,.1);border:1px dashed rgba(41,128,185,.5);border-radius:12px;padding:10px 12px;}
+.prm-link-t{flex:1;min-width:0;}
+.prm-link-t small{display:block;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--blue-lt);}
+.prm-link-t code{display:block;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+.prm-btn{border:none;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:var(--transition);white-space:nowrap;}
+.prm-btn.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.prm-btn.ghost:hover{border-color:var(--border-strong,var(--blue));}
+.prm-btn.wa{background:#25D366;color:#fff;flex:1.4;}
+.prm-btn.wa:hover{filter:brightness(1.07);}
+.prm-card{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;transition:var(--transition);}
+.prm-card.sent{border-color:rgba(37,211,102,.55);background:linear-gradient(135deg,rgba(37,211,102,.08),var(--surface2));}
+.prm-top{display:flex;align-items:center;gap:10px;}
+.prm-av{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.prm-who{min-width:0;flex:1;}
+.prm-who b{display:block;font-size:13px;color:var(--text);text-transform:capitalize;}
+.prm-who span{font-size:11px;color:var(--text3);}
+.prm-who span.nophone{color:#e07826;font-weight:700;}
+.prm-count{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:rgba(231,76,60,.14);color:var(--red,#e74c3c);white-space:nowrap;}
+.prm-card.sent .prm-count{background:rgba(37,211,102,.16);color:#1e9e50;}
+.prm-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+.prm-chip{font-size:11px;font-weight:600;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:3px 10px;}
+.prm-chip b{color:var(--text);margin-left:3px;}
+.prm-acts{display:flex;gap:8px;}
+.prm-prev{margin-top:8px;font-size:11px;color:var(--text3);}
+.prm-prev summary{cursor:pointer;font-weight:700;color:var(--text2);}
+.prm-prev pre{white-space:pre-wrap;word-break:break-word;font:11px/1.55 inherit;font-family:inherit;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin:6px 0 0;max-height:190px;overflow:auto;color:var(--text2);}
+.prm-ft{padding:12px 20px 16px;border-top:1px solid var(--border);}
+.prm-ft p{font-size:10.5px;color:var(--text3);margin:0 0 8px;line-height:1.5;}
+@media(max-width:480px){.prm-stats{grid-template-columns:1fr 1fr}.prm-stat.dl{grid-column:1/-1}.prm-acts{flex-wrap:wrap}.prm-acts .prm-btn{flex:1 1 45%}}
+
+/* ── Announcements v2: bell, unread badge, toolbar, cards ── */
+.ann-bell-wrap{position:relative;flex-shrink:0;}
+.ann-bell{position:relative;width:36px;height:36px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);padding:0;}
+.ann-bell:hover{border-color:var(--border-strong);color:var(--text);}
+.ann-bell.open{border-color:var(--blue);color:var(--blue-lt);}
+.ann-bell svg{width:18px;height:18px;transform-origin:50% 3px;}
+.ann-bell.ring svg{animation:annRing 1.1s ease 1;}
+@keyframes annRing{0%,100%{transform:rotate(0)}15%{transform:rotate(16deg)}30%{transform:rotate(-14deg)}45%{transform:rotate(10deg)}60%{transform:rotate(-7deg)}75%{transform:rotate(3deg)}}
+.ann-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--red,#e74c3c);color:#fff;font-size:9.5px;font-weight:800;display:none;align-items:center;justify-content:center;border:2px solid var(--bg2,var(--surface));box-sizing:content-box;line-height:1;}
+.ann-badge.on{display:flex;}
+.ann-panel{position:absolute;right:0;top:calc(100% + 10px);width:min(370px,92vw);background:var(--surface);border:1px solid var(--border-strong,var(--border));border-radius:var(--radius-lg);box-shadow:0 18px 50px rgba(0,0,0,.35);z-index:9000;display:none;overflow:hidden;}
+.ann-panel.on{display:block;animation:annPanelIn .16s ease;}
+@keyframes annPanelIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.ann-panel-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);}
+.ann-panel-hd b{font-size:13px;color:var(--text);}
+.ann-link{background:none;border:none;color:var(--blue-lt);font-size:11px;font-weight:700;cursor:pointer;padding:2px 4px;}
+.ann-link:hover{text-decoration:underline;}
+.ann-panel-list{max-height:min(380px,60vh);overflow-y:auto;}
+.ann-pi{display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--transition);}
+.ann-pi:hover{background:var(--surface2);}
+.ann-pi:last-child{border-bottom:none;}
+.ann-pi-ic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:color-mix(in srgb,var(--ac) 16%,transparent);}
+.ann-pi-t{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;}
+.ann-pi-t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ann-pi-b{font-size:11px;color:var(--text2);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ann-pi-m{font-size:10px;color:var(--text3);margin-top:3px;}
+.ann-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;box-shadow:0 0 0 3px rgba(41,128,185,.18);}
+.ann-panel-ft{padding:10px 14px;border-top:1px solid var(--border);text-align:center;}
+.ann-empty{padding:34px 18px;text-align:center;color:var(--text3);font-size:12px;}
+.ann-empty .ann-empty-ic{font-size:30px;display:block;margin-bottom:8px;opacity:.8;}
+
+.ann-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:14px;}
+.ann-search{flex:1 1 200px;min-width:160px;max-width:320px;padding:8px 12px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;}
+.ann-search:focus{outline:none;border-color:var(--blue);}
+.ann-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.ann-chip{border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;gap:5px;}
+.ann-chip:hover{border-color:var(--border-strong);color:var(--text);}
+.ann-chip.on{background:rgba(41,128,185,.16);border-color:rgba(41,128,185,.45);color:var(--blue-lt);}
+.ann-chip i{font-style:normal;font-size:9.5px;background:rgba(127,127,127,.2);border-radius:8px;padding:1px 6px;}
+.ann-chip.on i{background:rgba(41,128,185,.3);}
+.ann-sub{font-size:12px;color:var(--text3);margin:-6px 0 14px;}
+
+.announce-item{position:relative;border-left:4px solid var(--ac,var(--blue));padding:14px 16px;}
+.announce-item.ann-t-info{--ac:var(--blue);}
+.announce-item.ann-t-warn{--ac:#e07826;}
+.announce-item.ann-t-success{--ac:#27ae60;}
+.announce-item.is-new{background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 9%,var(--surface2)),var(--surface2) 70%);}
+.announce-item.is-pinned{border-color:var(--border-strong,var(--border));border-left-color:var(--ac);}
+.announce-item.ann-flash{animation:annFlash 1.6s ease 1;}
+@keyframes annFlash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 45%,transparent)}}
+.ann-row{display:flex;gap:12px;align-items:flex-start;}
+.ann-ic{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:color-mix(in srgb,var(--ac) 16%,transparent);}
+.ann-main{flex:1;min-width:0;}
+.ann-titlerow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;}
+.ann-titlerow .ann-title{font-size:14px;}
+.ann-new{font-size:9px;font-weight:800;letter-spacing:.06em;padding:2px 7px;border-radius:8px;background:var(--blue);color:#fff;}
+.ann-pin{font-size:9px;font-weight:800;padding:2px 7px;border-radius:8px;background:rgba(241,196,15,.16);color:#d4ac0d;}
+.ann-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:10.5px;color:var(--text3);margin-top:3px;}
+.ann-av{width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;font-size:8.5px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;}
+.announce-item .ann-body{margin-top:9px;font-size:12.5px;}
+.ann-body.clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+.ann-more{background:none;border:none;color:var(--blue-lt);font-size:11px;font-weight:700;cursor:pointer;padding:4px 0 0;}
+.ann-more:hover{text-decoration:underline;}
+@media(max-width:600px){.ann-ic{width:30px;height:30px;font-size:15px}.ann-search{max-width:none}}
+
 /* ══════════════════════════════════════════
    SETTINGS PAGE
 ══════════════════════════════════════════ */
@@ -3191,7 +3303,7 @@ setInterval(_rotateAuthTip, 5000);
         <span class="nav-icon">📊</span><span class="nav-label">Progress Records</span>
       </div>
       <div class="nav-item" onclick="navTo('announcements',this)" data-label="Announcements">
-        <span class="nav-icon">📢</span> Announcements
+        <b class="nav-badge" id="ann-nav-badge" style="display:none;order:99;background:var(--red,#e74c3c)">0</b><span class="nav-icon">📢</span> Announcements
       </div>
       <div class="nav-item" onclick="navTo('messages',this)" data-label="Messages" id="nav-messages">
         <span class="nav-icon">💬</span><span class="nav-label">Messages</span>
@@ -3247,6 +3359,18 @@ setInterval(_rotateAuthTip, 5000);
         <span class="topbar-live" style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px">
           <span class="status-dot"></span> Live Data
         </span>
+        <!-- Announcements bell: unread badge + quick dropdown (see "ANNOUNCEMENTS" JS section) -->
+        <div class="ann-bell-wrap" id="ann-bell-wrap">
+          <button class="ann-bell" id="ann-bell" type="button" onclick="annBellToggle(event)" title="Announcements" aria-label="Announcements" aria-haspopup="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="ann-badge" id="ann-bell-badge">0</span>
+          </button>
+          <div class="ann-panel" id="ann-panel" onclick="event.stopPropagation()">
+            <div class="ann-panel-hd"><b>🔔 Announcements</b><button class="ann-link" type="button" onclick="annMarkAllRead()">Mark all read</button></div>
+            <div class="ann-panel-list" id="ann-panel-list"></div>
+            <div class="ann-panel-ft"><button class="ann-link" type="button" onclick="annOpenFromBell()">View all announcements →</button></div>
+          </div>
+        </div>
         <div class="theme-toggle" onclick="toggleTheme()">
           <span class="theme-icon moon">🌙</span>
           <span class="theme-icon sun">☀️</span>
@@ -3885,6 +4009,12 @@ setInterval(_rotateAuthTip, 5000);
         <div class="sec-hdr">
           <h2>Announcements</h2>
           <button class="btn btn-blue btn-sm" id="ann-new-btn" style="display:none" onclick="openAnnouncementModal()">➕ New Announcement</button>
+        </div>
+        <div class="ann-sub" id="ann-sub"></div>
+        <div class="ann-toolbar">
+          <input class="ann-search" id="ann-search" type="search" placeholder="🔍 Search announcements…" oninput="annSetQuery(this.value)">
+          <div class="ann-chips" id="ann-chips"></div>
+          <button class="ann-link" type="button" id="ann-markall-btn" onclick="annMarkAllRead()" style="margin-left:auto">✓ Mark all as read</button>
         </div>
         <div id="announcements-list">
           <p style="font-size:12px;color:var(--text3)">Loading announcements…</p>
@@ -5418,6 +5548,10 @@ body.lem-on .tr-chip{top:calc(var(--tr-top,calc(env(safe-area-inset-top,0px) + 1
             <option value="warn">Important</option>
             <option value="success">Success</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label>PIN</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;cursor:pointer;padding:9px 0"><input type="checkbox" id="ann-pinned" style="width:auto"> 📌 Keep at the top</label>
         </div>
         <div class="form-group form-full">
           <label>MESSAGE</label>
@@ -8830,6 +8964,8 @@ function _applyTeacherProfile(data, uid){
 
   // Subject-teacher login reminder: missing scores + deadline to beat (once per login).
   if(typeof _trStart === 'function') setTimeout(_trStart, 1500);
+  // Reminder deep link (?exam=…&g=…): open that exam in Quick Entry once data is ready.
+  if(typeof _qeDeepLinkOpen === 'function' && window._qeDeep) setTimeout(_qeDeepLinkOpen, 2000);
 
   if(data.Advancedadmin === true){
     isAdvancedAdmin = true;
@@ -16569,10 +16705,16 @@ async function _trRefresh(){
     _trUpdateChip();
   }finally{ _trRunning = false; }
 }
+/** True while the teacher is already on the score-entry screen (or a reminder deep link is still opening it). */
+function _trOnQuickEntry(){
+  const v = document.getElementById('view-quickentry');
+  return !!((v && v.classList.contains('active')) || window._qeDeep);
+}
 /** Every 30s: re-pop the reminder when a deadline crosses 48h / 24h / 2h. */
 function _trTick(){
   if(isAdvancedAdmin || !_trItemsLive.length) return;
   _trUpdateChip();
+  if(_trOnQuickEntry()) return; // already entering scores — don't interrupt (and don't mark as seen)
   if(document.getElementById('tr-remind-modal')) return;
   const seen = _trSeen();
   const due = _trItemsLive.filter(x=>x.deadline && _trBand(x.deadline) < (seen[x.compound]||999));
@@ -16584,9 +16726,9 @@ async function _trStart(attempt){
   attempt = attempt || 0;
   const uid = window._currentUser && window._currentUser.uid;
   if(!uid || isAdvancedAdmin || window._trShownUid === uid) return;
+  window._trShownUid = uid; // claim BEFORE the await so a second _trStart call (profile applied twice on reload) bails out at the guard
   const items = await _trCompute();
-  if(items === null){ if(attempt<20) setTimeout(()=>_trStart(attempt+1), 1500); return; }
-  window._trShownUid = uid; // once per login, even if nothing was owed
+  if(items === null){ window._trShownUid = null; if(attempt<20) setTimeout(()=>_trStart(attempt+1), 1500); return; }
   _trItemsLive = items; window._trItems = items;
   _trUpdateChip();
   if(items.length){
@@ -16596,7 +16738,7 @@ async function _trStart(attempt){
     const near = items.some(x=>x.deadline && (x.deadline - Date.now()) <= 3*86400000);
     const dayKey = 'tr_daily_' + uid, today = new Date().toDateString();
     let doneToday = false; try{ doneToday = localStorage.getItem(dayKey) === today; }catch(e){}
-    if(near || !doneToday){
+    if((near || !doneToday) && !_trOnQuickEntry()){
       _trMarkSeen(items);
       try{ localStorage.setItem(dayKey, today); }catch(e){}
       _trShowModal(items, false);
@@ -16611,6 +16753,7 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && windo
 function _trShowModal(items, urgent){
   const old = document.getElementById('tr-remind-modal'); if(old) old.remove();
   if(!items || !items.length) return;
+  if(_trOnQuickEntry()) return; // never cover the score-entry screen
   const E = _annEsc;
   const missOf = x => x.subs.reduce((b,y)=>b+y.students.length,0);
   const total = items.reduce((a,x)=>a+missOf(x),0);
@@ -16725,6 +16868,118 @@ function _trOpenExam(i){
 }
 window._trStart = _trStart; window._trOpenExam = _trOpenExam;
 
+/** Link teachers get in reminders. Opens this portal and, after sign-in, jumps straight to
+ *  Quick Entry with the grade + exam preselected (see _qeDeepLinkOpen). */
+/** Short stable id for an exam (so the link stays short and has no spaces to get mangled). */
+function _qeShortId(str){
+  const s = String(str||'').trim().toLowerCase().replace(/\s+/g,' ');
+  let h1 = 5381, h2 = 0;
+  for(let i=0;i<s.length;i++){ const c = s.charCodeAt(i); h1 = ((h1<<5)+h1+c)>>>0; h2 = (c + (h2<<6) + (h2<<16) - h2)>>>0; }
+  return h1.toString(36) + h2.toString(36);
+}
+window._qeShortId = _qeShortId;
+function _qePortalLink(grade, compound){
+  let base = location.href.split('#')[0].split('?')[0];
+  if(!/^https?:/i.test(base)) base = (location.origin && location.origin !== 'null' ? location.origin : '') + location.pathname;
+  // ?qe=<shortId> → that exam; ?qe=open → just open Quick Entry (auto-picks the exam if there is only one)
+  return base + '?qe=' + (compound ? _qeShortId(compound) : 'open');
+}
+window._qePortalLink = _qePortalLink;
+function peRmClose(){
+  document.getElementById('pe-remind-modal')?.remove();
+  if(window._peRmKey){ document.removeEventListener('keydown', window._peRmKey); window._peRmKey = null; }
+}
+function _peRmCopyText(txt, okMsg){
+  const done = ()=>notify(okMsg,'success',2000);
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, ()=>notify('Could not copy — select and copy manually.','error')); return; }
+  const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ notify('Could not copy.','error'); } ta.remove();
+}
+function peRmCopy(i){ const m = window._peRm && window._peRm.msgs[i]; if(m) _peRmCopyText(m, '📋 Message copied!'); }
+function peRmCopyLink(){ if(window._peRm) _peRmCopyText(window._peRm.link, '🔗 Link copied!'); }
+function peRmSent(i){
+  const c = document.getElementById('prm-card-'+i), n = document.getElementById('prm-count-'+i);
+  if(c) c.classList.add('sent'); if(n) n.textContent = '✓ Reminder sent';
+}
+window.peRmClose=peRmClose; window.peRmCopy=peRmCopy; window.peRmCopyLink=peRmCopyLink; window.peRmSent=peRmSent;
+
+/** Deep link from a reminder: ?exam=<compound>&g=<grade>. Waits for sign-in + Quick Entry
+ *  selectors, opens the exam, then strips the params so a refresh doesn't re-trigger it. */
+window._qeDeep = (function(){
+  try{
+    const q = new URLSearchParams(location.search);
+    let d = null;
+    if(q.has('qe')) d = {code:(q.get('qe')||'open').trim(), compound:'', grade:''};
+    else if(q.get('exam')) d = {code:'', compound:q.get('exam'), grade:q.get('g')||''}; // old long links
+    if(d){ d.ts = Date.now(); try{ sessionStorage.setItem('_qeDeep', JSON.stringify(d)); }catch(e){} return d; }
+    const st = sessionStorage.getItem('_qeDeep');
+    if(st){ const o = JSON.parse(st); if(o && Date.now() - (o.ts||0) < 6*3600*1000) return o; sessionStorage.removeItem('_qeDeep'); }
+  }catch(e){}
+  return null;
+})();
+function _qeDeepLinkOpen(n, chained){
+  const d = window._qeDeep; if(!d) return;
+  if(!chained){ if(window._qeDeepBusy) return; window._qeDeepBusy = true; n = 0; }
+  n = n || 0;
+  const again = ms => setTimeout(()=>_qeDeepLinkOpen(n+1, true), ms);
+  const finish = (msg)=>{
+    window._qeDeep = null; window._qeDeepBusy = false;
+    try{ sessionStorage.removeItem('_qeDeep'); }catch(e){}
+    try{ history.replaceState(null, '', location.pathname + location.hash); }catch(e){}
+    if(msg) notify(msg, 'info', 6000);
+  };
+  const g = document.getElementById('qe-grade'), t = document.getElementById('qe-term');
+  const norm = typeof _normTermStr === 'function' ? _normTermStr : (x=>String(x||'').trim().toLowerCase());
+  const realOpts = el => [...el.options].filter(o=>o.value && o.value!=='__new__');
+
+  // Stage 1 — wait (as long as the teacher needs to sign in) for: signed in + profile resolved + data loaded.
+  //   NOTE: the Quick Entry Grade/Exam dropdowns are only filled AFTER Quick Entry is opened, so they must
+  //   not be a precondition for opening it.
+  if(!d._nav){
+    const dataReady = (typeof _firstLoad === 'undefined') || !_firstLoad;
+    const ready = window._currentUser && g && t && window._teacherProfileResolved && dataReady;
+    if(!ready){ if(n < 400) again(1500); else finish(); return; }   // ~10 minutes
+    if(!d.compound && d.code && d.code !== 'open'){
+      const pend = Object.values((typeof _pendingExams !== 'undefined' && _pendingExams) || {});
+      const hit = pend.find(pe => pe && pe.compound && _qeShortId(pe.compound) === d.code);
+      if(hit){ d.compound = hit.compound; d.grade = hit.grade || (typeof gShort === 'function' ? gShort(hit.compound) : ''); }
+      else if((d._w1 = (d._w1||0) + 1) < 20){ again(1000); return; }  // pending exams may still be loading
+    }
+    if(!d.grade && d.compound && typeof gShort === 'function') d.grade = gShort(d.compound);
+    d._nav = true;
+    navTo('quickentry', document.querySelector('.nav-item[data-label="Quick Entry"]'));
+    again(500); return;
+  }
+  // Stage 1b — Quick Entry is open; wait for its dropdowns to be filled, then pick the grade.
+  if(!d._gset){
+    d._w1b = (d._w1b||0) + 1;
+    if(g.disabled || !realOpts(g).length){
+      if(d._w1b === 6 && typeof _populateQuickEntrySelectors === 'function') _populateQuickEntrySelectors();
+      if(d._w1b < 40){ again(500); return; }
+      finish('Quick Entry opened — pick your grade and exam to start.'); return;
+    }
+    d._gset = true;
+    if(d.grade && [...g.options].some(o=>o.value===d.grade)){ g.value = d.grade; g.dispatchEvent(new Event('change')); }
+    again(400); return;
+  }
+
+  // Stage 2 — choose the exam (it can appear a moment after the roster).
+  d._w2 = (d._w2||0) + 1;
+  if(d.compound){
+    const opt = [...t.options].find(o=>o.value===d.compound) || [...t.options].find(o=>o.value && norm(o.value)===norm(d.compound));
+    if(opt){ t.value = opt.value; finish(); _qeAutoLoadOnTermChange(); return; }
+    if(d._w2 < 40){ again(750); return; }
+    finish('That exam is no longer open for entry — pick another from the list.'); return;
+  }
+  // No specific exam in the link: if the teacher has exactly one exam waiting, open it.
+  if(d._w2 < 6){ again(600); return; }
+  const opts = realOpts(t);
+  if(opts.length === 1){ t.value = opts[0].value; finish(); _qeAutoLoadOnTermChange(); }
+  else finish(opts.length ? 'Pick your exam to start entering scores.' : null);
+}
+window._qeDeepLinkOpen = _qeDeepLinkOpen;
+if(window._qeDeep) setTimeout(function(){ _qeDeepLinkOpen(); }, 1500);
+
 async function remindPendingExamTeachers(key){
   const pe = _pendingExams?.[key];
   if(!pe){ notify('Pending exam not found.','error'); return; }
@@ -16790,6 +17045,7 @@ async function remindPendingExamTeachers(key){
   const deadlineMs = pe.deadline || null;
   const dlInfo = deadlineMs ? _peDeadlineInfo(deadlineMs) : null;
 
+  const portalLink = _qePortalLink(grade, compound);
   const msgFor = t => {
     const lines = [
       `🏫 *KANYADET PRI & JUNIOR SCHOOL*`,
@@ -16809,53 +17065,73 @@ async function remindPendingExamTeachers(key){
     if(deadlineMs){
       lines.push(`🗓️ Deadline: ${new Date(deadlineMs).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'})} (${dlInfo.text.replace('⚠️ ','').replace('⏳ ','')})`, ``);
     }
-    lines.push(`Kindly log in to Quick Entry and submit these scores as soon as possible so results processing isn't delayed.`);
+    lines.push(`👉 *Tap to open Quick Entry* (sign in if asked — this exam opens automatically):`);
+    lines.push(portalLink, ``);
+    lines.push(`Kindly submit these scores as soon as possible so results processing isn't delayed.`);
     lines.push(``, `Thank you!`, `_Kanyadet School System_`);
     return lines.join('\n');
   };
 
+  const E = _annEsc;
+  const msgs = teachers.map(msgFor);
+  window._peRm = {msgs, link: portalLink};
+  const totalMissing = teachers.reduce((a,t)=>a+t.owed.reduce((b,o)=>b+o.students.length,0),0);
+
   const modal = document.createElement('div');
   modal.id = 'pe-remind-modal';
-  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px`;
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:14px;padding:24px;max-width:560px;width:100%;max-height:85vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <h3 style="margin:0;color:#25D366;font-size:16px">📲 Remind Subject Teachers</h3>
-        <button onclick="document.getElementById('pe-remind-modal').remove()" style="border:none;background:#e74c3c;color:#fff;border-radius:6px;padding:6px 12px;cursor:pointer">✕</button>
+    <div class="prm-box" role="dialog" aria-label="Remind subject teachers">
+      <div class="prm-hd">
+        <div class="prm-hd-ic">📲</div>
+        <div style="min-width:0">
+          <h3>Remind Subject Teachers</h3>
+          <p>${E(grade)} · “${E(compound)}”</p>
+        </div>
+        <button class="prm-x" type="button" onclick="peRmClose()" aria-label="Close">✕</button>
       </div>
-      <p style="font-size:12px;color:#7f8c8d;margin:0 0 14px">${grade} · "${compound}" — ${teachers.length} teacher(s) with missing scores${dlInfo?` · <span class="pe-countdown-badge" data-deadline="${deadlineMs}" style="font-weight:700;color:${dlInfo.color}">${dlInfo.text}</span>`:''}</p>
-      ${unassignedSubjects.length ? `<div style="background:#fff4e5;border:1px solid #ffb84d;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#8a5a00">
-        ⚠️ <strong>${unassignedSubjects.length} subject(s) have missing scores but no assigned teacher</strong> to remind — nobody will get pinged for these unless you assign a teacher in Control Center:
-        <ul style="margin:6px 0 0;padding-left:18px">
-          ${unassignedSubjects.map(s=>`<li>${s} — ${missingBySubject[s].length} student(s) missing</li>`).join('')}
-        </ul>
-      </div>` : ''}
-      <div style="display:flex;flex-direction:column;gap:10px">
-        ${teachers.map(t=>{
+      <div class="prm-body">
+        <div class="prm-stats">
+          <div class="prm-stat"><b>${teachers.length}</b><span>Teacher${teachers.length===1?'':'s'} to remind</span></div>
+          <div class="prm-stat"><b>${totalMissing}</b><span>Scores missing</span></div>
+          <div class="prm-stat dl"><b>${dlInfo?`<span class="pe-countdown-badge" data-deadline="${deadlineMs}" style="color:${dlInfo.color}">${dlInfo.text}</span>`:'No deadline'}</b><span>${deadlineMs?E(new Date(deadlineMs).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'})):'Deadline'}</span></div>
+        </div>
+        ${unassignedSubjects.length ? `<div class="prm-warn">
+          ⚠️ <strong>${unassignedSubjects.length} subject(s) have missing scores but no assigned teacher</strong> — nobody is pinged for these until you assign a teacher in Control Center:
+          <ul>${unassignedSubjects.map(x=>`<li>${E(x)} — ${missingBySubject[x].length} student(s) missing</li>`).join('')}</ul>
+        </div>` : ''}
+        <div class="prm-link">
+          <div class="prm-link-t"><small>🔗 Link sent in every message</small><code>${E(portalLink)}</code></div>
+          <button class="prm-btn ghost" type="button" onclick="peRmCopyLink()">Copy link</button>
+        </div>
+        ${teachers.map((t,i)=>{
           const phone = _waNormalizePhone(t.phone);
-          const link = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(msgFor(t))}` : `https://wa.me/?text=${encodeURIComponent(msgFor(t))}`;
-          const subjSummary = t.owed.map(o=>`${o.subject} (${o.students.length})`).join(', ');
-          // Apostrophes in the message (e.g. "isn't delayed") are valid inside
-          // JSON.stringify's double-quoted output but would otherwise close
-          // this single-quoted onclick attribute early, spilling the rest of
-          // the button's own markup out as visible text. Escape them as an
-          // HTML entity — the browser decodes it back to ' before running the JS.
-          const copyPayload = JSON.stringify(msgFor(t)).replace(/'/g, '&#39;');
-          return `<div style="border:1px solid #eee;border-radius:10px;padding:10px 12px">
-            <div style="font-weight:700;font-size:13px;color:#2c3e50">${t.name}</div>
-            <div style="font-size:11px;color:#7f8c8d;margin-bottom:8px">${subjSummary}${t.phone?' · '+t.phone:' · ⚠️ No phone on file'}</div>
-            <div style="display:flex;gap:8px">
-              <a href="${link}" target="_blank" style="flex:1;background:#25D366;color:#fff;text-decoration:none;border-radius:8px;padding:8px;text-align:center;font-weight:bold;font-size:12px">💬 WhatsApp</a>
-              <button onclick='navigator.clipboard.writeText(${copyPayload}).then(()=>notify("📋 Copied!","success",2000))' style="flex:1;background:#3498db;color:#fff;border:none;border-radius:8px;padding:8px;cursor:pointer;font-weight:bold;font-size:12px">📋 Copy</button>
+          const link = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(msgs[i])}` : `https://wa.me/?text=${encodeURIComponent(msgs[i])}`;
+          const n = t.owed.reduce((b,o)=>b+o.students.length,0);
+          const ini = E(((t.name||'?').trim()[0]||'?').toUpperCase());
+          return `<div class="prm-card" id="prm-card-${i}">
+            <div class="prm-top">
+              <div class="prm-av">${ini}</div>
+              <div class="prm-who"><b>${E(t.name)}</b>${t.phone?`<span>📞 ${E(t.phone)}</span>`:`<span class="nophone">⚠️ No phone on file — you’ll pick the chat in WhatsApp</span>`}</div>
+              <span class="prm-count" id="prm-count-${i}">${n} score${n===1?'':'s'} missing</span>
             </div>
+            <div class="prm-chips">${t.owed.map(o=>`<span class="prm-chip">${E(o.subject)}<b>${o.students.length}</b></span>`).join('')}</div>
+            <div class="prm-acts">
+              <a class="prm-btn wa" href="${link}" target="_blank" rel="noopener" onclick="peRmSent(${i})">💬 Send on WhatsApp</a>
+              <button class="prm-btn ghost" type="button" onclick="peRmCopy(${i})">📋 Copy message</button>
+            </div>
+            <details class="prm-prev"><summary>Preview message</summary><pre>${E(msgs[i])}</pre></details>
           </div>`;
         }).join('')}
       </div>
-      <p style="font-size:10px;color:#95a5a6;margin:12px 0 4px">Use the WhatsApp buttons above for each teacher's reminder. The PDF below is for the staff group post or your own records — not something teachers need to open.</p>
-      <button class="btn btn-outline btn-sm" style="width:100%" onclick="exportPendingExamReminderPDF('${key.replace(/'/g,"\\'")}')">📄 Staff Group / Admin Copy (PDF)</button>
+      <div class="prm-ft">
+        <p>The PDF is for the staff group post or your own records — teachers don’t need to open it.</p>
+        <button class="btn btn-outline btn-sm" style="width:100%" onclick="exportPendingExamReminderPDF('${key.replace(/'/g,"\\'")}')">📄 Staff Group / Admin Copy (PDF)</button>
+      </div>
     </div>`;
   document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  modal.addEventListener('click', e => { if(e.target===modal) peRmClose(); });
+  window._peRmKey = e => { if(e.key==='Escape') peRmClose(); };
+  document.addEventListener('keydown', window._peRmKey);
 
   window._peRemindCache = window._peRemindCache || {};
   window._peRemindCache[key] = {grade, examLabel: compound, teachers};
@@ -17899,6 +18175,7 @@ function navTo(view,el){
   if(view==='duplicates') renderDuplicates();
   if(view==='settings'){ renderTermLockSettings(); renderPendingExamsSettings(); renderExtraSubjectsSettings(); renderMissingGenderTile(); if(typeof ccRefresh==='function') ccRefresh(); }
   if(view==='progressrecords') _prInit();
+  if(view==='quickentry' && document.getElementById('tr-remind-modal') && typeof _trCloseModal==='function') _trCloseModal();
   if(window.innerWidth<768) closeSidebar();
 }
 window.navTo=navTo;
@@ -19142,48 +19419,225 @@ function _annWatchAll(){
 }
 window._annWatchAll = _annWatchAll;
 
+/* ── Announcements v2 — read-state, bell, filters ─────────────────────────
+ *  Read-state is kept per user in localStorage (ann_read_<uid> = {key: stamp}).
+ *  Storing the stamp (updatedAt||createdAt) means an EDITED announcement turns
+ *  unread again. Your own posts/edits are never unread, and anything older than
+ *  14 days is treated as read so a new device doesn't open to a wall of badges. */
+const _ANN_META = {
+  info:    {label:'INFO',      icon:'ℹ️', cls:'ann-info',    t:'ann-t-info'},
+  warn:    {label:'IMPORTANT', icon:'⚠️', cls:'ann-warn',    t:'ann-t-warn'},
+  success: {label:'SUCCESS',   icon:'✅', cls:'ann-success', t:'ann-t-success'}
+};
+let _annFilter = 'all', _annQuery = '';
+let _annNewSet = new Set();      // keys shown with a NEW tag during the current visit
+let _annExpanded = new Set();    // keys whose long body is expanded
+let _annLastUnread = 0;
+
+function _annUid(){ return (window._currentUser && window._currentUser.uid) || ''; }
+function _annReadKey(){ return 'ann_read_' + _annUid(); }
+function _annReadMap(){ try{ return JSON.parse(localStorage.getItem(_annReadKey())||'{}'); }catch(e){ return {}; } }
+function _annStamp(a){ return (a && (a.updatedAt || a.createdAt)) || 0; }
+function _annIsUnread(k, a, map){
+  if(!a) return false;
+  const me = _annUid();
+  const lastActor = a.updatedAt ? a.updatedByUid : a.createdByUid;
+  if(me && lastActor === me) return false;
+  const st = _annStamp(a);
+  if(!st || st < Date.now() - 14*864e5) return false;
+  return st > ((map || _annReadMap())[k] || 0);
+}
+function _annUnreadKeys(){
+  const map = _annReadMap();
+  return Object.keys(_announcements||{}).filter(k=>_annIsUnread(k,_announcements[k],map));
+}
+function _annMarkRead(keys){
+  if(!keys || !keys.length) return;
+  const map = _annReadMap();
+  keys.forEach(k=>{ if(_announcements[k]) map[k] = _annStamp(_announcements[k]); });
+  try{ localStorage.setItem(_annReadKey(), JSON.stringify(map)); }catch(e){}
+  _annUpdateBell();
+}
+function annMarkAllRead(){
+  _annMarkRead(Object.keys(_announcements||{}));
+  _annNewSet.clear();
+  if(document.getElementById('view-announcements')?.classList.contains('active')) renderAnnouncements();
+}
+function _annSorted(){
+  return Object.entries(_announcements||{}).sort((a,b)=>
+    (b[1].pinned?1:0)-(a[1].pinned?1:0) || (b[1].createdAt||0)-(a[1].createdAt||0));
+}
+function _annWhen(a){
+  const t = a.createdAt; if(!t) return '';
+  return `<span title="${_annEsc(new Date(t).toLocaleString('en-KE',{dateStyle:'full',timeStyle:'short'}))}">${timeAgo(t)}</span>`;
+}
+
+/** Bell badge + sidebar badge + dropdown contents. Cheap; safe to call any time. */
+function _annUpdateBell(){
+  const n = _annUnreadKeys().length;
+  const label = n > 99 ? '99+' : String(n);
+  const b = document.getElementById('ann-bell-badge'), nb = document.getElementById('ann-nav-badge');
+  if(b){ b.textContent = label; b.classList.toggle('on', n > 0); }
+  if(nb){ nb.textContent = label; nb.style.display = n > 0 ? '' : 'none'; }
+  const bell = document.getElementById('ann-bell');
+  if(bell){
+    bell.title = n ? `Announcements — ${n} unread` : 'Announcements';
+    if(n > _annLastUnread){ bell.classList.remove('ring'); void bell.offsetWidth; bell.classList.add('ring'); }
+  }
+  _annLastUnread = n;
+  if(document.getElementById('ann-panel')?.classList.contains('on')) _annRenderPanel();
+}
+function _annRenderPanel(){
+  const box = document.getElementById('ann-panel-list'); if(!box) return;
+  const map = _annReadMap();
+  const rows = _annSorted().slice(0,6);
+  if(!rows.length){
+    box.innerHTML = `<div class="ann-empty"><span class="ann-empty-ic">🔔</span>No announcements yet.</div>`;
+    return;
+  }
+  box.innerHTML = rows.map(([k,a])=>{
+    const m = _ANN_META[a.type] || _ANN_META.info;
+    const unread = _annIsUnread(k,a,map);
+    return `<div class="ann-pi ${m.t}" style="--ac:${a.type==='warn'?'#e07826':a.type==='success'?'#27ae60':'var(--blue)'}" onclick="annOpenFromBell('${k}')">
+      <div class="ann-pi-ic">${m.icon}</div>
+      <div style="min-width:0;flex:1">
+        <div class="ann-pi-t">${a.pinned?'📌 ':''}<span>${_annEsc(a.title)}</span>${unread?'<i class="ann-dot"></i>':''}</div>
+        <div class="ann-pi-b">${_annEsc(a.body)}</div>
+        <div class="ann-pi-m">${a.createdAt?timeAgo(a.createdAt):''}${a.createdBy?' · '+_annEsc(a.createdBy):''}</div>
+      </div></div>`;
+  }).join('');
+}
+function annBellToggle(e){
+  if(e) e.stopPropagation();
+  const panel = document.getElementById('ann-panel'), bell = document.getElementById('ann-bell');
+  if(!panel) return;
+  const open = !panel.classList.contains('on');
+  panel.classList.toggle('on', open); bell?.classList.toggle('open', open);
+  if(open) _annRenderPanel();
+}
+function annCloseBell(){
+  document.getElementById('ann-panel')?.classList.remove('on');
+  document.getElementById('ann-bell')?.classList.remove('open');
+}
+document.addEventListener('click', annCloseBell);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') annCloseBell(); });
+
+function annOpenFromBell(key){
+  annCloseBell();
+  _annFilter = 'all'; _annQuery = '';
+  const si = document.getElementById('ann-search'); if(si) si.value = '';
+  if(key){ _annExpanded.add(key); }
+  const navEl = document.querySelector('.nav-item[data-label="Announcements"]');
+  navTo('announcements', navEl);
+  if(key) setTimeout(()=>{
+    const el = document.getElementById('ann-item-' + key);
+    if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.add('ann-flash'); }
+  }, 120);
+}
+function annSetFilter(f){ _annFilter = f; renderAnnouncements(); }
+function annSetQuery(q){
+  _annQuery = (q||'').trim().toLowerCase();
+  clearTimeout(window._annQT); window._annQT = setTimeout(renderAnnouncements, 120);
+}
+function annToggleExpand(key){
+  if(_annExpanded.has(key)) _annExpanded.delete(key); else _annExpanded.add(key);
+  renderAnnouncements();
+}
+
 function renderAnnouncements(){
   const list = document.getElementById('announcements-list');
   if(!list) return;
   const newBtn = document.getElementById('ann-new-btn');
   if(newBtn) newBtn.style.display = isAdvancedAdmin ? '' : 'none';
 
-  const tagMap   = {info:'ann-info', warn:'ann-warn', success:'ann-success'};
-  const typeLabel= {info:'INFO', warn:'IMPORTANT', success:'SUCCESS'};
+  const viewActive = !!document.getElementById('view-announcements')?.classList.contains('active');
+  // While the page is open, whatever was unread keeps its NEW tag for this visit, then counts as read.
+  if(viewActive){
+    const unread = _annUnreadKeys();
+    unread.forEach(k=>_annNewSet.add(k));
+    if(unread.length){ clearTimeout(window._annReadT); window._annReadT = setTimeout(()=>_annMarkRead(unread), 1200); }
+  } else { _annNewSet.clear(); }
 
-  const entries = Object.entries(_announcements)
-    .sort((a,b)=> (b[1].createdAt||0) - (a[1].createdAt||0));
+  const all = _annSorted();
+  const counts = {all: all.length, info:0, warn:0, success:0};
+  all.forEach(([k,a])=>{ counts[_ANN_META[a.type]?a.type:'info']++; });
 
+  const chips = document.getElementById('ann-chips');
+  if(chips){
+    const defs = [['all','All'],['warn','⚠️ Important'],['info','ℹ️ Info'],['success','✅ Success']];
+    chips.innerHTML = defs.map(([k,l])=>`<button type="button" class="ann-chip ${_annFilter===k?'on':''}" onclick="annSetFilter('${k}')">${l}<i>${counts[k]}</i></button>`).join('');
+  }
+  const sub = document.getElementById('ann-sub');
+  if(sub){
+    const nn = _annNewSet.size || _annUnreadKeys().length;
+    sub.textContent = all.length ? `${all.length} announcement${all.length===1?'':'s'}${nn?` · ${nn} new`:' · you\u2019re all caught up'}` : '';
+  }
+  const mab = document.getElementById('ann-markall-btn');
+  if(mab) mab.style.display = all.length ? '' : 'none';
+
+  if(!all.length){
+    list.innerHTML = `<div class="ann-empty"><span class="ann-empty-ic">📢</span>No announcements yet${isAdvancedAdmin?' — click “New Announcement” to post one.':'.'}</div>`;
+    _annUpdateBell(); return;
+  }
+
+  const q = _annQuery;
+  const entries = all.filter(([k,a])=>{
+    if(_annFilter !== 'all' && (_ANN_META[a.type]?a.type:'info') !== _annFilter) return false;
+    if(q && !((a.title||'')+' '+(a.body||'')+' '+(a.createdBy||'')).toLowerCase().includes(q)) return false;
+    return true;
+  });
   if(!entries.length){
-    list.innerHTML = `<p style="font-size:12px;color:var(--text3)">No announcements yet${isAdvancedAdmin?' — click "New Announcement" to post one.':'.'}</p>`;
-    return;
+    list.innerHTML = `<div class="ann-empty"><span class="ann-empty-ic">🔎</span>No announcements match your filter.</div>`;
+    _annUpdateBell(); return;
   }
 
   list.innerHTML = entries.map(([key,a])=>{
-    const type = tagMap[a.type] ? a.type : 'info';
-    const editedTag = a.updatedAt ? `<span class="ann-edited-tag">edited${a.updatedBy?' by '+_annEsc(a.updatedBy):''}</span>` : '';
+    const type = _ANN_META[a.type] ? a.type : 'info', m = _ANN_META[type];
+    const isNew = _annNewSet.has(key);
+    const long = (a.body||'').length > 260 || ((a.body||'').match(/\n/g)||[]).length > 4;
+    const open = _annExpanded.has(key);
+    const editedTag = a.updatedAt ? `<span class="ann-edited-tag">· edited${a.updatedBy?' by '+_annEsc(a.updatedBy):''} ${timeAgo(a.updatedAt)}</span>` : '';
     const actions = isAdvancedAdmin ? `
       <div class="ann-actions">
+        <button class="ann-act-btn" title="${a.pinned?'Unpin':'Pin to top'}" onclick="annTogglePin('${key}')">${a.pinned?'📌':'📍'}</button>
         <button class="ann-act-btn edit" title="Edit" onclick="openAnnouncementModal('${key}')">✏️</button>
         <button class="ann-act-btn del" title="Delete" onclick="deleteAnnouncement('${key}')">🗑</button>
       </div>` : '';
-    return `<div class="announce-item">
-      <div class="ann-head">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="ann-title">${_annEsc(a.title)}</span>
-          <span class="ann-tag ${tagMap[type]}">${typeLabel[type]}</span>
-          ${editedTag}
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="ann-date">${a.createdAt?timeAgo(a.createdAt):''}${a.createdBy?' · '+_annEsc(a.createdBy):''}</span>
-          ${actions}
+    const init = _annEsc(((a.createdBy||'?').trim()[0]||'?').toUpperCase());
+    return `<div class="announce-item ${m.t}${isNew?' is-new':''}${a.pinned?' is-pinned':''}" id="ann-item-${key}">
+      <div class="ann-row">
+        <div class="ann-ic">${m.icon}</div>
+        <div class="ann-main">
+          <div class="ann-head" style="margin-bottom:0;align-items:flex-start;gap:10px">
+            <div style="min-width:0">
+              <div class="ann-titlerow">
+                <span class="ann-title">${_annEsc(a.title)}</span>
+                ${isNew?'<span class="ann-new">NEW</span>':''}
+                ${a.pinned?'<span class="ann-pin">📌 PINNED</span>':''}
+                <span class="ann-tag ${m.cls}">${m.label}</span>
+              </div>
+              <div class="ann-meta"><span class="ann-av">${init}</span>${a.createdBy?_annEsc(a.createdBy)+' ·':''} ${_annWhen(a)} ${editedTag}</div>
+            </div>
+            ${actions}
+          </div>
+          <p class="ann-body${long&&!open?' clamp':''}">${_annEsc(a.body)}</p>
+          ${long?`<button type="button" class="ann-more" onclick="annToggleExpand('${key}')">${open?'Show less ▲':'Read more ▼'}</button>`:''}
         </div>
       </div>
-      <p class="ann-body">${_annEsc(a.body)}</p>
     </div>`;
   }).join('');
+  _annUpdateBell();
+}
+async function annTogglePin(id){
+  if(!isAdvancedAdmin) return;
+  const { ref: fref, update: fupdate } = window._fb || {};
+  const a = _announcements[id]; if(!a || !fref || !db) return;
+  try{ await fupdate(fref(db, `${ANNOUNCEMENTS_PATH}/${id}`), {pinned: !a.pinned}); }
+  catch(e){ console.error('annTogglePin:', e); notify('⚠️ Could not update pin.','error'); }
 }
 window.renderAnnouncements = renderAnnouncements;
+window.annBellToggle=annBellToggle; window.annOpenFromBell=annOpenFromBell; window.annMarkAllRead=annMarkAllRead;
+window.annSetFilter=annSetFilter; window.annSetQuery=annSetQuery; window.annToggleExpand=annToggleExpand; window.annTogglePin=annTogglePin;
 
 /** id omitted → new announcement. id passed → edit mode, prefills the form. */
 function openAnnouncementModal(id){
@@ -19197,12 +19651,14 @@ function openAnnouncementModal(id){
     document.getElementById('ann-title-input').value = a.title || '';
     document.getElementById('ann-body-input').value  = a.body  || '';
     document.getElementById('ann-type').value         = a.type  || 'info';
+    document.getElementById('ann-pinned').checked     = !!a.pinned;
     if(titleEl) titleEl.textContent = 'Edit Announcement';
     if(saveBtn) saveBtn.textContent = '💾 Save Changes';
   }else{
     document.getElementById('ann-title-input').value = '';
     document.getElementById('ann-body-input').value  = '';
     document.getElementById('ann-type').value         = 'info';
+    document.getElementById('ann-pinned').checked     = false;
     if(titleEl) titleEl.textContent = 'New Announcement';
     if(saveBtn) saveBtn.textContent = '📢 Publish';
   }
@@ -19218,13 +19674,14 @@ async function saveAnnouncement(){
   const title=document.getElementById('ann-title-input').value.trim();
   const body=document.getElementById('ann-body-input').value.trim();
   const type=document.getElementById('ann-type').value;
+  const pinned=!!document.getElementById('ann-pinned').checked;
   if(!title||!body){notify('Fill in title and message.','error');return;}
   const { ref: fref, set: fset, push: fpush, update: fupdate, serverTimestamp: fnow } = window._fb || {};
   if(!fref || !db){ notify('⚠️ Not connected — try again in a moment.','error'); return; }
   try{
     if(editId){
       await fupdate(fref(db, `${ANNOUNCEMENTS_PATH}/${editId}`), {
-        title, body, type,
+        title, body, type, pinned,
         updatedBy: currentAdminName,
         updatedByUid: window._currentUser?.uid || '',
         updatedAt: fnow ? fnow() : Date.now(),
@@ -19234,7 +19691,7 @@ async function saveAnnouncement(){
     }else{
       const newRef = fpush(fref(db, ANNOUNCEMENTS_PATH));
       await fset(newRef, {
-        title, body, type,
+        title, body, type, pinned,
         createdBy: currentAdminName,
         createdByUid: window._currentUser?.uid || '',
         createdAt: fnow ? fnow() : Date.now(),
@@ -24436,7 +24893,9 @@ function _epTeacherMsg(t){
     g.rows.forEach(r=>L.push(`   • ${r.subject} — ${r.missing} of ${r.total} missing`));
     L.push('');
   });
-  L.push('Kindly log in to Quick Entry and submit these scores as soon as possible.','','Thank you!','_Kanyadet School System_');
+  const _exs = Object.values(by).map(g=>g.exam);
+  L.push('👉 *Tap to open Quick Entry:*', (_exs.length===1 ? _qePortalLink(_exs[0].grade,_exs[0].compound) : _qePortalLink()), '');
+  L.push('Kindly submit these scores as soon as possible.','','Thank you!','_Kanyadet School System_');
   return L.join('\n');
 }
 
