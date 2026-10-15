@@ -4917,6 +4917,7 @@ setInterval(_rotateAuthTip, 5000);
               <button class="btn btn-outline btn-sm" id="qe-redo-btn" onclick="_qeRedo()" disabled title="Nothing to redo">↷ Redo</button>
               <button class="btn btn-outline btn-sm" onclick="_qeJumpToMissing()" title="Jump to the next empty score in a subject you can enter">🎯 Jump to Missing</button>
               <span id="qe-save-status" style="font-size:11px;color:var(--text2)"></span>
+              <label style="font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap" title="After you type a score, jump to the next student's box in the same subject"><input type="checkbox" id="qe-autoadv" checked style="vertical-align:middle;margin-right:3px">↓ Auto-next</label>
               <span id="qe-final-status" style="font-size:11px;font-weight:700"></span>
               <button class="btn btn-outline btn-sm" id="qe-add-student-btn" onclick="_qeOpenAddStudentModal()">➕ Add Student</button>
               <button class="btn btn-outline btn-sm" id="qe-add-subject-btn" style="display:none" onclick="_qeAddSubjectToSheet()">➕ Add Subject</button>
@@ -4947,6 +4948,7 @@ setInterval(_rotateAuthTip, 5000);
                standing reminder to check before typing scores in. -->
           <div id="qe-rawtip-banner" style="display:none;margin:0 0 10px;padding:8px 12px;background:rgba(41,128,185,.08);border:1px solid var(--border);border-radius:var(--radius-md);font-size:11.5px;color:var(--text2)">💡 Remember: each subject can be set to <strong>📊 Percentage</strong> or <strong>🧮 Raw score</strong> — check the badge above that subject (or under the subject picker on mobile) before typing scores in.</div>
           <div id="qe-rawmode-banner" style="display:none;margin:0 0 10px;padding:10px 12px;background:rgba(255,159,10,.1);border:1.5px solid var(--orange);border-radius:var(--radius-md);font-size:12px;color:var(--text)"></div>
+          <div id="qe-entering" style="display:none;position:sticky;top:56px;z-index:540;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 8px;padding:7px 12px;border:1.5px solid #0a84ff;border-radius:8px;background:var(--surface,#fff);color:var(--text);font-size:12.5px;box-shadow:0 4px 12px rgba(10,132,255,.15)"></div>
           <div class="table-wrap" id="qe-table-wrap"><table class="data-table" id="qe-table" style="min-width:700px">
             <thead><tr id="qe-thead-row"></tr></thead>
             <tbody id="qe-tbody"></tbody>
@@ -24690,6 +24692,117 @@ function _qeOnScoreInput(inputEl){
   _qeRefreshMissingBadges();
 }
 window._qeOnScoreInput = _qeOnScoreInput;
+
+/* ── Auto-advance: after a score is typed, jump to the next student's box (same subject column) ──
+   Smart timing so "8" → "85" is never cut off:
+     • value can't be extended to another valid score (e.g. 85, 100 out of 100)  → move almost instantly
+     • value could still grow (e.g. 8, 10, 7.)                                    → move after 2s of no typing
+   Enter always moves down. Toggle (remembered per device) sits beside the save status. */
+(function(){
+  const KEY = 'qe_auto_advance', IDLE = 2000, FAST = 120;
+  let timer = null, bar = null, infoHide = null;
+  const isOn = () => { try{ return localStorage.getItem(KEY) !== '0'; }catch(e){ return true; } };
+  const cb = document.getElementById('qe-autoadv');
+  if(cb){ cb.checked = isOn(); }
+  // What the teacher sees (all of it is visual only — it never touches score data):
+  //   1. a shrinking bar under the box while the 2s "about to move" wait runs (typing again cancels it)
+  //   2. a steady blue ring on the box currently being typed in
+  //   3. a green ✓ + green pulse on the box just LEFT (= score kept)
+  //   4. a blue pulse on the box just ENTERED, and a line above the table naming student · subject · position
+  const st = document.createElement('style');
+  st.textContent =
+    '#qe-tbody input[data-student]:focus{outline:2px solid #0a84ff;box-shadow:0 0 0 3px rgba(10,132,255,.25)}' +
+    '@keyframes qeAdvPrev{0%,100%{background:rgba(31,166,83,0);box-shadow:0 0 0 0 rgba(31,166,83,0);outline:2px solid transparent}50%{background:rgba(31,166,83,.30);box-shadow:0 0 0 5px rgba(31,166,83,.5);outline:2px solid #1fa653}}' +
+    '@keyframes qeAdvNext{0%,100%{background:rgba(10,132,255,0);box-shadow:0 0 0 0 rgba(10,132,255,0);outline:2px solid transparent}50%{background:rgba(10,132,255,.28);box-shadow:0 0 0 5px rgba(10,132,255,.55);outline:2px solid #0a84ff}}' +
+    '.qe-adv-prev{animation:qeAdvPrev .5s ease-in-out 2}.qe-adv-next{animation:qeAdvNext .45s ease-in-out 3}' +
+    '@keyframes qeTick{0%{transform:scale(.3);opacity:0}15%{transform:scale(1.15);opacity:1}30%{transform:scale(1)}80%{opacity:1}100%{transform:translateY(-6px);opacity:0}}' +
+    '.qe-adv-tick{position:fixed;width:20px;height:20px;border-radius:50%;background:#1fa653;color:#fff;font:700 12px/20px sans-serif;text-align:center;z-index:99999;pointer-events:none;animation:qeTick 1.5s ease-out forwards}' +
+    '.qe-adv-bar{position:fixed;height:4px;border-radius:3px;background:rgba(10,132,255,.2);z-index:99999;pointer-events:none}' +
+    '.qe-adv-bar i{display:block;height:100%;width:100%;background:#0a84ff;border-radius:3px;transition-property:width;transition-timing-function:linear}';
+  document.head.appendChild(st);
+  const blink = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(()=>el.classList.remove(cls), 1450); };
+  function hideBar(){ if(bar){ bar.remove(); bar = null; } }
+  function showBar(inp, ms){
+    hideBar();
+    const r = inp.getBoundingClientRect();
+    bar = document.createElement('div'); bar.className = 'qe-adv-bar';
+    bar.style.left = r.left + 'px'; bar.style.top = (r.bottom + 2) + 'px'; bar.style.width = r.width + 'px';
+    const f = document.createElement('i'); f.style.transitionDuration = ms + 'ms'; bar.appendChild(f);
+    document.body.appendChild(bar); void f.offsetWidth; f.style.width = '0%';
+  }
+  function tick(inp){
+    const r = inp.getBoundingClientRect(), t = document.createElement('div');
+    t.className = 'qe-adv-tick'; t.textContent = '✓';
+    t.style.left = (r.right - 12) + 'px'; t.style.top = (r.top - 9) + 'px';
+    document.body.appendChild(t); setTimeout(()=>t.remove(), 1550);
+  }
+  const cancel = () => { clearTimeout(timer); hideBar(); };
+  const info = () => document.getElementById('qe-entering');
+  function updateInfo(inp){
+    const el = info(); if(!el) return;
+    try{
+      const key = inp.getAttribute('data-student'), subj = inp.getAttribute('data-subject');
+      const row = _qeStudents.find(r => _qeStudentKey(r) === key);
+      const name = row ? (row['Official Student Name'] || 'Student') : 'Student';
+      const rows = [...document.querySelectorAll('#qe-tbody tr')];
+      const idx = rows.indexOf(inp.closest('tr')) + 1;
+      const max = parseFloat(inp.max) || 100;
+      const tb = document.querySelector('.topbar'); el.style.top = ((tb && tb.offsetHeight) || 0) + 'px';
+      el.innerHTML = '✏️ Entering <b>' + _qeEsc(subj) + '</b> for <b>' + _qeEsc(name) + '</b>' +
+        '<span style="color:var(--text3)">· ' + idx + ' of ' + rows.length + ' · out of ' + max + '</span>';
+      el.style.display = 'flex';
+    }catch(e){}
+  }
+  document.addEventListener('change', e => {
+    if(e.target && e.target.id === 'qe-autoadv'){ try{ localStorage.setItem(KEY, e.target.checked ? '1' : '0'); }catch(err){} }
+  });
+  function nextInput(inp){
+    const subj = inp.getAttribute('data-subject');
+    let r = inp.closest('tr'); r = r && r.nextElementSibling;
+    while(r){
+      for(const n of r.querySelectorAll('input[data-student]')){
+        if(n.getAttribute('data-subject') === subj && !n.disabled && !n.readOnly && n.offsetParent !== null) return n;
+      }
+      r = r.nextElementSibling;
+    }
+    return null;
+  }
+  function go(inp){
+    cancel();
+    const n = nextInput(inp); if(!n) return;
+    n.focus(); try{ n.select(); }catch(e){}
+    if(inp.value !== '') tick(inp);        // ✓ only when a score was actually kept
+    blink(inp, 'qe-adv-prev');             // left box → green
+    blink(n,   'qe-adv-next');             // entered box → blue
+    try{ n.scrollIntoView({block:'nearest', behavior:'smooth'}); }catch(e){}
+  }
+  const isScoreBox = el => el && el.matches && el.matches('#qe-tbody input[data-student]');
+  document.addEventListener('input', e => {
+    const inp = e.target; if(!isScoreBox(inp)) return;
+    cancel();
+    updateInfo(inp);
+    if(!isOn()) return;
+    const v = inp.value;
+    if(v === '' || /\.$/.test(v)) return;           // empty / rejected / still typing a decimal
+    const num = parseFloat(v); if(isNaN(num)) return;
+    const max = parseFloat(inp.max) || 100;
+    const settled = (!v.includes('.') && num * 10 > max) || num >= max;   // can't be extended to a bigger valid score
+    if(!settled) showBar(inp, IDLE);                // countdown only while it could still grow
+    timer = setTimeout(() => { if(document.activeElement === inp && inp.value === v) go(inp); else hideBar(); }, settled ? FAST : IDLE);
+  });
+  document.addEventListener('keydown', e => {
+    const inp = e.target; if(!isScoreBox(inp)) return;
+    if(e.key === 'Enter'){ e.preventDefault(); go(inp); }
+    else cancel();
+  });
+  document.addEventListener('focusin', e => { if(isScoreBox(e.target)){ clearTimeout(infoHide); updateInfo(e.target); } });
+  document.addEventListener('focusout', e => {
+    if(!isScoreBox(e.target)) return;
+    hideBar();
+    clearTimeout(infoHide);
+    infoHide = setTimeout(() => { if(!isScoreBox(document.activeElement)){ const el = info(); if(el) el.style.display = 'none'; } }, 250);
+  });
+})();
 
 /* ═══════════════ Quick Entry — Clear Scores (Advanced Admin) ═══════════════
  *  Wipes every score in ONE subject column (all students) or in ONE student's
