@@ -2420,6 +2420,8 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
 #ep-card .ep-tab.on{background:var(--blue);border-color:var(--blue);color:#fff}
 #ep-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
 .ep-row{border:1px solid var(--border-strong);border-radius:12px;padding:12px 14px;background:var(--surface2)}
+.ep-row.ep-open{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.ep-row.ep-open:hover,.ep-row.ep-open:focus-visible{border-color:var(--blue-lt);box-shadow:0 0 0 2px rgba(10,132,255,.18);outline:none}
 .ep-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .ep-grade{background:var(--blue);color:#fff;border-radius:6px;padding:1px 8px;font-size:11px;font-weight:700}
 .ep-name{font-weight:700;font-size:12.5px;color:var(--text);flex:1;min-width:0;overflow-wrap:anywhere}
@@ -23844,19 +23846,57 @@ function _qeJumpToMissing(){
   const gradeForJump = _qeGrade || gShort(_qeCompound);
   const mySubjects = _qeSubjects.filter(s=>_teacherCanEnterSubject(gradeForJump, s));
   if(!mySubjects.length){ notify("⚠️ You're not assigned any subject on this sheet.",'warn'); return; }
-  const candidate = _qeGetAllScoreInputs().find(inp=>
-    inp.value.trim()==='' && mySubjects.includes(inp.getAttribute('data-subject'))
-  );
-  if(!candidate){ notify('.No missing scores in your subject(s) — all filled in!','success'); return; }
   const sel = document.getElementById('qe-mobile-subject-select');
+  const allInputs = _qeGetAllScoreInputs();
+  const isMyEmpty = inp=> inp.value.trim()==='' && mySubjects.includes(inp.getAttribute('data-subject'));
+  // On mobile, stay in the subject the teacher is currently viewing. Only fall back to
+  // another subject when the current one has nothing missing (the old code took the first
+  // empty cell across ALL subjects, which flipped the dropdown to another learning area).
+  const curSubj = (sel && _qeIsMobileQE()) ? sel.value : '';
+  const candidate = (curSubj && allInputs.find(inp=> isMyEmpty(inp) && inp.getAttribute('data-subject')===curSubj))
+                    || allInputs.find(isMyEmpty);
+  if(!candidate){ notify('.No missing scores in your subject(s) — all filled in!','success'); return; }
   const subj = candidate.getAttribute('data-subject');
   if(sel && subj && sel.value !== subj && [...sel.options].some(o=>o.value===subj)){
     sel.value = subj;
     _qeApplyMobileColumnView();
   }
+  // The table is paged (10 rows) and searchable: a cell on another page, or in a row hidden by
+  // the search/filters, is detached from the DOM, so focus()/scrollIntoView() would silently do
+  // nothing. Flip to the page that holds the row first (clearing filters if they hide it).
+  if(_qeDataTable && !candidate.isConnected){
+    try{
+      const td = candidate.closest('td');
+      const rowIdx = _qeDataTable.cell(td).index().row;
+      let pos = _qeDataTable.rows({search:'applied'}).indexes().toArray().indexOf(rowIdx);
+      if(pos === -1){
+        _qeResetAllFilters();
+        pos = _qeDataTable.rows({search:'applied'}).indexes().toArray().indexOf(rowIdx);
+      }
+      if(pos !== -1) _qeDataTable.page(Math.floor(pos / _qeDataTable.page.len())).draw('page');
+    }catch(e){ /* fall through to plain focus */ }
+  }
   candidate.focus(); candidate.scrollIntoView({behavior:'smooth', block:'center'});
 }
 window._qeJumpToMissing = _qeJumpToMissing;
+
+/** Makes sure a score <input> is actually on screen: if its row is on another page of the
+ *  paged table, or hidden by the search/filters, it is detached from the DOM and focus()/
+ *  scrollIntoView() would silently do nothing. Flips to the right page (clearing filters if
+ *  they hide it). Safe no-op when the input is already connected. */
+function _qeRevealInput(inp){
+  if(!_qeDataTable || !inp || inp.isConnected) return;
+  try{
+    const rowIdx = _qeDataTable.cell(inp.closest('td')).index().row;
+    let pos = _qeDataTable.rows({search:'applied'}).indexes().toArray().indexOf(rowIdx);
+    if(pos === -1){
+      _qeResetAllFilters();
+      pos = _qeDataTable.rows({search:'applied'}).indexes().toArray().indexOf(rowIdx);
+    }
+    if(pos !== -1) _qeDataTable.page(Math.floor(pos / _qeDataTable.page.len())).draw('page');
+  }catch(e){ /* fall through to plain focus */ }
+}
+window._qeRevealInput = _qeRevealInput;
 
 /** (Re)builds the DataTables wrapper around #qe-table right after its
  *  thead/tbody HTML has been (re)written. Destroys any previous instance
@@ -24701,7 +24741,10 @@ window._qeOnScoreInput = _qeOnScoreInput;
 (function(){
   const KEY = 'qe_auto_advance', IDLE = 2000, FAST = 120;
   let timer = null, bar = null, infoHide = null;
-  const isOn = () => { try{ return localStorage.getItem(KEY) !== '0'; }catch(e){ return true; } };
+  // Default is ON. Turning it off only lasts for this browser session, so every new visit starts with it on
+  // (a stale 'off' saved on the device by the old localStorage version is cleared here).
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  const isOn = () => { try{ return sessionStorage.getItem(KEY) !== '0'; }catch(e){ return true; } };
   const cb = document.getElementById('qe-autoadv');
   if(cb){ cb.checked = isOn(); }
   // What the teacher sees (all of it is visual only — it never touches score data):
@@ -24745,16 +24788,17 @@ window._qeOnScoreInput = _qeOnScoreInput;
       const row = _qeStudents.find(r => _qeStudentKey(r) === key);
       const name = row ? (row['Official Student Name'] || 'Student') : 'Student';
       const rows = [...document.querySelectorAll('#qe-tbody tr')];
-      const idx = rows.indexOf(inp.closest('tr')) + 1;
+      let idx = rows.indexOf(inp.closest('tr')) + 1, total = rows.length;
+      try{ if(_qeDataTable && _qeDataTable.page){ const pi = _qeDataTable.page.info(); idx += pi.start; total = pi.recordsDisplay; } }catch(e){} // overall position, not just within this page
       const max = parseFloat(inp.max) || 100;
       const tb = document.querySelector('.topbar'); el.style.top = ((tb && tb.offsetHeight) || 0) + 'px';
       el.innerHTML = '✏️ Entering <b>' + _qeEsc(subj) + '</b> for <b>' + _qeEsc(name) + '</b>' +
-        '<span style="color:var(--text3)">· ' + idx + ' of ' + rows.length + ' · out of ' + max + '</span>';
+        '<span style="color:var(--text3)">· ' + idx + ' of ' + total + ' · out of ' + max + '</span>';
       el.style.display = 'flex';
     }catch(e){}
   }
   document.addEventListener('change', e => {
-    if(e.target && e.target.id === 'qe-autoadv'){ try{ localStorage.setItem(KEY, e.target.checked ? '1' : '0'); }catch(err){} }
+    if(e.target && e.target.id === 'qe-autoadv'){ try{ sessionStorage.setItem(KEY, e.target.checked ? '1' : '0'); }catch(err){} }
   });
   function nextInput(inp){
     const subj = inp.getAttribute('data-subject');
@@ -24765,13 +24809,26 @@ window._qeOnScoreInput = _qeOnScoreInput;
       }
       r = r.nextElementSibling;
     }
+    // Last row of this page — the table is paged (10 rows), so carry on to the first box of the
+    // same subject on the next page instead of stopping.
+    try{
+      if(_qeDataTable && _qeDataTable.page){
+        const pi = _qeDataTable.page.info();
+        if(pi.page < pi.pages - 1){
+          _qeDataTable.page('next').draw('page');
+          for(const n of document.querySelectorAll('#qe-tbody input[data-student]')){
+            if(n.getAttribute('data-subject') === subj && !n.disabled && !n.readOnly && n.offsetParent !== null) return n;
+          }
+        }
+      }
+    }catch(e){}
     return null;
   }
   function go(inp){
     cancel();
     const n = nextInput(inp); if(!n) return;
     n.focus(); try{ n.select(); }catch(e){}
-    if(inp.value !== '') tick(inp);        // ✓ only when a score was actually kept
+    if(inp.value !== '' && inp.isConnected) tick(inp);        // ✓ only when a score was actually kept (box may be on the previous page now)
     blink(inp, 'qe-adv-prev');             // left box → green
     blink(n,   'qe-adv-next');             // entered box → blue
     try{ n.scrollIntoView({block:'nearest', behavior:'smooth'}); }catch(e){}
@@ -24982,6 +25039,14 @@ async function loadEntryBoard(force){
   finally{ _ep.loading=false; renderEntryBoard(); }
 }
 function setEntryBoardView(v){ _ep.view=v; renderEntryBoard(); }
+/** Click on an exam card → open that grade + exam in Quick Entry (same flow as the reminder deep link). */
+function epOpenExam(key){
+  const e = (_ep.exams||[]).find(x=>x.key===key); if(!e || e.error) return;
+  window._qeDeep = { code:'', compound:e.compound, grade:e.grade, ts:Date.now() };
+  window._qeDeepBusy = false;
+  _qeDeepLinkOpen();
+}
+window.epOpenExam = epOpenExam;
 
 function _epTeachers(){
   if(!_ep.users) return null;
@@ -25038,12 +25103,12 @@ function renderEntryBoard(){
         const tip = s.missing ? 'Missing: '+s.names.join(', ')+(s.missing>s.names.length?` …+${s.missing-s.names.length} more`:'') : 'Complete';
         return `<span class="ep-chip ${cls}" title="${_gavgEsc(tip)}">${_gavgEsc(s.subject)} <b>${done}/${s.total}</b></span>`;
       }).join('');
-      return `<div class="ep-row">
+      return `<div class="ep-row ep-open" role="button" tabindex="0" data-key="${_gavgEsc(e.key)}" title="Open this exam in Quick Entry" onclick="epOpenExam(this.dataset.key)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();epOpenExam(this.dataset.key)}">
         <div class="ep-head"><span class="ep-grade">${_gavgEsc(e.grade)}</span><span class="ep-name">${_gavgEsc(e.compound)}</span>
           ${dl?`<span class="pe-countdown-badge ep-dl" data-deadline="${e.deadline}" style="color:${dl.color}">${dl.text}</span>`:'<span class="ep-dl" style="color:var(--text3)">No deadline</span>'}</div>
         <div class="ep-bar"><i style="width:${p}%;background:${_epPctColor(p)}"></i></div>
         <div class="ep-meta"><b>${p}%</b> · ${e.total-e.missing}/${e.total} scores · ${e.learners} learners · ${e.subs.length} subjects
-          ${e.missing?`<button class="btn btn-outline btn-sm ep-btn" data-key="${_gavgEsc(e.key)}" onclick="remindPendingExamTeachers(this.dataset.key)">📲 Remind teachers</button>`:'<span class="ep-done">✓ Fully entered</span>'}</div>
+          ${e.missing?`<button class="btn btn-outline btn-sm ep-btn" data-key="${_gavgEsc(e.key)}" onclick="event.stopPropagation();remindPendingExamTeachers(this.dataset.key)">📲 Remind teachers</button>`:'<span class="ep-done">✓ Fully entered</span>'}</div>
         <div class="ep-chips">${chips}</div></div>`;
     }).join('');
   }else{
@@ -25646,6 +25711,7 @@ async function submitQuickEntry(){
         sel.value = subj;
         _qeApplyMobileColumnView();
       }
+      _qeRevealInput(firstEmpty);
       firstEmpty.focus(); firstEmpty.scrollIntoView({behavior:'smooth', block:'center'});
     }
     return;
@@ -25653,9 +25719,15 @@ async function submitQuickEntry(){
 
   // ── Hard block: any score currently flagged out-of-range must be fixed
   // before submitting — no more silently dropping bad values at write time.
-  const flagged = document.querySelectorAll('#qe-tbody input.qe-invalid-score');
+  // Scan every cell (not just the current page / visible column) — the table is paged and,
+  // on mobile, shows one subject at a time, so a DOM query would miss flagged cells elsewhere.
+  const flagged = _qeGetAllScoreInputs().filter(inp=>inp.classList.contains('qe-invalid-score'));
   if(flagged.length){
     notify(`⚠️ ${flagged.length} score(s) are out of the allowed range (shown in red) — fix them before submitting.`,'error',6000);
+    const fSel = document.getElementById('qe-mobile-subject-select');
+    const fSubj = flagged[0].getAttribute('data-subject');
+    if(fSel && fSubj && fSel.value !== fSubj && [...fSel.options].some(o=>o.value===fSubj)){ fSel.value = fSubj; _qeApplyMobileColumnView(); }
+    _qeRevealInput(flagged[0]);
     flagged[0].focus();
     flagged[0].scrollIntoView({behavior:'smooth', block:'center'});
     return;
