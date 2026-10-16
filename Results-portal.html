@@ -296,6 +296,7 @@ body::before{
 /* Edit Score table: no animation — an instant highlight, held for 1.6s by
    the existing JS timeout (see _qePatchScoresIntoTable), then removed. */
 .qe-live-updated{background:rgba(39,174,96,.45)!important;border-color:var(--green)!important;}
+.qe-sync-new{background:rgba(255,159,10,.35)!important;border-color:var(--orange)!important;box-shadow:0 0 0 2px rgba(255,159,10,.45)}
 
 /* ══════════════════════════════════════════
    CONTENT AREA
@@ -8969,7 +8970,7 @@ function _applyTeacherProfile(data, uid){
   // Subject-teacher login reminder: missing scores + deadline to beat (once per login).
   if(typeof _trStart === 'function') setTimeout(_trStart, 1500);
   // Reminder deep link (?exam=…&g=…): open that exam in Quick Entry once data is ready.
-  if(typeof _qeDeepLinkOpen === 'function' && window._qeDeep) setTimeout(_qeDeepLinkOpen, 2000);
+  if(typeof _qeDeepLinkOpen === 'function' && window._qeDeep) setTimeout(_qeDeepLinkOpen, 0);
 
   if(data.Advancedadmin === true){
     isAdvancedAdmin = true;
@@ -16921,6 +16922,35 @@ window._qeDeep = (function(){
   }catch(e){}
   return null;
 })();
+/** Banner shown on Quick Entry while a reminder link is opening the teacher's exam, with a live countdown
+ *  (an estimate — it closes the moment the sheet is actually on screen, never delays loading). */
+function _qeDeepBannerShow(d){
+  _qeDeepBannerHide();
+  const el = document.createElement('div');
+  el.id = 'qe-deep-banner';
+  el.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:100000;max-width:92vw;background:var(--blue-lt,#0a84ff);color:#fff;padding:10px 16px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.25);font-size:13px;font-weight:600;text-align:center;line-height:1.4';
+  document.body.appendChild(el);
+  const name = d && d.compound ? d.compound : 'your exam';
+  const start = Date.now(), EST = 5;
+  const paint = ()=>{
+    const left = Math.max(0, EST - Math.floor((Date.now()-start)/1000));
+    el.textContent = left > 0 ? `⏳ Quick Entry is open — loading ${name} in ${left}s…` : `⏳ Quick Entry is open — almost there, loading ${name}…`;
+  };
+  paint(); window._qeDeepBannerTimer = setInterval(paint, 250);
+}
+function _qeDeepBannerHide(){
+  if(window._qeDeepBannerTimer){ clearInterval(window._qeDeepBannerTimer); window._qeDeepBannerTimer = null; }
+  const el = document.getElementById('qe-deep-banner'); if(el) el.remove();
+}
+/** Keep the banner until the exam's sheet has actually been drawn (or ~20s), then remove it. */
+function _qeDeepBannerUntilLoaded(){
+  const first = ()=>document.querySelector('#qe-tbody input[data-student]');
+  const stale = first(), t0 = Date.now();
+  const iv = setInterval(()=>{
+    const f = first();
+    if((f && f !== stale) || Date.now()-t0 > 20000){ clearInterval(iv); _qeDeepBannerHide(); }
+  }, 200);
+}
 function _qeDeepLinkOpen(n, chained){
   const d = window._qeDeep; if(!d) return;
   if(!chained){ if(window._qeDeepBusy) return; window._qeDeepBusy = true; n = 0; }
@@ -16930,6 +16960,7 @@ function _qeDeepLinkOpen(n, chained){
     window._qeDeep = null; window._qeDeepBusy = false;
     try{ sessionStorage.removeItem('_qeDeep'); }catch(e){}
     try{ history.replaceState(null, '', location.pathname + location.hash); }catch(e){}
+    if(d._loadWait) _qeDeepBannerUntilLoaded(); else _qeDeepBannerHide();
     if(msg) notify(msg, 'info', 6000);
   };
   const g = document.getElementById('qe-grade'), t = document.getElementById('qe-term');
@@ -16942,47 +16973,49 @@ function _qeDeepLinkOpen(n, chained){
   if(!d._nav){
     const dataReady = (typeof _firstLoad === 'undefined') || !_firstLoad;
     const ready = window._currentUser && g && t && window._teacherProfileResolved && dataReady;
-    if(!ready){ if(n < 400) again(1500); else finish(); return; }   // ~10 minutes
+    if(!ready){ if(n < 2400) again(250); else finish(); return; }   // ~10 minutes (polled fast so the exam opens the instant data is ready)
     if(!d.compound && d.code && d.code !== 'open'){
       const pend = Object.values((typeof _pendingExams !== 'undefined' && _pendingExams) || {});
       const hit = pend.find(pe => pe && pe.compound && _qeShortId(pe.compound) === d.code);
       if(hit){ d.compound = hit.compound; d.grade = hit.grade || (typeof gShort === 'function' ? gShort(hit.compound) : ''); }
-      else if((d._w1 = (d._w1||0) + 1) < 20){ again(1000); return; }  // pending exams may still be loading
+      else if((d._w1 = (d._w1||0) + 1) < 80){ again(250); return; }  // pending exams may still be loading
     }
     if(!d.grade && d.compound && typeof gShort === 'function') d.grade = gShort(d.compound);
     d._nav = true;
+    _qeDeepBannerShow(d);
     navTo('quickentry', document.querySelector('.nav-item[data-label="Quick Entry"]'));
-    again(500); return;
+    try{ if(typeof _populateQuickEntrySelectors === 'function') _populateQuickEntrySelectors(); }catch(e){}   // fill the dropdowns now from cached data — don't wait for navTo's 100ms timer
+    again(30); return;
   }
   // Stage 1b — Quick Entry is open; wait for its dropdowns to be filled, then pick the grade.
   if(!d._gset){
     d._w1b = (d._w1b||0) + 1;
     if(g.disabled || !realOpts(g).length){
-      if(d._w1b === 6 && typeof _populateQuickEntrySelectors === 'function') _populateQuickEntrySelectors();
-      if(d._w1b < 40){ again(500); return; }
+      if(d._w1b === 3 && typeof _populateQuickEntrySelectors === 'function') _populateQuickEntrySelectors();
+      if(d._w1b < 300){ again(60); return; }
       finish('Quick Entry opened — pick your grade and exam to start.'); return;
     }
     d._gset = true;
     if(d.grade && [...g.options].some(o=>o.value===d.grade)){ g.value = d.grade; g.dispatchEvent(new Event('change')); }
-    again(400); return;
+    again(30); return;
   }
 
   // Stage 2 — choose the exam (it can appear a moment after the roster).
   d._w2 = (d._w2||0) + 1;
   if(d.compound){
     const opt = [...t.options].find(o=>o.value===d.compound) || [...t.options].find(o=>o.value && norm(o.value)===norm(d.compound));
-    if(opt){ t.value = opt.value; finish(); _qeAutoLoadOnTermChange(); return; }
-    if(d._w2 < 40){ again(750); return; }
+    if(opt){ t.value = opt.value; d._loadWait = true; finish(); _qeAutoLoadOnTermChange(); return; }
+    if(d._w2 < 300){ again(60); return; }
     finish('That exam is no longer open for entry — pick another from the list.'); return;
   }
   // No specific exam in the link: if the teacher has exactly one exam waiting, open it.
-  if(d._w2 < 6){ again(600); return; }
+  if(d._w2 < 50){ again(60); return; }
   const opts = realOpts(t);
-  if(opts.length === 1){ t.value = opts[0].value; finish(); _qeAutoLoadOnTermChange(); }
+  if(opts.length === 1){ t.value = opts[0].value; d._loadWait = true; finish(); _qeAutoLoadOnTermChange(); }
   else finish(opts.length ? 'Pick your exam to start entering scores.' : null);
 }
 window._qeDeepLinkOpen = _qeDeepLinkOpen;
-if(window._qeDeep) setTimeout(function(){ _qeDeepLinkOpen(); }, 1500);
+if(window._qeDeep) setTimeout(function(){ _qeDeepLinkOpen(); }, 100);
 
 async function remindPendingExamTeachers(key){
   const pe = _pendingExams?.[key];
@@ -22830,7 +22863,8 @@ function _qeRestampSubjectColumn(subj){
       : `Scores are typed as a straight 0–100 percentage.${badge.tagName==='BUTTON'?' Tap to change.':''}`;
   }
   let clearedCount = 0;
-  document.querySelectorAll(`#qe-tbody input[data-subject="${CSS.escape(subj)}"]`).forEach(inp=>{
+  // All pages, not just the one on screen (the table is paged, off-page cells are detached from the DOM)
+  _qeGetAllScoreInputs().filter(i=>i.getAttribute('data-subject')===subj).forEach(inp=>{
     inp.max = enabled ? max : 100;
     if(!inp.disabled){
       inp.style.borderColor = enabled ? 'var(--orange)' : 'var(--green)';
@@ -22957,7 +22991,7 @@ async function _qeSaveMarkingModal(){
   const prevMax = _qeSubjectMaxScore[subj] || 100;
   const changesInterpretation = (prevEnabled !== isRaw) || (isRaw && prevMax !== max);
   if(changesInterpretation){
-    const typedCount = [...document.querySelectorAll(`#qe-tbody input[data-subject="${CSS.escape(subj)}"]`)]
+    const typedCount = _qeGetAllScoreInputs().filter(i=>i.getAttribute('data-subject')===subj)
       .filter(inp => !inp.disabled && inp.value.trim() !== '').length;
     if(typedCount){
       _qeCloseMarkingModal(); // close first — never stack this warning under/behind the setup modal
@@ -23036,6 +23070,54 @@ function _qeCloseRawTipModal(){
 }
 window._qeCloseRawTipModal = _qeCloseRawTipModal;
 
+/** "Hold on" banner shown while a sheet opened from the cached copy is still receiving the latest changes. */
+function _qeSyncBannerShow(){
+  _qeSyncBannerHide();
+  const el = document.createElement('div');
+  el.id = 'qe-sync-banner';
+  const below = document.getElementById('qe-deep-banner');
+  el.style.cssText = 'position:fixed;top:'+(below?64:12)+'px;left:50%;transform:translateX(-50%);z-index:99999;max-width:92vw;background:var(--orange,#ff9f0a);color:#fff;padding:10px 16px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.25);font-size:13px;font-weight:600;text-align:center;line-height:1.4';
+  el.textContent = '⏳ Hold on — the latest changes are still coming in. Your sheet is open and anything you type is kept.';
+  document.body.appendChild(el);
+  window._qeSyncBannerGuard = setTimeout(_qeSyncBannerHide, 25000);   // never leave it stuck on a dead connection
+}
+function _qeSyncBannerHide(){
+  clearTimeout(window._qeSyncBannerGuard); clearTimeout(window._qeSyncBannerDoneT);
+  const el = document.getElementById('qe-sync-banner'); if(el) el.remove();
+}
+function _qeSyncBannerDone(msg){
+  const el = document.getElementById('qe-sync-banner'); if(!el){ return; }
+  clearTimeout(window._qeSyncBannerGuard);
+  el.style.background = 'var(--green,#27ae60)'; el.textContent = msg;
+  window._qeSyncBannerDoneT = setTimeout(_qeSyncBannerHide, 6000);
+}
+/** Reloads the open sheet (e.g. the class list changed on another device) WITHOUT losing anything the teacher
+ *  has typed: every unsaved cell is put back afterwards, re-queued for autosave, and the focused box is restored. */
+async function _qeReloadKeepingTyped(){
+  const saved = [];
+  _qeGetAllScoreInputs().forEach(inp=>{
+    const k = inp.getAttribute('data-student'), sj = inp.getAttribute('data-subject');
+    if(k && sj && _qeDirtyCells.has(_qeCellKey(k, sj))) saved.push([k, sj, inp.value]);
+  });
+  const act = document.activeElement;
+  const focusKey = (act && act.matches && act.matches('input[data-student]')) ? [act.getAttribute('data-student'), act.getAttribute('data-subject')] : null;
+  await loadQuickEntry();
+  const all = _qeGetAllScoreInputs();
+  const find = (k, sj)=> all.find(i=>i.getAttribute('data-student')===k && i.getAttribute('data-subject')===sj);
+  saved.forEach(([k, sj, v])=>{
+    const inp = find(k, sj);
+    if(!inp || inp.disabled || inp.readOnly) return;
+    inp.value = v;
+    const ck = _qeCellKey(k, sj);
+    _qeDirtyCells.add(ck); _qePendingCells.add(ck);
+    _qeValidateScoreInput(inp, true); _qeUpdateConversionPreview(inp); _qeDtInvalidateInput(inp);
+  });
+  if(saved.length){
+    clearTimeout(_qeSaveTimer); _qeSaveTimer = setTimeout(_qeSaveDraft, 1200);
+    _qeUpdateFinalSubmitStatus(); _qeRefreshMissingBadges();
+  }
+  if(focusKey){ const f = find(focusKey[0], focusKey[1]); if(f){ try{ _qeRevealInput(f); f.focus(); }catch(e){} } }
+}
 async function loadQuickEntry(){
   const gradeEl = document.getElementById('qe-grade');
   const termEl  = document.getElementById('qe-term');
@@ -23181,7 +23263,45 @@ async function loadQuickEntry(){
       })()
     : Promise.resolve(null);
 
-  const [_rosterOverrides, sharedDraftFlat] = await Promise.all([rosterOverridesPromise, sharedDraftPromise]);
+  // Cached-first: the roster/subject data is already on this device (allData) and the roster overrides have a
+  // local mirror, so the teacher should not sit through two network round-trips before the sheet appears.
+  // Give the network ~700ms; if it hasn't answered, open the sheet from the local copy right away.
+  //  • teammates' shared-draft scores still arrive through the live listener started below;
+  //  • if the server's roster overrides differ from the local copy, the sheet reloads once (only while the
+  //    teacher hasn't typed anything — otherwise they're told to reopen it, so no typing is ever lost).
+  const _netPair = Promise.all([rosterOverridesPromise, sharedDraftPromise]);
+  const _localOv = _qeReadLocalRoster(_qeExamKey) || _qeEmptyOverrides();
+  const _quick = await Promise.race([_netPair, new Promise(res=>setTimeout(()=>res(null), 700))]);
+  let _rosterOverrides, sharedDraftFlat;
+  if(_quick){ [_rosterOverrides, sharedDraftFlat] = _quick; }
+  else{
+    _rosterOverrides = _localOv; sharedDraftFlat = null;
+    _qeSyncBannerShow();
+    _netPair.then(async ([ov, draftFlat])=>{
+      try{
+        if(mySeq !== _qeLoadSeq){ _qeSyncBannerHide(); return; }
+        const norm = o => JSON.stringify({a:Object.keys((o&&o.added)||{}).sort(), r:Object.keys((o&&o.removed)||{}).sort(), s:Object.keys((o&&o.removedSubjects)||{}).sort()});
+        if(norm(ov) !== norm(_localOv)){
+          // Class list / subjects changed elsewhere — rebuild the sheet, keeping everything typed so far.
+          await _qeReloadKeepingTyped();
+          _qeSyncBannerDone('✓ Class list updated — the scores you typed were kept.');
+          return;
+        }
+        // Same class list: just bring in teammates' draft scores. Cells being typed in / unsaved are never touched;
+        // changed cells are highlighted in orange so the teacher can see exactly where the new scores landed.
+        let touched = 0;
+        if(draftFlat && !locked){
+          const merged = {}, ex = _qeGetExistingScores();
+          Object.keys(ex).forEach(k=>merged[k]={...ex[k]});
+          Object.keys(draftFlat.scores||{}).forEach(k=>merged[k]={...(merged[k]||{}), ...draftFlat.scores[k]});
+          touched = _qePatchScoresIntoTable(merged, {protect:true, highlightMs:8000});
+          if(typeof _qeUpdateFinalSubmitStatus === 'function') _qeUpdateFinalSubmitStatus();
+          if(typeof _qeRefreshMissingBadges === 'function') _qeRefreshMissingBadges();
+        }
+        _qeSyncBannerDone(touched ? `✓ Up to date — ${touched} score${touched>1?'s':''} updated (highlighted in orange).` : '✓ Up to date — nothing changed.');
+      }catch(e){ _qeSyncBannerHide(); }
+    });
+  }
   if(mySeq !== _qeLoadSeq) return; // a newer grade/exam selection started while we were awaiting — abandon this one
   const _removedKeys = new Set(Object.keys(_rosterOverrides.removed||{}).map(k=>{
     try{ return decodeURIComponent(k); }catch(e){ return k; }
@@ -23532,12 +23652,14 @@ function _qeDtInvalidateInput(inputEl){
  *  whether the focused/dirty cells are left alone — true for a person's own
  *  editable sheet (never clobber what they're typing), false when merely
  *  watching someone else's read-only sheet (nothing local to protect there). */
-function _qePatchScoresIntoTable(scoresMap, {protect=true}={}){
+function _qePatchScoresIntoTable(scoresMap, {protect=true, highlightMs=0}={}){
   const tbody = document.getElementById('qe-tbody');
   if(!tbody) return 0;
   const activeEl = document.activeElement;
   let touched = 0;
-  tbody.querySelectorAll('input[data-student]').forEach(inp=>{
+  // Every cell, not just the page on screen — the table is paged, so cells on other pages are detached from
+  // the DOM and a plain tbody query would leave them stale until the sheet is reopened.
+  _qeGetAllScoreInputs().forEach(inp=>{
     if(protect && inp === activeEl) return; // don't touch the cell they're typing in right now
     const key  = inp.getAttribute('data-student');
     const subj = inp.getAttribute('data-subject');
@@ -23550,6 +23672,7 @@ function _qePatchScoresIntoTable(scoresMap, {protect=true}={}){
       _qeDtInvalidateInput(inp);
       inp.classList.add('qe-live-updated');
       setTimeout(()=>inp.classList.remove('qe-live-updated'), 1600);
+      if(highlightMs){ inp.classList.add('qe-sync-new'); setTimeout(()=>inp.classList.remove('qe-sync-new'), highlightMs); }
       touched++;
     }
   });
