@@ -672,6 +672,32 @@ class FinesManager {
 
             await this.db.ref(`fines/${this.fineId}`).update(updateData);
 
+            // If this fine covered a lost book and is now paid in full, mark issuance recovered
+            if (newStatus === 'paid' && fine.reason === 'lost' && fine.issuanceId) {
+                const nowIso = new Date().toISOString();
+                const todayStr = nowIso.split('T')[0];
+                await this.db.ref(`issuance/${fine.issuanceId}`).update({
+                    status: 'returned',
+                    recoveryStatus: true,
+                    recoveryMethod: 'paid',
+                    recoveryNotes: `Fine paid in full (Ksh ${newAmountPaid}). Ref: ${reference || 'N/A'}`,
+                    recoveryDate: nowIso,
+                    actualReturnDate: nowIso,
+                    returnedDate: todayStr,
+                    updatedAt: Date.now()
+                });
+                if (fine.bookId && typeof recalculateBookAvailability === 'function') {
+                    await recalculateBookAvailability(fine.bookId);
+                }
+                if (fine.studentId && window.studentManager) {
+                    await window.studentManager.updateStudentIssuanceStatus(fine.studentId);
+                    if (typeof window.studentManager.updateAllStudentStatuses === 'function') {
+                        await window.studentManager.updateAllStudentStatuses();
+                    }
+                }
+                if (window.issuanceManager) window.issuanceManager.loadIssuances();
+            }
+
             bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
             await this.loadFines();
             await this.updateFineStatistics();
@@ -757,6 +783,42 @@ class FinesManager {
             };
 
             await this.db.ref(`fines/${this.fineId}`).update(updateData);
+
+            // If this fine covered a lost book, mark issuance recovered
+            const fineSnap = await this.db.ref(`fines/${this.fineId}`).once('value');
+            const fine = fineSnap.val();
+            if (fine && fine.reason === 'lost' && fine.issuanceId) {
+                const nowIso = new Date().toISOString();
+                const todayStr = nowIso.split('T')[0];
+                await this.db.ref(`issuance/${fine.issuanceId}`).update({
+                    status: 'returned',
+                    recoveryStatus: true,
+                    recoveryMethod: 'found',
+                    recoveryNotes: `Fine waived: ${reason}. Authorized by: ${authorizedBy || 'Admin'}`,
+                    recoveryDate: nowIso,
+                    actualReturnDate: nowIso,
+                    returnedDate: todayStr,
+                    updatedAt: Date.now()
+                });
+                if (fine.bookId) {
+                    const bRef = this.db.ref(`books/${fine.bookId}`);
+                    const bSnap = await bRef.once('value');
+                    const b = bSnap.val();
+                    if (b) {
+                        await bRef.update({ lost: Math.max(0, (b.lost || 0) - 1), updatedAt: Date.now() });
+                    }
+                    if (typeof recalculateBookAvailability === 'function') {
+                        await recalculateBookAvailability(fine.bookId);
+                    }
+                }
+                if (fine.studentId && window.studentManager) {
+                    await window.studentManager.updateStudentIssuanceStatus(fine.studentId);
+                    if (typeof window.studentManager.updateAllStudentStatuses === 'function') {
+                        await window.studentManager.updateAllStudentStatuses();
+                    }
+                }
+                if (window.issuanceManager) window.issuanceManager.loadIssuances();
+            }
 
             bootstrap.Modal.getInstance(document.getElementById('waiveFineModal')).hide();
             await this.loadFines();

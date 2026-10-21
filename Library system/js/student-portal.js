@@ -444,9 +444,9 @@ async handleLogin(e) {
                             urgentIssuances.push({ bookId: issuance.bookId, daysUntilDue });
                         }
                     }
-                } else if (issuance.status === 'lost') {
+                } else if (issuance.status === 'lost' && !issuance.recoveryStatus) {
                     stats.lost++;
-                } else if (issuance.status === 'returned') {
+                } else if (issuance.status === 'returned' || issuance.recoveryStatus) {
                     stats.returned++;
                     const returnDate = new Date(issuance.returnDate);
                     const actualReturn = new Date(issuance.actualReturnDate);
@@ -797,9 +797,13 @@ async handleLogin(e) {
 
             const currentDate = new Date();
             const returnDate = new Date(issuance.returnDate);
-            const isOverdue = returnDate < currentDate && issuance.status === 'active';
+            const isOverdue = returnDate < currentDate && issuance.status === 'active' && !issuance.recoveryStatus;
             let status = issuance.status;
-            if (isOverdue) status = 'overdue';
+            if (issuance.recoveryStatus) {
+                status = 'returned';
+            } else if (isOverdue) {
+                status = 'overdue';
+            }
 
             const statusBadges = {
                 active: 'bg-success',
@@ -1388,7 +1392,7 @@ async handleLogin(e) {
             const activeBooks = [];
             issuanceSnapshot.forEach(child => {
                 const issuance = child.val();
-                if (issuance.status === 'active') {
+                if (issuance.status === 'active' && !issuance.recoveryStatus) {
                     activeBooks.push(this.loadBookDetails(issuance, child.key));
                 }
             });
@@ -1439,7 +1443,7 @@ async handleLogin(e) {
             issuanceSnapshot.forEach(child => {
                 const issuance = child.val();
                 allIssuances.push(issuance);
-                if (issuance.status === 'returned') {
+                if (issuance.status === 'returned' || issuance.recoveryStatus) {
                     history.push(this.loadBookDetails(issuance, child.key));
                 }
             });
@@ -2111,12 +2115,12 @@ async handleLogin(e) {
                     const issuance = child.val();
                     stats.total++;
 
-                    if (issuance.status === 'active') {
+                    if (issuance.status === 'active' && !issuance.recoveryStatus) {
                         stats.active++;
                         if (new Date(issuance.returnDate) < new Date()) {
                             stats.overdue++;
                         }
-                    } else if (issuance.status === 'lost') {
+                    } else if (issuance.status === 'lost' && !issuance.recoveryStatus) {
                         stats.lost++;
                     }
                 });

@@ -195,8 +195,8 @@ class StudentPortalManager {
                                     <td>${new Date(issuance.issueDate).toLocaleDateString()}</td>
                                     <td>${issuance.returnedAt ? new Date(issuance.returnedAt).toLocaleDateString() : 'Not returned'}</td>
                                     <td>
-                                        <span class="badge bg-${issuance.status === 'returned' ? 'success' : issuance.status === 'overdue' ? 'danger' : 'warning'}">
-                                            ${issuance.status}
+                                        <span class="badge bg-${(issuance.status === 'returned' || issuance.recoveryStatus) ? 'success' : issuance.status === 'overdue' ? 'danger' : 'warning'}">
+                                            ${issuance.recoveryStatus ? `Returned (${issuance.recoveryMethod === 'found' ? 'Found' : issuance.recoveryMethod === 'replaced' ? 'Replaced' : 'Paid'})` : issuance.status}
                                         </span>
                                     </td>
                                 </tr>
@@ -521,9 +521,9 @@ class StudentPortalManager {
             if (issuanceSnapshot.exists()) {
                 issuanceSnapshot.forEach(child => {
                     const issuance = child.val();
-                    if (issuance.status === 'returned') {
+                    if (issuance.status === 'returned' || issuance.recoveryStatus) {
                         booksRead++;
-                    } else if (issuance.status === 'active' || issuance.status === 'overdue') {
+                    } else if ((issuance.status === 'active' || issuance.status === 'overdue') && !issuance.recoveryStatus) {
                         currentLoans++;
                     }
                 });
@@ -593,7 +593,7 @@ class StudentPortalManager {
             if (issuanceSnapshot.exists()) {
                 issuanceSnapshot.forEach(child => {
                     const issuance = child.val();
-                    if (issuance.status === 'active' || issuance.status === 'overdue') {
+                    if ((issuance.status === 'active' || issuance.status === 'overdue') && !issuance.recoveryStatus) {
                         currentLoans++;
                         loanDetails.push({
                             title: issuance.bookTitle,

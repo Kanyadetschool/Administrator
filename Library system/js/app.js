@@ -2023,20 +2023,20 @@ class IssuanceManager {
 
             if (status) {
                 const returnDate = new Date(issuance.returnDate);
-                const isOverdue = returnDate < currentDate && issuance.status === 'active';
+                const isOverdue = returnDate < currentDate && issuance.status === 'active' && !issuance.recoveryStatus;
 
                 switch (status) {
                     case 'active':
-                        showIssuance = issuance.status === 'active' && !isOverdue;
+                        showIssuance = issuance.status === 'active' && !isOverdue && !issuance.recoveryStatus;
                         break;
                     case 'returned':
-                        showIssuance = issuance.status === 'returned';
+                        showIssuance = issuance.status === 'returned' || Boolean(issuance.recoveryStatus);
                         break;
                     case 'overdue':
                         showIssuance = isOverdue;
                         break;
                     case 'lost':
-                        showIssuance = issuance.status === 'lost';
+                        showIssuance = issuance.status === 'lost' && !issuance.recoveryStatus;
                         break;
                 }
             }
@@ -2415,8 +2415,27 @@ class IssuanceManager {
 
             const currentDate = new Date();
             const returnDate = new Date(issuance.returnDate);
-            const isOverdue = returnDate < currentDate && issuance.status === 'active';
-            const displayStatus = isOverdue ? 'overdue' : issuance.status;
+            const isOverdue = returnDate < currentDate && issuance.status === 'active' && !issuance.recoveryStatus;
+            let displayStatus = isOverdue ? 'overdue' : issuance.status;
+            let statusText = displayStatus;
+            let statusBadgeClass = 'bg-secondary';
+
+            if (issuance.recoveryStatus) {
+                const methodLabel = issuance.recoveryMethod === 'found' ? 'Found' : issuance.recoveryMethod === 'replaced' ? 'Replaced' : issuance.recoveryMethod === 'paid' ? 'Paid' : 'Recovered';
+                statusText = `Returned (${methodLabel})`;
+                statusBadgeClass = 'bg-success';
+                displayStatus = 'returned';
+            } else if (issuance.status === 'active') {
+                statusText = isOverdue ? 'Overdue' : 'Active';
+                statusBadgeClass = isOverdue ? 'bg-danger' : 'bg-primary';
+            } else if (issuance.status === 'returned') {
+                statusText = 'Returned';
+                statusBadgeClass = 'bg-success';
+            } else if (issuance.status === 'lost') {
+                statusText = 'Lost (Pending)';
+                statusBadgeClass = 'bg-warning text-dark';
+            }
+
             const bookNumber = issuance.bookNo || issuance.isbn || 'N/A';
 
             const card = document.createElement('div');
@@ -2432,11 +2451,18 @@ class IssuanceManager {
                     <h3>${student.grade || 'Not assigned'}: <span class="badge bg-dark">${bookNumber}</span></h3>
                     <p>Issue Date: ${issuance.issueDate}</p>
                     <p>Return Date: ${issuance.returnDate}</p>
-                    <p class="status ${displayStatus}">Status: ${displayStatus}</p>
-                    ${issuance.status === 'active' ? `
+                    <p class="status ${displayStatus}">Status: <span class="badge ${statusBadgeClass}">${statusText}</span></p>
+                    ${(issuance.status === 'active' && !issuance.recoveryStatus) ? `
                         <div class="button-group">
                             <button onclick="issuanceManager.returnBook('${issuanceId}', '${issuance.bookId}')" class="primary-btn">Return Book</button>
                             <button onclick="issuanceManager.reportBookLost('${issuanceId}', '${issuance.bookId}')" class="btn-warning">Report Lost</button>
+                        </div>
+                    ` : ''}
+                    ${(issuance.status === 'lost' && !issuance.recoveryStatus) ? `
+                        <div class="button-group">
+                            <button onclick="issuanceManager.showRecoveryModal('${issuanceId}')" class="btn-warning">
+                                <i class="bi bi-arrow-clockwise"></i> Record Recovery / Found
+                            </button>
                         </div>
                     ` : ''}
                     <button onclick="issuanceManager.deleteIssuance('${issuanceId}', '${issuance.bookId}')" class="btn-danger">
@@ -2654,22 +2680,31 @@ class IssuanceManager {
 
     async showRecoveryModal(issuanceId) {
         try {
-            const issuance = this.allIssuances.get(issuanceId);
-            if (!issuance) return;
+            let issuance = this.allIssuances ? this.allIssuances.get(issuanceId) : null;
+            if (!issuance) {
+                const snap = await db.ref(`issuance/${issuanceId}`).once('value');
+                issuance = snap.val();
+            }
+            if (!issuance) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Issuance record not found.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                return;
+            }
 
             const student = await getStudentCached(issuance.studentId);
             const book = await getBookCached(issuance.bookId);
 
-            if (!student || !book) return;
-
-            document.getElementById('lostBookStudent').textContent = student.name;
-            document.getElementById('lostBookTitle').textContent = book.title;
-            document.getElementById('lostBookIssueDate').textContent = issuance.issueDate;
-            document.getElementById('lostBookIsbn').textContent = issuance.isbn || 'N/A';
-
-            document.getElementById('lostBookReturnDate').textContent = issuance.returnDate;
+            document.getElementById('lostBookStudent').textContent = student ? student.name : (issuance.studentName || 'Student');
+            document.getElementById('lostBookTitle').textContent = book ? book.title : (issuance.bookTitle || 'Book');
+            document.getElementById('lostBookIssueDate').textContent = issuance.issueDate || 'N/A';
+            document.getElementById('lostBookIsbn').textContent = issuance.isbn || issuance.bookNo || (book?.isbn || 'N/A');
+            document.getElementById('lostBookReturnDate').textContent = issuance.returnDate || 'N/A';
             document.getElementById('lostBookReportedDate').textContent = new Date(issuance.lostDate || issuance.timestamp).toLocaleDateString();
-    
 
             const modal = document.getElementById('lostBookModal');
             const form = document.getElementById('lostBookForm');
@@ -2679,21 +2714,26 @@ class IssuanceManager {
                 const recoveryMethod = document.getElementById('recoveryMethod').value;
                 const recoveryNotes = document.getElementById('recoveryNotes').value;
 
-                await this.handleBookRecovery(issuanceId, recoveryMethod, recoveryNotes);
+                if (!recoveryMethod) {
+                    await Swal.fire('Missing Information', 'Please select a recovery method.', 'warning');
+                    return;
+                }
+
                 const bsModal = bootstrap.Modal.getInstance(modal);
-                bsModal.hide();
+                if (bsModal) bsModal.hide();
+                await this.handleBookRecovery(issuanceId, recoveryMethod, recoveryNotes);
                 form.reset();
             };
 
-            const bsModal = new bootstrap.Modal(modal);
+            const bsModal = bootstrap.Modal.getInstance(modal) || new bootstrap.Modal(modal);
             bsModal.show();
         } catch (error) {
             console.error('Error showing recovery modal:', error);
             await Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Failed to load recovery modal.',
-                timer: 1000,
+                text: 'Failed to load recovery modal: ' + (error.message || error),
+                timer: 2000,
                 showConfirmButton: false
             });
         }
@@ -2701,48 +2741,98 @@ class IssuanceManager {
 
     async handleBookRecovery(issuanceId, recoveryMethod, notes) {
         try {
-            const issuance = this.allIssuances.get(issuanceId);
-            if (!issuance) return;
+            let issuance = this.allIssuances ? this.allIssuances.get(issuanceId) : null;
+            if (!issuance) {
+                const snap = await db.ref(`issuance/${issuanceId}`).once('value');
+                issuance = snap.val();
+            }
+            if (!issuance) {
+                throw new Error('Issuance record not found.');
+            }
 
+            const nowIso = new Date().toISOString();
+            const todayStr = nowIso.split('T')[0];
             const updates = {
+                status: 'returned',
                 recoveryStatus: true,
                 recoveryMethod,
-                recoveryNotes: notes,
-                recoveryDate: new Date().toISOString(),
+                recoveryNotes: notes || '',
+                recoveryDate: nowIso,
+                returnedDate: todayStr,
+                actualReturnDate: nowIso,
                 updatedAt: Date.now()
             };
 
             await this.issuanceRef.child(issuanceId).update(updates);
 
+            if (this.allIssuances) {
+                this.allIssuances.set(issuanceId, { ...issuance, ...updates });
+            }
+
             if (recoveryMethod === 'found' || recoveryMethod === 'replaced') {
                 const bookRef = db.ref(`books/${issuance.bookId}`);
                 const bookSnapshot = await bookRef.once('value');
                 const book = bookSnapshot.val();
-                await bookRef.update({
-                    lost: Math.max(0, (book.lost || 0) - 1),
-                    updatedAt: Date.now()
-                });
-                // Recompute available instead of assuming +1 is correct — it
-                // isn't when this copy's lost-report never actually subtracted
-                // it from available in the first place (e.g. a book reported
-                // lost while still on active issuance).
+                if (book) {
+                    await bookRef.update({
+                        lost: Math.max(0, (book.lost || 0) - 1),
+                        updatedAt: Date.now()
+                    });
+                }
+            }
+
+            if (issuance.bookId) {
                 await recalculateBookAvailability(issuance.bookId);
             }
+
+            if (issuance.studentId && window.studentManager) {
+                await window.studentManager.updateStudentIssuanceStatus(issuance.studentId);
+                if (typeof window.studentManager.updateAllStudentStatuses === 'function') {
+                    await window.studentManager.updateAllStudentStatuses();
+                }
+            }
+
+            if (window.finesLostBookSync) {
+                await window.finesLostBookSync.handleIssuanceChange(issuanceId, {
+                    ...issuance,
+                    ...updates
+                });
+            }
+
+            await db.ref('activities').push({
+                type: 'found',
+                bookId: issuance.bookId,
+                studentId: issuance.studentId,
+                issuanceId: issuanceId,
+                description: `Book "${issuance.bookTitle || 'Book'}" recovery recorded (${recoveryMethod}) for ${issuance.studentName || 'student'}`,
+                timestamp: Date.now()
+            });
 
             await Swal.fire({
                 icon: 'success',
                 title: 'Success',
-                text: 'Book recovery recorded successfully.',
-                timer: 1000,
+                text: `Book recovery recorded successfully (${recoveryMethod === 'found' ? 'Found' : recoveryMethod === 'replaced' ? 'Replaced' : 'Compensated'}).`,
+                timer: 1500,
                 showConfirmButton: false
             });
+
+            this.loadIssuances();
+            if (window.lostBooksManager && typeof window.lostBooksManager.showLostBooksModal === 'function') {
+                const modalEl = document.getElementById('lostBooksOverviewModal');
+                if (modalEl && modalEl.classList.contains('active')) {
+                    window.lostBooksManager.showLostBooksModal();
+                }
+            }
+            if (window.dashboardManager) {
+                window.dashboardManager.updateAllStats();
+            }
         } catch (error) {
             console.error('Error handling book recovery:', error);
             await Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Failed to record book recovery.',
-                timer: 1000,
+                text: 'Failed to record book recovery: ' + (error.message || error),
+                timer: 2000,
                 showConfirmButton: false
             });
         }
@@ -4721,10 +4811,7 @@ class LostBooksManager {
         if (this.filterSelect) this.filterSelect.value = 'all';
         
         try {
-            const snapshot = await db.ref('issuance')
-                .orderByChild('status')
-                .equalTo('lost')
-                .once('value');
+            const snapshot = await db.ref('issuance').once('value');
             
             if (!snapshot.exists()) {
                 this.lostBooksTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No lost books found.</td></tr>';
@@ -4738,23 +4825,25 @@ class LostBooksManager {
 
             snapshot.forEach(childSnapshot => {
                 const issuance = childSnapshot.val();
-                promises.push(
-                    Promise.all([
-                        getStudentCached(issuance.studentId),
-                        getBookCached(issuance.bookId)
-                    ]).then(([student, book]) => {
-                        if (student && book) {
-                            this.allLostBooks.push({
-                                id: childSnapshot.key,
-                                issuance,
-                                student,
-                                book
-                            });
-                        }
-                    }).catch(error => {
-                        console.error('Error fetching related data:', error);
-                    })
-                );
+                if (issuance && (issuance.status === 'lost' || issuance.recoveryStatus || issuance.lostDate)) {
+                    promises.push(
+                        Promise.all([
+                            getStudentCached(issuance.studentId),
+                            getBookCached(issuance.bookId)
+                        ]).then(([student, book]) => {
+                            if (student && book) {
+                                this.allLostBooks.push({
+                                    id: childSnapshot.key,
+                                    issuance,
+                                    student,
+                                    book
+                                });
+                            }
+                        }).catch(error => {
+                            console.error('Error fetching related data:', error);
+                        })
+                    );
+                }
             });
 
             await Promise.all(promises);
@@ -5100,6 +5189,29 @@ class LostBooksManager {
 
                     await db.ref(`issuance/${newIssuanceId}`).set(lostBookRecord);
 
+                    // Update book's lost count and recalculate availability
+                    const bookRef = db.ref(`books/${bookId}`);
+                    const bookSnap = await bookRef.once('value');
+                    const book = bookSnap.val();
+                    if (book) {
+                        await bookRef.update({
+                            lost: (book.lost || 0) + 1,
+                            updatedAt: Date.now()
+                        });
+                    }
+                    await recalculateBookAvailability(bookId);
+
+                    if (studentId && window.studentManager) {
+                        await window.studentManager.updateStudentIssuanceStatus(studentId);
+                        if (typeof window.studentManager.updateAllStudentStatuses === 'function') {
+                            await window.studentManager.updateAllStudentStatuses();
+                        }
+                    }
+
+                    if (window.issuanceManager) {
+                        window.issuanceManager.loadIssuances();
+                    }
+
                     await Swal.fire('Success', 'Lost book record created successfully', 'success');
                     modal.hide();
                     
@@ -5115,28 +5227,6 @@ class LostBooksManager {
         } catch (error) {
             console.error('Error showing add lost book modal:', error);
             await Swal.fire('Error', 'Failed to load add lost book form: ' + error.message, 'error');
-        }
-    }
-
-    async deleteLostBook(issuanceId, bookId) {
-        const confirm = await Swal.fire({
-            icon: 'question',
-            title: 'Delete Lost Book Record',
-            text: 'Are you sure you want to delete this lost book record?',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Delete',
-            cancelButtonText: 'Cancel'
-        });
-
-        if (!confirm.isConfirmed) return;
-
-        try {
-            await db.ref(`issuance/${issuanceId}`).remove();
-            await Swal.fire('Success', 'Lost book record deleted successfully', 'success');
-            await this.showLostBooksModal();
-        } catch (error) {
-            console.error('Error deleting lost book:', error);
-            await Swal.fire('Error', 'Failed to delete lost book record: ' + error.message, 'error');
         }
     }
 
@@ -5424,12 +5514,18 @@ class LostBooksManager {
                 throw new Error('Issuance record not found');
             }
 
-            // Update the issuance record with recovery information
+            const nowIso = new Date().toISOString();
+            const todayStr = nowIso.split('T')[0];
+
+            // Update the issuance record with recovery information and marked as returned
             const updates = {
+                status: 'returned',
                 recoveryStatus: true,
                 recoveryMethod,
                 recoveryNotes: notes || '',
-                recoveryDate: new Date().toISOString(),
+                recoveryDate: nowIso,
+                returnedDate: todayStr,
+                actualReturnDate: nowIso,
                 updatedAt: Date.now()
             };
 
@@ -5446,27 +5542,61 @@ class LostBooksManager {
                         lost: Math.max(0, (book.lost || 0) - 1),
                         updatedAt: Date.now()
                     });
-                    await recalculateBookAvailability(issuance.bookId);
                 }
             }
+
+            if (issuance.bookId) {
+                await recalculateBookAvailability(issuance.bookId);
+            }
+
+            if (issuance.studentId && window.studentManager) {
+                await window.studentManager.updateStudentIssuanceStatus(issuance.studentId);
+                if (typeof window.studentManager.updateAllStudentStatuses === 'function') {
+                    await window.studentManager.updateAllStudentStatuses();
+                }
+            }
+
+            if (window.finesLostBookSync) {
+                await window.finesLostBookSync.handleIssuanceChange(issuanceId, {
+                    ...issuance,
+                    ...updates
+                });
+            }
+
+            // Log activity
+            await db.ref('activities').push({
+                type: 'found',
+                bookId: issuance.bookId,
+                studentId: issuance.studentId,
+                issuanceId: issuanceId,
+                description: `Book "${issuance.bookTitle || 'Book'}" recovery recorded (${recoveryMethod}) for ${issuance.studentName || 'student'}`,
+                timestamp: Date.now()
+            });
 
             await Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                text: 'Book recovery recorded successfully.',
-                timer: 2000,
+                text: `Book recovery recorded successfully (${recoveryMethod === 'found' ? 'Found' : recoveryMethod === 'replaced' ? 'Replaced' : 'Compensated'}).`,
+                timer: 1500,
                 showConfirmButton: false
             });
 
+            if (window.issuanceManager) {
+                window.issuanceManager.loadIssuances();
+            }
+            if (window.dashboardManager) {
+                window.dashboardManager.updateAllStats();
+            }
+
             // Refresh the lost books table to show updated status
-            this.showLostBooksModal();
+            await this.showLostBooksModal();
 
         } catch (error) {
             console.error('Error handling book recovery:', error);
             await Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Failed to record book recovery. Please try again.',
+                text: 'Failed to record book recovery: ' + (error.message || error),
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -5497,16 +5627,31 @@ class LostBooksManager {
                 // Delete the issuance record
                 await db.ref(`issuance/${issuanceId}`).remove();
 
-                // Update the book's lost count
-                const bookRef = db.ref(`books/${bookId}`);
-                const bookSnapshot = await bookRef.once('value');
-                const book = bookSnapshot.val();
+                // Update the book's lost count only if it was unrecovered
+                if (!issuance.recoveryStatus) {
+                    const bookRef = db.ref(`books/${bookId}`);
+                    const bookSnapshot = await bookRef.once('value');
+                    const book = bookSnapshot.val();
 
-                if (book) {
-                    await bookRef.update({
-                        lost: Math.max(0, (book.lost || 0) - 1),
-                        updatedAt: Date.now()
-                    });
+                    if (book) {
+                        await bookRef.update({
+                            lost: Math.max(0, (book.lost || 0) - 1),
+                            updatedAt: Date.now()
+                        });
+                    }
+                }
+
+                await recalculateBookAvailability(bookId);
+
+                if (issuance.studentId && window.studentManager) {
+                    await window.studentManager.updateStudentIssuanceStatus(issuance.studentId);
+                    if (typeof window.studentManager.updateAllStudentStatuses === 'function') {
+                        await window.studentManager.updateAllStudentStatuses();
+                    }
+                }
+
+                if (window.issuanceManager) {
+                    window.issuanceManager.loadIssuances();
                 }
 
                 await Swal.fire({

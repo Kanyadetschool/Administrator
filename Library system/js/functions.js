@@ -1119,6 +1119,125 @@ class DashboardFunctions {
         return buttons;
     }
 
+    async markBookFound(bookId, issuanceId = null) {
+        try {
+            let targetIssuanceId = issuanceId;
+            let targetIssuance = null;
+
+            if (targetIssuanceId) {
+                const snap = await this.db.ref(`issuance/${targetIssuanceId}`).once('value');
+                targetIssuance = snap.val();
+            }
+
+            if (!targetIssuance) {
+                const issuanceSnapshot = await this.db.ref('issuance')
+                    .orderByChild('bookId')
+                    .equalTo(bookId)
+                    .once('value');
+
+                const lostMatches = [];
+                issuanceSnapshot.forEach(child => {
+                    const iss = child.val();
+                    if (iss.status === 'lost' && !iss.recoveryStatus) {
+                        lostMatches.push({ id: child.key, data: iss });
+                    }
+                });
+
+                if (lostMatches.length === 1) {
+                    targetIssuanceId = lostMatches[0].id;
+                    targetIssuance = lostMatches[0].data;
+                } else if (lostMatches.length > 1) {
+                    const optionsHtml = lostMatches.map(m => 
+                        `<option value="${m.id}">${m.data.studentName || 'Student'} (${m.data.grade || ''}) - Copy: ${m.data.bookNo || m.data.isbn || 'N/A'}</option>`
+                    ).join('');
+
+                    const { value: pickedId } = await Swal.fire({
+                        title: 'Select Student Copy Found',
+                        html: `<p>Select which issued copy was found:</p><select id="foundIssuanceSelect" class="form-select">${optionsHtml}</select>`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Continue',
+                        preConfirm: () => document.getElementById('foundIssuanceSelect').value
+                    });
+
+                    if (!pickedId) return;
+                    targetIssuanceId = pickedId;
+                    targetIssuance = lostMatches.find(m => m.id === pickedId)?.data;
+                }
+            }
+
+            if (targetIssuanceId && window.issuanceManager && typeof window.issuanceManager.showRecoveryModal === 'function') {
+                await window.issuanceManager.showRecoveryModal(targetIssuanceId);
+                return;
+            }
+
+            const bookSnap = await this.db.ref(`books/${bookId}`).once('value');
+            const book = bookSnap.val();
+            if (!book) throw new Error('Book not found');
+
+            const result = await Swal.fire({
+                title: 'Mark Book Found',
+                html: `Are you sure you want to mark <strong>"${book.title}"</strong> as found and restore inventory?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, mark found',
+                cancelButtonText: 'Cancel'
+            });
+
+            if (result.isConfirmed) {
+                const nowIso = new Date().toISOString();
+                const todayStr = nowIso.split('T')[0];
+                const updates = {};
+                updates[`books/${bookId}/lost`] = Math.max(0, (book.lost || 0) - 1);
+                updates[`books/${bookId}/updatedAt`] = Date.now();
+
+                if (targetIssuanceId) {
+                    updates[`issuance/${targetIssuanceId}/status`] = 'returned';
+                    updates[`issuance/${targetIssuanceId}/recoveryStatus`] = true;
+                    updates[`issuance/${targetIssuanceId}/recoveryMethod`] = 'found';
+                    updates[`issuance/${targetIssuanceId}/recoveryDate`] = nowIso;
+                    updates[`issuance/${targetIssuanceId}/actualReturnDate`] = nowIso;
+                    updates[`issuance/${targetIssuanceId}/returnedDate`] = todayStr;
+                    updates[`issuance/${targetIssuanceId}/updatedAt`] = Date.now();
+                }
+
+                const actRef = this.db.ref('activities').push();
+                updates[`activities/${actRef.key}`] = {
+                    type: 'found',
+                    bookId,
+                    studentId: targetIssuance?.studentId || null,
+                    issuanceId: targetIssuanceId || null,
+                    description: `Book "${book.title}" was marked as found and restored to inventory`,
+                    timestamp: Date.now()
+                };
+
+                await this.db.ref().update(updates);
+                await recalculateBookAvailability(bookId);
+
+                if (targetIssuance?.studentId && window.studentManager) {
+                    await window.studentManager.updateStudentIssuanceStatus(targetIssuance.studentId);
+                    await window.studentManager.updateAllStudentStatuses();
+                }
+
+                if (window.finesLostBookSync && targetIssuanceId) {
+                    await window.finesLostBookSync.handleIssuanceChange(targetIssuanceId, {
+                        ...(targetIssuance || {}),
+                        recoveryStatus: true,
+                        recoveryMethod: 'found'
+                    });
+                }
+
+                if (window.issuanceManager) window.issuanceManager.loadIssuances();
+                if (window.dashboardManager) window.dashboardManager.updateAllStats();
+                await this.loadRecentActivities();
+
+                await this.showSuccess('Book Marked Found', `"${book.title}" has been restored to inventory.`);
+            }
+        } catch (error) {
+            console.error('Error marking book found:', error);
+            await this.showError('Error', error.message || 'Failed to mark book found');
+        }
+    }
+
     async showActivityDetails(activityId) {
         try {
             const snapshot = await this.db.ref(`activities/${activityId}`).once('value');

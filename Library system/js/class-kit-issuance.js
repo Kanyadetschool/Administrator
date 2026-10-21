@@ -569,13 +569,14 @@ class ClassKitManager {
         if (issSnap.exists()) {
             issSnap.forEach(c => {
                 const iss = c.val();
-                if (iss.status === 'active') {
+                const isOutstanding = iss.status === 'active' || (iss.status === 'lost' && !iss.recoveryStatus);
+                if (isOutstanding) {
                     if (!activeByStudent.has(iss.studentId)) {
                         activeByStudent.set(iss.studentId, []);
                     }
                     const dueDate = iss.returnDate ? new Date(iss.returnDate) : null;
                     const isOverdue = dueDate && dueDate < today;
-                    activeByStudent.get(iss.studentId).push({ id: c.key, ...iss, isOverdue });
+                    activeByStudent.get(iss.studentId).push({ id: c.key, ...iss, isOverdue, isLost: iss.status === 'lost' });
                 }
             });
         }
@@ -630,7 +631,7 @@ class ClassKitManager {
                 : `<span class="badge bg-danger-subtle text-danger border border-danger"><i class="bi bi-exclamation-triangle me-1"></i>${r.bookCount} Book(s) Held</span>`;
 
             const booksListSnippet = r.loans.map(l => 
-                `<span class="badge bg-light text-dark border me-1 mb-1">${l.bookTitle} ${l.isOverdue ? '<b class="text-danger">(Overdue)</b>' : ''}</span>`
+                `<span class="badge bg-light text-dark border me-1 mb-1">${l.bookTitle} ${l.isLost ? '<b class="text-danger">(Lost)</b>' : (l.isOverdue ? '<b class="text-warning-emphasis">(Overdue)</b>' : '')}</span>`
             ).join('');
 
             html += `
@@ -741,6 +742,12 @@ class ClassKitManager {
                 });
             }
 
+            // Sync student active issuance statuses
+            if (window.studentManager && typeof window.studentManager.updateStudentIssuanceStatus === 'function') {
+                const affectedStudentIds = [...new Set(info.items.map(item => item.studentId))];
+                await Promise.allSettled(affectedStudentIds.map(id => window.studentManager.updateStudentIssuanceStatus(id)));
+            }
+
             Swal.fire({
                 icon: 'success',
                 title: 'Batch Return Complete! 📚',
@@ -795,8 +802,8 @@ class ClassKitManager {
         const activeLoans = [];
         if (issSnap.exists()) {
             issSnap.forEach(c => {
-                const iss = c.val();
-                if (iss.status === 'active') activeLoans.push(iss);
+                const isOutstanding = iss.status === 'active' || (iss.status === 'lost' && !iss.recoveryStatus);
+                if (isOutstanding) activeLoans.push(iss);
             });
         }
 
@@ -1325,7 +1332,8 @@ class ClassKitManager {
         if (issSnap.exists()) {
             issSnap.forEach(c => {
                 const iss = c.val();
-                if (iss.status === 'active') {
+                const isOutstanding = iss.status === 'active' || (iss.status === 'lost' && !iss.recoveryStatus);
+                if (isOutstanding) {
                     if (!activeByStudent.has(iss.studentId)) activeByStudent.set(iss.studentId, []);
                     activeByStudent.get(iss.studentId).push(iss);
                 }

@@ -55,10 +55,23 @@ class FinesLostBookSync {
     async handleIssuanceChange(issuanceId, issuance) {
         if (!issuance || this._syncing.has(issuanceId)) return;
         try {
+            // Auto-heal: If an issuance has recoveryStatus === true but status is still 'lost', heal it to 'returned'
+            if (issuance.recoveryStatus && issuance.status === 'lost') {
+                const nowIso = issuance.recoveryDate || new Date().toISOString();
+                const todayStr = nowIso.split('T')[0];
+                await this.issuanceRef.child(issuanceId).update({
+                    status: 'returned',
+                    returnedDate: issuance.returnedDate || todayStr,
+                    actualReturnDate: issuance.actualReturnDate || nowIso,
+                    updatedAt: Date.now()
+                });
+                issuance.status = 'returned';
+            }
+
             if (issuance.status === 'lost' && !issuance.recoveryStatus && !issuance.fineId) {
                 this._syncing.add(issuanceId);
                 await this.createLostBookFine(issuanceId, issuance);
-            } else if (issuance.recoveryStatus && issuance.fineId) {
+            } else if (issuance.recoveryStatus) {
                 this._syncing.add(issuanceId);
                 await this.resolveLostBookFine(issuanceId, issuance);
             }
@@ -130,7 +143,16 @@ class FinesLostBookSync {
     }
 
     async resolveLostBookFine(issuanceId, issuance) {
-        const fineSnap = await this.db.ref(`fines/${issuance.fineId}`).once('value');
+        let fineId = issuance.fineId;
+        if (!fineId) {
+            const fineSnap = await this.db.ref('fines').orderByChild('issuanceId').equalTo(issuanceId).once('value');
+            if (fineSnap.exists()) {
+                fineSnap.forEach(c => { fineId = c.key; });
+            }
+        }
+        if (!fineId) return;
+
+        const fineSnap = await this.db.ref(`fines/${fineId}`).once('value');
         if (!fineSnap.exists()) return;
         const fine = fineSnap.val();
         // Already paid/waived (e.g. an admin resolved it by hand before
@@ -140,7 +162,7 @@ class FinesLostBookSync {
         if (issuance.recoveryMethod === 'found') {
             // The book itself turned up — no replacement cost was ever
             // actually incurred.
-            await this.db.ref(`fines/${issuance.fineId}`).update({
+            await this.db.ref(`fines/${fineId}`).update({
                 status: 'waived',
                 amountOutstanding: 0,
                 waiveReason: 'Book recovered (found) — no replacement was needed',
@@ -149,21 +171,21 @@ class FinesLostBookSync {
                 updatedAt: Date.now()
             });
         } else {
-            // 'replaced', or any other recovery method — a replacement
+            // 'replaced', 'paid', or any other recovery method — a replacement
             // copy (or its cost) was supplied, which is exactly what this
             // fine exists to cover. Record it the same way
             // fines-management.js's own confirmPayment() records a manual
             // payment, so it shows up identically in payment history.
             const amount = Number(fine.amount) || 0;
-            const paymentId = this.db.ref(`fines/${issuance.fineId}/payments`).push().key;
-            await this.db.ref(`fines/${issuance.fineId}`).update({
+            const paymentId = this.db.ref(`fines/${fineId}/payments`).push().key;
+            await this.db.ref(`fines/${fineId}`).update({
                 amountPaid: amount,
                 amountOutstanding: 0,
                 status: 'paid',
                 updatedAt: Date.now(),
                 [`payments/${paymentId}`]: {
                     amount,
-                    method: issuance.recoveryMethod === 'replaced' ? 'Book replaced' : (issuance.recoveryMethod || 'Recovered'),
+                    method: issuance.recoveryMethod === 'replaced' ? 'Book replaced' : (issuance.recoveryMethod === 'paid' ? 'Compensation paid' : (issuance.recoveryMethod || 'Recovered')),
                     reference: issuanceId,
                     notes: issuance.recoveryNotes || '',
                     processedBy: firebase.auth().currentUser?.uid || 'system',
