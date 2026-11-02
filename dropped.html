@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("kps-verify-theme")||"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
+<title>Document Verification · Kanyadet Primary &amp; Junior School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:wght@500;700;800&family=Public+Sans:wght@400;600;700&family=Nunito:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap">
+<style>
+  :root{
+    --ink:#0f2238; --muted:#5a6c7e; --line:#d3dce6; --bg:#e9eef4; --card:#ffffff; --soft:#f3f6fa;
+    --navy:#0b2a4a; --navy2:#123e69; --gold:#c9a24a;
+    --ok:#15663d; --ok-bg:#e3f5ea; --ok-line:#9fd6b4;
+    --warn:#8a5200; --warn-bg:#fdf0d8; --warn-line:#f0cf8c;
+    --bad:#a12a2a; --bad-bg:#fbe6e6; --bad-line:#eeb0b0;
+    --info:#1f5fa8; --focus:#2f7bd6;
+    --serif:Georgia,"Times New Roman",serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --ink:#e8eef4; --muted:#9db0c1; --line:#2b3f52; --bg:#08121c; --card:#112030; --soft:#162a3d;
+      --navy:#06192e; --navy2:#0d3157; --gold:#d8b45c;
+      --ok:#7fd8a4; --ok-bg:#103223; --ok-line:#1f6a47;
+      --warn:#f2c26b; --warn-bg:#392a10; --warn-line:#7a5a1c;
+      --bad:#f0a0a0; --bad-bg:#3a1717; --bad-line:#7a2e2e; --info:#8cc0f5; }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);min-height:100vh}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;
+    background:radial-gradient(60rem 30rem at 50% -10%,rgba(47,123,214,.18),transparent 60%)}
+  main{max-width:34rem;margin:0 auto;padding:1.1rem 1rem 3rem;position:relative}
+  [hidden]{display:none!important}
+
+  /* ── masthead ───────────────────────── */
+  .mast{display:flex;align-items:center;gap:.85rem;margin-bottom:.9rem}
+  .crest{flex:none;width:52px;height:52px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25))}
+  .mast p{margin:0;color:var(--muted);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase}
+  .mast h1{margin:.05rem 0 0;font:700 1.25rem/1.2 var(--serif)}
+  .chan{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1rem}
+  .pill{display:inline-flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:600;padding:.25rem .6rem;border-radius:999px;
+        border:1px solid var(--line);background:var(--card);color:var(--muted)}
+  .pill svg{width:13px;height:13px;flex:none}
+  .pill.ok{color:var(--ok);border-color:var(--ok-line);background:var(--ok-bg)}
+  .pill.warn{color:var(--warn);border-color:var(--warn-line);background:var(--warn-bg)}
+  .pill.bad{color:var(--bad);border-color:var(--bad-line);background:var(--bad-bg)}
+  .domainwarn{margin:0 0 1rem;padding:.7rem .9rem;border-radius:10px;background:var(--bad-bg);border:1px solid var(--bad-line);color:var(--bad);font-size:.88rem;font-weight:600}
+
+  /* ── pipeline ───────────────────────── */
+  .pipe{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;margin-bottom:1rem;box-shadow:0 6px 24px rgba(0,0,0,.06)}
+  .pipe h2{margin:0 0 .15rem;font:700 1rem var(--serif)}
+  .pipe .sub{margin:0 0 .8rem;color:var(--muted);font-size:.85rem}
+  .pipe ol{list-style:none;margin:0;padding:0}
+  .pipe li{display:grid;grid-template-columns:26px 1fr;gap:.65rem;padding:.5rem 0;border-top:1px dashed var(--line);opacity:.45}
+  .pipe li:first-child{border-top:0}
+  .pipe li.on{opacity:1}
+  .pipe .ic{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:800;margin-top:2px}
+  .pipe li.run .ic{border-color:var(--info);border-top-color:transparent}
+  .pipe li.ok .ic{background:var(--ok);border-color:var(--ok);color:#fff}
+  .pipe li.warn .ic{background:#d9951b;border-color:#d9951b;color:#fff}
+  .pipe li.bad .ic{background:var(--bad);border-color:var(--bad);color:#fff}
+  .pipe li.skip .ic{border-style:dashed}
+  .pipe .t{font-weight:650;font-size:.92rem}
+  .pipe .d{font-size:.8rem;color:var(--muted);word-break:break-word}
+  /* ── credential ─────────────────────── */
+  .cred{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+        box-shadow:0 14px 40px rgba(0,0,0,.12)}
+  .banner{position:relative;display:flex;gap:.95rem;align-items:center;padding:1.15rem 1.15rem;color:#fff;overflow:hidden;isolation:isolate}
+  .banner::before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(135deg,var(--bn1),var(--bn2))}
+  .banner::after{content:"";position:absolute;inset:0;z-index:-1;background-image:var(--guil);background-size:cover;opacity:.35;mix-blend-mode:soft-light}
+  .k-ok{--bn1:#0f5a37;--bn2:#17844f}
+  .k-warn{--bn1:#8a5200;--bn2:#c07a10}
+  .k-bad{--bn1:#8c1f1f;--bn2:#c23b3b}
+  .banner h2{margin:0;font:700 1.3rem/1.2 var(--serif)}
+  .banner p{margin:.2rem 0 0;font-size:.9rem;opacity:.95}
+  .seal{flex:none;width:62px;height:62px;position:relative}
+  .seal svg{width:100%;height:100%}
+  .seal .ring{transform-origin:50% 50%}
+  .seal .draw{stroke-dasharray:60;stroke-dashoffset:0}
+
+  .ident{position:relative;display:grid;grid-template-columns:auto 1fr;gap:1rem;padding:1.15rem;align-items:start}
+  .ident::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:var(--guil2);background-size:cover;mix-blend-mode:multiply}
+  @media (prefers-color-scheme: dark){ .ident::before{mix-blend-mode:screen;opacity:.25} }
+  .photo{position:relative;width:108px;height:134px;border-radius:10px;background:var(--soft);isolation:isolate}
+  .photo .frame{position:absolute;inset:-4px;border-radius:13px;padding:2px;z-index:2;pointer-events:none;
+    background:conic-gradient(from var(--a,0deg),#c9a24a,#6fb7ff,#b98cff,#7fe0b4,#c9a24a);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+    }
+  .photo .img{position:absolute;inset:0;border-radius:9px;overflow:hidden;background:var(--soft)}
+  .photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .photo .skel{position:absolute;inset:0;background:rgba(127,160,200,.16)}
+  .photo .ini{position:absolute;inset:0;display:grid;place-items:center;font:700 2.2rem var(--serif);color:var(--muted)}
+  .photo .scan{position:absolute;left:0;right:0;height:26%;z-index:1;pointer-events:none;border-radius:9px;
+    background:linear-gradient(180deg,transparent,rgba(111,183,255,.35),transparent)}
+  .photo .sheen{position:absolute;inset:0;z-index:1;border-radius:9px;pointer-events:none;mix-blend-mode:overlay;
+    background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.35) 48%,transparent 60%)}
+  .corner{position:absolute;width:11px;height:11px;border:2px solid var(--gold);z-index:3}
+  .c1{top:-7px;left:-7px;border-right:0;border-bottom:0;border-radius:4px 0 0 0}
+  .c2{top:-7px;right:-7px;border-left:0;border-bottom:0;border-radius:0 4px 0 0}
+  .c3{bottom:-7px;left:-7px;border-right:0;border-top:0;border-radius:0 0 0 4px}
+  .c4{bottom:-7px;right:-7px;border-left:0;border-top:0;border-radius:0 0 4px 0}
+  .photo-cap{margin-top:.55rem;font-size:.68rem;text-align:center;color:var(--muted);line-height:1.25;width:108px}
+  .who{position:relative;min-width:0}
+  .who .lbl{font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .who h3{margin:.1rem 0 .5rem;font:700 1.45rem/1.15 var(--serif);word-break:break-word}
+  .chips{display:flex;flex-wrap:wrap;gap:.35rem}
+  .chip{font-size:.78rem;font-weight:650;padding:.2rem .6rem;border-radius:7px;background:var(--soft);border:1px solid var(--line)}
+  .chip.gold{border-color:var(--gold);color:var(--gold);background:transparent}
+  .serial{margin-top:.7rem;font:700 1.05rem var(--mono);letter-spacing:.14em}
+  .serial small{display:block;font:600 .66rem system-ui;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:.1rem}
+  .micro{position:relative;height:7px;margin:0 1.15rem;overflow:hidden;color:var(--muted);font:5px/7px var(--mono);letter-spacing:.2px;white-space:nowrap;user-select:none;opacity:.7}
+
+  section.blk{padding:1.05rem 1.15rem;border-top:1px solid var(--line)}
+  section.blk h4{margin:0 0 .7rem;font:700 .72rem system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .perf{display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap}
+  .avg{font:800 2.4rem/1 var(--serif)}
+  .avg small{font-size:1.1rem;opacity:.7}
+  .lvl{padding:.3rem .7rem;border-radius:8px;color:#fff;font-weight:800;font-size:.85rem}
+  .bar{position:relative;display:flex;height:12px;border-radius:7px;overflow:hidden;margin-top:.9rem}
+  .bar i{display:block;height:100%}
+  .bar-m{position:relative;height:16px}
+  .bar-m b{position:absolute;top:2px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:8px solid var(--ink);transform:translateX(-6px)}
+  .scale{display:flex;font-size:.64rem;color:var(--muted);font-weight:700}
+  .scale span{text-align:center}
+
+  .checks{list-style:none;margin:0;padding:0}
+  .checks li{display:grid;grid-template-columns:22px 1fr;gap:.6rem;padding:.5rem 0;border-top:1px dashed var(--line)}
+  .checks li:first-child{border-top:0}
+  .tick{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:800;margin-top:1px}
+  .tick.ok{background:var(--ok)}.tick.warn{background:#d9951b}.tick.bad{background:var(--bad)}.tick.na{background:var(--muted)}
+  .checks b{font-size:.9rem}
+  .checks span.d{display:block;font-size:.78rem;color:var(--muted);word-break:break-word}
+
+  .fp{display:flex;gap:1rem;align-items:center}
+  .fp canvas{flex:none;width:86px;height:86px;border-radius:10px;border:1px solid var(--line);image-rendering:pixelated;background:var(--soft)}
+  .hash{font:.72rem/1.6 var(--mono);word-break:break-all;color:var(--muted)}
+  .hash em{font-style:normal;background:rgba(201,162,74,.25);color:var(--ink);padding:0 2px;border-radius:3px;font-weight:700}
+  .seals{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.8rem}
+  .seals div{background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:.5rem .65rem}
+  .seals small{display:block;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .seals code{font:700 .95rem var(--mono);letter-spacing:.08em}
+
+  dl.meta{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.35rem 1rem;font-size:.88rem}
+  dl.meta dt{color:var(--muted)}dl.meta dd{margin:0;text-align:right;font-weight:600;word-break:break-word}
+
+  .match button.row{all:unset;box-sizing:border-box;display:grid;grid-template-columns:24px 1fr auto;gap:.65rem;align-items:center;width:100%;
+    padding:.6rem .35rem;border-top:1px dashed var(--line);cursor:pointer;border-radius:8px}
+  .match button.row:first-of-type{border-top:0}
+  .match button.row:hover{background:var(--soft)}
+  .match button.row:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+  .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:900;color:transparent}
+  .row[aria-pressed=true] .box{background:var(--ok);border-color:var(--ok);color:#fff}
+  .row .k{font-size:.78rem;color:var(--muted)}
+  .row .v{font-weight:700;font-size:.92rem;text-align:right;max-width:55%;word-break:break-word}
+  .matchmsg{margin-top:.7rem;padding:.65rem .8rem;border-radius:9px;font-size:.86rem;background:var(--soft);border:1px solid var(--line);color:var(--muted)}
+  .matchmsg.done{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok);font-weight:650}
+
+  .note{margin:0;padding:.9rem 1.15rem;border-top:1px solid var(--line);font-size:.84rem;color:var(--muted);background:var(--soft)}
+  .note.warn{background:var(--warn-bg);color:var(--warn)}
+  .note.bad{background:var(--bad-bg);color:var(--bad)}
+  .acts{display:flex;gap:.5rem;padding:.9rem 1.15rem;border-top:1px solid var(--line);flex-wrap:wrap}
+  .receipt{padding:.7rem 1.15rem;border-top:1px solid var(--line);font:.68rem/1.5 var(--mono);color:var(--muted);word-break:break-all}
+
+  form{margin-top:1.2rem}
+  label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:.35rem}
+  .row2{display:flex;gap:.5rem}
+  input{flex:1;min-width:0;font:700 1.15rem var(--mono);letter-spacing:.1em;text-transform:uppercase;
+        padding:.75rem .85rem;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+  button.btn,.btn{font:650 .95rem system-ui,sans-serif;padding:.7rem 1.1rem;border:0;border-radius:10px;background:var(--navy2);color:#fff;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  input:focus-visible,.btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .lock{margin-top:.5rem;font-size:.82rem;color:var(--bad);font-weight:600}
+  footer{margin-top:1.4rem;font-size:.8rem;color:var(--muted)}
+  footer ul{margin:.4rem 0 0;padding-left:1.1rem}
+  @media (max-width:380px){ .ident{grid-template-columns:1fr;justify-items:center;text-align:center}.chips{justify-content:center}}
+  /* ── v3 design layer: registry certificate ── */
+  :root{--serif:"Literata",Georgia,"Times New Roman",serif;--sans:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  body{font-family:var(--sans);position:relative}
+  body::before{inset:0 0 auto 0;height:15.5rem;opacity:1;background:linear-gradient(180deg,var(--navy) 55%,var(--navy2))}
+  body::after{content:"";position:absolute;inset:0 0 auto 0;height:15.5rem;pointer-events:none;background:var(--guil) center/cover;opacity:.09}
+  main{z-index:1;padding-top:1.4rem}
+  .mast p{color:#b7c7d8;text-transform:none;letter-spacing:.01em;font-size:.85rem}
+  .mast h1{color:#fff;font-size:1.5rem;letter-spacing:-.01em}
+  .pill{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#d6e2ee}
+  .pill.ok{color:#8fe3b3;background:rgba(40,160,100,.2);border-color:rgba(143,227,179,.4)}
+  .pill.bad{color:#ffb9b9;background:rgba(200,60,60,.25);border-color:rgba(255,185,185,.4)}
+  .pill.live::after{content:"";width:7px;height:7px;border-radius:50%;background:#4ade80}
+  .pipe,.cred,form{border-radius:6px;box-shadow:0 22px 44px -22px rgba(3,15,32,.55)}
+  .cred{border-top:3px solid var(--gold)}
+  form{margin-top:0;background:var(--card);border:1px solid var(--line);border-top:3px solid var(--gold);padding:1.1rem 1.15rem 1.2rem}
+  form+.hist,#result:not([hidden])~form{margin-top:1rem}
+  .ftitle{margin:0 0 .9rem;font:700 1.25rem/1.2 var(--serif)}
+  input{border-width:2px;border-radius:6px;font-size:1.3rem}
+  button.btn,.btn{border-radius:6px}
+  .btn.wide{width:100%;margin-top:.65rem}
+  .pipe li{border-top:0;position:relative}
+  .pipe li::before{content:"";position:absolute;left:10px;top:2rem;bottom:-.45rem;width:2px;background:var(--line)}
+  .pipe li:last-child::before{display:none}
+  .pipe li.ok::before{background:var(--ok)}
+  .verdict{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center;padding:1.35rem 1.2rem 1.2rem;border-bottom:1px solid var(--line);
+    background:linear-gradient(90deg,color-mix(in srgb,var(--vk) 10%,transparent),transparent 75%)}
+  .vk-ok{--vk:var(--ok)}.vk-warn{--vk:var(--warn)}.vk-bad{--vk:var(--bad)}
+  .verdict h2{margin:0;font:800 1.8rem/1.1 var(--serif);color:var(--vk);letter-spacing:-.015em}
+  .verdict p{margin:.5rem 0 0;color:var(--muted);font-size:.92rem}
+  .stamp{width:106px;height:106px;color:var(--vk);transform:rotate(-8deg)}
+  .stamp text{font:700 8px var(--sans);fill:currentColor}
+  .stamp .draw{stroke-dasharray:60;stroke-dashoffset:0}
+  .prhead{display:none}
+  .trust{display:flex;align-items:center;gap:.9rem;padding:.85rem 1.2rem;border-bottom:1px solid var(--line)}
+  .trust b{font:700 .92rem var(--serif);white-space:nowrap}
+  .trust .seg{display:flex;gap:3px;flex:1}
+  .trust .seg i{flex:1;height:8px;border-radius:2px;background:var(--ok)}
+  .trust .seg i.warn{background:#d9951b}.trust .seg i.bad{background:var(--bad)}
+  .photo .scan,.photo .sheen,.corner{display:none}
+  .chip{border-radius:4px}
+  section.blk h4{font:700 1.02rem var(--serif);letter-spacing:0;text-transform:none;color:var(--ink)}
+  .checks li{border-top:1px solid var(--line)}
+  .seals code .df{background:var(--bad-bg);color:var(--bad);border-radius:2px;outline:1px solid var(--bad-line)}
+  .receipt{border-top:2px dashed var(--line);background:var(--soft)}
+  .livebar{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + .6rem);margin-top:.9rem;padding:.7rem .9rem;border-radius:8px;background:var(--navy);color:#fff;
+    display:flex;gap:.8rem;align-items:center;justify-content:space-between;font-size:.88rem;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .livebar .btn{background:var(--gold);color:#1a1405;padding:.45rem .8rem}
+  .hist{margin-top:1rem;padding:.9rem 1.15rem;background:var(--card);border:1px solid var(--line);border-radius:6px}
+  .hist h3{margin:0 0 .5rem;font:700 1rem var(--serif)}
+  .hist .hrow{all:unset;box-sizing:border-box;display:grid;grid-template-columns:12px 1fr auto;gap:.7rem;align-items:center;width:100%;padding:.5rem .2rem;border-top:1px solid var(--line);cursor:pointer}
+  .hist .hrow:focus-visible{outline:3px solid var(--focus)}
+  .hist code{font:700 .95rem var(--mono);letter-spacing:.1em}.hist .when{font-size:.78rem;color:var(--muted)}
+  .hist .dot{width:10px;height:10px;border-radius:50%;background:var(--ok)}.hist .dot.warn{background:#d9951b}.hist .dot.bad{background:var(--bad)}
+  .hist .btn{margin-top:.6rem;padding:.4rem .8rem;font-size:.82rem}
+  .scanner{position:fixed;inset:0;z-index:50;background:#000;display:grid;place-items:center}
+  .scanner video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .reticle{position:relative;width:min(70vw,18rem);aspect-ratio:1;border:3px solid #fff;border-radius:18px;box-shadow:0 0 0 100vmax rgba(0,0,0,.6)}
+  .smsg{position:absolute;left:1rem;right:1rem;bottom:5rem;padding:.8rem 1rem;border-radius:8px;background:rgba(0,0,0,.75);color:#fff;text-align:center;font-size:.92rem}
+  .smsg.bad{background:var(--bad-bg);color:var(--bad);font-weight:700;border:1px solid var(--bad-line)}
+  .scanner .btn{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 1rem);left:50%;transform:translateX(-50%)}
+  /* ── playful background pattern (light mode) ── */
+  :root{
+  --pat1:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480'%3E%3Cg fill='%232980b9' fill-opacity='.11'%3E%3Cpath d='M60 70q30-40 70-12t8 62q-40 28-70-4z'/%3E%3Ccircle cx='210' cy='210' r='7'/%3E%3Ccircle cx='430' cy='150' r='4'/%3E%3C/g%3E%3Cg fill='%23e67e22' fill-opacity='.15'%3E%3Cpath d='M300 40l46 20-30 46z'/%3E%3Ccircle cx='90' cy='390' r='5'/%3E%3Cpath d='M200 420l30-8 8 26-34 6z'/%3E%3C/g%3E%3Cg fill='%2327ae60' fill-opacity='.12'%3E%3Cpath d='M380 330l50-14 12 52-54 10z'/%3E%3Ccircle cx='30' cy='230' r='3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23d3a437' stroke-opacity='.3' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M120 300q20-30 40 0t40 0 40 0'/%3E%3Ccircle cx='340' cy='220' r='16'/%3E%3C/g%3E%3C/svg%3E");
+  --pat2:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='330' height='330'%3E%3Cg fill='%238e44ad' fill-opacity='.09'%3E%3Cpath d='M240 30q40 10 30 50t-50 20q-20-40 20-70z'/%3E%3Ccircle cx='60' cy='60' r='6'/%3E%3C/g%3E%3Cg fill='%2316a085' fill-opacity='.12'%3E%3Cpath d='M40 220l38-24 22 40-44 20z'/%3E%3Ccircle cx='280' cy='280' r='4'/%3E%3Ccircle cx='160' cy='150' r='3'/%3E%3C/g%3E%3Cg fill='none' stroke='%232980b9' stroke-opacity='.22' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M150 270l30-24 20 28 34-30'/%3E%3Ccircle cx='120' cy='40' r='11'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  @media (prefers-color-scheme: light){
+    body{
+      background:
+        var(--pat1) 0 0/480px fixed,
+        var(--pat2) 170px 90px/330px fixed,
+        linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%) fixed;
+    }
+  }
+  /* ── v4 clay: soft pastel "puffy" cards (from the dashboard reference) ── */
+  :root{--serif:"Nunito","Public Sans",system-ui,sans-serif;--sans:"Nunito","Public Sans",system-ui,sans-serif;
+    --sh1:rgba(125,90,50,.28);--hi:rgba(255,255,255,.95);--lo:rgba(150,110,60,.1);--mint:#d6e8da;--peach:#fbd8c6;--butter:#fbe7b5;--sky:#d3e1ef}
+  @media (prefers-color-scheme:light){:root{--ink:#3b2c20;--muted:#85705f;--line:#ecdfcd;--card:#fffaf3;--soft:#f7efe2}}
+  @media (prefers-color-scheme:dark){:root{--sh1:rgba(0,0,0,.55);--hi:rgba(255,255,255,.07);--lo:rgba(0,0,0,.25);--mint:#1d3a31;--peach:#4a2c22;--butter:#473a18;--sky:#1e3347}}
+  body::before,body::after{display:none}
+  body{font-weight:600}
+  main{max-width:60rem}
+  .mast,.pipe,form,.hist,.cred>*{border:0;border-radius:26px;box-shadow:0 14px 26px -10px var(--sh1),inset 0 2px 0 var(--hi),inset 0 -4px 8px var(--lo)}
+  .mast{padding:1rem 1.3rem;margin-bottom:1rem;background:linear-gradient(135deg,var(--peach),color-mix(in srgb,var(--peach) 45%,var(--card)))}
+  .mast h1{color:var(--ink);font:800 1.7rem/1.15 var(--serif)}.mast p{color:var(--muted);font-weight:700}
+  .crest{width:60px;height:60px}
+  .pill{background:var(--card);color:var(--muted);border:0;box-shadow:0 5px 10px -4px var(--sh1),inset 0 2px 0 var(--hi);font-weight:700}
+  .pill.ok{background:var(--mint);color:var(--ok)}.pill.bad{background:#f9d4d0;color:var(--bad)}.pill.warn{background:var(--butter);color:var(--warn)}
+  .pipe,form,.hist{max-width:36rem;margin-inline:auto}
+  button.btn,.btn{border-radius:999px;font-weight:800;background:linear-gradient(180deg,#f59d70,#e8794d);color:#fff;padding:.75rem 1.4rem;
+    box-shadow:0 8px 14px -6px rgba(200,90,40,.6),inset 0 2px 0 rgba(255,255,255,.45)}
+  .btn.ghost{background:var(--card);color:var(--ink);border:0;box-shadow:0 6px 12px -6px var(--sh1),inset 0 2px 0 var(--hi)}
+  .livebar .btn{color:#1a1405}
+  input{border:0;border-radius:999px;background:var(--soft);padding:.85rem 1.2rem;text-align:center;box-shadow:inset 0 3px 7px var(--lo),inset 0 -2px 0 var(--hi)}
+  .cred{background:none;border:0;box-shadow:none;overflow:visible;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+  .cred>*{grid-column:span 4;margin:0;overflow:hidden;border-top:0;background:var(--card)}
+  .cred>.micro,.ident::before{display:none}
+  .cred>.verdict{overflow:visible;background:linear-gradient(135deg,color-mix(in srgb,var(--vk) 22%,var(--card)),color-mix(in srgb,var(--vk) 7%,var(--card)));border-bottom:0}
+  .cred>.trust{background:var(--soft)}
+  .trust .seg i{height:10px;border-radius:5px}
+  .cred>.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;background:none;box-shadow:none;border-radius:0;overflow:visible;padding:0}
+  .tile{padding:1.05rem;border-radius:24px;background:var(--c);box-shadow:0 14px 24px -10px var(--sh1),inset 0 2px 0 var(--hi),inset 0 -4px 8px var(--lo)}
+  .tile .ti{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:1.3rem;background:rgba(255,255,255,.55);box-shadow:0 6px 10px -4px var(--sh1),inset 0 2px 0 #fff;margin-bottom:.7rem}
+  .tile .tk{font-size:.85rem;font-weight:800}.tile .tv{font:800 1.9rem/1.15 var(--serif)}.tile .ts{font-size:.78rem;color:var(--muted);font-weight:700}
+  .t1{--c:var(--mint)}.t2{--c:var(--peach)}.t3{--c:var(--butter)}.t4{--c:var(--sky)}
+  .photo{width:116px;height:142px}.photo .frame{display:none}
+  .photo .img{border-radius:22px;border:4px solid var(--card);box-shadow:0 10px 16px -6px var(--sh1)}
+  .chip{border-radius:999px;border:0;background:var(--soft);box-shadow:inset 0 2px 0 var(--hi)}
+  .seals div,.matchmsg{border-radius:16px}.fp canvas{border-radius:16px}
+  .cred>.note{background:var(--soft)}.cred>.note.warn{background:var(--warn-bg)}
+  .cred>.receipt{background:var(--soft);border-top:0}
+  .match button.row{border-radius:16px}
+  @media (min-width:760px){.cred>.ident,.cred>section.blk{grid-column:span 2}.cred>.blk.match{grid-column:span 2}}
+  @media (max-width:759px){.cred>.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media print{.cred{display:block}.cred>*{box-shadow:none;margin-bottom:.6rem}.tile{box-shadow:none;border:1px solid #bbb}}
+  /* ── v5: HUD horizontal pipeline, holo tilt, PDF certificate ── */
+  .pipe{max-width:44rem;background-color:#06121e;color:#d4ecff;position:relative;overflow:hidden;padding:1.2rem 1rem 1.3rem;
+    background-image:linear-gradient(rgba(80,170,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(80,170,255,.07) 1px,transparent 1px);background-size:22px 22px;
+    box-shadow:0 0 0 1px rgba(80,170,255,.3),0 0 42px -6px rgba(60,160,255,.5),0 22px 44px -22px rgba(3,15,32,.7)}
+  .pipe::after{content:"";position:absolute;top:0;bottom:0;width:30%;left:-30%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(90,200,255,.2),transparent)}
+  .pipe h2{color:#8fd8ff;font:800 1rem var(--serif);letter-spacing:.02em}
+  .pipe .sub{color:#7fb0d0;font:.8rem var(--mono);min-height:2.6em}
+  .pipe ol{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+  .pipe li{display:flex;flex-direction:column;align-items:center;text-align:center;padding:.3rem .1rem;border:0}
+  .pipe li::before{left:calc(50% + 15px);right:calc(-50% + 15px);top:15px;bottom:auto;width:auto;height:2px;background:#1c4a6c}
+  .pipe li.ok::before{background:linear-gradient(90deg,#1fbf75,#4cc9ff)}
+  .pipe .ic{width:28px;height:28px;margin:0;border-color:#2a5b82;background:#06121e;position:relative;z-index:1;color:#fff}
+  .pipe li.run .ic{border-color:#4cc9ff;border-top-color:transparent;box-shadow:0 0 14px #4cc9ff}
+  .pipe li.ok .ic{background:#1fbf75;border-color:#1fbf75;box-shadow:0 0 14px rgba(31,191,117,.75)}
+  .pipe li.warn .ic{box-shadow:0 0 14px rgba(217,149,27,.8)}.pipe li.bad .ic{box-shadow:0 0 14px rgba(230,70,70,.8)}
+  .pipe .t{font-size:.72rem;margin-top:.5rem;color:#9cc4e0;font-weight:700}.pipe .d{display:none}
+  .stamp{perspective:300px}
+  .verdict::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;mix-blend-mode:soft-light;
+    background:linear-gradient(110deg,transparent calc(var(--mx,50%) - 22%),rgba(255,255,255,.55) var(--mx,50%),transparent calc(var(--mx,50%) + 22%))}
+  #cert{display:none}
+  @page{size:A4;margin:0}
+  #cert{font-family:"Nunito","Public Sans",sans-serif;color:#1d2b3c}
+  #cert.cap{display:block;position:fixed;left:-10000px;top:0}
+  @media print{
+    html,body{background:#fff!important;margin:0;padding:0}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    body>*:not(#cert){display:none!important}
+    #cert{display:block}
+  }
+  @media all{
+    .cp{position:relative;width:210mm;height:296.5mm;overflow:hidden;background:var(--pat1) 0 0/110mm,var(--pat2) 40mm 30mm/80mm,linear-gradient(160deg,#fffdf9,#fbf0d9)}
+    .cp::before{content:"";position:absolute;inset:5mm;border:.4mm solid #c9a24a;border-radius:4mm;z-index:6;pointer-events:none}
+    .cp::after{content:"";position:absolute;inset:7mm;border:.2mm solid rgba(201,162,74,.55);border-radius:3mm;z-index:6;pointer-events:none}
+    .cwm{position:absolute;left:50%;top:60%;width:130mm;transform:translate(-50%,-50%);opacity:.05}.cwm svg{width:100%}
+    .cb{position:absolute;left:0;right:0;top:0;height:62mm;background:linear-gradient(135deg,#0a2342,#145a8a 70%,#1b7fae)}
+    .cb::after{content:"";position:absolute;inset:0;background:var(--guil) center/cover;opacity:.3;mix-blend-mode:soft-light}
+    .cb::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1.6mm;background:linear-gradient(90deg,#c9a24a,#f3dc97,#c9a24a);z-index:2}
+    .ch{position:absolute;top:13mm;left:15mm;right:15mm;display:flex;gap:5mm;align-items:center;color:#fff;z-index:2}
+    .ch svg{width:19mm;height:19mm;flex:none}.ch b{display:block;font-size:17pt;font-weight:800}.ch span{font-size:9.5pt;opacity:.85}
+    .ct{position:absolute;top:37mm;left:15mm;color:#fff;font:800 24pt/1 "Nunito",sans-serif;letter-spacing:.2mm;z-index:2}
+    .cc{position:absolute;left:15mm;right:15mm;top:50mm;bottom:22mm;display:flex;flex-direction:column;gap:5mm;z-index:3}
+    .cvd{display:flex;justify-content:space-between;align-items:center;gap:6mm;padding:5mm 7mm;border-radius:6mm;background:linear-gradient(135deg,var(--kt),#fff 80%);box-shadow:0 1.5mm 4mm rgba(60,40,20,.2),inset 0 .5mm 0 #fff}
+    .cvd h1{margin:0;font:800 23pt/1.1 "Nunito",sans-serif;color:var(--k)}.cvd p{margin:1.5mm 0 0;font-size:10pt;color:#4d5d6e}
+    .cst{flex:none;width:32mm;height:32mm;color:var(--k);transform:rotate(-8deg)}.cst svg{width:100%;height:100%}.cst text{font:700 8px sans-serif;fill:currentColor}
+    .clr{display:grid;grid-template-columns:36mm 1fr;gap:8mm;align-items:center}
+    .cph{width:36mm;height:45mm;border-radius:5mm;padding:1mm;background:linear-gradient(135deg,#c9a24a,#6fb7ff,#b98cff,#7fe0b4,#c9a24a);box-shadow:0 2mm 4mm rgba(60,40,20,.25)}
+    .cph div{width:100%;height:100%;border-radius:4mm;overflow:hidden;background:#eef2f6;display:grid;place-items:center;font:800 22pt sans-serif;color:#6b7d8f}.cph img{width:100%;height:100%;object-fit:cover}
+    .cwho small,.csr small{display:block;font-size:8pt;color:#8a7767;font-weight:700}
+    .cwho h2{margin:.5mm 0 3mm;font:800 22pt/1.1 "Nunito",sans-serif;color:#0b2a4a}
+    .cch span{display:inline-block;margin:0 2mm 2mm 0;padding:1.2mm 3.2mm;border-radius:9mm;background:#f3e9d6;font-size:9pt;font-weight:800}
+    .csr{margin-top:2mm}.csr span{font:800 15pt monospace;letter-spacing:1.4mm;color:#0b2a4a}
+    .ctl{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm}
+    .ctl div{padding:3.5mm 4mm;border-radius:5mm;background:var(--c);box-shadow:0 1.2mm 3mm rgba(60,40,20,.18),inset 0 .5mm 0 rgba(255,255,255,.9)}
+    .ctl small{display:block;font-size:8pt;font-weight:800;color:#5d4b3b}.ctl b{display:block;font:800 17pt/1.2 "Nunito",sans-serif}.ctl span{font-size:7.5pt;color:#6b5a4a}
+    .cpf{display:flex;align-items:center;gap:7mm;padding:4.5mm 6mm;border-radius:5mm;background:#fff;box-shadow:0 1.2mm 3mm rgba(60,40,20,.18)}
+    .cav small{display:block;font-size:8pt;font-weight:800;color:#8a7767}.cav b{font:800 22pt/1 "Nunito",sans-serif;color:#0b2a4a}
+    .cbw{flex:1}.cbar{position:relative;display:flex;height:4mm;margin-top:3mm}.cbar i{display:block;height:100%}
+    .cbar i:first-child{border-radius:2mm 0 0 2mm}.cbar i:nth-child(4){border-radius:0 2mm 2mm 0}
+    .cbar u{position:absolute;top:-3.2mm;width:0;height:0;border-left:2mm solid transparent;border-right:2mm solid transparent;border-top:3mm solid #0f2238;transform:translateX(-2mm)}
+    .csc{display:flex;margin-top:1mm;font:800 7pt sans-serif;color:#8a7767}.csc span{text-align:center}
+    .csc span:nth-child(1){width:31%}.csc span:nth-child(2){width:27%}.csc span:nth-child(3){width:17%}.csc span:nth-child(4){width:25%}
+    .cks h3,.cxx h3{margin:0 0 2.5mm;font:800 11pt "Nunito",sans-serif}
+    .ckl{display:grid;grid-template-columns:repeat(3,1fr);gap:2.5mm 4mm}
+    .ckl div{display:flex;gap:2mm;align-items:center;font-size:8.5pt;font-weight:700}
+    .ckl i{flex:none;width:5mm;height:5mm;border-radius:50%;display:grid;place-items:center;color:#fff;font:800 8pt sans-serif;font-style:normal;background:#15663d}
+    .ckl i.warn{background:#d9951b}.ckl i.bad{background:#a12a2a}.ckl i.na{background:#8a98a8}
+    .csec{display:grid;grid-template-columns:35mm 1fr 24mm;gap:6mm;align-items:center;padding:5mm 6mm;border-radius:6mm;color:#d8ecff;
+      background:linear-gradient(135deg,#0a2342,#10416a);box-shadow:0 2mm 5mm rgba(10,35,66,.4)}
+    .cq{background:#fff;padding:2mm;border-radius:3mm}.cq img{width:31mm;height:31mm;display:block}
+    .cxx h3{color:#fff}.chs{display:grid;grid-template-columns:repeat(4,auto);gap:1mm 3mm;font:700 8.5pt monospace;color:#fff}
+    .chs span:first-child{color:#f3dc97}.cxx p{margin:2mm 0 0;font-size:7.5pt;color:#9cc4e0;word-break:break-all}
+    .csec>canvas{width:24mm;height:24mm;image-rendering:pixelated;border-radius:3mm;border:.6mm solid #fff}
+    .cmt{position:absolute;left:10mm;right:10mm;bottom:12mm;font:3.2pt monospace;letter-spacing:.2mm;white-space:nowrap;overflow:hidden;color:#8a7767;z-index:4}
+    .cmt.b{bottom:10.5mm}
+    .cn{position:absolute;left:15mm;right:15mm;bottom:15.5mm;margin:0;font-size:7.5pt;color:#6b5a4a;text-align:center;z-index:4}
+    .cside{position:absolute;right:9.5mm;top:70mm;writing-mode:vertical-rl;font:700 6pt monospace;letter-spacing:1.5mm;color:#c3b393;z-index:4}
+  }
+  /* ── v6: visionOS glass — frosted panels, dials, progress ── */
+  html{color-scheme:dark}
+  :root{--serif:"Plus Jakarta Sans","Public Sans",system-ui,sans-serif;--sans:"Plus Jakarta Sans","Public Sans",system-ui,sans-serif;
+    --ink:#f2f6fa;--muted:rgba(235,242,250,.6);--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.07);--soft:rgba(255,255,255,.07);--bg:#0b0e12;
+    --ok:#5ee0a0;--ok-bg:rgba(60,200,130,.15);--ok-line:rgba(94,224,160,.35);--warn:#ffc86b;--warn-bg:rgba(255,190,80,.14);--warn-line:rgba(255,200,107,.35);
+    --bad:#ff8f8f;--bad-bg:rgba(255,100,100,.14);--bad-line:rgba(255,143,143,.35);--info:#5ab8ff;--focus:#5ab8ff;--gold:#e3c06a;--acc:#2aa7ff;
+    --glass:rgba(255,255,255,.07);--rim:rgba(255,255,255,.15);--shd:rgba(0,0,0,.75);--hl:rgba(255,255,255,.2);--ish:rgba(0,0,0,.45)}
+  body{background:radial-gradient(1100px 700px at 12% 8%,rgba(110,140,170,.35),transparent 60%),radial-gradient(900px 600px at 92% 85%,rgba(30,120,210,.28),transparent 60%),linear-gradient(160deg,#1b2128,#0a0d11) fixed;color:var(--ink);font-weight:500}
+  .mast,.pipe,form,.hist,.cred>*,.tile,.gcard,.rail{background:var(--glass);border:1px solid var(--rim);border-radius:28px;
+    -webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5);
+    box-shadow:0 24px 50px -22px var(--shd),inset 0 1px 0 var(--hl),inset 0 -1px 0 rgba(255,255,255,.04)}
+  .mast{background:var(--glass)}.mast h1{color:var(--ink)}.mast p{color:var(--muted)}
+  .pill,.chip{background:var(--soft);color:var(--muted);box-shadow:inset 0 1px 0 var(--hl)}
+  button.pill{font-family:inherit;cursor:pointer}.mast .pill{margin-left:auto}
+  .pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.bad{background:var(--bad-bg);color:var(--bad)}.pill.warn{background:var(--warn-bg);color:var(--warn)}
+  button.btn,.btn{background:linear-gradient(180deg,#48b6ff,#1590f0);color:#fff;box-shadow:0 10px 22px -10px rgba(42,167,255,.9),inset 0 1px 0 rgba(255,255,255,.4)}
+  .btn.ghost{background:var(--soft);color:var(--ink);box-shadow:inset 0 1px 0 var(--hl),0 0 0 1px var(--line)}
+  .livebar{background:rgba(14,22,32,.85);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--rim)}.livebar .btn{background:var(--gold);color:#1a1405}
+  input{background:var(--soft);color:var(--ink);box-shadow:inset 0 2px 8px var(--ish),inset 0 -1px 0 var(--hl)}
+  input::placeholder{color:var(--muted);opacity:.7}
+  .pipe{border-radius:28px;box-shadow:0 0 0 1px rgba(80,170,255,.25),0 0 46px -8px rgba(42,167,255,.5),0 24px 50px -22px rgba(0,0,0,.75)}
+  .pbar{position:relative;height:8px;border-radius:5px;background:rgba(255,255,255,.1);margin:1.5rem 0 1rem}
+  .pbar i{display:block;height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,#2aa7ff,#8fd8ff);box-shadow:0 0 14px #2aa7ff}
+  .pbar span{position:absolute;right:0;top:-1.45rem;font:700 .78rem var(--mono);color:#8fd8ff}
+  .cred>.trust{display:none}
+  .cred>.tiles{border:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .cred>.verdict{background:linear-gradient(135deg,color-mix(in srgb,var(--vk) 24%,transparent),var(--glass) 75%)}
+  .cred>.gauges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;overflow:visible;padding:0}
+  .gcard{padding:1.1rem 1.2rem 1.2rem;display:flex;flex-direction:column;align-items:center;min-width:0}
+  .gcard h4{align-self:flex-start;margin:0 0 .7rem;font:700 .95rem var(--serif);color:var(--ink)}
+  .gauge{--gc:var(--acc);position:relative;width:100%;max-width:190px;display:grid;place-items:center}
+  .g-ok{--gc:var(--ok)}.g-warn{--gc:var(--warn)}.g-bad{--gc:var(--bad)}
+  .gauge svg{width:100%;display:block}.gauge .tk line{stroke:rgba(255,255,255,.3);stroke-width:1.2}
+  .gauge .trk{fill:none;stroke:rgba(255,255,255,.1);stroke-width:12}
+  .gauge .arc{fill:none;stroke:var(--gc);stroke-width:12;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--gc))}
+  .gauge .knob circle{fill:#fff;stroke:var(--gc);stroke-width:3.5}
+  .gc{position:absolute;text-align:center;line-height:1.2}.gc b{display:block;font:800 1.7rem var(--serif)}.gc small{display:block;font-size:.72rem;color:var(--muted);font-weight:700}
+  .gcard>em{margin-top:.6rem;font-style:normal;font-size:.8rem;color:var(--muted);font-weight:600;text-align:center}
+  .bars{display:flex;align-items:flex-end;justify-content:space-between;gap:.55rem;width:100%;min-height:185px}
+  .bcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+  .bcol i{display:block;width:100%;height:0;border-radius:14px 14px 7px 7px;background:rgba(255,255,255,.16)}
+  .bcol.on i{background:linear-gradient(180deg,#5cc0ff,#1590f0);box-shadow:0 0 22px rgba(42,167,255,.6)}
+  .bcol em{font-style:normal;font-size:.72rem;font-weight:800;background:rgba(255,255,255,.16);padding:.15rem .5rem;border-radius:9px;margin-bottom:.35rem}
+  .bcol b{margin-top:.45rem;font-size:.8rem}.bcol small{font-size:.66rem;color:var(--muted)}
+  .tile{background:linear-gradient(145deg,color-mix(in srgb,var(--c) 20%,transparent),var(--glass))}
+  .tile .ti{background:rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}.tile .ts{color:var(--muted)}
+  .photo .img{border-color:rgba(255,255,255,.25)}
+  .rail{display:none;position:fixed;left:18px;top:50%;transform:translateY(-50%);flex-direction:column;gap:.45rem;padding:.55rem;border-radius:32px;z-index:5}
+  .rail button{all:unset;box-sizing:border-box;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--muted)}
+  .rail button:first-child{background:rgba(255,255,255,.16);color:#fff}
+  .rail button:hover{background:rgba(255,255,255,.14);color:#fff}.rail button:focus-visible{outline:3px solid var(--focus)}
+  .rail svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  @media (min-width:900px){.rail{display:flex}main{padding-left:5.5rem}}
+  @media (max-width:759px){.cred>.gauges{grid-template-columns:1fr}}
+  /* ── light mode (default) — toggle in the header ── */
+  :root[data-theme="light"]{--ink:#16212c;--muted:rgba(22,33,44,.62);--line:rgba(22,33,44,.12);--card:rgba(255,255,255,.6);--soft:rgba(255,255,255,.55);--bg:#e8edf2;
+    --ok:#12803f;--ok-bg:rgba(30,160,90,.13);--ok-line:rgba(18,128,63,.35);--warn:#9a5b00;--warn-bg:rgba(240,170,40,.18);--warn-line:rgba(154,91,0,.35);
+    --bad:#b42323;--bad-bg:rgba(220,70,70,.13);--bad-line:rgba(180,35,35,.35);--info:#1f6fc4;--focus:#1f7be0;--gold:#a77a1c;--acc:#0a84ff;
+    --glass:rgba(255,255,255,.58);--rim:rgba(255,255,255,.9);--shd:rgba(40,70,100,.38);--hl:#fff;--ish:rgba(40,70,100,.2)}
+  :root[data-theme="light"] body{background:radial-gradient(1100px 700px at 10% 5%,rgba(255,255,255,.95),transparent 60%),radial-gradient(900px 600px at 92% 88%,rgba(110,175,240,.5),transparent 60%),linear-gradient(160deg,#e3eaf1,#c7d5e4) fixed}
+  :root[data-theme="light"] .pipe{background-color:rgba(255,255,255,.62);color:var(--ink);
+    background-image:linear-gradient(rgba(10,132,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(10,132,255,.09) 1px,transparent 1px);
+    box-shadow:0 0 0 1px rgba(10,132,255,.25),0 0 40px -10px rgba(10,132,255,.35),0 24px 50px -24px rgba(40,70,100,.4)}
+  :root[data-theme="light"] .pipe::after{background:linear-gradient(90deg,transparent,rgba(10,132,255,.16),transparent)}
+  :root[data-theme="light"] .pipe h2,:root[data-theme="light"] .pbar span{color:#0a6fd1}
+  :root[data-theme="light"] .pipe .sub,:root[data-theme="light"] .pipe .t{color:#3d6a94}
+  :root[data-theme="light"] .pipe li::before{background:rgba(10,100,200,.22)}
+  :root[data-theme="light"] .pipe .ic{background:#fff;border-color:#a9cbea}
+  :root[data-theme="light"] .pipe li.run .ic{border-color:#0a84ff;border-top-color:transparent;box-shadow:0 0 12px rgba(10,132,255,.6)}
+  :root[data-theme="light"] .pipe li.ok .ic{background:#1fbf75;border-color:#1fbf75}
+  :root[data-theme="light"] .pbar{background:rgba(10,60,120,.1)}
+  :root[data-theme="light"] .rail button:first-child{background:var(--acc);color:#fff}
+  :root[data-theme="light"] .rail button:hover{background:rgba(10,132,255,.13);color:var(--acc)}
+  :root[data-theme="light"] .gauge .tk line{stroke:rgba(22,33,44,.3)}
+  :root[data-theme="light"] .gauge .trk{stroke:rgba(22,33,44,.1)}
+  :root[data-theme="light"] .bcol i{background:rgba(22,33,44,.12)}
+  :root[data-theme="light"] .bcol.on i{background:linear-gradient(180deg,#5cc0ff,#0a84ff);box-shadow:0 0 18px rgba(10,132,255,.45)}
+  :root[data-theme="light"] .bcol em{background:rgba(22,33,44,.1)}
+  :root[data-theme="light"] .tile{background:linear-gradient(145deg,color-mix(in srgb,var(--c) 75%,#fff),rgba(255,255,255,.5))}
+  :root[data-theme="light"] .tile .ti{background:rgba(255,255,255,.85)}
+  :root[data-theme="light"] .photo .img{border-color:#fff}
+  :root[data-theme="light"] .cred>.verdict{background:linear-gradient(135deg,color-mix(in srgb,var(--vk) 16%,#fff),var(--glass) 75%)}
+  @media (max-width:380px){.stamp{width:84px;height:84px}.verdict h2{font-size:1.5rem}}
+  @media print{
+    body::before,body::after,.mast,.chan,.domainwarn,form,footer,.acts,.livebar,.hist,.pipe,.stamp{display:none!important}
+    body{background:#fff;color:#000}main{max-width:none;padding:0}
+    .cred{box-shadow:none;border:1px solid #888}.prhead{display:block;padding:1rem 1.2rem;font:700 1.1rem var(--serif);border-bottom:1px solid #888}
+    .verdict{background:none}
+  }
+  /* Keep the verifier responsive on low-powered phones and tablets. */
+  html{scroll-behavior:auto}
+  .pipe::after,.photo .skel,.photo .scan,.photo .sheen{display:none!important}
+  .mast,.pipe,form,.hist,.cred>*,.tile,.gcard,.rail{
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+    box-shadow:none!important
+  }
+  .pipe{background-image:none}
+  .pipe li.run .ic{border-top-color:var(--info);box-shadow:none}
+  .pipe li.ok .ic,.pipe li.warn .ic,.pipe li.bad .ic{box-shadow:none}
+  .gauge .arc,.bcol.on i{filter:none}
+</style>
+</head>
+<body>
+<nav class="rail" aria-label="Quick actions">
+  <button type="button" data-a="top" aria-label="Top"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg></button>
+  <button type="button" data-a="scan" aria-label="Scan QR"><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M4 12h16"/></svg></button>
+  <button type="button" data-a="hist" aria-label="History"><svg viewBox="0 0 24 24"><path d="M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>
+  <button type="button" data-a="checks" aria-label="Checks"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.500 8-8 9-4.500-1-8-4-8-9V6z"/></svg></button>
+</nav>
+<main>
+  <div class="mast">
+    <svg class="crest" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f7bd6"/><stop offset="1" stop-color="#0b2a4a"/></linearGradient></defs>
+      <path d="M32 3 55 11v19c0 15-10 26-23 31C19 56 9 45 9 30V11z" fill="url(#cg)" stroke="#c9a24a" stroke-width="2.5"/>
+      <path d="M32 11 47 16.5v13c0 10-6.5 17.500-15 21-8.500-3.500-15-11-15-21v-13z" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+      <path d="M22 31l7 7 13-14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div><p>Kanyadet Primary &amp; Junior School</p><h1>Document verification</h1></div>
+    <button class="pill" id="themebtn" type="button" aria-label="Switch light or dark mode"></button>
+  </div>
+
+  <div class="chan" id="chan"></div>
+  <div class="domainwarn" id="domainwarn" hidden></div>
+
+  <section id="pipe" class="pipe" hidden aria-live="polite">
+    <h2>Verifying document…</h2>
+    <p class="sub" id="pipe-sub">Running authenticity checks against the school's registry.</p>
+    <div class="pbar"><i id="pfill"></i><span id="ppct">0%</span></div>
+    <ol id="steps"></ol>
+  </section>
+
+  <section id="result" hidden aria-live="polite"></section>
+
+  <form id="f" autocomplete="off">
+    <h2 class="ftitle">Check a report card</h2>
+    <label for="code">Enter the code printed under the QR (e.g. 7F3K-92QA)</label>
+    <div class="row2">
+      <input id="code" inputmode="text" maxlength="9" placeholder="XXXX-XXXX" spellcheck="false" autocapitalize="characters" aria-describedby="hint">
+      <button class="btn" type="submit" id="go">Check</button>
+    </div>
+    <button class="btn ghost wide" type="button" id="scanbtn" hidden>Scan the QR with your camera</button>
+    <div class="lock" id="lock" hidden></div>
+  </form>
+  <section id="hist" class="hist" hidden></section>
+
+  <footer id="hint">
+    <strong>How to read this page.</strong>
+    <ul>
+      <li>Scanning the QR checks the code <em>and</em> that the marks are unchanged since printing. Typing the code only confirms the record exists.</li>
+      <li>Compare the photo, name, grade, term and average below with the printed card. If any one differs, the card has been altered.</li>
+      <li>Only trust this page when the address bar shows the school's own website. The camera scanner warns you if a QR points anywhere else.</li>
+      <li>Results update live: if the school withdraws or corrects a card while you are looking at it, you will be told.</li>
+    </ul>
+  </footer>
+</main>
+
+<script type="module">
+import { FIREBASE_CONFIG } from './js/config.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, doc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const db = getFirestore(initializeApp(FIREBASE_CONFIG, 'verify'));
+const $ = id => document.getElementById(id);
+const EXPECTED_HOSTS = ['kanyadet-school-admin.web.app','kanyadet-school-admin.firebaseapp.com','localhost','127.0.0.1'];
+const SERIAL_RE = /^[0-9A-HJKMNP-TV-Z]{8}$/;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Crockford base32: O→0, I/L→1, dashes and spaces ignored
+const norm = s => (s || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
+const pretty = s => s.slice(0, 4) + '-' + s.slice(4);
+const sealPrefix = value => {
+  const prefix = String(value || '');
+  return /^[0-9a-f]{8}$/i.test(prefix) ? prefix.toLowerCase() : null;
+};
+function h(tag, cls, text, attrs) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  if (attrs) for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+const SVGNS = 'http://www.w3.org/2000/svg';
+function svgIcon(path, extra) {
+  const s = document.createElementNS(SVGNS, 'svg');
+  s.setAttribute('viewBox', '0 0 16 16'); s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor');
+  s.setAttribute('stroke-width', '2'); s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round');
+  const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', path); s.appendChild(p); return s;
+}
+const ICON = { lock:'M4 7V5a4 4 0 018 0v2M3 7h10v7H3z', warn:'M8 2l7 12H1zM8 7v3M8 12v.01', clock:'M8 2a6 6 0 100 12A6 6 0 008 2zM8 5v3l2 2', globe:'M8 2a6 6 0 100 12A6 6 0 008 2zM2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12' };
+
+const setTheme = t => { document.documentElement.dataset.theme = t; try { localStorage.setItem('kps-verify-theme', t); } catch (e) {} $('themebtn').textContent = t === 'light' ? '☾ Dark mode' : '☀ Light mode'; };
+setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+$('themebtn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
+
+/* ── decorative guilloche (security-print style) generated as SVG background ── */
+function guilloche(color, op) {
+  let d = '';
+  for (let i = 0; i < 22; i++) {
+    const amp = 6 + i * 1.3, ph = i * 0.55; let p = '';
+    for (let x = 0; x <= 400; x += 8) {
+      const y = 60 + Math.sin(x / 26 + ph) * amp + Math.cos(x / 61 - ph) * (amp / 2);
+      p += (x ? 'L' : 'M') + x + ' ' + y.toFixed(1);
+    }
+    d += `<path d="${p}" fill="none" stroke="${color}" stroke-width=".7" opacity="${op}"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" preserveAspectRatio="none">${d}</svg>`;
+  return 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")';
+}
+document.documentElement.style.setProperty('--guil', guilloche('#ffffff', .9));
+document.documentElement.style.setProperty('--guil2', guilloche('#7b93ad', .22));
+
+/* ── channel / connection indicators ── */
+(function chan() {
+  const box = $('chan'), https = location.protocol === 'https:', host = location.hostname;
+  const official = EXPECTED_HOSTS.includes(host);
+  const mk = (cls, icon, text) => { const p = h('span', 'pill ' + cls); p.appendChild(svgIcon(ICON[icon])); p.append(text); box.appendChild(p); };
+  mk(https ? 'ok' : 'bad', 'lock', https ? 'Encrypted connection' : 'Not encrypted');
+  mk(official ? 'ok' : 'bad', 'globe', official ? 'Official school site' : 'Unofficial address');
+  mk('live', 'clock', 'Live registry link');
+  if (!official) {
+    const w = $('domainwarn');
+    w.textContent = 'Warning: this page is not running on the school’s official website (' + host + '). A fake page can show any result. Do not trust it — open the verification link from the school’s own site.';
+    w.hidden = false;
+  }
+})();
+
+/* ── helpers: parsing / formatting ── */
+function fmtDate(iso, long) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  return long
+    ? d.toLocaleString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+    : d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+function ago(iso) {
+  const s = (Date.now() - new Date(iso)) / 1000;
+  if (isNaN(s)) return '';
+  if (s < 3600) return Math.max(1, Math.round(s / 60)) + ' min ago';
+  if (s < 86400) return Math.round(s / 3600) + ' h ago';
+  if (s < 86400 * 60) return Math.round(s / 86400) + ' days ago';
+  return Math.round(s / 86400 / 30) + ' months ago';
+}
+function parseExam(r) {
+  const src = (r.term || '') + ' ' + (r.grade || '');
+  const g = (r.grade || '').match(/Grade\s*\d+|PP\s*\d+/i);
+  const t = src.match(/Term\s*(\d+)/i);
+  const e = src.match(/Opener|Mid[-\s]?Term|End[-\s]?Term|CAT|Holiday[-\s]?Assignment/i);
+  const y = r.year || (src.match(/\b(20\d\d)\b/) || [])[1] || '';
+  return {
+    grade: g ? g[0].replace(/\s+/, ' ') : (r.grade || '—'),
+    term: t ? 'Term ' + t[1] : (r.term || '—'),
+    exam: e ? e[0].replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '',
+    year: String(y || '')
+  };
+}
+function diffCode(code, ref) {
+  const c = h('code');
+  [...code].forEach((ch, i) => c.appendChild(h('span', ref && ref[i] !== ch ? 'df' : '', ch)));
+  return c;
+}
+async function receiptId(str) {
+  try {
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(b).slice(0, 6), x => x.toString(16).padStart(2, '0')).join('').toUpperCase().replace(/(.{4})(?=.)/g, '$1-');
+  } catch (e) { return 'UNAVAILABLE'; }
+}
+/* A4 certificate (built on demand, shown only when printing / saving as PDF) */
+let LAST = null;
+function loadQR() {
+  return window.QRCode ? Promise.resolve() : new Promise(r => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'; s.onload = s.onerror = r; document.head.appendChild(s); });
+}
+function buildCert() {
+  const old = $('cert'); if (old) old.remove(); if (!LAST) return;
+  const { o, ex } = LAST, r = o.r, avg = Number(r.avg), col = { ok:'#15663d', warn:'#8a5200', bad:'#a12a2a' }[o.kind], tint = { ok:'#dcefe3', warn:'#f8e9c9', bad:'#f4dada' }[o.kind];
+  const valid = o.full && /^[0-9a-f]{64}$/.test(o.full), c = h('div', null, null, { id:'cert' });
+  const crest = '<svg viewBox="0 0 64 64"><path d="M32 3 55 11v19c0 15-10 26-23 31C19 56 9 45 9 30V11z" fill="#123e69" stroke="#c9a24a" stroke-width="2.5"/><path d="M22 31l7 7 13-14" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  c.innerHTML = `<div class="cp" style="--k:${col};--kt:${tint}"><div class="cwm">${crest}</div><div class="cb"></div>
+    <div class="ch">${crest}<div><b>Kanyadet Primary &amp; Junior School</b><span>Official registry · digital verification</span></div></div>
+    <div class="ct">Verification certificate</div>
+    <div class="cc">
+      <div class="cvd"><div><h1 data-k="title"></h1><p data-k="sub"></p></div><div class="cst"></div></div>
+      <div class="clr"><div class="cph"><div></div></div><div class="cwho"><small>Learner</small><h2 data-k="name"></h2><div class="cch"></div><div class="csr"><small>Card serial</small><span data-k="serial"></span></div></div></div>
+      <div class="ctl"></div>
+      <div class="cpf"><div class="cav"><small>Average</small><b data-k="avg"></b></div><div class="cbw"><div class="cbar"><i style="width:31%;background:#d9433a"></i><i style="width:27%;background:#e0900f"></i><i style="width:17%;background:#2980b9"></i><i style="width:25%;background:#27ae60"></i><u></u></div><div class="csc"><span>BE</span><span>AE</span><span>ME</span><span>EE</span></div></div></div>
+      <div class="cks"><h3>Authenticity checks</h3><div class="ckl"></div></div>
+      <div class="csec"><div class="cq"></div><div class="cxx"><h3>Cryptographic seal · SHA-256</h3><div class="chs"></div><p data-k="seals"></p><p data-k="rc"></p></div><canvas></canvas></div>
+    </div>
+    <div class="cmt"></div><div class="cmt b"></div><p class="cn" data-k="cn"></p><div class="cside" data-k="side"></div></div>`;
+  const q = k => c.querySelector('[data-k="' + k + '"]'), set = (k, v) => { q(k).textContent = v; };
+  const lvl = r.level || band(isNaN(avg) ? 0 : avg).code, term = ex.term + (ex.year ? ' ' + ex.year : '');
+  set('title', o.title); set('sub', o.sub); set('name', r.name || '—'); set('serial', pretty(o.serial)); set('avg', isNaN(avg) ? '—' : avg.toFixed(2) + '%'); set('rc', LAST.rc || '');
+  set('seals', 'Printed seal: ' + (o.hPrefix ? o.hPrefix.toUpperCase() : 'not supplied') + '   ·   Registry seal: ' + (valid ? o.full.slice(0, 8).toUpperCase() : '—'));
+  set('cn', 'Checked live against the school registry on ' + new Date().toLocaleString('en-GB') + ' at ' + location.hostname + '. Scan the QR to verify again; the live result is the authoritative record.');
+  set('side', ('SERIAL ' + o.serial + ' · ').repeat(9));
+  const unit = 'KANYADET PRIMARY & JUNIOR SCHOOL · ' + o.serial + ' · VERIFIED REGISTRY · '; let mt = ''; while (mt.length < 900) mt += unit;
+  c.querySelectorAll('.cmt').forEach(e => { e.textContent = mt; });
+  const st = document.querySelector('.stamp'); if (st) c.querySelector('.cst').innerHTML = st.innerHTML.replace('id="sp"', 'id="sp2"').replace('href="#sp"', 'href="#sp2"');
+  const im = document.querySelector('.photo img'), ph = c.querySelector('.cph div');
+  if (im) { const i2 = h('img'); i2.src = im.src; ph.appendChild(i2); } else ph.textContent = initials(r.name);
+  [ex.grade, term, ex.exam, lvl].filter(Boolean).forEach(t => c.querySelector('.cch').appendChild(h('span', '', t)));
+  [['t1', 'Level', lvl, ex.grade], ['t2', 'Status', o.revoked ? 'Withdrawn' : 'Valid', 'In school registry'], ['t3', 'Revision', String(r.rev || 1), 'Issued ' + fmtDate(r.issuedAt)], ['t4', 'Checks passed', LAST.chk || '—', o.seal === 'match' ? 'Seal matches' : 'Registry verified']].forEach(([k, a, b, d]) => {
+    const t = h('div'); t.style.setProperty('--c', { t1:'#d6e8da', t2:'#fbd8c6', t3:'#fbe7b5', t4:'#d3e1ef' }[k]); t.append(h('small', '', a), h('b', '', b), h('span', '', d)); c.querySelector('.ctl').appendChild(t); });
+  c.querySelector('.cbar u').style.left = Math.max(0, Math.min(100, isNaN(avg) ? 0 : avg)) + '%';
+  document.querySelectorAll('.checks li').forEach(li => {
+    const tk = li.querySelector('.tick'), d = h('div'), i = h('i', tk.classList[1] || 'ok', tk.textContent); d.append(i, h('span', '', li.querySelector('b').textContent)); c.querySelector('.ckl').appendChild(d); });
+  const hs = c.querySelector('.chs');
+  if (valid) o.full.toUpperCase().match(/.{8}/g).forEach(g => hs.appendChild(h('span', '', g))); else hs.textContent = 'Not available';
+  if (valid) drawFingerprint(c.querySelector('.csec>canvas'), o.full); else c.querySelector('.csec>canvas').remove();
+  if (window.QRCode) new QRCode(c.querySelector('.cq'), { text: location.origin + location.pathname + '?c=' + o.serial + (o.full ? '&h=' + o.full.slice(0, 8) : ''), width: 140, height: 140, correctLevel: QRCode.CorrectLevel.M });
+  else c.querySelector('.cq').remove();
+  document.body.appendChild(c);
+}
+const loadJS = (u, ok) => ok() ? Promise.resolve() : new Promise(r => { const s = document.createElement('script'); s.src = u; s.onload = s.onerror = r; document.head.appendChild(s); });
+async function savePdf(ev) {
+  const btn = ev && ev.currentTarget, lab = btn && btn.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = 'Preparing PDF…'; }
+  try {
+    await Promise.all([loadQR(), loadJS('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => window.html2canvas),
+      loadJS('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => window.jspdf)]);
+    const o = LAST.o; buildCert(); const c = $('cert'); c.classList.add('cap');
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 400));
+    const cv = await html2canvas(c.firstElementChild, { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0, ignoreElements: e => e.classList && e.classList.contains('cside') });
+    const pdf = new jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+    pdf.setProperties({ title: 'Report card verification ' + pretty(o.serial), subject: o.title });
+    pdf.addImage(cv.toDataURL('image/jpeg', .93), 'JPEG', 0, 0, 210, 297);
+    pdf.save('Kanyadet-verification-' + o.serial + '.pdf');
+    c.remove();
+  } catch (e) { buildCert(); setTimeout(() => window.print(), 300); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = lab; } }
+}
+addEventListener('beforeprint', () => { if (!$('cert')) buildCert(); });
+addEventListener('afterprint', () => { const c = $('cert'); if (c) c.remove(); });
+/* thermostat-style dial */
+function gauge(pct, val, label, cls) {
+  const R = 62, C = 2 * Math.PI * R, d = h('div', 'gauge ' + (cls || '')); let tk = '';
+  for (let i = 0; i < 60; i++) { const a = i * Math.PI / 30, l = i % 5 ? 75 : 78;
+    tk += `<line x1="${(80 + Math.sin(a) * 72).toFixed(1)}" y1="${(80 - Math.cos(a) * 72).toFixed(1)}" x2="${(80 + Math.sin(a) * l).toFixed(1)}" y2="${(80 - Math.cos(a) * l).toFixed(1)}"/>`; }
+  d.innerHTML = `<svg viewBox="0 0 160 160" aria-hidden="true"><g class="tk">${tk}</g><circle class="trk" cx="80" cy="80" r="${R}"/><circle class="arc" cx="80" cy="80" r="${R}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}" transform="rotate(-90 80 80)"/><g class="knob" style="transform-origin:80px 80px"><circle cx="80" cy="${80 - R}" r="7"/></g></svg>`;
+  const t = h('div', 'gc'); t.append(h('b', '', val), h('small', '', label)); d.appendChild(t);
+  const p = Math.max(0, Math.min(100, pct || 0));
+  d.querySelector('.arc').style.strokeDashoffset = (C * (1 - p / 100)).toFixed(1);
+  d.querySelector('.knob').style.transform = 'rotate(' + (p * 3.6) + 'deg)';
+  return d;
+}
+function bandChart(avg) {
+  const b = band(isNaN(avg) ? 0 : avg).code, w = h('div', 'bars');
+  [['BE', '0–30', 38], ['AE', '31–57', 62], ['ME', '58–74', 82], ['EE', '75+', 100]].forEach(([c, r, ht]) => {
+    const col = h('div', 'bcol' + (c === b ? ' on' : '')), bar = h('i');
+    bar.style.height = ht * 1.15 + 'px';
+    if (c === b && !isNaN(avg)) col.appendChild(h('em', '', avg.toFixed(1) + '%'));
+    col.append(bar, h('b', '', c), h('small', '', r)); w.appendChild(col); });
+  return w;
+}
+function band(avg) {
+  if (avg >= 75) return { code:'EE', col:'#27ae60' };
+  if (avg >= 58) return { code:'ME', col:'#2980b9' };
+  if (avg >= 31) return { code:'AE', col:'#e0900f' };
+  return { code:'BE', col:'#d9433a' };
+}
+const initials = n => (n || '?').split(/\s+/).map(w => w[0] || '').join('').toUpperCase().slice(0, 2) || '?';
+
+/* ── learner photo: same folders the school portal uses; no default image on purpose ── */
+function tryImg(src) {
+  return new Promise(res => {
+    const im = new Image(); let done = false;
+    const fin = v => { if (!done) { done = true; res(v); } };
+    im.onload = () => fin(im.naturalWidth > 20 ? src : null);
+    im.onerror = () => fin(null);
+    setTimeout(() => fin(null), 5000);
+    im.src = src;
+  });
+}
+async function findPhoto(name, grade) {
+  const g = ((grade || '').match(/Grade\s*\d+/i) || [grade || ''])[0].replace(/\s+/, ' ');
+  const n = (name || '').trim(); if (!n) return null;
+  const e = encodeURIComponent;
+  const list = [
+    `./Report-Cards/student_images/${g}/${n}.jpg`, `./Report-Cards/student_images/${e(g)}/${e(n)}.jpg`,
+    `./Report-Cards/student_images/${g}/${e(n)}.jpg`, `./student_images/${g}/${n}.jpg`, `./student_images/${e(g)}/${e(n)}.jpg`
+  ];
+  const r = await Promise.all(list.map(tryImg));
+  return r.find(Boolean) || null;
+}
+
+/* ── visual fingerprint: deterministic symmetric glyph derived from the seal hash ── */
+function drawFingerprint(cv, hex) {
+  const N = 9, px = 10; cv.width = cv.height = N * px;
+  const x = cv.getContext('2d'), hue = parseInt(hex.slice(0, 2), 16) / 255 * 360, hue2 = (hue + 140) % 360;
+  x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height);
+  let bit = 0;
+  const nib = i => parseInt(hex[i % hex.length], 16);
+  for (let r = 0; r < N; r++) for (let c = 0; c < Math.ceil(N / 2); c++) {
+    const v = nib(r * 5 + c + 2);
+    if (v & (1 << (bit++ % 4)) || (v > 8)) {
+      x.fillStyle = `hsl(${(r + c) % 2 ? hue : hue2} 62% ${34 + (v % 4) * 6}%)`;
+      x.fillRect(c * px, r * px, px, px); x.fillRect((N - 1 - c) * px, r * px, px, px);
+    }
+  }
+}
+
+/* ── lookup throttle (cosmetic + courtesy; real protection is the unguessable serial) ── */
+let fails = [], lockUntil = 0, lockTimer = null;
+function noteFail() { const n = Date.now(); fails = fails.filter(t => n - t < 60000); fails.push(n);
+  if (fails.length >= 5) { lockUntil = n + 30000; fails = []; startLock(); } }
+function startLock() {
+  clearInterval(lockTimer);
+  const tick = () => { const left = Math.ceil((lockUntil - Date.now()) / 1000);
+    if (left <= 0) { clearInterval(lockTimer); $('lock').hidden = true; $('go').disabled = false; return; }
+    $('lock').hidden = false; $('go').disabled = true;
+    $('lock').textContent = 'Too many unrecognised codes. Try again in ' + left + 's.'; };
+  tick(); lockTimer = setInterval(tick, 500);
+}
+
+/* ── pipeline UI ── */
+const STEPS = [
+  ['Code format', 'Checking the 8-character serial is well formed'],
+  ['Secure channel', 'Confirming encrypted connection & official address'],
+  ['School registry', 'Looking the serial up in the school’s records'],
+  ['Card status', 'Checking the card has not been withdrawn'],
+  ['Seal integrity', 'Comparing the printed seal with the registry seal']
+];
+function buildSteps() {
+  const ol = $('steps'); ol.replaceChildren(); $('pfill').style.width = '0%'; $('ppct').textContent = '0%';
+  STEPS.forEach(([t, d], i) => {
+    const li = h('li', '', null, { id: 'st' + i });
+    li.append(h('span', 'ic'), (() => { const w = h('div'); w.append(h('div', 't', t), h('div', 'd', d)); return w; })());
+    ol.appendChild(li);
+  });
+}
+function step(i, state, detail) {
+  const li = $('st' + i); li.className = 'on ' + state;
+  const ic = li.querySelector('.ic'); ic.textContent = state === 'ok' ? '✓' : state === 'bad' ? '✕' : state === 'warn' ? '!' : state === 'skip' ? '–' : '';
+  const dn = document.querySelectorAll('#steps li.ok,#steps li.warn,#steps li.bad,#steps li.skip').length / STEPS.length * 100;
+  $('pfill').style.width = dn + '%'; $('ppct').textContent = Math.round(dn) + '%';
+  if (detail) { li.querySelector('.d').textContent = detail; $('pipe-sub').textContent = '› ' + detail; }
+}
+
+/* ── live registry watch: alerts if the record changes while the page is open ── */
+let unsub = null, wbar = null;
+function unwatch() { if (unsub) { unsub(); unsub = null; } if (wbar) { wbar.remove(); wbar = null; } }
+function watch(serial, r0, hp) {
+  unwatch();
+  unsub = onSnapshot(doc(db, 'cardVerifications', serial), snap => {
+    const d = snap.exists() ? snap.data() : null;
+    if (d && d.status === r0.status && d.contentHash === r0.contentHash && d.rev === r0.rev) return;
+    if (wbar) return;
+    wbar = h('div', 'livebar', null, { role:'alert' });
+    wbar.append(h('span', '', 'The school’s registry just changed this record.'));
+    const b = h('button', 'btn', 'Re-check', { type:'button' });
+    b.addEventListener('click', () => { unwatch(); check(serial, hp); });
+    wbar.appendChild(b); $('result').after(wbar);
+  }, () => {});
+}
+
+/* ── device history (serial + outcome only; never names) ── */
+const HK = 'kps-verify-history';
+function hist() { try { return JSON.parse(localStorage.getItem(HK)) || []; } catch (e) { return []; } }
+function pushHistory(serial, kind) {
+  try { const l = hist().filter(x => x.s !== serial); l.unshift({ s: serial, k: kind, t: Date.now() }); localStorage.setItem(HK, JSON.stringify(l.slice(0, 5))); } catch (e) {}
+  drawHist();
+}
+function drawHist() {
+  const box = $('hist'), l = hist(); box.replaceChildren(); box.hidden = !l.length; if (!l.length) return;
+  box.appendChild(h('h3', '', 'Checked on this device'));
+  l.forEach(x => {
+    const b = h('button', 'hrow', null, { type:'button' });
+    b.append(h('span', 'dot ' + x.k), h('code', '', pretty(x.s)), h('span', 'when', ago(x.t)));
+    b.addEventListener('click', () => { $('code').value = pretty(x.s); history.replaceState(null, '', '?c=' + x.s); check(x.s, null); });
+    box.appendChild(b);
+  });
+  const c = h('button', 'btn ghost', 'Clear history', { type:'button' });
+  c.addEventListener('click', () => { try { localStorage.removeItem(HK); } catch (e) {} drawHist(); });
+  box.appendChild(c);
+}
+
+/* ── camera scanner: refuses QR codes that point to any other website ── */
+async function openScan() {
+  const ov = h('div', 'scanner'), vid = h('video', null, null, { playsinline:'', muted:'', autoplay:'' });
+  const msg = h('div', 'smsg', 'Point the camera at the QR code on the card.'), ret = h('div', 'reticle');
+  const x = h('button', 'btn', 'Close', { type:'button' });
+  ov.append(vid, ret, msg, x); document.body.appendChild(ov);
+  let stream, timer;
+  const stop = () => { clearInterval(timer); if (stream) stream.getTracks().forEach(t => t.stop()); ov.remove(); };
+  x.addEventListener('click', stop);
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } });
+    vid.srcObject = stream; await vid.play();
+    const det = new BarcodeDetector({ formats:['qr_code'] });
+    timer = setInterval(async () => {
+      try {
+        const f = await det.detect(vid); if (!f.length) return;
+        let u; try { u = new URL(f[0].rawValue); } catch (e) { msg.className = 'smsg'; msg.textContent = 'This QR is not a school verification link.'; return; }
+        if (!EXPECTED_HOSTS.includes(u.hostname)) { msg.className = 'smsg bad'; msg.textContent = 'Warning: this QR opens ' + u.hostname + ', not the school’s website. Do not trust it.'; return; }
+        const c = norm(u.searchParams.get('c') || ''); if (!c) { msg.className = 'smsg'; msg.textContent = 'This QR has no card code.'; return; }
+        const hp = sealPrefix(u.searchParams.get('h'));
+        stop(); $('code').value = pretty(c);
+        history.replaceState(null, '', '?c=' + encodeURIComponent(c) + (hp ? '&h=' + hp : '')); check(c, hp);
+      } catch (e) {}
+    }, 300);
+  } catch (e) { msg.textContent = 'Camera unavailable. Allow camera access or type the code instead.'; }
+}
+if ('BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  $('scanbtn').hidden = false; $('scanbtn').addEventListener('click', openScan);
+}
+drawHist();
+document.querySelector('.rail').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; const a = b.dataset.a;
+  if (a === 'top') scrollTo({ top:0, behavior:'smooth' });
+  else if (a === 'scan') { const sb = $('scanbtn'); if (!sb.hidden) sb.click(); else { scrollTo({ top:0, behavior:'smooth' }); $('code').focus(); } }
+  else if (a === 'hist') $('hist').scrollIntoView({ behavior:'smooth' });
+  else (document.querySelector('.checks') || $('f')).scrollIntoView({ behavior:'smooth', block:'center' });
+});
+
+/* ── main verification ── */
+let runId = 0;
+async function check(rawCode, hPrefix) {
+  const my = ++runId, serial = norm(rawCode);
+  unwatch(); $('result').hidden = true; $('result').replaceChildren();
+  $('pipe').hidden = false; buildSteps();
+  $('pipe').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  const stale = () => my !== runId;
+
+  step(0, 'run'); await sleep(260);
+  if (!SERIAL_RE.test(serial)) {
+    step(0, 'bad', 'Codes have exactly 8 characters, e.g. 7F3K-92QA.');
+    for (let i = 1; i < 5; i++) step(i, 'skip');
+    noteFail(); await sleep(250); $('pipe').hidden = true;
+    return render({ kind:'bad', title:'Code not recognised', sub:'Codes have 8 characters, e.g. 7F3K-92QA.', serial, rows:null });
+  }
+  step(0, 'ok', 'Serial ' + pretty(serial) + ' is correctly formed');
+
+  const fetching = Promise.race([
+    getDoc(doc(db, 'cardVerifications', serial)),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000))
+  ]).then(s => ({ s }), e => ({ e }));
+
+  step(1, 'run'); await sleep(320); if (stale()) return;
+  const https = location.protocol === 'https:', official = EXPECTED_HOSTS.includes(location.hostname);
+  step(1, https && official ? 'ok' : 'warn', https && official ? 'Encrypted · ' + location.hostname : 'Unofficial or unencrypted address — treat result with caution');
+
+  step(2, 'run');
+  const out = await fetching; await sleep(220); if (stale()) return;
+  if (out.e) {
+    step(2, 'warn', 'The registry could not be reached');
+    for (let i = 3; i < 5; i++) step(i, 'skip');
+    await sleep(250); $('pipe').hidden = true;
+    return render({ kind:'warn', title:'Verification unavailable', sub:'Check your internet connection and try again. This is not a sign the card is fake.', serial, rows:null });
+  }
+  if (!out.s.exists()) {
+    step(2, 'bad', 'No record with this serial'); for (let i = 3; i < 5; i++) step(i, 'skip');
+    noteFail(); await sleep(250); $('pipe').hidden = true;
+    return render({ kind:'bad', title:'No such report card', sub:'This code is not in the school’s records. Treat the card as not genuine.', serial, rows:null });
+  }
+  const r = out.s.data();
+  step(2, 'ok', 'Record located · issued ' + fmtDate(r.issuedAt));
+
+  step(3, 'run'); await sleep(300); if (stale()) return;
+  const revoked = r.status === 'revoked';
+  step(3, revoked ? 'bad' : 'ok', revoked ? 'The school has withdrawn this card' : 'Status: valid');
+
+  step(4, 'run'); await sleep(340); if (stale()) return;
+  const full = String(r.contentHash || '').toLowerCase();
+  let seal = 'none';
+  if (hPrefix) seal = full.startsWith(hPrefix) ? 'match' : 'mismatch';
+  step(4, seal === 'match' ? 'ok' : seal === 'mismatch' ? 'warn' : 'skip',
+    seal === 'match' ? 'Printed seal ' + hPrefix.toUpperCase() + ' matches the registry' :
+    seal === 'mismatch' ? 'Printed seal differs from the current record' :
+    'No seal supplied — scan the QR on the card for a full check');
+  await sleep(450); if (stale()) return;
+  $('pipe').hidden = true;
+
+  let kind, title, sub;
+  if (revoked) { kind = 'bad'; title = 'Card withdrawn'; sub = 'The school has withdrawn this card. Do not rely on it.'; }
+  else if (seal === 'mismatch') { kind = 'warn'; title = 'Superseded'; sub = 'This card was printed before a correction. The figures below are the school’s current record.'; }
+  else if (seal === 'match') { kind = 'ok'; title = 'Genuine report card'; sub = 'Registered by the school and unchanged since printing.'; }
+  else { kind = 'ok'; title = 'Record found'; sub = 'Serial ' + pretty(serial) + ' is registered with the school.'; }
+  render({ kind, title, sub, serial, r, seal, hPrefix, full, revoked });
+  watch(serial, r, hPrefix); pushHistory(serial, kind);
+}
+
+/* ── render ── */
+function render(o) {
+  LAST = null;
+  const res = $('result'); res.replaceChildren(); res.hidden = false;
+  const cred = h('article', 'cred');
+  const icons = {
+    ok:'M18 32l9 9 19-20', warn:'M32 18v18M32 44v1', bad:'M20 20l24 24M44 20L20 44'
+  };
+  // verdict
+  cred.appendChild(h('div', 'prhead', 'Kanyadet Primary & Junior School · Report card verification'));
+  const vd = h('div', 'verdict vk-' + o.kind), stp = h('div', 'stamp');
+  stp.innerHTML = `<svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="sp" d="M60 60m-47 0a47 47 0 1 1 94 0a47 47 0 1 1-94 0"/></defs><circle cx="60" cy="60" r="57" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="60" cy="60" r="37" fill="currentColor" fill-opacity=".1" stroke="currentColor" stroke-width="1.5"/><text><textPath href="#sp" textLength="290" lengthAdjust="spacing">KANYADET PRIMARY &amp; JUNIOR SCHOOL · REGISTRY ·</textPath></text><g transform="translate(28 28)"><path class="draw" d="${icons[o.kind]}" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g></svg>`;
+  const vt = h('div'); vt.append(h('h2', '', o.title), h('p', '', o.sub));
+  vd.append(vt, stp); cred.appendChild(vd);
+
+  if (!o.r) {
+    const n = h('p', 'note' + (o.kind === 'bad' ? ' bad' : ' warn'), o.kind === 'bad'
+      ? 'If you typed the code, check each character against the printed card (letters O and I are read as 0 and 1).'
+      : 'Nothing could be confirmed or denied. Try again when you are online.');
+    cred.appendChild(n); cred.appendChild(actions()); res.appendChild(cred); return;
+  }
+
+  const r = o.r, ex = parseExam(r), avg = Number(r.avg), b = band(isNaN(avg) ? 0 : avg);
+  const name = r.name || '—';
+  LAST = { o, ex };
+  const trust = h('section', 'trust'); cred.appendChild(trust);
+  const gz = h('section', 'gauges'); cred.appendChild(gz);
+  const tiles = h('section', 'tiles'); cred.appendChild(tiles);
+
+  // identity
+  const id = h('div', 'ident');
+  const left = h('div'); const ph = h('div', 'photo');
+  ph.append(h('i', 'corner c1'), h('i', 'corner c2'), h('i', 'corner c3'), h('i', 'corner c4'), h('div', 'frame'));
+  const imgw = h('div', 'img'); imgw.append(h('div', 'ini', initials(name)), h('div', 'skel')); ph.append(imgw);
+  const cap = h('div', 'photo-cap', 'Checking photo on file…');
+  left.append(ph, cap);
+  const who = h('div', 'who'); who.append(h('div', 'lbl', 'Learner'), h('h3', '', name));
+  const chips = h('div', 'chips');
+  chips.append(h('span', 'chip', ex.grade), h('span', 'chip', ex.term + (ex.year ? ' · ' + ex.year : '')));
+  if (ex.exam) chips.append(h('span', 'chip', ex.exam));
+  if ((r.rev || 1) > 1) chips.append(h('span', 'chip gold', 'Reissued · rev ' + r.rev));
+  who.appendChild(chips);
+  const sr = h('div', 'serial'); sr.append(h('small', '', 'Card serial'), document.createTextNode(pretty(o.serial))); who.appendChild(sr);
+  id.append(left, who); cred.appendChild(id);
+  const mc = h('div', 'micro'); let mt = ''; const unit = 'KANYADET PRIMARY ' + o.serial + ' VERIFIED REGISTRY ';
+  while (mt.length < 520) mt += unit; mc.textContent = mt; cred.appendChild(mc);
+
+  // photo async
+  findPhoto(name, r.grade || r.term).then(src => {
+    imgw.querySelector('.skel')?.remove();
+    if (!src) { cap.textContent = 'No photo on file — rely on the other details'; return; }
+    const im = h('img', '', null, { alt: 'Photo of ' + name, decoding:'async' }); im.src = src;
+    imgw.querySelector('.ini')?.remove(); imgw.appendChild(im);
+    ph.append(h('div', 'scan'), h('div', 'sheen'));
+    cap.textContent = 'Photo on file — compare with the printed card';
+    photoOnFile();
+  });
+
+  // performance
+  const perf = h('section', 'blk'); perf.appendChild(h('h4', '', 'Academic result'));
+  const pr = h('div', 'perf');
+  const av = h('div', 'avg', isNaN(avg) ? '—' : avg.toFixed(2)); if (!isNaN(avg)) av.appendChild(h('small', '', '%'));
+  const lv = h('span', 'lvl', (String(r.level || '').match(/\b(EE|ME|AE|BE)\d\b/) || [b.code])[0]); lv.style.background = b.col;
+  pr.append(av, lv); if (r.level) pr.append(h('span', 'chip', r.level));
+  perf.appendChild(pr);
+  const bar = h('div', 'bar'); [[31, '#d9433a'], [27, '#e0900f'], [17, '#2980b9'], [25, '#27ae60']].forEach(([w, c]) => { const s = h('i'); s.style.width = w + '%'; s.style.background = c; bar.appendChild(s); });
+  const bm = h('div', 'bar-m'); const mk = h('b'); mk.style.left = '0%'; bm.appendChild(mk);
+  const sc = h('div', 'scale'); [['BE', 31], ['AE', 27], ['ME', 17], ['EE', 25]].forEach(([t, w]) => { const s = h('span', '', t); s.style.width = w + '%'; sc.appendChild(s); });
+  perf.append(bar, bm, sc); cred.appendChild(perf);
+  mk.style.left = Math.max(0, Math.min(100, isNaN(avg) ? 0 : avg)) + '%';
+
+  // integrity checks
+  const ck = h('section', 'blk'); ck.appendChild(h('h4', '', 'Authenticity checks'));
+  const ul = h('ul', 'checks');
+  const tally = []; const add = (st, t, d) => { tally.push(st); const li = h('li'); li.appendChild(h('span', 'tick ' + st, st === 'ok' ? '✓' : st === 'bad' ? '✕' : st === 'warn' ? '!' : '–'));
+    const w = h('div'); w.append(h('b', '', t), h('span', 'd', d)); li.appendChild(w); ul.appendChild(li); };
+  const https = location.protocol === 'https:', official = EXPECTED_HOSTS.includes(location.hostname);
+  add('ok', 'Serial format valid', '8-character Crockford code, no look-alike letters.');
+  add('ok', 'Found in school registry', 'Record held by Kanyadet Primary & Junior School.');
+  add(o.revoked ? 'bad' : 'ok', o.revoked ? 'Card withdrawn' : 'Card is active', o.revoked ? 'Withdrawn by the school — do not rely on it.' : 'Not withdrawn or cancelled.');
+  add(o.seal === 'match' ? 'ok' : o.seal === 'mismatch' ? 'warn' : 'na', 'Marks seal',
+    o.seal === 'match' ? 'Printed seal equals the registry seal: marks unchanged since printing.' :
+    o.seal === 'mismatch' ? 'Printed seal differs: the marks were corrected after this card was printed.' :
+    'Not tested (code typed by hand). Scan the QR to test the seal.');
+  add((https && official) ? 'ok' : 'warn', 'Verified on official site', (https && official) ? 'Encrypted connection to ' + location.hostname : 'This is not the school’s official address.');
+  if ((r.rev || 1) > 1) add('warn', 'Corrected record', 'This record has been revised ' + ((r.rev || 1) - 1) + ' time(s) since first issue.');
+  ck.appendChild(ul); cred.appendChild(ck);
+  const scored = tally.filter(x => x !== 'na'), sg = h('div', 'seg');
+  scored.forEach((x, i) => { const b = h('i', x); b.style.setProperty('--i', i); sg.appendChild(b); });
+  const okN = scored.filter(x => x === 'ok').length;
+  trust.append(h('b', '', okN + ' of ' + scored.length + ' checks passed'), sg);
+  if (LAST) LAST.chk = okN + '/' + scored.length;
+  const pc = scored.length ? okN / scored.length * 100 : 0, g1 = h('div', 'gcard'), g2 = h('div', 'gcard'), g3 = h('div', 'gcard');
+  g1.append(h('h4', '', 'Average score'), gauge(isNaN(avg) ? 0 : avg, isNaN(avg) ? '—' : avg.toFixed(1) + '%', lv.textContent + ' level'), h('em', '', ex.grade + ' · ' + ex.term + (ex.year ? ' ' + ex.year : '')));
+  g2.append(h('h4', '', 'Trust score'), gauge(pc, okN + '/' + scored.length, 'checks passed', 'g-' + o.kind), h('em', '', o.seal === 'match' ? 'Printed seal matches the registry' : 'Record confirmed by the registry'));
+  g3.append(h('h4', '', 'Performance bands'), bandChart(avg));
+  gz.append(g1, g2, g3);
+  const tile = (c, ic, k, v, sb) => { const t = h('div', 'tile ' + c); t.append(h('div', 'ti', ic), h('div', 'tk', k), h('div', 'tv', v), h('div', 'ts', sb)); return t; };
+  tiles.append(tile('t1', '📊', 'Average', isNaN(avg) ? '—' : avg.toFixed(1) + '%', ex.term + (ex.year ? ' ' + ex.year : '')),
+    tile('t2', '🏅', 'Level', lv.textContent, ex.grade),
+    tile('t3', '🛡️', 'Checks passed', okN + '/' + scored.length, o.seal === 'match' ? 'Seal matches' : 'Registry verified'),
+    tile('t4', '🔁', 'Revision', String(r.rev || 1), o.revoked ? 'Withdrawn' : 'Currently valid'));
+
+  // fingerprint
+  if (o.full && /^[0-9a-f]{64}$/.test(o.full)) {
+    const fp = h('section', 'blk'); fp.appendChild(h('h4', '', 'Cryptographic seal'));
+    const row = h('div', 'fp'); const cv = h('canvas'); drawFingerprint(cv, o.full); row.appendChild(cv);
+    const hs = h('div', 'hash'); const parts = o.full.match(/.{8}/g);
+    parts.forEach((p, i) => { if (i === 0) hs.appendChild(h('em', '', p)); else hs.append(' ', p); });
+    row.appendChild(hs); fp.appendChild(row);
+    const sl = h('div', 'seals'); const a = h('div'), c = h('div');
+    a.append(h('small', '', 'Printed on card'), diffCode(o.hPrefix ? o.hPrefix.toUpperCase() : '—', o.hPrefix ? o.full.slice(0, 8).toUpperCase() : null));
+    c.append(h('small', '', 'Registry seal'), diffCode(o.full.slice(0, 8).toUpperCase(), null)); sl.append(a, c); fp.appendChild(sl);
+    fp.appendChild(h('p', 'hash', 'SHA-256 of the learner, grade, term and every mark. The glyph is drawn from it: any change to the marks produces a completely different glyph.'));
+    cred.appendChild(fp);
+  }
+
+  // record details
+  const mt2 = h('section', 'blk'); mt2.appendChild(h('h4', '', 'Registry record'));
+  const dl = h('dl', 'meta'); const kv = (k, v) => { dl.append(h('dt', '', k), h('dd', '', v)); };
+  kv('First issued', fmtDate(r.issuedAt, true) + (r.issuedAt ? ' · ' + ago(r.issuedAt) : ''));
+  if (r.updatedAt) kv('Last updated', fmtDate(r.updatedAt, true));
+  kv('Revision', String(r.rev || 1));
+  if (r.issuedBy) kv('Issued by', r.issuedBy);
+  kv('Status', o.revoked ? 'Withdrawn' : 'Valid');
+  mt2.appendChild(dl); cred.appendChild(mt2);
+
+  // match checklist
+  const mc2 = h('section', 'blk match'); mc2.appendChild(h('h4', '', 'Compare with your printed card'));
+  const items = [['Name', name], ['Grade', ex.grade], ['Term', ex.term + (ex.year ? ' ' + ex.year : '')], ['Average', isNaN(avg) ? '—' : avg.toFixed(2) + '%']];
+  const msg = h('div', 'matchmsg', 'Tap each line once you have checked it against the printed card.');
+  let photoRow = null; const rows = [];
+  const upd = () => { const done = rows.filter(x => x.getAttribute('aria-pressed') === 'true').length;
+    if (done === rows.length) { msg.className = 'matchmsg done'; msg.textContent = '✓ You confirmed every detail matches. This card is consistent with the school’s record.'; }
+    else { msg.className = 'matchmsg'; msg.textContent = done + ' of ' + rows.length + ' confirmed. If anything differs, the card has been altered — contact the school.'; } };
+  const mkRow = (k, v, front) => { const b = h('button', 'row', null, { type:'button', 'aria-pressed':'false' });
+    b.append(h('span', 'box', '✓'), h('span', 'k', k), h('span', 'v', v));
+    b.addEventListener('click', () => { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); upd(); });
+    rows.push(b); if (front) mc2.insertBefore(b, mc2.children[1]); else mc2.appendChild(b); return b; };
+  items.forEach(([k, v]) => mkRow(k, v));
+  window.photoOnFile = () => { if (photoRow) return; photoRow = mkRow('Photo', 'Same face as printed', true); upd(); };
+  mc2.appendChild(msg); upd(); cred.appendChild(mc2);
+
+  if (o.seal === 'mismatch') cred.appendChild(h('p', 'note warn', 'If your printed card shows different marks, ask the school for a re-issued card.'));
+  else if (o.seal === 'match') cred.appendChild(h('p', 'note', 'Match the photo, name, grade, term and average above against the printed card.'));
+  else cred.appendChild(h('p', 'note', 'Typed codes can’t detect later corrections. Scan the QR for a full check, and match the details above against the printed card.'));
+
+  cred.appendChild(actions(o, ex));
+  const when = new Date(), rc = h('div', 'receipt', 'Issuing verification receipt…'); cred.appendChild(rc);
+  receiptId([o.serial, o.full, r.rev || 1, o.kind, when.toISOString()].join('|')).then(id => { const t = 'Verification receipt ' + id + ' · ' + when.toLocaleString('en-GB') + ' · ' + location.hostname; rc.textContent = t; if (LAST) LAST.rc = t; });
+  res.appendChild(cred);
+  loadQR();
+}
+
+function actions(o, ex) {
+  const a = h('div', 'acts');
+  a.appendChild(h('a', 'btn ghost', 'Basic card check', { href:'./verifyflbk.html', target:'_blank', rel:'opener', title:'Open the simplified card verifier in a new tab' }));
+  if (o && o.kind === 'ok' && o.r && String(o.r.name || '').trim()) {
+    const learnerName = String(o.r.name).trim();
+    const insights = h('a', 'btn ghost', 'Explore full student insights ↗', {
+      href: './Report-Cards/Individual-student-portal.html',
+      target: '_blank',
+      rel: 'opener',
+      title: 'Continue to the Student Portal for subject and term-by-term insights'
+    });
+    insights.addEventListener('click', () => {
+      try { sessionStorage.setItem('kps_verified_learner_name', learnerName); }
+      catch (error) { console.warn('Could not prefill the learner name in the Student Portal:', error); }
+    });
+    a.appendChild(insights);
+  }
+  if (o && o.r) {
+    const cp = h('button', 'btn ghost', 'Copy report', { type:'button' });
+    cp.addEventListener('click', async () => {
+      const t = ['Kanyadet Primary & Junior School — report card verification', 'Result: ' + o.title, 'Serial: ' + pretty(o.serial),
+        'Learner: ' + o.r.name, 'Grade: ' + ex.grade, 'Term: ' + ex.term + ' ' + ex.year, 'Average: ' + Number(o.r.avg).toFixed(2) + '%',
+        'Checked: ' + new Date().toLocaleString('en-GB'), 'Link: ' + location.origin + location.pathname + '?c=' + o.serial].join('\n');
+      try { await navigator.clipboard.writeText(t); cp.textContent = 'Copied ✓'; } catch (e) { cp.textContent = 'Copy failed'; }
+      setTimeout(() => cp.textContent = 'Copy report', 2000);
+    });
+    a.appendChild(cp);
+  }
+  if (o && o.r) {
+    const pr = h('button', 'btn ghost', 'Download PDF', { type:'button' }); pr.addEventListener('click', savePdf); a.appendChild(pr);
+    if (navigator.share) {
+      const sh = h('button', 'btn ghost', 'Share', { type:'button' });
+      sh.addEventListener('click', () => navigator.share({ title:'Report card verification', text:'Kanyadet Primary & Junior School: ' + o.title, url: location.origin + location.pathname + '?c=' + o.serial }).catch(() => {}));
+      a.appendChild(sh);
+    }
+  }
+  const again = h('button', 'btn', 'Check another card', { type:'button' });
+  again.addEventListener('click', () => { runId++; unwatch(); $('result').hidden = true; $('code').value = ''; $('code').focus(); history.replaceState(null, '', location.pathname); window.scrollTo({ top: 0, behavior:'smooth' }); });
+  a.appendChild(again); return a;
+}
+
+/* ── input handling ── */
+$('code').addEventListener('input', e => {
+  const v = norm(e.target.value).slice(0, 8);
+  e.target.value = v.length > 4 ? pretty(v) : v;
+});
+$('f').addEventListener('submit', e => {
+  e.preventDefault();
+  if (Date.now() < lockUntil) return;
+  const s = norm($('code').value);
+  history.replaceState(null, '', '?c=' + encodeURIComponent(s));
+  check(s, null);
+});
+const q = new URLSearchParams(location.search);
+if (q.get('c')) {
+  $('code').value = q.get('c');
+  check(q.get('c'), sealPrefix(q.get('h')));
+}
+</script>
+</body>
+</html>

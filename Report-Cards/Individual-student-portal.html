@@ -957,6 +957,7 @@ body::after{
   border-radius:var(--radius-lg);padding:16px 18px;
   box-shadow:0 2px 12px rgba(0,0,0,.08);
 }
+#chart-trend-card{grid-column:1/-1}
 .chart-card-title{
   font-size:11px;font-weight:800;color:var(--text2);
   text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;
@@ -967,6 +968,11 @@ body::after{
   background:linear-gradient(180deg,var(--blue),var(--orange));border-radius:2px;
 }
 .chart-wrap{position:relative;height:200px;}
+.progress-analysis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}
+.progress-analysis-card{min-width:0;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
+.progress-analysis-label{font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em}
+.progress-analysis-value{margin-top:4px;color:var(--text);font-size:15px;font-weight:800;line-height:1.3;overflow-wrap:anywhere}
+.progress-analysis-detail{margin-top:4px;color:var(--text2);font-size:10px;line-height:1.45}
 
 /* ════════════════════════════════════════════
    INSIGHTS / STRENGTH CARDS
@@ -1032,6 +1038,13 @@ body::after{
   #modal-overlay{position:static!important;background:none!important;backdrop-filter:none!important;padding:0!important;}
   #rpt-modal{box-shadow:none!important;border-radius:0!important;width:100%!important;}
   #rpt-printable{padding:8px!important;}
+  body.share-card-printing *{visibility:hidden!important;}
+  body.share-card-printing #share-modal{display:block!important;position:static!important;inset:auto!important;padding:0!important;overflow:visible!important;background:none!important;backdrop-filter:none!important;}
+  body.share-card-printing #share-modal,body.share-card-printing #share-modal *{visibility:visible!important;}
+  body.share-card-printing .share-box{width:180mm!important;max-width:180mm!important;max-height:none!important;overflow:visible!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;}
+  body.share-card-printing .share-box h2,body.share-card-printing .share-actions{display:none!important;}
+  body.share-card-printing #share-card-preview{width:180mm!important;margin:0!important;border:0!important;border-radius:0!important;overflow:visible!important;}
+  body.share-card-printing #actual-share-card{width:180mm!important;height:252mm!important;min-height:252mm!important;aspect-ratio:auto!important;border-radius:0!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
 }
 
 /* ════════════════════════════════════════════
@@ -1694,8 +1707,10 @@ body::after{
       <div class="chart-wrap"><canvas id="chart-radar"></canvas></div>
     </div>
     <div class="chart-card" id="chart-trend-card">
-      <div class="chart-card-title">📈 Term Progress</div>
-      <div class="chart-wrap"><canvas id="chart-trend"></canvas></div>
+      <div class="chart-card-title">📈 Progress Across All Exams</div>
+      <p class="insight-sub" style="margin:-6px 0 10px">Overall average and learning-area scores by exam. Use the legend to show or hide a learning area.</p>
+      <div class="chart-wrap" style="height:300px"><canvas id="chart-trend"></canvas></div>
+      <div id="progress-analytics" class="progress-analysis-grid" aria-live="polite"></div>
     </div>
   </div>
 
@@ -1814,6 +1829,8 @@ body::after{
     <div id="share-card-preview"></div>
     <div class="share-actions">
       <button class="share-btn blue" onclick="saveShareCard()">💾 Save as Image</button>
+      <button class="share-btn blue" onclick="downloadShareCardPdf()">📥 Download PDF</button>
+      <button class="share-btn grey" onclick="printShareCard()">🖨️ Print</button>
       <button class="share-btn grey" onclick="closeShareModal()">Close</button>
     </div>
   </div>
@@ -3176,40 +3193,64 @@ function renderCharts(rec){
     }
   });
 
-  // Trend line chart (only if multiple terms)
+  // Compare overall average and every learning area across all available exams.
   const trendCard = document.getElementById('chart-trend-card');
-  if(allRecs.length < 2){ trendCard.style.display='none'; return; }
-  trendCard.style.display='';
-  const tLabels = allRecs.map(r=>cleanTerm(r['Term']));
-  const tData   = allRecs.map(r=>{ const st=calcStats(r); return parseFloat(st.avg)||0; });
-  const tColors = tData.map((_,i)=>i===activeIdx?'#e67e22':'#f39c12');
+  trendCard.style.display = allRecs.length ? '' : 'none';
+  const examLabel = rec => {
+    const term = cleanTerm(rec['Term']);
+    const year = String(rec['Year'] || ((String(rec['Term']||'').match(/\b20\d{2}\b/)||[])[0]) || '').trim();
+    return year && !term.includes(year) ? `${term} · ${year}` : term;
+  };
+  const tLabels = allRecs.map(examLabel);
+  const tStats = allRecs.map(item=>calcStats(item));
+  const tData = tStats.map(st=>st.assessed ? Number(st.avg) : null);
   const tCtx = document.getElementById('chart-trend').getContext('2d');
   if(trendChart){ trendChart.destroy(); trendChart=null; }
+  const subjectColors = ['#2980b9','#27ae60','#9b59b6','#e74c3c','#16a085','#d35400','#8e44ad','#2c3e50','#c0392b','#117864','#7d3c98','#b7950b'];
+  const allSubjects = [...new Set(allRecs.flatMap(item=>getSubjects(item)))];
+  const subjectDatasets = allSubjects.map((subject,index)=>({
+    label:subject,
+    data:allRecs.map(item=>{
+      const score = parseFloat(item[subject]);
+      return Number.isFinite(score) ? score : null;
+    }),
+    borderColor:subjectColors[index%subjectColors.length],
+    backgroundColor:subjectColors[index%subjectColors.length],
+    borderWidth:1.6,
+    pointRadius:2,
+    pointHoverRadius:5,
+    tension:.25,
+    spanGaps:false
+  }));
   trendChart = new Chart(tCtx,{
     type:'line',
     data:{
       labels:tLabels,
       datasets:[{
-        label:'Average %',
+        label:'Overall average',
         data:tData,
         borderColor:'#e67e22',
         backgroundColor:'rgba(230,126,34,.12)',
-        borderWidth:2.5,
+        borderWidth:3,
         fill:true,
-        tension:0.38,
-        pointBackgroundColor:tColors,
-        pointRadius:tData.map((_,i)=>i===activeIdx?7:4),
+        tension:.3,
+        pointBackgroundColor:tData.map((_,i)=>i===activeIdx?'#e67e22':'#f39c12'),
+        pointRadius:tData.map((_,i)=>i===activeIdx?6:4),
+        pointHoverRadius:7,
         pointBorderColor:'#fff',
         pointBorderWidth:2,
-      }]
+        spanGaps:false
+      },...subjectDatasets]
     },
     options:{
-      responsive:true,maintainAspectRatio:false,
+      responsive:true,maintainAspectRatio:false,animation:false,
+      interaction:{mode:'index',intersect:false},
       plugins:{
-        legend:{display:false},
+        legend:{display:allSubjects.length>0,position:'bottom',labels:{color:textColor,usePointStyle:true,boxWidth:8,padding:12,font:{size:9}}},
         tooltip:{callbacks:{
-          label:ctx=>`Avg: ${ctx.raw}%`,
+          label:ctx=>`${ctx.dataset.label}: ${Number(ctx.raw).toFixed(1)}%`,
           afterLabel:ctx=>{
+            if(ctx.dataset.label!=='Overall average') return '';
             const g=gradeInfo(ctx.raw);
             return `${g.level} — ${g.label}`;
           }
@@ -3217,37 +3258,71 @@ function renderCharts(rec){
       },
       scales:{
         x:{ticks:{color:textColor,font:{size:9}},grid:{color:gridColor}},
-        y:{min:0,max:100,ticks:{color:textColor,font:{size:9},callback:v=>v+'%'},grid:{color:gridColor}},
+        y:{min:0,max:100,ticks:{color:textColor,font:{size:9},callback:v=>v+'%'},grid:{color:gridColor},title:{display:true,text:'Score (%)',color:textColor,font:{size:10}}},
       }
     }
   });
 
-  // Progress summary strip below trend chart
-  const first=tData[0], last=tData[tData.length-1];
-  const delta=(last-first).toFixed(1);
-  const arrow=delta>0?'▲':delta<0?'▼':'→';
-  const aColor=delta>0?'#27ae60':delta<0?'#e74c3c':'#5dade2';
-  const best=Math.max(...tData), worst=Math.min(...tData);
-  let strip = document.getElementById('trend-strip');
-  if(!strip){
-    strip=document.createElement('div');
-    strip.id='trend-strip';
-    strip.style.cssText='display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:10px;color:var(--text2);';
-    trendCard.appendChild(strip);
+  renderProgressAnalytics(tStats,tLabels,allSubjects);
+}
+
+function renderProgressAnalytics(stats,labels,subjects){
+  const container=document.getElementById('progress-analytics');
+  container.replaceChildren();
+  const examScores=stats.map((item,index)=>({avg:item.assessed?Number(item.avg):null,label:labels[index]})).filter(item=>item.avg!==null);
+  if(!examScores.length){
+    const message=document.createElement('p');
+    message.className='insight-sub';
+    message.textContent='No scored exam records are available for progress analysis yet.';
+    container.appendChild(message);
+    return;
   }
-  strip.innerHTML=`
-    <span style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px 10px;">
-      <span style="color:${aColor};font-weight:800">${arrow} ${delta>0?'+':''}${delta}%</span> overall change
-    </span>
-    <span style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px 10px;">
-      🏆 Best: <strong>${best}%</strong>
-    </span>
-    <span style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px 10px;">
-      📌 Lowest: <strong>${worst}%</strong>
-    </span>
-    <span style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px 10px;">
-      📊 ${allRecs.length} term${allRecs.length>1?'s':''} tracked
-    </span>`;
+  const values=examScores.map(item=>item.avg);
+  const mean=values.reduce((sum,value)=>sum+value,0)/values.length;
+  const ordered=[...values].sort((a,b)=>a-b);
+  const median=ordered.length%2?ordered[(ordered.length-1)/2]:(ordered[ordered.length/2-1]+ordered[ordered.length/2])/2;
+  const deviation=Math.sqrt(values.reduce((sum,value)=>sum+(value-mean)**2,0)/values.length);
+  const best=examScores.reduce((a,b)=>b.avg>a.avg?b:a);
+  const lowest=examScores.reduce((a,b)=>b.avg<a.avg?b:a);
+  const first=examScores[0];
+  const latest=examScores[examScores.length-1];
+  const previous=examScores.length>1?examScores[examScores.length-2]:null;
+  const totalChange=latest.avg-first.avg;
+  const recentChange=previous?latest.avg-previous.avg:null;
+  const signed=value=>`${value>0?'+':''}${value.toFixed(1)} pts`;
+  const subjectChanges=subjects.map(subject=>{
+    const marks=allRecs.map((item,index)=>({score:parseFloat(item[subject]),label:labels[index]}))
+      .filter(item=>Number.isFinite(item.score));
+    if(marks.length<2) return null;
+    return {subject,first:marks[0],latest:marks[marks.length-1],change:marks[marks.length-1].score-marks[0].score};
+  }).filter(Boolean);
+  const strongest=subjectChanges.length?subjectChanges.reduce((a,b)=>b.change>a.change?b:a):null;
+  const needsSupport=subjectChanges.length?subjectChanges.reduce((a,b)=>b.change<a.change?b:a):null;
+  const cards=[
+    {label:'Overall progress',value:signed(totalChange),detail:`${first.avg.toFixed(1)}% in ${first.label} → ${latest.avg.toFixed(1)}% in ${latest.label}`,tone:totalChange>0?'#27ae60':totalChange<0?'#e74c3c':'#5dade2'},
+    {label:'Latest exam change',value:previous?signed(recentChange):'One exam so far',detail:previous?`Compared with ${previous.label}`:'Add another exam to compare recent change.',tone:recentChange>0?'#27ae60':recentChange<0?'#e74c3c':'var(--text)'},
+    {label:'Across-exam average',value:`${mean.toFixed(1)}% mean · ${median.toFixed(1)}% median`,detail:`Based on ${examScores.length} scored exam${examScores.length===1?'':'s'} and ${subjects.length} learning area${subjects.length===1?'':'s'}.`},
+    {label:'Best exam',value:`${best.avg.toFixed(1)}%`,detail:best.label+' · lowest '+lowest.avg.toFixed(1)+'% in '+lowest.label},
+    {label:'Consistency',value:`${deviation.toFixed(1)} point SD`,detail:deviation<5?'Scores are very consistent across exams.':deviation<10?'Scores show moderate variation across exams.':'Scores vary considerably; review subject-level changes.'},
+    {label:strongest?'Biggest subject gain':'Subject progress',value:strongest?`${strongest.subject} ${signed(strongest.change)}`:'Need two scored exams',detail:strongest?`${strongest.first.score.toFixed(1)}% → ${strongest.latest.score.toFixed(1)}% (${strongest.first.label} to ${strongest.latest.label}).`:'Subject changes appear after a learning area is scored in at least two exams.',tone:strongest&&strongest.change>0?'#27ae60':undefined},
+    {label:needsSupport?'Review this subject':'Subject trend',value:needsSupport?`${needsSupport.subject} ${signed(needsSupport.change)}`:'Not enough subject history',detail:needsSupport?`${needsSupport.first.score.toFixed(1)}% → ${needsSupport.latest.score.toFixed(1)}% (${needsSupport.first.label} to ${needsSupport.latest.label}).`:'More scored exams are needed to identify subject-level change.',tone:needsSupport&&needsSupport.change<0?'#e74c3c':undefined}
+  ];
+  cards.forEach(card=>{
+    const panel=document.createElement('div');
+    panel.className='progress-analysis-card';
+    const label=document.createElement('div');
+    label.className='progress-analysis-label';
+    label.textContent=card.label;
+    const value=document.createElement('div');
+    value.className='progress-analysis-value';
+    value.textContent=card.value;
+    if(card.tone) value.style.color=card.tone;
+    const detail=document.createElement('div');
+    detail.className='progress-analysis-detail';
+    detail.textContent=card.detail;
+    panel.append(label,value,detail);
+    container.appendChild(panel);
+  });
 }
 
 // ═══════════════════════════════════════════════════
@@ -3545,6 +3620,7 @@ function openShareModal(){
   const monNum  = String(new Date().getMonth()+1).padStart(2,'0');
   const dayName = new Date().toLocaleDateString('en-GB',{weekday:'long'});
   const termShort = cleanTerm(rec['Term']);
+  const recordYear = rec['Year']||((String(rec['Term']||'').match(/\b20\d{2}\b/)||[])[0])||new Date().getFullYear();
   const gradeShort = gShort(rec['Grade']);
 
   // ── KNEC Seal image ──────────────────────────────────────────────────
@@ -3625,7 +3701,7 @@ function openShareModal(){
         <!-- Term pill -->
         <div style="margin-top:10px;display:inline-block;">
           <div style="background:rgba(255,255,255,0.14);border:1.5px solid rgba(255,255,255,0.28);border-radius:30px;padding:8px 8px;display:inline-block;">
-            <span style="font-size:9px;font-weight:700;color:#d0e8f5;letter-spacing:0.7px;">${termShort} &nbsp;·&nbsp;The Year ${new Date().getFullYear()}</span>
+            <span style="font-size:9px;font-weight:700;color:#d0e8f5;letter-spacing:0.7px;">${termShort} &nbsp;·&nbsp;The Year ${recordYear}</span>
           </div>
         </div>
       </div>
@@ -3634,7 +3710,7 @@ function openShareModal(){
       <div style="position:relative;z-index:5;padding:22px 20px 0;">
         <div style="font-size:min(6vw,26px);font-weight:900;color:#afb7ac;letter-spacing:-0.3px;line-height:1.1;"><b>${studentName}</b></div>
         <div style="font-size:9.5px;color:#5a5342;margin-top:8px;font-weight:600;">
-           ${termShort} &nbsp;·&nbsp; ${new Date().getFullYear()}
+           ${termShort} &nbsp;·&nbsp; ${recordYear}
         </div>
 
         <!-- Score row -->
@@ -3812,8 +3888,66 @@ function saveShareCard(){
   }
 }
 
+async function downloadShareCardPdf(){
+  const card = document.getElementById('actual-share-card');
+  const rec = allRecs[activeIdx];
+  if(!card||!rec){ notify('No share card is ready to download.','error'); return; }
+  if(!window.html2canvas||!window.jspdf?.jsPDF){
+    notify('PDF tools are unavailable. Check your connection and try again.','error');
+    return;
+  }
+  try{
+    notify('⏳ Preparing share-card PDF…','info',0);
+    const canvas = await window.html2canvas(card,{
+      backgroundColor:'#f5f7fa',
+      scale:2,
+      useCORS:true,
+      allowTaint:false,
+      logging:false
+    });
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF('portrait','mm','a4');
+    const margin = 10;
+    const maxWidth = 210 - margin * 2;
+    const maxHeight = 297 - margin * 2;
+    const scale = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
+    const width = canvas.width * scale;
+    const height = canvas.height * scale;
+    const x = (210 - width) / 2;
+    const y = (297 - height) / 2;
+    const image = canvas.toDataURL('image/jpeg',0.95);
+    doc.setProperties({title:`Student share card — ${rec['Official Student Name']||'Student'}`,subject:'Kanyadet Student Portal share card'});
+    doc.addImage(image,'JPEG',x,y,width,height);
+    const safeName = String(rec['Official Student Name']||'Student').trim().replace(/[^a-z0-9_-]+/gi,'_');
+    const safeTerm = String(cleanTerm(rec['Term'])||'Term').trim().replace(/[^a-z0-9_-]+/gi,'_');
+    doc.save(`Kanyadet-Share-Card_${safeName}_${safeTerm}.pdf`);
+    document.querySelectorAll('.notif.info').forEach(n=>n.remove());
+    notify('✅ Student share-card PDF downloaded.','success');
+  }catch(error){
+    console.error('Share-card PDF generation failed:',error);
+    document.querySelectorAll('.notif.info').forEach(n=>n.remove());
+    notify('❌ Could not create the share-card PDF. Try Print instead.','error');
+  }
+}
+
+function printShareCard(){
+  if(!document.getElementById('actual-share-card')){
+    notify('No share card is ready to print.','error');
+    return;
+  }
+  let resetPrintMode;
+  const reset = ()=>{
+    document.body.classList.remove('share-card-printing');
+    if(resetPrintMode) clearTimeout(resetPrintMode);
+  };
+  window.addEventListener('afterprint',reset,{once:true});
+  document.body.classList.add('share-card-printing');
+  resetPrintMode = setTimeout(reset,60000);
+  requestAnimationFrame(()=>window.print());
+}
+
 function closeShareModal(){ document.getElementById('share-modal').classList.remove('on'); }
-window.openShareModal=openShareModal; window.saveShareCard=saveShareCard; window.closeShareModal=closeShareModal;
+window.openShareModal=openShareModal; window.saveShareCard=saveShareCard; window.downloadShareCardPdf=downloadShareCardPdf; window.printShareCard=printShareCard; window.closeShareModal=closeShareModal;
 
 // ─── Escape also closes new modals ───
 document.addEventListener('keydown', e=>{
