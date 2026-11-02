@@ -1675,6 +1675,8 @@ body::after{
     <h3>Academic Results</h3>
     <div class="act-btns">
       <button class="btn btn-outline" onclick="openPreview()">📄 View Report Card</button>
+      <a class="btn btn-outline" href="../verify.html" target="_blank" rel="opener" style="text-decoration:none">🛡️ Verify a Card</a>
+      <a class="btn btn-outline" href="../verifyflbk.html" target="_blank" rel="opener" style="text-decoration:none">🧾 Basic Card Check</a>
       <button class="btn btn-outline" onclick="doPrint()" title="Print Report Card">🖨️ Print</button>
       <button class="btn btn-outline" onclick="openShareModal()" title="Share Results">🔗 Share</button>
       <button class="btn btn-orange"  onclick="dlThisTerm()">📥 Download This Term PDF</button>
@@ -1863,6 +1865,19 @@ const FB_CONFIG = {
   appId:"1:409708360032:web:a21d63e8cb5fa1ecabee05"
 };
 const DB_PATH = 'Results/default-app-id/students';
+const VERIFIED_NAME_KEY = 'kps_verified_learner_name';
+
+function consumeVerifiedLearnerName(){
+  try{
+    const name = sessionStorage.getItem(VERIFIED_NAME_KEY)||'';
+    sessionStorage.removeItem(VERIFIED_NAME_KEY);
+    return name.trim().slice(0,120);
+  }catch(e){
+    console.warn('Verified-card learner context could not be read:',e);
+    return '';
+  }
+}
+let verifiedLearnerName = consumeVerifiedLearnerName();
 
 // ── Non-subject metadata keys to always exclude ──
 const META_KEYS = new Set([
@@ -2002,7 +2017,7 @@ window.addEventListener('load', ()=>{
       showErr('Firebase init error: '+e.message); return;
     }
     document.getElementById('loader').style.display='none';
-    const saved = sessionStorage.getItem('kss_recs');
+    const saved = verifiedLearnerName ? null : sessionStorage.getItem('kss_recs');
     if(saved){
       try{ allRecs=JSON.parse(saved); activeIdx=allRecs.length-1; renderDash(); }
       catch(e){ sessionStorage.removeItem('kss_recs'); }
@@ -2264,6 +2279,8 @@ function _setLoginStep(n){
 // Switch from Step 1 (Google) → Step 2 (assessment details)
 function _showStep2(user){
   _googleUser = user;
+  const verifiedName = verifiedLearnerName;
+  verifiedLearnerName = '';
   document.getElementById('fl-name').textContent  = user.displayName || 'Google User';
   document.getElementById('fl-email').textContent = user.email || '';
   const avEl = document.getElementById('fl-av');
@@ -2285,6 +2302,10 @@ function _showStep2(user){
     document.getElementById('inp-name').value = window._qrParams.n;
     notify('🔗 Opening results via QR code…','info',3000);
     setTimeout(doLogin, 300);
+  } else if(verifiedName){
+    document.getElementById('inp-name').value = verifiedName;
+    notify('✅ Learner name from the verified card filled in. Enter the assessment number to view full insights.','info',6500);
+    setTimeout(()=>document.getElementById('inp-asm').focus(),100);
   } else {
     setTimeout(()=>document.getElementById('inp-asm').focus(), 100);
   }

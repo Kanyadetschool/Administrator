@@ -26961,7 +26961,7 @@ async function loadStudentImage(studentName, grade, studentId) {
 //  Public page: verify.html?c=SERIAL&h=HASH8 (h = first 8 hex of the marks hash,
 //  so a card printed before a correction shows as "superseded").
 // ═══════════════════════════════════════════════════════════════════════
-const CARD_VERIFY_BASE = 'https://kanyadet-school-portal.web.app/verify.html';
+const CARD_VERIFY_BASE = 'https://kanyadet-school-admin.web.app/verify.html';
 const _CARD_B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';   // Crockford: no I L O U
 
 function _cardRandSerial() {
@@ -27419,7 +27419,7 @@ async function drawBottomSection(d, yPos, student, pageWidth, pageHeight) {
 
     // Footer text
     d.setFontSize(6.5); d.setTextColor(128,128,128);
-    d.text(`Generated: ${new Date().toLocaleDateString()}  |  Verify: kanyadet-school-portal.web.app/verify.html`,
+    d.text(`Generated: ${new Date().toLocaleDateString()}  |  Verify: kanyadet-school-admin.web.app/verify.html`,
         pageWidth / 2, FOOTER_TEXT_Y, { align: 'center' });
 
     // QR code — bottom-right corner
