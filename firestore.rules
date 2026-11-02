@@ -1,0 +1,445 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    // Admin via authorized_users (by email). Requires a VERIFIED email so nobody
+    // can sign up with an admin's address and inherit their role.
+    function isAdmin() {
+      let userDoc = get(/databases/$(database)/documents/authorized_users/$(request.auth.token.email));
+      return request.auth.token.email_verified == true && userDoc.data.role == 'admin';
+    }
+
+    function isAdminByUID() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc.data.role == 'admin';
+    }
+
+    function isAdvancedAdmin() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc.data.Advancedadmin == true;
+    }
+
+    function isTeacher() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc.data.role == 'Teacher';
+    }
+
+    function getUserRole() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc.data.role;
+    }
+
+    function isDocumentOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isAnyAdmin() {
+      return isAdminByUID() || isAdmin() || isAdvancedAdmin();
+    }
+
+    // Fields only an Advanced Admin may set or change on a users/{userId} doc.
+    function touchesAdvancedOnlyFields() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['Advancedadmin', 'passkeyRequired', 'passkeyRequiredUpdatedAt', 'passkeyRequiredUpdatedBy',
+                 'passkeyOffer', 'passkeyExempt', 'passkeyExemptUpdatedAt', 'passkeyExemptUpdatedBy',
+                 'canImportData', 'canImportDataUpdatedAt', 'canImportDataUpdatedBy', 'tempImportUntil']);
+    }
+
+    // Fields a person may never change on their OWN doc (admin tiers only).
+    function touchesSelfLockedFields() {
+      return touchesAdvancedOnlyFields()
+        || request.resource.data.diff(resource.data).affectedKeys().hasAny(['disabled'])
+        || (request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])
+            && string(request.resource.data.get('role', '')).lower() == 'admin');
+    }
+
+    // A self-created users doc may not claim any elevated status.
+    function noElevatedClaims(d) {
+      return d.get('Advancedadmin', false) == false
+        && d.get('passkeyRequired', false) == false
+        && d.get('passkeyOffer', false) == false
+        && d.get('disabled', false) == false
+        && !('passkeyExempt' in d)
+        && string(d.get('role', '')).lower() != 'admin';
+    }
+
+    // ============================================
+    // AUTHORIZED USERS
+    // ============================================
+    // get stays public (email check before login); listing the whole
+    // collection is admin-only so emails can't be harvested.
+    match /authorized_users/{email} {
+      allow get: if true;
+      allow list: if request.auth != null && isAnyAdmin();
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    match /config/loginAccessControl {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.Advancedadmin == true;
+    }
+
+    match /config/maintenanceMode {
+      allow read: if request.auth != null;   // every signed-in user needs to see it
+      allow write: if request.auth != null && isAdvancedAdmin();
+    }
+
+    match /config/termAutomation {
+      allow read, write: if request.auth != null && isAdvancedAdmin();
+    }
+
+    // Control Center: device check-ins. Each device writes only its own session;
+    // Advanced Admins can read all sessions and flag one as signed out (revoked).
+    match /sessions/{sid} {
+      allow read: if request.auth != null &&
+        (resource.data.uid == request.auth.uid || isAdvancedAdmin());
+      allow create: if request.auth != null &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.get('revoked', false) == false;
+      allow update: if request.auth != null &&
+        ((resource.data.uid == request.auth.uid &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['revoked', 'uid']))
+         || isAdvancedAdmin());
+      allow delete: if request.auth != null &&
+        (resource.data.uid == request.auth.uid || isAdvancedAdmin());
+    }
+
+    match /nameVerificationRegisters/{regId} {
+      allow read: if request.auth != null &&
+        (isAnyAdmin() ||
+         !('assignedTeacherEmail' in resource.data) ||
+         resource.data.assignedTeacherEmail == request.auth.token.email.lower());
+      allow write: if request.auth != null && isAnyAdmin();
+      match /students/{studentId} {
+        allow read: if request.auth != null &&
+          (isAnyAdmin() ||
+           !('assignedTeacherEmail' in get(/databases/$(database)/documents/nameVerificationRegisters/$(regId)).data) ||
+           get(/databases/$(database)/documents/nameVerificationRegisters/$(regId)).data.assignedTeacherEmail == request.auth.token.email.lower());
+        allow update: if request.auth != null &&
+          (isAnyAdmin() ||
+           !('assignedTeacherEmail' in get(/databases/$(database)/documents/nameVerificationRegisters/$(regId)).data) ||
+           get(/databases/$(database)/documents/nameVerificationRegisters/$(regId)).data.assignedTeacherEmail == request.auth.token.email.lower());
+        allow create, delete: if request.auth != null && (isAnyAdmin() || isTeacher());
+      }
+    }
+
+    // Public certificate verification (unguessable token as document ID).
+    match /certificateVerifications/{token} {
+      allow get: if true;
+      allow list: if request.auth != null && isAnyAdmin();
+      allow create, update, delete: if request.auth != null && isAnyAdmin();
+    }
+
+    // Full graduand lists: Advanced Admins only.
+    match /graduation/{batchId} {
+      allow read: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.Advancedadmin == true
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('disabled', false) != true;
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.Advancedadmin == true
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('disabled', false) != true;
+    }
+
+    match /graduationVerify/{code} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.Advancedadmin == true
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('disabled', false) != true;
+    }
+
+    // ============================================
+    // LIBRARY
+    // ============================================
+    match /libraryBooks/{bookId} {
+      allow read: if true;
+      allow write: if request.auth != null && isAnyAdmin();
+    }
+
+    match /libraryTransactions/{txId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAnyAdmin();
+    }
+
+    match /libraryReservations/{reqId} {
+      allow read: if request.auth != null &&
+        (resource.data.requesterUid == request.auth.uid || isAnyAdmin());
+      allow create: if request.auth != null &&
+        request.resource.data.requesterUid == request.auth.uid &&
+        request.resource.data.status == 'pending';
+      allow update, delete: if request.auth != null && isAnyAdmin();
+    }
+
+    match /librarySubjects/{subjectId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAnyAdmin();
+    }
+
+    // ============================================
+    // PARENT PORTAL
+    // ============================================
+    // Only staff may post announcements.
+    match /announcements/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+                       request.resource.data.createdByUid == request.auth.uid &&
+                       (isAnyAdmin() || isTeacher());
+      allow update, delete: if request.auth != null &&
+                       (resource.data.createdByUid == request.auth.uid || isAnyAdmin());
+    }
+
+    match /parents/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      allow create: if request.auth != null && request.auth.uid == uid &&
+                       request.resource.data.status == 'pending';
+
+      // status may only flip to 'approved' if authorizedParents is approved
+      // AND the parent's email is verified.
+      allow update: if request.auth != null && (
+        (request.auth.uid == uid &&
+          (
+            !('status' in request.resource.data.diff(resource.data).affectedKeys())
+            ||
+            (request.resource.data.status == 'approved' &&
+             request.auth.token.email_verified == true &&
+             get(/databases/$(database)/documents/authorizedParents/$(request.auth.token.email.lower())).data.status == 'approved')
+          )
+        )
+        || isAdvancedAdmin()
+      );
+
+      allow delete: if isAdvancedAdmin();
+    }
+
+    match /authorizedParents/{email} {
+      allow read: if request.auth != null &&
+        (email == request.auth.token.email.lower() || isAdvancedAdmin());
+      allow create: if request.auth != null && (
+        (email == request.auth.token.email.lower() &&
+         request.resource.data.email == email &&
+         request.resource.data.status == 'pending')
+        || isAdvancedAdmin()
+      );
+      allow update, delete: if isAdvancedAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read, write: if request.auth != null && isAdvancedAdmin();
+    }
+
+    match /auditLog/{docId} {
+      allow read: if request.auth != null && isAdvancedAdmin();
+      allow create: if request.auth != null && isAdvancedAdmin();
+      allow update, delete: if false;
+    }
+
+    // ============================================
+    // TEACHERS PORTAL
+    // ============================================
+    match /resources/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+                       request.resource.data.createdByUid == request.auth.uid &&
+                       (isAnyAdmin() || isTeacher());
+      allow update, delete: if request.auth != null &&
+                       (resource.data.createdByUid == request.auth.uid || isAnyAdmin());
+    }
+
+    match /leaveRequests/{docId} {
+      allow read: if request.auth != null &&
+                     (resource.data.uid == request.auth.uid || isAnyAdmin());
+      allow create: if request.auth != null &&
+                       request.resource.data.uid == request.auth.uid;
+      allow update: if request.auth != null && isAnyAdmin();
+      allow delete: if request.auth != null &&
+                       (resource.data.uid == request.auth.uid || isAnyAdmin());
+    }
+
+    match /welfareContributions/{docId} {
+      allow read: if request.auth != null &&
+                     (resource.data.uid == request.auth.uid || isAnyAdmin());
+      allow create: if request.auth != null &&
+                       request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Login activity: anyone signed in may add an entry; only admins read; no edits.
+    match /login_activity/{document=**} {
+      allow read: if request.auth != null && isAnyAdmin();
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+
+    match /Students/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    match /Activities/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    // Teachers: signed-in only (was public).
+    match /teachers/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    match /subjects/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    // Submissions: staff only may write.
+    match /submissions/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (isAnyAdmin() || isTeacher());
+    }
+
+    match /teacherSubmissions/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (isAnyAdmin() || isTeacher());
+    }
+
+    match /books/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    match /issuance/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    // Messages: signed-in only (was open to the whole internet).
+    match /messages/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /message_threads/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Audit log: append-only, admins read.
+    match /auditLogs/{document=**} {
+      allow read: if request.auth != null && isAnyAdmin();
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+
+    match /Results/{appId}/students/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    match /JuniorSchoolResultsDatabase/{appId}/students/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    match /DeletedResults/{appId}/artifacts/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    match /JuniorSchoolDeletedResults/{appId}/artifacts/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    match /Deletedstudents/{appId}/artifacts/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    match /artifacts/{appId}/students/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+    match /users/{userId} {
+
+      allow get: if request.auth != null &&
+                     (request.auth.uid == userId ||
+                      isAdminByUID() ||
+                      isAdmin() ||
+                      isAdvancedAdmin());
+
+      allow list: if request.auth != null &&
+                     (isTeacher() || isAdvancedAdmin());
+
+      // Self-registration may not claim admin, Advancedadmin, passkey flags
+      // or a re-enabled state. Advanced Admins may create anything.
+      allow create: if request.auth != null &&
+                       (
+                         (request.auth.uid == userId && noElevatedClaims(request.resource.data))
+                         || isAdvancedAdmin()
+                         || ((isAdminByUID() || isAdmin()) && noElevatedClaims(request.resource.data))
+                       );
+
+      // Own profile: cannot touch locked fields.
+      // Admin / authorized_users admin: cannot touch Advanced-only fields.
+      // Advanced Admin: anything.
+      allow update: if request.auth != null &&
+                       (
+                         (request.auth.uid == userId && !touchesSelfLockedFields())
+                         || ((isAdminByUID() || isAdmin()) && !touchesAdvancedOnlyFields())
+                         || isAdvancedAdmin()
+                       );
+
+      allow delete: if request.auth != null &&
+                       (isAdminByUID() || isAdmin() || isAdvancedAdmin());
+    }
+
+    // ============================================
+    // REQUESTS
+    // ============================================
+    match /requests/{requestId} {
+      allow read: if request.auth != null &&
+                     (resource.data.userId == request.auth.uid || isAdminByUID());
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isAdminByUID();
+      allow delete: if request.auth != null &&
+                       ((resource.data.userId == request.auth.uid && resource.data.status == 'pending') || isAdminByUID());
+    }
+
+    // ============================================
+    // NOTIFICATIONS
+    // ============================================
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null &&
+                     (resource.data.recipientEmail == request.auth.token.email ||
+                      resource.data.recipientId == request.auth.uid ||
+                      isAdminByUID());
+      allow create: if isAdminByUID();
+      allow update: if request.auth != null &&
+                       (resource.data.recipientEmail == request.auth.token.email ||
+                        resource.data.recipientId == request.auth.uid);
+      allow delete: if request.auth != null &&
+                       (resource.data.recipientEmail == request.auth.token.email ||
+                        resource.data.recipientId == request.auth.uid ||
+                        isAdminByUID());
+    }
+
+    // ============================================
+    // AUDIT LOGS
+    // ============================================
+    match /audit_logs/{logId} {
+      allow read: if isAdminByUID();
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}

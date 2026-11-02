@@ -2662,184 +2662,62 @@ body.print-mode .kpi-val,.print-mode .card-title{color:#000!important}
   #view-profile [style*="margin-top:18px"][style*="display:flex"] .btn{width:100%;justify-content:center;}
 }
 
-/* ══════════════════════════════════════════
-   CLAYMORPHISM — WHOLE PORTAL (incl. Quick Entry + sign-in)
-   Soft, puffy "clay" surfaces: big radii, a light shadow top-left, a dark
-   shadow bottom-right, plus inner highlight/shade so shapes look moulded.
-   Fields are pressed IN (debossed); buttons are puffed OUT and squash when
-   pressed. CSS only — no markup/JS/ID changes. Placed after every other
-   rule so it wins the cascade. Tweak the --clay-* tokens to restyle all.
-══════════════════════════════════════════ */
+/* ══ PAGE BACKGROUND PATTERN ══ */
 :root{
-  --clay-r-lg:28px; --clay-r-md:20px; --clay-r-sm:14px;
-  --clay-fill:linear-gradient(145deg,#ffffff 0%,#f7f0df 100%);
-  --clay-fill-soft:linear-gradient(145deg,#fffdf8 0%,#f3ead2 100%);
-  --clay-raised:
-    10px 10px 24px rgba(170,135,60,.26), -8px -8px 20px rgba(255,255,255,.95),
-    inset 4px 4px 8px rgba(255,255,255,.95), inset -6px -6px 12px rgba(190,150,70,.14);
-  --clay-raised-sm:
-    5px 5px 12px rgba(170,135,60,.26), -4px -4px 10px rgba(255,255,255,.95),
-    inset 2px 2px 5px rgba(255,255,255,.95), inset -3px -3px 6px rgba(190,150,70,.15);
-  --clay-pressed:
-    inset 4px 4px 9px rgba(170,135,60,.24), inset -4px -4px 9px rgba(255,255,255,.95);
-  --clay-color-in:
-    inset 3px 3px 7px rgba(255,255,255,.5), inset -4px -5px 9px rgba(0,0,0,.2);
+  --pat1:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480'%3E%3Cg fill='%232980b9' fill-opacity='.11'%3E%3Cpath d='M60 70q30-40 70-12t8 62q-40 28-70-4z'/%3E%3Ccircle cx='210' cy='210' r='7'/%3E%3Ccircle cx='430' cy='150' r='4'/%3E%3C/g%3E%3Cg fill='%23e67e22' fill-opacity='.15'%3E%3Cpath d='M300 40l46 20-30 46z'/%3E%3Ccircle cx='90' cy='390' r='5'/%3E%3Cpath d='M200 420l30-8 8 26-34 6z'/%3E%3C/g%3E%3Cg fill='%2327ae60' fill-opacity='.12'%3E%3Cpath d='M380 330l50-14 12 52-54 10z'/%3E%3Ccircle cx='30' cy='230' r='3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23d3a437' stroke-opacity='.3' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M120 300q20-30 40 0t40 0 40 0'/%3E%3Ccircle cx='340' cy='220' r='16'/%3E%3C/g%3E%3C/svg%3E");
+  --pat2:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='330' height='330'%3E%3Cg fill='%238e44ad' fill-opacity='.09'%3E%3Cpath d='M240 30q40 10 30 50t-50 20q-20-40 20-70z'/%3E%3Ccircle cx='60' cy='60' r='6'/%3E%3C/g%3E%3Cg fill='%2316a085' fill-opacity='.12'%3E%3Cpath d='M40 220l38-24 22 40-44 20z'/%3E%3Ccircle cx='280' cy='280' r='4'/%3E%3Ccircle cx='160' cy='150' r='3'/%3E%3C/g%3E%3Cg fill='none' stroke='%232980b9' stroke-opacity='.22' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M150 270l30-24 20 28 34-30'/%3E%3Ccircle cx='120' cy='40' r='11'/%3E%3C/g%3E%3C/svg%3E");
+  --pat4:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='600'%20height='600'%3E%3Cg%20fill='none'%20stroke='%232980b9'%20stroke-opacity='.3'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M90%2070l50%2020-50%2020-50-20z'/%3E%3Cpath%20d='M65%20100v18q25%2014%2050%200v-18'/%3E%3Cpath%20d='M140%2090v26'/%3E%3Ccircle%20cx='400'%20cy='110'%20r='28'/%3E%3Cellipse%20cx='400'%20cy='110'%20rx='12'%20ry='28'/%3E%3Cpath%20d='M372%20110h56M378%2094q22%208%2044%200M378%20126q22-8%2044%200'/%3E%3C/g%3E%3Cg%20fill='none'%20stroke='%23e67e22'%20stroke-opacity='.32'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='250'%20cy='300'%20r='20'/%3E%3Cpath%20d='M242%20322h16M244%20330h12M250%20320v-14'/%3E%3Cpath%20d='M100%20410h20v22l22%2036q4%2010-8%2010h-48q-12%200-8-10l22-36z'%20transform='translate%28-12%208%29'/%3E%3Cpath%20d='M330%20100l6%2014%2015%202-11%2010%203%2015-13-8-13%208%203-15-11-10%2015-2z'/%3E%3C/g%3E%3Cg%20fill='none'%20stroke='%238e44ad'%20stroke-opacity='.28'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cellipse%20cx='480'%20cy='380'%20rx='34'%20ry='12'/%3E%3Cellipse%20cx='480'%20cy='380'%20rx='34'%20ry='12'%20transform='rotate%2860%20480%20380%29'/%3E%3Cellipse%20cx='480'%20cy='380'%20rx='34'%20ry='12'%20transform='rotate%28120%20480%20380%29'/%3E%3Crect%20x='500'%20y='200'%20width='42'%20height='56'%20rx='6'/%3E%3Cpath%20d='M508%20214h26M510%20228h6M522%20228h6M534%20228h2M510%20240h6M522%20240h6M534%20240h2'/%3E%3C/g%3E%3Cg%20fill='none'%20stroke='%2327ae60'%20stroke-opacity='.32'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='540'%20cy='520'%20r='16'/%3E%3Cpath%20d='M552%20532l18%2018'/%3E%3Cpath%20d='M170%20540l70-30-24%2060-14-22z'/%3E%3Cpath%20d='M216%20570l-4-26'/%3E%3Cpath%20d='M30%20330h26v44l-13-9-13%209z'/%3E%3Cpath%20d='M320%20480v-30l22-6v30'/%3E%3C/g%3E%3Cg%20fill='%2327ae60'%20fill-opacity='.3'%3E%3Ccircle%20cx='313'%20cy='482'%20r='7'/%3E%3Ccircle%20cx='335'%20cy='476'%20r='7'/%3E%3C/g%3E%3Cg%20fill='%23d3a437'%20fill-opacity='.3'%3E%3Ccircle%20cx='140'%20cy='118'%20r='4'/%3E%3Ccircle%20cx='430'%20cy='470'%20r='5'/%3E%3Ccircle%20cx='60'%20cy='560'%20r='4'/%3E%3C/g%3E%3C/svg%3E");
+  --pat5:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='260'%20height='260'%3E%3Cg%20fill='%23e67e22'%20fill-opacity='.26'%3E%3Cpath%20d='M30%2040l14%206-9%2014z'/%3E%3Ccircle%20cx='200'%20cy='60'%20r='3'/%3E%3Cpath%20d='M150%20210l12-4%203%2012-13%203z'/%3E%3C/g%3E%3Cg%20fill='%232980b9'%20fill-opacity='.24'%3E%3Ccircle%20cx='90'%20cy='130'%20r='3'/%3E%3Ccircle%20cx='230'%20cy='170'%20r='2.5'/%3E%3Cpath%20d='M120%2030h8v-8h6v8h8v6h-8v8h-6v-8h-8z'/%3E%3C/g%3E%3Cg%20fill='%2327ae60'%20fill-opacity='.24'%3E%3Cpath%20d='M40%20200l10-10%2010%2010-10%2010z'/%3E%3Ccircle%20cx='180'%20cy='120'%20r='2.5'/%3E%3C/g%3E%3Cg%20fill='%238e44ad'%20fill-opacity='.2'%3E%3Ccircle%20cx='20'%20cy='120'%20r='2'/%3E%3Cpath%20d='M210%20235l8-6%208%206-3%209h-10z'/%3E%3C/g%3E%3C/svg%3E");
+  --pat3:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='520'%20height='520'%3E%3Cg%20fill='%232980b9'%20fill-opacity='.2'%3E%3Cpath%20d='M70%2060l8%2018%2020%202-15%2013%205%2020-18-10-18%2010%205-20-15-13%2020-2z'/%3E%3Crect%20x='300'%20y='300'%20width='46'%20height='34'%20rx='4'/%3E%3Crect%20x='352'%20y='300'%20width='46'%20height='34'%20rx='4'/%3E%3C/g%3E%3Cg%20fill='%23e67e22'%20fill-opacity='.24'%3E%3Cg%20transform='rotate%2835%20380%2090%29'%3E%3Crect%20x='340'%20y='80'%20width='90'%20height='16'%20rx='3'/%3E%3Cpath%20d='M430%2080l22%208-22%208z'/%3E%3C/g%3E%3Ccircle%20cx='150'%20cy='440'%20r='9'/%3E%3Cpath%20d='M460%20420l8%2018%2020%202-15%2013%205%2020-18-10-18%2010%205-20-15-13%2020-2z'/%3E%3C/g%3E%3Cg%20fill='%2327ae60'%20fill-opacity='.2'%3E%3Ccircle%20cx='230'%20cy='170'%20r='6'/%3E%3Ccircle%20cx='252'%20cy='186'%20r='4'/%3E%3Ccircle%20cx='210'%20cy='192'%20r='4'/%3E%3Cpath%20d='M40%20280h14v-14h12v14h14v12H66v14H54v-14H40z'/%3E%3C/g%3E%3Cg%20fill='none'%20stroke='%238e44ad'%20stroke-opacity='.26'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='120'%20y='330'%20width='110'%20height='24'%20rx='3'/%3E%3Cpath%20d='M140%20330v10M160%20330v14M180%20330v10M200%20330v14M220%20330v10'/%3E%3Cpath%20d='M400%20220q16-26%2032%200t32%200'/%3E%3Ccircle%20cx='60'%20cy='170'%20r='18'/%3E%3C/g%3E%3C/svg%3E");
 }
-[data-theme="dark"]{
-  --clay-fill:linear-gradient(145deg,#16263b 0%,#0f1b2c 100%);
-  --clay-fill-soft:linear-gradient(145deg,#1a2d45 0%,#122035 100%);
-  --clay-raised:
-    10px 10px 24px rgba(0,0,0,.55), -7px -7px 18px rgba(80,120,170,.12),
-    inset 3px 3px 7px rgba(255,255,255,.07), inset -6px -6px 12px rgba(0,0,0,.35);
-  --clay-raised-sm:
-    5px 5px 12px rgba(0,0,0,.5), -4px -4px 10px rgba(80,120,170,.12),
-    inset 2px 2px 5px rgba(255,255,255,.07), inset -3px -3px 6px rgba(0,0,0,.3);
-  --clay-pressed:
-    inset 4px 4px 9px rgba(0,0,0,.5), inset -3px -3px 8px rgba(80,120,170,.12);
-  --clay-color-in:
-    inset 3px 3px 7px rgba(255,255,255,.22), inset -4px -5px 9px rgba(0,0,0,.35);
+body, #login-screen{
+  background:
+    var(--pat4) 90px 140px/600px fixed,
+    var(--pat5) 20px 10px/260px fixed,
+    var(--pat3) 40px 30px/520px fixed,
+    var(--pat1) 0 0/480px fixed,
+    var(--pat2) 170px 90px/330px fixed,
+    radial-gradient(circle at 10% 16%,rgba(41,128,185,.16),transparent 42%) fixed,radial-gradient(circle at 90% 84%,rgba(230,126,34,.18),transparent 44%) fixed,radial-gradient(circle at 78% 12%,rgba(142,68,173,.10),transparent 36%) fixed,
+    linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%) fixed;
+}
+[data-theme="dark"] body, [data-theme="dark"] #login-screen{
+  background:
+    var(--pat4) 90px 140px/600px fixed,
+    var(--pat5) 20px 10px/260px fixed,
+    var(--pat3) 40px 30px/520px fixed,
+    var(--pat1) 0 0/480px fixed,
+    radial-gradient(circle at 10% 16%,rgba(41,128,185,.18),transparent 45%) fixed,
+    var(--bg);
 }
 
-/* ── Big surfaces ── */
-.card, .kpi-card, .help-item, .table-wrap, .topbar-more-menu,
-#qe-table-card, #view-quickentry .card{
-  background:var(--clay-fill);
-  border:none;
-  border-radius:var(--clay-r-lg);
-  box-shadow:var(--clay-raised);
-}
-.table-wrap, .help-item{border-radius:var(--clay-r-md);}
-#qe-table-card::before{display:none;}                 /* drop the old sheen overlay */
-.kpi-card:hover{box-shadow:var(--clay-raised);transform:translateY(-3px);}
-.settings-tile{
-  background:var(--clay-fill-soft);border:none;border-radius:var(--clay-r-md);box-shadow:var(--clay-raised-sm);
-}
-.settings-tile:hover{box-shadow:var(--clay-raised-sm);transform:translateY(-2px);}
-.settings-tile:active{box-shadow:var(--clay-pressed);transform:translateY(0);}
-
-/* ── Shell ── */
+/* ══ PATTERN ON SIDEBAR + CONTAINERS (image layer only — existing fills stay underneath) ══ */
 .sidebar{
-  background:var(--clay-fill);border-right:none;
-  box-shadow:10px 0 28px rgba(170,135,60,.2), inset -4px 0 8px rgba(255,255,255,.7);
+  background-image:var(--pat2),var(--pat5);
+  background-size:330px,260px;background-position:0 0,40px 60px;
 }
-[data-theme="dark"] .sidebar{box-shadow:10px 0 28px rgba(0,0,0,.5), inset -3px 0 7px rgba(255,255,255,.05);}
-.topbar{
-  background:var(--clay-fill);border-bottom:none;border-radius:0 0 var(--clay-r-lg) var(--clay-r-lg);
-  box-shadow:0 10px 24px rgba(170,135,60,.22), inset 0 -4px 8px rgba(190,150,70,.1);
-}
-[data-theme="dark"] .topbar{box-shadow:0 10px 24px rgba(0,0,0,.5), inset 0 -4px 8px rgba(0,0,0,.3);}
-.nav-item{border-radius:var(--clay-r-sm);}
-.nav-item:hover{background:transparent;box-shadow:var(--clay-raised-sm);}
-.nav-item.active{
-  background:linear-gradient(145deg,var(--blue-lt),var(--blue));color:#fff;border:none;
-  box-shadow:5px 6px 14px var(--blue-glow), var(--clay-color-in);
-}
-.nav-item.active .nav-icon{filter:drop-shadow(0 1px 1px rgba(0,0,0,.25));}
-
-/* ── Fields: pressed into the clay ── */
-.sel, .search-input, .help-search, #qe-search,
-.auth-field input, .eauth-field input, .eauth-field-icon input, .qe-mobile-bar select{
-  background:var(--clay-fill-soft);border:none;border-radius:var(--clay-r-sm);box-shadow:var(--clay-pressed);
-}
-.sel:focus, .search-input:focus, .help-search:focus, #qe-search:focus,
-.auth-field input:focus, .eauth-field input:focus, .eauth-field-icon input:focus{
-  outline:none;box-shadow:var(--clay-pressed), 0 0 0 3px rgba(41,128,185,.28);
-}
-#qe-table input[data-student]{border-radius:10px;box-shadow:var(--clay-pressed);border-color:transparent;}
-
-/* ── Buttons: puffed out, squash on press ── */
-.btn{border-radius:var(--clay-r-sm);}
-.btn:active{transform:translateY(1px) scale(.98);}
-.btn-blue{background:linear-gradient(145deg,var(--blue-lt),var(--blue));box-shadow:5px 6px 14px var(--blue-glow), var(--clay-color-in);}
-.btn-green{background:linear-gradient(145deg,#3ddc84,var(--green));box-shadow:5px 6px 14px rgba(39,174,96,.4), var(--clay-color-in);}
-.btn-orange{background:linear-gradient(145deg,#f5a04a,var(--orange));box-shadow:5px 6px 14px rgba(230,126,34,.4), var(--clay-color-in);}
-.btn-red{background:linear-gradient(145deg,#f1796b,var(--red));box-shadow:5px 6px 14px rgba(231,76,60,.4), var(--clay-color-in);}
-.btn-blue:hover,.btn-green:hover,.btn-orange:hover,.btn-red:hover{transform:translateY(-2px);}
-.btn-blue:active,.btn-green:active,.btn-orange:active,.btn-red:active{box-shadow:inset 3px 3px 8px rgba(0,0,0,.28), inset -2px -2px 6px rgba(255,255,255,.25);transform:translateY(1px) scale(.98);}
-.btn-outline{background:var(--clay-fill-soft);border:none;color:var(--text2);box-shadow:var(--clay-raised-sm);}
-.btn-outline:hover{color:var(--blue);transform:translateY(-2px);}
-.btn-outline:active{box-shadow:var(--clay-pressed);transform:translateY(1px) scale(.98);}
-.pg-btn, .modal-close, .eauth-modal-close, .qe-mobile-bar button, #qe-table-card .dt-paging .dt-paging-button{
-  border:none;background:var(--clay-fill-soft);box-shadow:var(--clay-raised-sm);
-}
-.pg-btn:active, .modal-close:active, .eauth-modal-close:active, .qe-mobile-bar button:active,
-#qe-table-card .dt-paging .dt-paging-button:active{box-shadow:var(--clay-pressed);}
-.pg-btn:hover, .pg-btn.active, #qe-table-card .dt-paging .dt-paging-button.current,
-#qe-table-card .dt-paging .dt-paging-button:hover:not(.disabled){
-  background:linear-gradient(145deg,var(--blue-lt),var(--blue));color:#fff;box-shadow:3px 4px 10px var(--blue-glow), var(--clay-color-in);
+.topbar, .card, .kpi-card, .modal-box, .settings-tile, .help-item{
+  background-image:var(--pat1),var(--pat2);
+  background-size:480px,330px;background-position:0 0,170px 90px;
 }
 
-/* ── Tables ── */
-.data-table thead tr{background:transparent;border-bottom:none;}
-.data-table th{background:var(--clay-fill-soft);}
-.data-table tbody tr{border-bottom-color:rgba(170,135,60,.12);}
-[data-theme="dark"] .data-table tbody tr{border-bottom-color:rgba(255,255,255,.05);}
-.data-table tbody tr:hover{background:rgba(41,128,185,.07);}
-#qe-table-card .dtcc-popover-panel, #qe-table-card .dtcc-searchList-container{
-  background:var(--clay-fill);border:none;border-radius:var(--clay-r-md);box-shadow:var(--clay-raised);
+/* ══ PATTERN ON SIGN-IN + EVERY REMAINING CONTAINER ══ */
+.signin-card, .eauth-modal-card, .confirm-box, .prm-box, .prm-card, .ann-panel, .topbar-more-menu, .tour-tooltip,
+.mini-stat, .gavg-tile, .setting-row, .audit-snapshot, .rank-item, .notif, .portal-link, .msg-input-wrap, .ep-row, .prm-stat, .ins{
+  background-image:var(--pat1),var(--pat2);
+  background-size:480px,330px;background-position:0 0,170px 90px;
 }
-#qe-table-card .dtcc-searchList-search input, #qe-table-card .dtcc-input{
-  background:var(--clay-fill-soft);border:none;box-shadow:var(--clay-pressed);
+.swal2-popup{
+  background-image:var(--pat1),var(--pat2)!important;
+  background-size:480px,330px!important;background-position:0 0,170px 90px!important;
 }
+/* passkey / biometric popup: keep its dark glass gradient, pattern on top */
+.pkd-card{
+  background-image:var(--pat1),var(--pat2),linear-gradient(160deg,rgba(24,36,62,.82),rgba(9,14,28,.9));
+  background-size:480px,330px,auto;background-position:0 0,170px 90px,0 0;
+}
+/* desktop sign-in card is transparent over the patterned screen — don't double it */
+@media(min-width:901px){ .signin-card{background-image:none;} }
 
-/* ── Banners / builder inside Quick Entry (keep their tint, add a soft lift) ── */
-#view-quickentry [id$="-banner"], #qe-new-exam-builder, #qe-deadline-splash > *{
-  border-radius:var(--clay-r-md)!important;box-shadow:var(--clay-raised-sm);
-}
-
-/* ── Modals (app + Quick Entry + SweetAlert) ── */
-.modal-box, .eauth-modal-card, .swal2-popup{
-  background:var(--clay-fill)!important;border:none!important;border-radius:var(--clay-r-lg)!important;
-  box-shadow:14px 16px 40px rgba(20,35,60,.38), -6px -6px 18px rgba(255,255,255,.35), inset 4px 4px 8px rgba(255,255,255,.7), inset -6px -6px 12px rgba(190,150,70,.12)!important;
-  color:var(--text);
-}
-[data-theme="dark"] .modal-box, [data-theme="dark"] .eauth-modal-card, [data-theme="dark"] .swal2-popup{
-  box-shadow:14px 16px 40px rgba(0,0,0,.65), -5px -5px 16px rgba(80,120,170,.12), inset 3px 3px 7px rgba(255,255,255,.07), inset -6px -6px 12px rgba(0,0,0,.35)!important;
-}
-.modal-hdr, .modal-footer{border-color:rgba(170,135,60,.15);}
-[data-theme="dark"] .modal-hdr, [data-theme="dark"] .modal-footer{border-color:rgba(255,255,255,.06);}
-.swal2-title, .swal2-html-container{color:var(--text)!important;}
-.swal2-styled{border-radius:var(--clay-r-sm)!important;}
-#qe-rawtip-modal .modal-box{border-radius:var(--clay-r-lg);}
-
-/* ── Sign-in section ── */
-#login-screen .signin-card{
-  background:var(--clay-fill);border:none;border-radius:34px;
-  box-shadow:14px 16px 40px rgba(20,35,60,.3), -8px -8px 22px rgba(255,255,255,.5), inset 4px 4px 9px rgba(255,255,255,.8), inset -7px -7px 14px rgba(190,150,70,.14);
-}
-[data-theme="dark"] #login-screen .signin-card{
-  box-shadow:14px 16px 40px rgba(0,0,0,.6), -6px -6px 18px rgba(80,120,170,.12), inset 3px 3px 8px rgba(255,255,255,.07), inset -7px -7px 14px rgba(0,0,0,.35);
-}
-@media(min-width:901px){
-  #login-screen .signin-card{background:var(--clay-fill);border:none;box-shadow:14px 16px 40px rgba(20,35,60,.3), -8px -8px 22px rgba(255,255,255,.5), inset 4px 4px 9px rgba(255,255,255,.8), inset -7px -7px 14px rgba(190,150,70,.14);}
-  [data-theme="dark"] #login-screen .signin-card{box-shadow:14px 16px 40px rgba(0,0,0,.6), -6px -6px 18px rgba(80,120,170,.12), inset 3px 3px 8px rgba(255,255,255,.07), inset -7px -7px 14px rgba(0,0,0,.35);}
-}
-.auth-illustration .auth-logo-badge, .eauth-modal-icon{
-  border-radius:22px;box-shadow:6px 8px 18px var(--blue-glow), var(--clay-color-in);
-}
-.auth-submit-btn, #sign-in-google-btn, #eauth-submit-btn{
-  border-radius:var(--clay-r-md);
-  box-shadow:6px 8px 18px rgba(20,40,70,.4), var(--clay-color-in);
-}
-.auth-submit-btn:active, #sign-in-google-btn:active, #eauth-submit-btn:active{
-  transform:translateY(1px) scale(.98);box-shadow:inset 3px 3px 8px rgba(0,0,0,.35), inset -2px -2px 6px rgba(255,255,255,.2);
-}
-.auth-btn-secondary, #eauth-show-email-btn, .portal-link, .auth-qlink{
-  border:none;border-radius:var(--clay-r-md);background:var(--clay-fill-soft);box-shadow:var(--clay-raised-sm);
-}
-.auth-btn-secondary:hover, #eauth-show-email-btn:hover, .portal-link:hover, .auth-qlink:hover{transform:translateY(-2px);}
-.auth-btn-secondary:active, #eauth-show-email-btn:active, .portal-link:active, .auth-qlink:active{box-shadow:var(--clay-pressed);transform:translateY(1px) scale(.98);}
-#add-account-btn{border:none;border-radius:var(--clay-r-md);background:var(--clay-fill-soft);box-shadow:var(--clay-raised-sm);}
-#add-account-btn:active{box-shadow:var(--clay-pressed);}
-.eauth-tabs{background:var(--clay-fill-soft);border-radius:var(--clay-r-md);box-shadow:var(--clay-pressed);padding:5px;}
-.eauth-tab{border-radius:var(--clay-r-sm);}
-.eauth-tab.active{background:linear-gradient(145deg,var(--blue-lt),var(--blue));box-shadow:4px 5px 12px var(--blue-glow), var(--clay-color-in);}
-.auth-toggle .track{box-shadow:var(--clay-pressed);}
-.auth-toggle .thumb{box-shadow:2px 3px 6px rgba(0,0,0,.3), inset 1px 1px 2px rgba(255,255,255,.9);}
-
-@media print{
-  .card, .kpi-card, .table-wrap, .data-table th, #qe-table-card{background:#fff!important;box-shadow:none!important;}
-}
 </style>
 </head>
 <body>
@@ -4068,6 +3946,19 @@ setInterval(_rotateAuthTip, 5000);
             <div style="margin-top:18px;display:flex;gap:10px;align-items:center">
               <button class="btn btn-primary btn-sm" onclick="profSaveInfo()" id="prof-info-btn">Save Changes</button>
               <button class="btn btn-outline btn-sm" onclick="profLoadInfo()">Reset</button>
+            </div>
+          </div>
+
+          <!-- My Signature Card -->
+          <div class="card">
+            <div class="sec-hdr" style="margin-bottom:18px">
+              <h3 style="font-size:14px;font-weight:800">My Signature</h3>
+            </div>
+            <p style="font-size:12px;color:var(--text2);margin:0 0 12px">Class teachers and the Head Teacher: sign once here and it is placed automatically on report cards.</p>
+            <div id="prof-sig-preview" style="min-height:80px;display:flex;align-items:center;justify-content:center;padding:10px;background:#fff;border:1px dashed var(--border);border-radius:10px"></div>
+            <div style="margin-top:14px;display:flex;gap:10px">
+              <button class="btn btn-primary btn-sm" onclick="sigOpenWindow()">✍️ Sign / Change</button>
+              <button class="btn btn-outline btn-sm" id="prof-sig-remove" style="display:none" onclick="sigRemove()">Remove</button>
             </div>
           </div>
 
@@ -11400,6 +11291,7 @@ async function profLoadInfo(){
     var d    = snap.exists() ? snap.data() : {};
     _cacheFullProfileDoc(uid, d); // keep the offline fallback fresh for next time
     _profRenderDoc(d, nameEl, roleEl, emailEl, avatarEl);
+    if(window._sigRefreshCard) window._sigRefreshCard(d);
 
     // Check if Google sign-in (no password provider)
     var auth  = window._fb.getAuth();
@@ -27062,60 +26954,396 @@ async function loadStudentImage(studentName, grade, studentId) {
     return loadImg('./student_images/default.jpg');
 }
 
-function addQrCode(doc, student, x, y, size) {
-    const stats = calculateStudentStats(student);
-    // Keep QR data short so it encodes at a low error-correction level and scans reliably
-    const name  = (student['Official Student Name'] || '').substring(0, 30);
-    const adm   = student['Assessment No'] || '';
-    const grade = student['Grade'] || '';
-    const term  = student['Term'] || '';
-    const avg   = stats.average || '';
-    const lvl   = (stats.comment || '').substring(0, 15);
-    const data  = `KANYADET|${name}|ADM:${adm}|${grade}|${term}|AVG:${avg}%|${lvl}`;
-    // Use larger pixel size (400x400) so the QR is crisp when scaled down on the PDF
-    const url = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=4&ecc=M&data=${encodeURIComponent(data)}`;
-    return new Promise(resolve => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            try { doc.addImage(img, 'PNG', x, y, size, size); } catch(e) {}
-            resolve();
-        };
-        img.onerror = () => resolve();
-        setTimeout(() => resolve(), 5000);
-        img.src = url;
+// ═══════════════════════════════════════════════════════════════════════
+//  REPORT CARD SECURITY — serial + verify link (QR) + barcode + microtext
+//  Each printed card gets one random serial, registered in Firestore at
+//  cardVerifications/{serial}. QR and barcode both resolve to that record.
+//  Public page: verify.html?c=SERIAL&h=HASH8 (h = first 8 hex of the marks hash,
+//  so a card printed before a correction shows as "superseded").
+// ═══════════════════════════════════════════════════════════════════════
+const CARD_VERIFY_BASE = 'https://kanyadet-school-portal.web.app/verify.html';
+const _CARD_B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';   // Crockford: no I L O U
+
+function _cardRandSerial() {
+    const b = new Uint8Array(8);
+    crypto.getRandomValues(b);
+    return Array.from(b, x => _CARD_B32[x & 31]).join('');
+}
+function _cardSerialPretty(s) { return s.slice(0, 4) + '-' + s.slice(4); }
+async function _cardSha256(s) {
+    const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(d), b => b.toString(16).padStart(2, '0')).join('');
+}
+// Canonical string of everything the card certifies. Last segment = the marks.
+function _cardCanon(student) {
+    const marks = getSubjects_rc(student).slice().sort().map(s => {
+        const v = parseFloat(student[s]);
+        return s + ':' + (isNaN(v) ? '' : v.toFixed(2));
+    }).join(';');
+    return [
+        student['Assessment No'] || '', student['Grade'] || '', student['Term'] || '',
+        student['Year'] || student['Academic Year'] || '', student.__avgOf || '', marks
+    ].join('|');
+}
+function _loadScriptOnce(src, isReady) {
+    return new Promise(res => {
+        if (isReady()) return res(true);
+        const s = document.createElement('script');
+        s.src = src; s.onload = () => res(isReady()); s.onerror = () => res(false);
+        document.head.appendChild(s);
+        setTimeout(() => res(isReady()), 6000);
     });
 }
 
-// ── Barcode helper (uses free JsBarcode library loaded from CDN) ──────────
-// Renders a vertical CODE128 barcode on the left edge of the page
-function addBarcode(doc, student, pageHeight) {
+// Returns { serial, h } or null if it could not be registered (offline / no permission).
+async function issueCardToken(student) {
+    const canon = _cardCanon(student);
+    window._cardTok = window._cardTok || {};
+    if (!window._cardTok[canon]) {
+        window._cardTok[canon] = (async () => {
+            try {
+                const F = window._fb;
+                if (!F || !firestoreDb || !(window.crypto && crypto.subtle)) throw new Error('not ready');
+                const full  = await _cardSha256(canon);
+                const h     = full.slice(0, 8);
+                // Stable per learner+term(+year) so reprints reuse the same serial.
+                const keyId = (await _cardSha256(canon.split('|').slice(0, 5).join('|'))).slice(0, 24);
+                const idxRef = F.doc(firestoreDb, 'cardSerialIndex', keyId);
+                const idx    = await F.getDoc(idxRef);
+                const stats  = calculateStudentStats(student);
+                const now    = new Date().toISOString();
+                const cu     = (F.getAuth && F.getAuth().currentUser) || {};
+                const base = {
+                    name:  String(student['Official Student Name'] || '').slice(0, 60),
+                    grade: String(student['Grade'] || ''),
+                    term:  String(student['Term'] || ''),
+                    year:  String(student['Year'] || student['Academic Year'] || ''),
+                    avg:   Number(stats.average) || 0,
+                    level: String(stats.comment || ''),
+                    contentHash: full,
+                    issuedBy:    (typeof currentAdminName === 'string' && currentAdminName) || cu.displayName || '',
+                    issuedByUid: cu.uid || '',
+                    updatedAt:   now
+                };
+                let serial = idx.exists() ? idx.data().serial : null;
+                if (serial) {
+                    const recRef = F.doc(firestoreDb, 'cardVerifications', serial);
+                    const rec    = await F.getDoc(recRef);
+                    if (rec.exists() && rec.data().contentHash === full) return { serial, h };   // unchanged
+                    const old = rec.exists() ? rec.data() : {};
+                    await F.setDoc(recRef, { ...base, status: old.status || 'valid', rev: (old.rev || 0) + 1, issuedAt: old.issuedAt || now });
+                    return { serial, h };
+                }
+                for (let i = 0; i < 4 && !serial; i++) {
+                    const s = _cardRandSerial();
+                    if (!(await F.getDoc(F.doc(firestoreDb, 'cardVerifications', s))).exists()) serial = s;
+                }
+                if (!serial) throw new Error('serial collision');
+                await F.setDoc(F.doc(firestoreDb, 'cardVerifications', serial), { ...base, status: 'valid', rev: 1, issuedAt: now });
+                await F.setDoc(idxRef, { serial, createdAt: now });
+                return { serial, h };
+            } catch (e) {
+                console.warn('Card token failed:', e);
+                if (!window._cardTokWarned && typeof notify === 'function') {
+                    window._cardTokWarned = true;
+                    notify('⚠️ Could not register report card security codes (offline or no permission). Cards print without QR/barcode — reprint when online.', 'warn', 8000);
+                }
+                return null;
+            }
+        })();
+    }
+    const tok = await window._cardTok[canon];
+    if (!tok) delete window._cardTok[canon];
+    return tok;
+}
+
+// QR → verify URL, generated locally (no data leaves the device).
+async function addQrCode(doc, tok, x, y, size) {
+    const ready = tok && await _loadScriptOnce(
+        'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js', () => typeof qrcode === 'function');
+    if (!ready) {
+        doc.setFont(undefined, 'normal'); doc.setFontSize(5.5); doc.setTextColor(180, 0, 0);
+        doc.text(['Verification', 'unavailable'], x + size / 2, y + size / 2, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+        return;
+    }
+    const qr = qrcode(0, 'M');
+    qr.addData(`${CARD_VERIFY_BASE}?c=${tok.serial}&h=${tok.h}`);
+    qr.make();
+    const n = qr.getModuleCount(), px = 8, quiet = 2;
+    const cvs = document.createElement('canvas');
+    cvs.width = cvs.height = (n + quiet * 2) * px;
+    const ctx = cvs.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cvs.width, cvs.height);
+    ctx.fillStyle = '#000';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+        if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * px, (r + quiet) * px, px, px);
+    try { doc.addImage(cvs.toDataURL('image/png'), 'PNG', x, y, size, size); } catch (e) { console.warn('QR add failed:', e); }
+    // Typed fallback: same serial as the barcode
+    doc.setFont(undefined, 'bold'); doc.setFontSize(6.5); doc.setTextColor(0, 0, 0);
+    doc.text(_cardSerialPretty(tok.serial), x + size / 2, y + size + 3.4, { align: 'center' });
+    doc.setFont(undefined, 'normal');
+}
+
+// Vertical CODE128 of the serial, kept inside the printable margin (x ≥ 5 mm).
+function addBarcode(doc, tok, pageHeight) {
     try {
-        const barcodeValue = student['ULI'] || student['Assessment No'] || 'KANYADET';
-        if (typeof JsBarcode === 'undefined') return;
+        if (!tok || typeof JsBarcode === 'undefined') return;
         const cvs = document.createElement('canvas');
-        JsBarcode(cvs, String(barcodeValue), {
-            format: 'CODE128', width: 1.8, height: 55,
-            displayValue: false, background: '#ffffff',
-            lineColor: '#1a1a1a', margin: 4,
+        JsBarcode(cvs, tok.serial, {
+            format: 'CODE128', width: 2, height: 40, displayValue: false,
+            background: '#ffffff', lineColor: '#000000',
+            marginLeft: 8, marginRight: 8, marginTop: 3, marginBottom: 3,
         });
-        const rotCanvas = document.createElement('canvas');
-        rotCanvas.width  = cvs.height;
-        rotCanvas.height = cvs.width;
-        const ctx = rotCanvas.getContext('2d');
-        ctx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
+        const rot = document.createElement('canvas');
+        rot.width = cvs.height; rot.height = cvs.width;
+        const ctx = rot.getContext('2d');
+        ctx.translate(rot.width / 2, rot.height / 2);
         ctx.rotate(Math.PI / 2);
         ctx.drawImage(cvs, -cvs.width / 2, -cvs.height / 2);
-        const bcDataURL = rotCanvas.toDataURL('image/png');
-        const bcW = 10, bcH = 52;
-        const bcX = 1;
-        const bcY = pageHeight / 2 - bcH / 2;
-        doc.addImage(bcDataURL, 'PNG', bcX, bcY, bcW, bcH);
-        doc.setFontSize(5);
-        doc.setTextColor(140, 140, 140);
-        doc.text(String(barcodeValue), bcX + bcW + 2.5, bcY + bcH / 2, { angle: 90, align: 'center' });
+        const bcW = 8, bcH = 56, bcX = 5, bcY = pageHeight / 2 - bcH / 2;
+        doc.addImage(rot.toDataURL('image/png'), 'PNG', bcX, bcY, bcW, bcH);
     } catch (e) { console.warn('Barcode add failed:', e); }
 }
+
+// Microtext rule: replaces a plain signature line. Photocopiers turn it into a smudge.
+function _microLine(d, x, y, w, tok) {
+    const unit = 'KANYADET PRIMARY ' + (tok ? tok.serial : '') + ' ';
+    d.setFont(undefined, 'normal'); d.setFontSize(2.6); d.setTextColor(70, 70, 70);
+    let s = '';
+    while (d.getTextWidth(s + unit) <= w) s += unit;
+    d.text(s.trim(), x, y);
+    d.setTextColor(0, 0, 0);
+}
+// ─────────────────────────────────────────────────────────────────────────
+
+// ─── AUTO-SIGNATURES (Class Teacher + Head Teacher) ─────────────────────
+// Signatures are generated from the signer's name in a handwriting font and
+// drawn on the report card. Class Teacher = whoever is ticked "Class Teacher"
+// for the student's grade in the Grade Assignment panel. Head Teacher = the
+// user whose role/title is "Head Teacher" (or has isHeadTeacher:true), else
+// window.RC_HEAD_TEACHER_NAME. Set window.RC_AUTO_SIGN = false to switch off.
+let _sigFontReady = null;
+function _sigEnsureFont(){
+    if (_sigFontReady) return _sigFontReady;
+    _sigFontReady = (async () => {
+        try {
+            if (!document.getElementById('sig-font-css')) {
+                const l = document.createElement('link');
+                l.id = 'sig-font-css'; l.rel = 'stylesheet';
+                l.href = 'https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&display=swap';
+                document.head.appendChild(l);
+            }
+            await Promise.race([
+                document.fonts.load('96px "Mrs Saint Delafield"', 'Abc'),
+                new Promise(r => setTimeout(r, 3000))
+            ]);
+        } catch (e) {}
+    })();
+    return _sigFontReady;
+}
+const _sigImgCache = {};
+async function _makeSignature(fullName) {
+    const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return null;
+    const text = parts.length > 2 ? parts[0] + ' ' + parts[parts.length - 1] : parts.join(' ');
+    if (_sigImgCache[text]) return _sigImgCache[text];
+    await _sigEnsureFont();
+    const FONT = '130px "Mrs Saint Delafield", "Segoe Script", "Brush Script MT", cursive';
+    const m = document.createElement('canvas').getContext('2d');
+    m.font = FONT;
+    const tw = Math.ceil(m.measureText(text).width);
+    const pad = 30, W = tw + pad * 2, H = 220;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    x.font = FONT; x.fillStyle = '#14287a'; x.strokeStyle = '#14287a';
+    x.lineCap = 'round'; x.textBaseline = 'alphabetic';
+    x.save(); x.translate(pad, 130); x.rotate(-0.05); x.fillText(text, 0, 0); x.restore();
+    // underline flourish, slightly different per name
+    let h = 0; for (const ch of text) h = (h * 31 + ch.charCodeAt(0)) % 997;
+    const lift = 8 + (h % 14);
+    x.lineWidth = 3.5;
+    x.beginPath();
+    x.moveTo(pad, 165);
+    x.bezierCurveTo(pad + tw * 0.35, 165 + lift, pad + tw * 0.7, 150 - lift, pad + tw * 1.02, 158);
+    x.stroke();
+    const out = { url: c.toDataURL('image/png'), ratio: W / H };
+    _sigImgCache[text] = out;
+    return out;
+}
+let _sigUsersCache = null;   // { at, list }
+async function _sigUsers() {
+    if (_sigUsersCache && Date.now() - _sigUsersCache.at < 120000) return _sigUsersCache.list;
+    let list = [];
+    try {
+        const { collection, getDocs } = window._fb;
+        const snap = await getDocs(collection(firestoreDb, 'users'));
+        snap.forEach(d => list.push({ uid: d.id, ...d.data() }));
+    } catch (e) { console.warn('Auto-sign: could not read users —', e.message || e); }
+    _sigUsersCache = { at: Date.now(), list };
+    return list;
+}
+async function _rcSignerNames(student) {
+    const grade = gShort(student['Grade'] || '');
+    const users = (await _sigUsers()).filter(u => u.disabled !== true);
+    const nameOf = u => (u.name || u.displayName || '').trim();
+    let ct = '';
+    const ctUser = users.find(u => Array.isArray(u.classTeacherGrades) &&
+        u.classTeacherGrades.some(g => gShort(g) === grade));
+    let ctSig = null, htSig = null;
+    const _stored = u => (u && u.signature) ? { url: u.signature, ratio: u.signatureRatio || 2.5 } : null;
+    if (ctUser) { ct = nameOf(ctUser); ctSig = _stored(ctUser); }
+    if ((currentClassTeacherGrades || []).some(g => gShort(g) === grade)) {
+        if (!ct) ct = (currentAdminName || '').trim();
+        if (!ctSig) ctSig = window._mySigDoc || null;
+    }
+    if (!ct) ct = String(student['Class Teacher'] || '').trim();
+    let ht = '';
+    const htUser = users.find(u => u.isHeadTeacher === true ||
+        /head\s*-?\s*teacher|headmaster|headmistress|principal/i.test(`${u.role||''} ${u.title||''} ${u.position||''}`));
+    if (htUser) { ht = nameOf(htUser); htSig = _stored(htUser); }
+    if (!ht) ht = String(window.RC_HEAD_TEACHER_NAME || '').trim();
+    return { ct, ht, ctSig, htSig };
+}
+function _drawSignature(d, sig, x, lineY, maxW, maxH) {
+    if (!sig) return;
+    let h = maxH, w = h * sig.ratio;
+    if (w > maxW) { w = maxW; h = w / sig.ratio; }
+    try { d.addImage(sig.url, 'PNG', x, lineY - h + 1, w, h); } catch (e) { console.warn('Signature skipped:', e); }
+}
+// ── Signature window: teacher draws / types / uploads a signature, saved on users/{uid} ──
+window._sigRefreshCard = function(d){
+    const box = document.getElementById('prof-sig-preview'); if (!box) return;
+    window._mySigDoc = (d && d.signature) ? { url: d.signature, ratio: d.signatureRatio || 2.5 } : null;
+    box.innerHTML = window._mySigDoc
+        ? `<img src="${d.signature}" alt="My signature" style="max-height:70px;max-width:100%">`
+        : '<span style="font-size:12px;color:var(--text3)">No signature saved yet — report cards will use one generated from your name.</span>';
+    const rm = document.getElementById('prof-sig-remove');
+    if (rm) rm.style.display = window._mySigDoc ? '' : 'none';
+};
+let _sigTab = 'draw';
+window.sigTab = function(t){
+    _sigTab = t;
+    ['draw','type','up'].forEach(k => {
+        const pane = document.getElementById('sig-pane-' + k), btn = document.getElementById('sig-tab-' + k);
+        if (pane) pane.style.display = (k === t) ? '' : 'none';
+        if (btn) btn.className = 'btn btn-sm ' + (k === t ? 'btn-primary' : 'btn-outline');
+    });
+    if (t === 'type') window.sigRenderTyped();
+};
+window.sigClose = function(){ const m = document.getElementById('sig-modal'); if (m) m.remove(); };
+window.sigClear = function(){
+    ['sig-pad','sig-type-cv','sig-up-cv'].forEach(id => {
+        const c = document.getElementById(id); if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+    });
+    const f = document.getElementById('sig-file'); if (f) f.value = '';
+    const i = document.getElementById('sig-type-in'); if (i && _sigTab === 'type') { i.value = ''; }
+};
+window.sigRenderTyped = async function(){
+    const cv = document.getElementById('sig-type-cv'), inp = document.getElementById('sig-type-in');
+    if (!cv || !inp) return;
+    const x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height);
+    const sig = await _makeSignature(inp.value);
+    if (!sig) return;
+    const img = new Image();
+    img.onload = () => { x.clearRect(0, 0, cv.width, cv.height); const h = Math.min(cv.height, cv.width / sig.ratio); x.drawImage(img, 0, 0, h * sig.ratio, h); };
+    img.src = sig.url;
+};
+window.sigLoadFile = function(inp){
+    const f = inp.files && inp.files[0]; if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+        const cv = document.getElementById('sig-up-cv'), x = cv.getContext('2d');
+        x.clearRect(0, 0, cv.width, cv.height);
+        const sc = Math.min(cv.width / img.width, cv.height / img.height);
+        x.drawImage(img, 0, 0, img.width * sc, img.height * sc);
+        // white paper -> transparent, ink -> signature blue
+        const id = x.getImageData(0, 0, cv.width, cv.height), px = id.data;
+        for (let i = 0; i < px.length; i += 4) {
+            const lum = (px[i] + px[i+1] + px[i+2]) / 3;
+            const a = Math.max(0, Math.min(255, (235 - lum) * 255 / 115));
+            px[i] = 20; px[i+1] = 40; px[i+2] = 122; px[i+3] = Math.min(px[i+3], a);
+        }
+        x.putImageData(id, 0, 0);
+        URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(f);
+};
+function _sigExport(cv){
+    const x = cv.getContext('2d'), w = cv.width, h = cv.height, px = x.getImageData(0, 0, w, h).data;
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let y = 0; y < h; y++) for (let xx = 0; xx < w; xx++) {
+        if (px[(y * w + xx) * 4 + 3] > 20) { if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    if (x1 < 0 || (x1 - x0) < 12) return null;            // blank or just a dot
+    const pad = 6; x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
+    x1 = Math.min(w - 1, x1 + pad); y1 = Math.min(h - 1, y1 + pad);
+    const cw = x1 - x0 + 1, ch = y1 - y0 + 1, sc = Math.min(1, 600 / cw, 240 / ch);
+    const o = document.createElement('canvas'); o.width = Math.round(cw * sc); o.height = Math.round(ch * sc);
+    o.getContext('2d').drawImage(cv, x0, y0, cw, ch, 0, 0, o.width, o.height);
+    return { url: o.toDataURL('image/png'), ratio: o.width / o.height };
+}
+window.sigSave = async function(){
+    const id = _sigTab === 'draw' ? 'sig-pad' : _sigTab === 'type' ? 'sig-type-cv' : 'sig-up-cv';
+    const out = _sigExport(document.getElementById(id));
+    if (!out) { notify('Please sign (or type / upload) your signature first.', 'warn'); return; }
+    const uid = window._currentUser && window._currentUser.uid;
+    if (!uid || !firestoreDb) { notify('Not signed in — try again.', 'error'); return; }
+    const btn = document.getElementById('sig-save-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+    try {
+        const { doc, updateDoc } = window._fb;
+        await updateDoc(doc(firestoreDb, 'users', uid), { signature: out.url, signatureRatio: out.ratio, signatureUpdatedAt: new Date().toISOString() });
+        _sigUsersCache = null;
+        window._sigRefreshCard({ signature: out.url, signatureRatio: out.ratio });
+        sigClose();
+        notify('✅ Signature saved — it will appear on report cards automatically.', 'success');
+    } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Save signature'; }
+        notify('Could not save signature: ' + (e.message || e), 'error', 7000);
+    }
+};
+window.sigRemove = async function(){
+    const uid = window._currentUser && window._currentUser.uid;
+    if (!uid || !firestoreDb || !confirm('Remove your saved signature?')) return;
+    try {
+        const { doc, updateDoc } = window._fb;
+        await updateDoc(doc(firestoreDb, 'users', uid), { signature: '', signatureRatio: 0 });
+        _sigUsersCache = null; window._sigRefreshCard({});
+        notify('Signature removed.', 'success');
+    } catch (e) { notify('Could not remove signature: ' + (e.message || e), 'error'); }
+};
+window.sigOpenWindow = function(){
+    if (document.getElementById('sig-modal')) return;
+    const ov = document.createElement('div'); ov.id = 'sig-modal';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(10,20,40,.6);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#111);border-radius:16px;width:100%;max-width:520px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="margin:0;font-size:16px;font-weight:800">✍️ My Signature</h3><button class="btn btn-outline btn-sm" onclick="sigClose()">✕</button></div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button class="btn btn-primary btn-sm" id="sig-tab-draw" onclick="sigTab('draw')">Draw</button>
+        <button class="btn btn-outline btn-sm" id="sig-tab-type" onclick="sigTab('type')">Type</button>
+        <button class="btn btn-outline btn-sm" id="sig-tab-up" onclick="sigTab('up')">Upload</button>
+      </div>
+      <div id="sig-pane-draw"><canvas id="sig-pad" width="900" height="300" style="width:100%;aspect-ratio:3/1;background:#fff;border:2px dashed #9aa7bd;border-radius:10px;touch-action:none;cursor:crosshair"></canvas>
+        <div style="font-size:11px;opacity:.7;margin-top:4px">Sign inside the box with your mouse, finger or stylus.</div></div>
+      <div id="sig-pane-type" style="display:none"><input id="sig-type-in" class="input" type="text" placeholder="Type your name" oninput="sigRenderTyped()" style="margin-bottom:8px">
+        <canvas id="sig-type-cv" width="900" height="300" style="width:100%;aspect-ratio:3/1;background:#fff;border:2px dashed #9aa7bd;border-radius:10px"></canvas></div>
+      <div id="sig-pane-up" style="display:none"><input id="sig-file" type="file" accept="image/*" onchange="sigLoadFile(this)" style="margin-bottom:8px">
+        <canvas id="sig-up-cv" width="900" height="300" style="width:100%;aspect-ratio:3/1;background:#fff;border:2px dashed #9aa7bd;border-radius:10px"></canvas>
+        <div style="font-size:11px;opacity:.7;margin-top:4px">Sign on plain white paper, take a clear photo, upload it — the paper becomes transparent.</div></div>
+      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end"><button class="btn btn-outline btn-sm" onclick="sigClear()">Clear</button><button class="btn btn-primary btn-sm" id="sig-save-btn" onclick="sigSave()">Save signature</button></div>
+    </div>`;
+    document.body.appendChild(ov);
+    const inp = document.getElementById('sig-type-in'); if (inp) inp.value = (currentAdminName && currentAdminName !== 'Admin') ? currentAdminName : '';
+    const pad = document.getElementById('sig-pad'), g = pad.getContext('2d');
+    g.strokeStyle = '#14287a'; g.lineWidth = 5; g.lineCap = 'round'; g.lineJoin = 'round';
+    let down = false, last = null;
+    const pt = e => { const r = pad.getBoundingClientRect(); return { x: (e.clientX - r.left) * pad.width / r.width, y: (e.clientY - r.top) * pad.height / r.height }; };
+    pad.addEventListener('pointerdown', e => { down = true; last = pt(e); pad.setPointerCapture(e.pointerId); g.beginPath(); g.moveTo(last.x, last.y); g.lineTo(last.x + .1, last.y + .1); g.stroke(); e.preventDefault(); });
+    pad.addEventListener('pointermove', e => { if (!down) return; const p = pt(e); g.beginPath(); g.moveTo(last.x, last.y); g.lineTo(p.x, p.y); g.stroke(); last = p; e.preventDefault(); });
+    ['pointerup','pointercancel','pointerleave'].forEach(ev => pad.addEventListener(ev, () => { down = false; }));
+    _sigTab = 'draw';
+};
 // ─────────────────────────────────────────────────────────────────────────
 
 // ─── SHARED: draw remarks + parent ack + signatures + QR safely ──────────
@@ -27125,6 +27353,7 @@ async function drawBottomSection(d, yPos, student, pageWidth, pageHeight) {
     const SIG_Y         = pageHeight - 20;
     const FOOTER_TEXT_Y = pageHeight - 5;
     const BOTTOM_SAFE   = FOOTER_TOP - 4;
+    const _tok          = await issueCardToken(student);   // serial for QR + barcode + microtext
 
     // Teacher remarks — auto-generated CBC remark printed on the report card
     d.setFont(undefined, 'bold'); d.setFontSize(9);
@@ -27168,26 +27397,36 @@ async function drawBottomSection(d, yPos, student, pageWidth, pageHeight) {
     // Signatures
     d.setFontSize(8.5); d.setFont(undefined,'bold'); d.setTextColor(0,0,0);
     d.text('Class Teacher:', 20, SIG_Y);
-    d.line(20, SIG_Y + 4, 80, SIG_Y + 4);
+    _microLine(d, 20, SIG_Y + 4, 60, _tok);
     d.setFontSize(6.5); d.setFont(undefined,'normal');
-    d.text('Signature & Date', 20, SIG_Y + 8);
+    d.text('Signature & Date: ' + new Date().toLocaleDateString(), 20, SIG_Y + 8);
 
     d.setFontSize(8.5); d.setFont(undefined,'bold');
     d.text('Head Teacher:', pageWidth / 2 + 20, SIG_Y);
-    d.line(pageWidth/2 + 20, SIG_Y + 4, pageWidth/2 + 65, SIG_Y + 4);
+    _microLine(d, pageWidth/2 + 20, SIG_Y + 4, 55, _tok);
     d.setFontSize(6.5); d.setFont(undefined,'normal');
     d.text('Signature & Stamp', pageWidth / 2 + 20, SIG_Y + 8);
 
+    // Auto-signatures (class teacher + head teacher)
+    if (window.RC_AUTO_SIGN !== false) {
+        try {
+            const _n = await _rcSignerNames(student);
+            const [_ctSig, _htSig] = await Promise.all([_n.ctSig || _makeSignature(_n.ct), _n.htSig || _makeSignature(_n.ht)]);
+            _drawSignature(d, _ctSig, 46, SIG_Y + 3.6, 33, 9);
+            _drawSignature(d, _htSig, pageWidth / 2 + 45, SIG_Y + 3.6, 30, 9);
+        } catch (e) { console.warn('Auto-sign skipped:', e); }
+    }
+
     // Footer text
     d.setFontSize(6.5); d.setTextColor(128,128,128);
-    d.text(`Generated: ${new Date().toLocaleDateString()}  |  https://kanyadet-school-portal.web.app/`,
+    d.text(`Generated: ${new Date().toLocaleDateString()}  |  Verify: kanyadet-school-portal.web.app/verify.html`,
         pageWidth / 2, FOOTER_TEXT_Y, { align: 'center' });
 
     // QR code — bottom-right corner
-    await addQrCode(d, student, pageWidth - 26, SIG_Y - 10, 20);  // slightly smaller QR
+    await addQrCode(d, _tok, pageWidth - 28, SIG_Y - 12, 22);
 
     // Vertical barcode — left edge, middle of page
-    addBarcode(d, student, pageHeight);
+    addBarcode(d, _tok, pageHeight);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -27735,6 +27974,7 @@ function _buildAveragedStudent(mergedStudent) {
         'Gender':                  mergedStudent['Gender'],
         'Grade':                   mergedStudent['Grade'],
         'Class':                   mergedStudent['Class'],
+        __avgOf:                   gradeList.join(','),
     };
 
     // For each subject, compute average score across all selected grades
