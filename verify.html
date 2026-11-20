@@ -6,161 +6,147 @@
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light">
 <title>Verify a report card · Kanyadet Primary & Junior School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;1,400&family=Poppins:wght@500;600;700&display=swap">
 <style>
 :root{
   --pat1:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480'%3E%3Cg fill='%232980b9' fill-opacity='.11'%3E%3Cpath d='M60 70q30-40 70-12t8 62q-40 28-70-4z'/%3E%3Ccircle cx='210' cy='210' r='7'/%3E%3Ccircle cx='430' cy='150' r='4'/%3E%3C/g%3E%3Cg fill='%23e67e22' fill-opacity='.15'%3E%3Cpath d='M300 40l46 20-30 46z'/%3E%3Ccircle cx='90' cy='390' r='5'/%3E%3Cpath d='M200 420l30-8 8 26-34 6z'/%3E%3C/g%3E%3Cg fill='%2327ae60' fill-opacity='.12'%3E%3Cpath d='M380 330l50-14 12 52-54 10z'/%3E%3Ccircle cx='30' cy='230' r='3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23d3a437' stroke-opacity='.3' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M120 300q20-30 40 0t40 0 40 0'/%3E%3Ccircle cx='340' cy='220' r='16'/%3E%3C/g%3E%3C/svg%3E");
   --pat2:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='330' height='330'%3E%3Cg fill='%238e44ad' fill-opacity='.09'%3E%3Cpath d='M240 30q40 10 30 50t-50 20q-20-40 20-70z'/%3E%3Ccircle cx='60' cy='60' r='6'/%3E%3C/g%3E%3Cg fill='%2316a085' fill-opacity='.12'%3E%3Cpath d='M40 220l38-24 22 40-44 20z'/%3E%3Ccircle cx='280' cy='280' r='4'/%3E%3Ccircle cx='160' cy='150' r='3'/%3E%3C/g%3E%3Cg fill='none' stroke='%232980b9' stroke-opacity='.22' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M150 270l30-24 20 28 34-30'/%3E%3Ccircle cx='120' cy='40' r='11'/%3E%3C/g%3E%3C/svg%3E");
-  --navy:#14405f; --blue:#2980b9; --ink:#1c2b39; --muted:#5d6d7b; --line:#dfe4e8; --paper:#fffefb; --gold:#d3a437;
-  --ok:#1e8449;   --ok-bg:#e3f4ea;
-  --warn:#9a5200; --warn-bg:#fdeed5;
-  --bad:#a93226;  --bad-bg:#fbe7e4;
-  --info:#1f5f8b; --info-bg:#e4eff7;
-}
+ --navy:#14405f;--blue:#2980b9;--orange:#e67e22;--green:#27ae60;--gold:#d3a437;--purple:#8e44ad;--red:#e74c3c;--ink:#1d2b3a;--muted:#5d6d7b}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{
-  margin:0; min-height:100vh; color:var(--ink);
-  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  padding:max(1rem,env(safe-area-inset-top)) .75rem max(2rem,env(safe-area-inset-bottom));
-  background:
-    var(--pat1) 0 0/480px fixed,
-    var(--pat2) 170px 90px/330px fixed,
-    linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%) fixed;
-}
-.sheet{max-width:46rem;margin:0 auto;background:var(--paper);border:1px solid #d6dbe0;border-radius:16px;overflow:hidden;
-  box-shadow:0 1px 0 #fff inset,0 10px 30px -12px rgba(20,64,95,.35)}
-h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0}
-.band{background:var(--navy);color:#f4f8fb;padding:1rem 1.3rem;border-bottom:4px solid var(--gold);display:flex;gap:.9rem;align-items:center}
-.band img{width:46px;height:46px;object-fit:contain;background:#fff;border-radius:50%;padding:3px;flex:none}
-.band img[hidden]{display:none}
-.band p{margin:0;font-size:.82rem;opacity:.85}
-.band h1{margin:.1rem 0 0;font:600 1.3rem/1.2 Georgia,serif}
+body{margin:0;min-height:100vh;padding:max(14px,env(safe-area-inset-top)) 12px max(30px,env(safe-area-inset-bottom));
+ font:15px/1.5 'Poppins',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);
+ background:var(--pat1) 0 0/480px fixed,var(--pat2) 170px 90px/330px fixed,linear-gradient(135deg,#eef0f2 0%,#f4f0e6 45%,#fbecc3 100%) fixed}
+.wrap{max-width:430px;margin:0 auto;display:grid;gap:14px}
+@media (min-width:760px){ .wrap{max-width:560px} }
+.card{background:#fff;border-radius:24px;padding:16px;border:2px solid #fff;position:relative;
+ box-shadow:0 2px 0 rgba(20,64,95,.06),0 14px 28px -16px rgba(20,64,95,.45)}
+.head{display:flex;gap:12px;align-items:center;padding:4px 6px;color:var(--navy)}
+.logo{width:44px;height:44px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font:700 20px 'Lora',serif;border:3px solid var(--gold);overflow:hidden;flex:none}
+.logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.head b{display:block;font:700 14px/1.2 'Poppins'}.head span{font-size:12px;color:var(--muted)}
 
-.intro{padding:1.6rem 1.3rem 1.2rem;color:var(--muted)}
-.intro strong{display:block;color:var(--ink);font:600 1.15rem/1.3 Georgia,serif;margin-bottom:.35rem}
-.loading{padding:2.2rem 1.3rem;color:var(--muted)}
-
-/* verdict */
-.verdict{display:flex;gap:1rem;align-items:center;padding:1.15rem 1.3rem}
-.verdict h2{font-size:1.3rem;line-height:1.2}
-.verdict p{margin:.25rem 0 0;font-size:.93rem}
-.seal{flex:none;width:76px;height:76px}
-.st-ok .verdict{background:var(--ok-bg);color:var(--ok)}
-.st-warn .verdict{background:var(--warn-bg);color:var(--warn)}
-.st-bad .verdict{background:var(--bad-bg);color:var(--bad)}
+/* banner */
+.ban{border-radius:26px;padding:20px 18px 18px;color:#fff;position:relative;overflow:hidden;background:linear-gradient(135deg,#1e9b53,#27ae60 45%,#2ecc8a)}
+.ban.warn{background:linear-gradient(135deg,#c96a12,#e67e22 50%,#f0a04b)}
+.ban.bad{background:linear-gradient(135deg,#b83227,#e74c3c 55%,#ef7a6e)}
+.ban.hello{background:linear-gradient(135deg,#14405f,#2980b9 70%,#4aa3d8)}
+.ban:before,.ban:after{content:"";position:absolute;border-radius:50%}
+.ban:before{width:150px;height:150px;right:-40px;top:-50px;background:rgba(255,255,255,.14)}
+.ban:after{width:90px;height:90px;right:60px;bottom:-50px;background:rgba(255,255,255,.1)}
+.confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.tick{position:relative;width:58px;height:58px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 8px 16px -6px rgba(0,0,0,.35);color:#1e9b53}
+.warn .tick{color:#c96a12}.bad .tick{color:#b83227}.hello .tick{color:#14405f}
+.tick svg{width:30px;height:30px}
+.ban h1{position:relative;margin:10px 0 2px;font:700 25px/1.1 'Poppins'}
+.ban p{position:relative;margin:0;font-size:13.5px;opacity:.95;max-width:280px}
 @media (prefers-reduced-motion:no-preference){
-  .seal{animation:stamp .55s cubic-bezier(.2,.9,.3,1.2) both}
-  @keyframes stamp{from{transform:scale(1.7) rotate(-14deg);opacity:0}to{transform:none;opacity:1}}
+ .tick{animation:pop .6s cubic-bezier(.2,.9,.3,1.3) both}
+ @keyframes pop{from{transform:scale(.3) rotate(-25deg);opacity:0}to{transform:none;opacity:1}}
+ .confetti g{animation:drift 6s ease-in-out infinite alternate}
+ @keyframes drift{to{transform:translateY(6px)}}
 }
 
-section.blk{padding:1.1rem 1.3rem;border-top:1px solid var(--line)}
-section.blk>h3{font-size:1.02rem;color:var(--navy);margin-bottom:.7rem}
-.sub{margin:-.4rem 0 .8rem;font-size:.86rem;color:var(--muted)}
+/* learner */
+.lr{display:grid;grid-template-columns:100px 1fr;gap:14px;align-items:center}
+.ph{width:100px;height:128px;border-radius:22px;overflow:hidden;border:4px solid #fff;background:#dbe9f4;display:grid;place-items:center;
+ font:700 30px 'Lora',serif;color:var(--navy);box-shadow:0 0 0 3px var(--orange),0 10px 18px -8px rgba(0,0,0,.35);transform:rotate(-3deg)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.nm{font:700 20px/1.15 'Poppins';color:var(--navy);padding-right:50px;overflow-wrap:anywhere}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{font:600 11.5px 'Poppins';padding:3px 10px;border-radius:99px}
+.t1{background:#e3f0fa;color:#1f5f8b}.t2{background:#fdecd8;color:#a85a0c}.t3{background:#efe2f6;color:#6c3483}.t4{background:#dff3ea;color:#1b7a45}
+.medal{position:absolute;right:14px;top:-16px;width:68px;height:68px;border-radius:50%;background:linear-gradient(145deg,#f7d774,#d3a437);
+ display:grid;place-items:center;text-align:center;color:#5a3d05;font:700 11px/1 'Poppins';border:4px solid #fff;box-shadow:0 8px 14px -6px rgba(0,0,0,.4)}
+.medal b{display:block;font-size:21px;line-height:.95}
 
-/* checks */
-.checks{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
-.checks li{display:flex;gap:.7rem;align-items:flex-start;font-size:.93rem}
-.chip{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 .8rem/1 system-ui;margin-top:.1rem}
-.c-ok{background:var(--ok-bg);color:var(--ok)} .c-warn{background:var(--warn-bg);color:var(--warn)}
-.c-bad{background:var(--bad-bg);color:var(--bad)} .c-info{background:var(--info-bg);color:var(--info)}
-.checks small{display:block;color:var(--muted);font-size:.82rem}
+/* score */
+.sc{display:grid;grid-template-columns:132px 1fr;gap:14px;align-items:center}
+.ring{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;position:relative}
+.ring:before{content:"";position:absolute;inset:13px;border-radius:50%;background:#fff}
+.ring div{position:relative;text-align:center}.ring b{display:block;font:700 28px/1 'Poppins';color:var(--navy)}.ring span{font-size:11px;color:var(--muted)}
+.st{display:grid;gap:8px}.st div{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:16px}
+.st div:nth-child(1){background:#e3f0fa}.st div:nth-child(2){background:#fdecd8}.st div:nth-child(3){background:#efe2f6}
+.st i{font-style:normal;font-size:20px}.st small{display:block;font-size:10.5px;color:var(--muted);line-height:1.1}.st b{font:700 14.5px/1.2 'Poppins'}
 
-/* profile */
-.prof{display:grid;grid-template-columns:132px 1fr;gap:1.1rem;align-items:start}
-.photo{width:132px;aspect-ratio:3/4;border-radius:10px;border:1px solid var(--line);background:#eef2f5;overflow:hidden;display:grid;place-items:center;
-  font:600 2rem Georgia,serif;color:var(--navy)}
-.photo img{width:100%;height:100%;object-fit:cover;display:block}
-.who{margin:0;font:600 1.5rem/1.2 Georgia,serif;overflow-wrap:anywhere}
-dl.kv{margin:.7rem 0 0;display:grid;grid-template-columns:auto 1fr;gap:.3rem .9rem;font-size:.92rem}
-dl.kv dt{color:var(--muted)} dl.kv dd{margin:0;font-weight:600}
+h2{margin:2px 4px 10px;font:700 16px 'Poppins';color:var(--navy);display:flex;justify-content:space-between;align-items:center;gap:8px}
+h2 small{font:500 12px 'Poppins';color:#6a7a88}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sj{border-radius:20px;padding:12px;position:relative;overflow:hidden}
+.sj.wide{grid-column:1/-1}
+.sj .ic{font-size:24px}.sj .n{font:600 12.5px/1.25 'Poppins';margin-top:4px;color:#33414f;min-height:32px;overflow-wrap:anywhere}
+.sj .v{display:flex;align-items:baseline;justify-content:space-between;margin-top:4px}
+.sj .v b{font:700 24px 'Poppins'}.sj .v i{font:700 10.5px 'Poppins';font-style:normal;padding:2px 8px;border-radius:99px;background:#fff}
+.sj .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.7);margin-top:8px;overflow:hidden}
+.sj .bar u{display:block;height:100%;border-radius:99px;text-decoration:none}
+.s-ee{background:#dff3ea}.s-ee b,.s-ee i{color:#1b7a45}.s-ee u{background:var(--green)}
+.s-me{background:#e3f0fa}.s-me b,.s-me i{color:#1f5f8b}.s-me u{background:var(--blue)}
+.s-ae{background:#fdecd8}.s-ae b,.s-ae i{color:#a85a0c}.s-ae u{background:var(--orange)}
+.s-be{background:#fbe3e0}.s-be b,.s-be i{color:#b03a2e}.s-be u{background:var(--red)}
+.s-xx{background:#eef2f5}.s-xx b,.s-xx i{color:#5d6d7b}.s-xx u{background:#9aa8b4}
+.cmp{display:block;width:100%;margin-top:8px;height:30px;border-radius:10px;background:#fff;border:1.5px dashed #b6c2cc;text-align:center;
+ font:600 13px 'Poppins';color:var(--ink);padding:0 6px}
+.cmp::placeholder{color:#9aa8b4;font-size:11px;font-weight:600}
+.cmp:focus{outline:3px solid var(--blue);outline-offset:1px;border-style:solid}
+.cmp.ok{border:2px solid var(--green);background:#e9f8ef;color:#1b7a45}
+.cmp.no{border:2px solid var(--red);background:#fdeceb;color:#b03a2e}
+.tip{margin-top:12px;padding:11px 13px;border-radius:16px;background:#fff6dd;border:1.5px dashed var(--gold);font-size:12.5px;color:#7a5b0a}
+.tip.ok{background:#e9f8ef;border-color:var(--green);color:#1b7a45}.tip.no{background:#fdeceb;border-color:var(--red);color:#b03a2e;font-weight:600}
+.legacy{padding:12px 14px;border-radius:16px;background:#f4f7f9;font-size:13px;color:var(--muted)}
 
-/* summary tiles */
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.2rem,1fr));gap:.6rem}
-.tile{border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;background:#fff}
-.tile span{display:block;font-size:.78rem;color:var(--muted)}
-.tile b{font:600 1.35rem/1.25 Georgia,serif;color:var(--navy)}
-.tile.big{grid-column:1/-1}
-.meter{height:8px;margin-top:.45rem;background:#e6ebef;border-radius:99px;overflow:hidden}
-.meter i{display:block;height:100%;background:var(--blue);border-radius:99px}
+.bub{background:#f1ebfa;border-radius:20px 20px 20px 6px;padding:14px 16px;font:italic 15px/1.5 'Lora',serif;color:#4b2a63}
+.who{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:13px}
+.av{width:38px;height:38px;border-radius:50%;background:var(--purple);color:#fff;display:grid;place-items:center;font:700 14px 'Poppins';flex:none}
+.ppl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.ppl div{padding:10px 12px;border-radius:16px;background:#f4f7f9}.ppl small{display:block;font-size:11px;color:#6a7a88}.ppl b{font:600 13.5px 'Poppins';overflow-wrap:anywhere}
 
-/* marks table */
-.tbl{width:100%;border-collapse:collapse;font-size:.93rem}
-.tbl th{font-size:.78rem;font-weight:600;color:var(--muted);text-align:left;padding:.3rem .4rem;border-bottom:2px solid var(--line)}
-.tbl td{padding:.5rem .4rem;border-bottom:1px solid var(--line);vertical-align:middle}
-.tbl td.n{font-weight:600}
-.tbl .sc{font:600 1rem Georgia,serif;white-space:nowrap}
-.lv{display:inline-block;min-width:2.6rem;text-align:center;padding:.05rem .4rem;border-radius:6px;font-size:.8rem;font-weight:700}
-.lv.EE{background:var(--ok-bg);color:var(--ok)} .lv.ME{background:var(--info-bg);color:var(--info)}
-.lv.AE{background:var(--warn-bg);color:var(--warn)} .lv.BE{background:var(--bad-bg);color:var(--bad)}
-.bar{width:100%;min-width:3rem;height:6px;background:#e6ebef;border-radius:99px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--blue)}
-.cmp{width:4.6rem;padding:.35rem .4rem;border:1.5px solid #c9d1d8;border-radius:8px;font:600 .95rem ui-monospace,Menlo,Consolas,monospace;text-align:right;background:#fff;color:var(--ink)}
-.cmp.ok{border-color:var(--ok);background:var(--ok-bg)} .cmp.no{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
-.cmpline{margin:.7rem 0 0;padding:.6rem .8rem;border-radius:8px;font-size:.9rem;background:var(--info-bg);color:var(--info)}
-.cmpline.ok{background:var(--ok-bg);color:var(--ok)} .cmpline.no{background:var(--bad-bg);color:var(--bad);font-weight:600}
-.hide-sm{display:table-cell}
-@media (max-width:560px){ .hide-sm{display:none} .prof{grid-template-columns:104px 1fr} .photo{width:104px} }
+.ck{display:grid;gap:10px}.ck div{display:flex;gap:11px;align-items:flex-start;font-size:13.5px}
+.ck i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 13px sans-serif;font-style:normal}
+.ck small{display:block;font-size:11.5px;color:#6a7a88}
+.k-ok{background:#dff3ea;color:#1b7a45}.k-in{background:#e3f0fa;color:#1f5f8b}.k-warn{background:#fdecd8;color:#a85a0c}.k-bad{background:#fbe3e0;color:#b03a2e}
 
-/* remark, people */
-.remark{margin:0;padding:.8rem 1rem;border-left:4px solid var(--gold);background:#fbf7ea;font:italic 1rem/1.55 Georgia,serif}
-.people{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem}
-
-/* photo compare */
-.pc{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
-.pc figure{margin:0}
-.pc .frame{aspect-ratio:3/4;border:1px dashed #b8c3cc;border-radius:10px;background:#f3f6f8;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:.85rem;text-align:center;padding:.5rem}
-.pc img{width:100%;height:100%;object-fit:cover;display:block}
-.pc figcaption{margin-top:.35rem;font-size:.82rem;color:var(--muted);text-align:center}
-.filebtn{display:inline-block;margin-top:.7rem;padding:.55rem .9rem;border-radius:10px;border:1.5px solid var(--navy);color:var(--navy);font-weight:600;cursor:pointer;font-size:.92rem}
-.filebtn:focus-within{outline:3px solid var(--blue);outline-offset:2px}
-.filebtn input{position:absolute;opacity:0;width:1px;height:1px}
-
-/* history */
-.tl{list-style:none;margin:0;padding:0 0 0 1rem;border-left:2px solid var(--line)}
-.tl li{position:relative;padding:0 0 .8rem .9rem;font-size:.92rem}
-.tl li::before{content:"";position:absolute;left:-1.45rem;top:.35rem;width:.7rem;height:.7rem;border-radius:50%;background:var(--blue);border:2px solid var(--paper)}
-.tl small{display:block;color:var(--muted)}
-.fp{font:600 .95rem ui-monospace,Menlo,Consolas,monospace;letter-spacing:.06em;word-break:break-all}
-
-.note{margin:0;padding:.9rem 1.3rem 1.1rem;background:#f6f8f9;border-top:1px solid var(--line);font-size:.88rem;color:var(--muted)}
-.actions{display:flex;gap:.6rem;flex-wrap:wrap;padding:0 1.3rem 1.2rem}
-.btn{padding:.6rem 1rem;border:1.5px solid var(--navy);border-radius:10px;background:#fff;color:var(--navy);font:600 .92rem system-ui,sans-serif;cursor:pointer}
+.pm{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pm figure{margin:0}
+.pm .fr{aspect-ratio:3/4;border-radius:20px;overflow:hidden;position:relative;background:#eef3f7;border:2px dashed #b6c2cc;display:grid;place-items:center;text-align:center;font-size:12.5px;color:#6a7a88;padding:8px}
+.pm .fr.r{border:3px solid #fff;box-shadow:0 0 0 2px var(--orange)}
+.pm img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+.pm figcaption{position:absolute;left:8px;bottom:8px;z-index:1;font:600 10.5px 'Poppins';background:rgba(20,64,95,.82);color:#fff;padding:3px 9px;border-radius:99px}
+.pm label{cursor:pointer}.pm label:focus-within{outline:3px solid var(--blue);outline-offset:2px}
+.pm input[type=file]{position:absolute;opacity:0;width:1px;height:1px}
+.fp{font:600 13px 'DejaVu Sans Mono',ui-monospace,Menlo,Consolas,monospace;letter-spacing:.1em;color:var(--navy);background:#f4f7f9;padding:10px 12px;border-radius:14px;text-align:center;word-break:break-all}
+.tl{list-style:none;margin:12px 0 0;padding:0 0 0 14px;border-left:2px solid #e2e8ed}
+.tl li{position:relative;padding:0 0 10px 12px;font-size:13px}.tl li:before{content:"";position:absolute;left:-21px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--blue);border:2px solid #fff}
+.tl small{display:block;color:#6a7a88}
+.btn{display:block;width:100%;text-align:center;padding:14px;border:0;border-radius:99px;background:var(--navy);color:#fff;font:600 15px 'Poppins';cursor:pointer;box-shadow:0 10px 18px -10px rgba(20,64,95,.8)}
+.srl{display:flex;justify-content:space-between;align-items:center;padding:0 6px;font-size:12px;color:var(--muted)}
+.srl code{font:700 15px 'DejaVu Sans Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--navy);letter-spacing:.1em}
+.foot{padding:0 8px;font-size:12px;color:#4d5b67;text-align:center}
 
 /* lookup */
-form{padding:1.1rem 1.3rem 1.4rem;border-top:1px solid var(--line);background:#fbfaf6}
-label.l{display:block;margin-bottom:.4rem;font-size:.9rem;color:var(--muted)}
-.row{display:flex;gap:.5rem}
-#code{flex:1;min-width:0;padding:.7rem .8rem;border:1.5px solid #c9d1d8;border-radius:10px;background:#fff;color:var(--ink);
-  font:600 1.1rem ui-monospace,Menlo,Consolas,monospace;letter-spacing:.1em;text-transform:uppercase}
-#code::placeholder{color:#a8b3bd;font-weight:400}
-button.go{padding:.7rem 1.15rem;border:0;border-radius:10px;background:var(--navy);color:#fff;font:600 1rem system-ui,sans-serif;cursor:pointer}
-button.go:hover{background:#0f3350}
-input:focus-visible,button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
-.help{max-width:46rem;margin:1rem auto 0;font-size:.82rem;color:#4d5b67;text-align:center}
+.row{display:flex;gap:8px}
+#code{flex:1;min-width:0;padding:.75rem .9rem;border:2px solid #c9d6e0;border-radius:99px;background:#fff;color:var(--ink);
+ font:600 1.1rem 'DejaVu Sans Mono',ui-monospace,Menlo,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;text-align:center}
+#code::placeholder{color:#a8b3bd;font-weight:400;letter-spacing:.08em}
+.go{padding:.75rem 1.3rem;border:0;border-radius:99px;background:var(--orange);color:#fff;font:600 1rem 'Poppins';cursor:pointer}
+label.l{display:block;margin:0 0 8px 6px;font-size:13px;color:var(--muted)}
+#code:focus-visible,.go:focus-visible,.btn:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.loading{padding:26px 12px;text-align:center;color:var(--muted)}
 [hidden]{display:none!important}
-@media print{ body{background:#fff;padding:0} .sheet{box-shadow:none;border:0} form,.actions,.filebtn,.help{display:none!important} .cmp{border:1px solid #999} }
+@media print{body{background:#fff}.card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}#f,.btn,.pm label,.tip{display:none!important}}
 </style>
 </head>
 <body>
-<main>
-  <div class="sheet">
-    <div class="band">
-      <img id="logo" src="./imgs/logo.png" alt="" hidden onload="this.hidden=false" onerror="this.remove()">
-      <div><p>Kanyadet Primary &amp; Junior School</p><h1>Report card verification</h1></div>
-    </div>
-    <div id="result" aria-live="polite">
-      <div class="intro"><strong>Is this report card genuine?</strong>Scan the QR code on the card, or type the code printed beneath it. You’ll see the school’s full record and can check it line by line against your card.</div>
-    </div>
-    <form id="f" autocomplete="off">
-      <label class="l" for="code">Card code</label>
-      <div class="row">
-        <input id="code" maxlength="12" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX">
-        <button class="go" type="submit">Check</button>
-      </div>
-    </form>
-  </div>
-  <p class="help">Always compare the details shown here with the printed card. If anything differs, the card has been altered.</p>
-</main>
+<div class="wrap">
+  <div class="head"><div class="logo"><img src="./imgs/logo.png" alt="" onerror="this.parentNode.textContent='K'"></div><div><b>Kanyadet Primary &amp; Junior School</b><span>Report card verification</span></div></div>
+  <div id="result" aria-live="polite" style="display:grid;gap:14px"></div>
+  <form id="f" class="card" autocomplete="off">
+    <label class="l" for="code">Enter the card code (printed under the QR)</label>
+    <div class="row"><input id="code" maxlength="12" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"><button class="go" type="submit">Check</button></div>
+  </form>
+  <p class="foot">Always compare what you see here with the printed card. If anything differs, the card has been altered.</p>
+</div>
 
 <script type="module">
 import { FIREBASE_CONFIG } from './js/config.js';
@@ -171,12 +157,13 @@ const db  = getFirestore(initializeApp(FIREBASE_CONFIG, 'verify'));
 const out = document.getElementById('result');
 const inp = document.getElementById('code');
 
-const SEAL = {
-  ok:   '<path d="M26 40.5l9 9L54 29" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>',
-  warn: '<path d="M40 24v20" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="54" r="3.2" fill="currentColor"/>',
-  bad:  '<path d="M28 28l24 24M52 28L28 52" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>'
+const ICON = {
+  ok:   '<path d="M7 16.5l6 6L24 10" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>',
+  warn: '<path d="M16 8v11" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="16" cy="25" r="2.4" fill="currentColor"/>',
+  bad:  '<path d="M9 9l14 14M23 9L9 23" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+  hello:'<circle cx="14" cy="14" r="7" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M19.5 19.5L26 26" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>'
 };
-const seal = k => `<svg class="seal" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="37" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.5 4.2" stroke-linecap="round"/><circle cx="40" cy="40" r="30" fill="#fff" fill-opacity=".55" stroke="currentColor" stroke-width="2.5"/>${SEAL[k]}</svg>`;
+const CONF = '<svg class="confetti" viewBox="0 0 430 190" preserveAspectRatio="none" aria-hidden="true"><g fill="#fff" fill-opacity=".5"><rect x="250" y="30" width="10" height="10" rx="2" transform="rotate(20 255 35)"/><circle cx="330" cy="120" r="5"/><rect x="380" y="70" width="8" height="14" rx="2" transform="rotate(-25 384 77)"/><circle cx="290" cy="60" r="3.5"/></g><g fill="#ffe08a"><rect x="350" y="28" width="9" height="9" rx="2" transform="rotate(35 354 32)"/><circle cx="260" cy="150" r="4.5"/></g></svg>';
 
 const norm   = s => (s || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
 const pretty = s => s.slice(0, 4) + '-' + s.slice(4);
@@ -184,29 +171,32 @@ const E = (tag, cls, text) => { const e = document.createElement(tag); if (cls) 
 const when = (iso, t) => { const d = new Date(iso); return isNaN(d) ? '—' : d.toLocaleString('en-GB', Object.assign({ day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Nairobi' }, t ? { hour: '2-digit', minute: '2-digit' } : {})); };
 const initials = n => (n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
 const r2 = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
+const ordinal = n => { const s = ['th','st','nd','rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
+const subjIcon = n => { n = n.toLowerCase();
+  return /math/.test(n) ? '📐' : /engl/.test(n) ? '📖' : /kisw/.test(n) ? '🗣️' : /sci/.test(n) ? '🔬' : /social|geo|hist/.test(n) ? '🌍'
+    : /c\.?r\.?e|i\.?r\.?e|h\.?r\.?e|relig/.test(n) ? '🙏' : /agri/.test(n) ? '🌱' : /art|creat/.test(n) ? '🎨' : /phys|p\.?e\b|sport/.test(n) ? '⚽'
+    : /music/.test(n) ? '🎵' : /home|nutri/.test(n) ? '🏠' : /comput|ict/.test(n) ? '💻' : '📘'; };
 
-function block(title, sub) { const s = E('section', 'blk'); s.append(E('h3', '', title)); if (sub) s.append(E('p', 'sub', sub)); return s; }
-function check(kind, text, detail) {
-  const li = E('li'); const c = E('span', 'chip c-' + kind, { ok: '✓', warn: '!', bad: '✕', info: 'i' }[kind]);
-  const d = E('div'); d.append(document.createTextNode(text)); if (detail) d.append(E('small', '', detail));
-  li.append(c, d); return li;
+function banner(kind, title, sub) {
+  const b = E('div', 'ban ' + kind); b.insertAdjacentHTML('beforeend', CONF);
+  const t = E('div', 'tick'); t.insertAdjacentHTML('beforeend', `<svg viewBox="0 0 32 32" aria-hidden="true">${ICON[kind]}</svg>`);
+  b.append(t, E('h1', '', title)); if (sub) b.append(E('p', '', sub)); return b;
 }
-function tile(label, value, big) { const t = E('div', 'tile' + (big ? ' big' : '')); t.append(E('span', '', label), E('b', '', value)); return t; }
-function kv(dl, k, v) { if (v) dl.append(E('dt', '', k), E('dd', '', v)); }
-
-// Same candidate paths the portal uses when it prints the card photo
+function card(title, small) { const c = E('div', 'card'); if (title) { const h = E('h2', '', title); if (small) h.append(E('small', '', small)); c.append(h); } return c; }
+function ck(kind, text, detail) {
+  const d = E('div'); d.append(E('i', 'k-' + kind, { ok: '✓', in: 'i', warn: '!', bad: '✕' }[kind]));
+  const s = E('span', '', text); if (detail) s.append(E('small', '', detail)); d.append(s); return d;
+}
 function photoCandidates(r) {
-  const g = r.photoGrade || '', n = r.photoName || r.name || '';
-  const eg = encodeURIComponent(g), en = encodeURIComponent(n);
-  return [`./Report-Cards/student_images/${g}/${n}.jpg`, `./Report-Cards/student_images/${eg}/${en}.jpg`,
-          `./Report-Cards/student_images/${g}/${en}.jpg`, `./student_images/${g}/${n}.jpg`, `./student_images/${g}/${en}.jpg`];
+  const g = r.photoGrade || '', n = r.photoName || r.name || '', eg = encodeURIComponent(g), en = encodeURIComponent(n);
+  return [`./Report-Cards/student_images/${g}/${n}.jpg`, `./Report-Cards/student_images/${eg}/${en}.jpg`, `./Report-Cards/student_images/${g}/${en}.jpg`, `./student_images/${g}/${n}.jpg`, `./student_images/${g}/${en}.jpg`];
 }
-function loadPhoto(r, into) {
+function loadPhoto(r, into, abs) {
   const list = photoCandidates(r);
   (function next(i) {
     if (i >= list.length) return;
     const im = new Image();
-    im.onload = () => { into.replaceChildren(im); im.alt = 'Official photo on school record'; };
+    im.onload = () => { if (abs) im.style.position = 'absolute'; into.append(im); im.alt = 'Official photo on school record'; into.dataset.has = '1'; if (into.firstChild && into.firstChild.nodeType === 3) into.firstChild.remove(); };
     im.onerror = () => next(i + 1);
     im.src = list[i];
   })(0);
@@ -214,112 +204,114 @@ function loadPhoto(r, into) {
 
 function render(kind, title, sub, r, serial, h) {
   out.replaceChildren();
-  const root = E('div', 'st-' + kind);
-  const v = E('div', 'verdict'); v.insertAdjacentHTML('beforeend', seal(kind));
-  const t = E('div'); t.append(E('h2', '', title)); if (sub) t.append(E('p', '', sub)); v.append(t); root.append(v);
+  out.append(banner(kind, title, sub));
+  if (!r) return;
+  const hashOk = h ? String(r.contentHash || '').startsWith(h) : null;
 
-  if (r) {
-    const hashOk = h ? String(r.contentHash || '').startsWith(h) : null;
+  // learner
+  const lc = E('div', 'card'); const lr = E('div', 'lr');
+  const ph = E('div', 'ph', initials(r.name)); loadPhoto(r, ph, false);
+  const side = E('div'); side.append(E('div', 'nm', r.name || '—'));
+  const tags = E('div', 'tags');
+  if (r.grade || r.cls) tags.append(E('span', 'tag t1', [r.grade, r.cls].filter(Boolean).join(' · ')));
+  if (r.term || r.year) tags.append(E('span', 'tag t2', [r.term, r.year].filter(Boolean).join(' · ')));
+  if (r.uliTail) tags.append(E('span', 'tag t3', 'ULI •••• ' + r.uliTail));
+  side.append(tags); lr.append(ph, side); lc.append(lr);
+  const pos = String(r.position || '').trim(), pm = pos.match(/^(\d+)\s*(?:\/|of|out of)?\s*(\d+)?/i);
+  if (pm) { const m = E('div', 'medal'); const sp = E('span'); sp.append(E('b', '', ordinal(+pm[1])), document.createTextNode(pm[2] ? 'of ' + pm[2] : 'in class')); m.append(sp); lc.append(m); }
+  out.append(lc);
 
-    // 1 — checks
-    const ck = block('Verification checks'); const ul = E('ul', 'checks');
-    ul.append(check('ok', 'Serial ' + pretty(serial) + ' is in the school register', 'Registered ' + when(r.issuedAt, true)));
-    ul.append(check(r.status === 'revoked' ? 'bad' : 'ok', r.status === 'revoked' ? 'Card has been withdrawn by the school' : 'Card has not been withdrawn'));
-    ul.append(hashOk === null ? check('info', 'QR fingerprint not checked', 'You typed the code. Scan the QR on the card to also detect corrections made after printing.')
-      : hashOk ? check('ok', 'QR fingerprint matches the current record', 'Fingerprint ' + h.toUpperCase() + ' — marks unchanged since this card was printed.')
-      : check('warn', 'QR fingerprint does not match', 'The record was corrected after this card was printed. Use the figures below, not the printed card.'));
-    if ((r.rev || 1) > 1) ul.append(check('info', 'Revision ' + r.rev, 'This record has been corrected and re-issued ' + ((r.rev || 1) - 1) + ' time(s). Last update ' + when(r.updatedAt, true) + '.'));
-    ck.append(ul); root.append(ck);
+  // score
+  const avg = Math.max(0, Math.min(100, Number(r.avg) || 0));
+  const sc = E('div', 'card'); const sg = E('div', 'sc');
+  const ring = E('div', 'ring'); ring.style.background = `conic-gradient(var(--blue) 0 ${avg}%, #e8eef3 0)`;
+  const rin = E('div'); rin.append(E('b', '', avg.toFixed(1) + '%'), E('span', '', 'average')); ring.append(rin);
+  const st = E('div', 'st');
+  const stat = (ic, lab, val) => { const d = E('div'); d.append(E('i', '', ic)); const s = E('span'); s.append(E('small', '', lab), E('b', '', val)); d.append(s); st.append(d); };
+  stat('🏅', 'Level', r.level || '—');
+  if (r.maxPoints) stat('⭐', 'Points', (r.points || 0) + ' of ' + r.maxPoints);
+  if (r.total) stat('🧮', 'Total marks', String(r.total));
+  sg.append(ring, st); sc.append(sg); out.append(sc);
 
-    // 2 — learner
-    const pf = block('Learner'); const grid = E('div', 'prof');
-    const ph = E('div', 'photo', initials(r.name)); ph.setAttribute('aria-label', 'Learner photo'); loadPhoto(r, ph);
-    const side = E('div'); side.append(E('p', 'who', r.name || '—'));
-    const dl = E('dl', 'kv');
-    kv(dl, 'Grade', r.grade); kv(dl, 'Class', r.cls); kv(dl, 'Term', [r.term, r.year].filter(Boolean).join(' '));
-    kv(dl, 'Position', r.position && r.position !== 'N/A' ? r.position : ''); kv(dl, 'ULI', r.uliTail ? '•••• ' + r.uliTail : '');
-    side.append(dl); grid.append(ph, side); pf.append(grid); root.append(pf);
-
-    // 3 — summary
-    const avg = Math.max(0, Math.min(100, Number(r.avg) || 0));
-    const sm = block('Performance summary'); const tiles = E('div', 'tiles');
-    const big = tile('Average', avg.toFixed(2) + '%' + (r.level ? ' · ' + r.level : ''), true);
-    const m = E('div', 'meter'); m.append(E('i')); m.firstChild.style.width = avg + '%'; big.append(m); tiles.append(big);
-    if (r.total) tiles.append(tile('Total marks', String(r.total)));
-    if (r.maxPoints) tiles.append(tile('Points', (r.points || 0) + ' / ' + r.maxPoints));
-    if (r.subjects && r.subjects.length) tiles.append(tile('Learning areas', String(r.subjects.length)));
-    sm.append(tiles); root.append(sm);
-
-    // 4 — marks + compare
-    const mk = block('Marks by learning area', 'Type each score exactly as printed on your card in the last column. Differences turn red.');
-    if (r.subjects && r.subjects.length) {
-      const tb = E('table', 'tbl'); const hd = E('tr');
-      ['Learning area', 'Score', 'Level', '', 'On your card'].forEach((x, i) => { const th = E('th', i === 3 ? 'hide-sm' : '', x); hd.append(th); });
-      tb.append(E('thead')); tb.firstChild.append(hd); const body = E('tbody');
-      const cmps = [];
-      r.subjects.forEach(s => {
-        const tr = E('tr'); tr.append(E('td', 'n', s.n));
-        tr.append(E('td', 'sc', s.s == null ? '—' : s.s.toFixed(2)));
-        const lc = E('td'); if (s.l) lc.append(E('span', 'lv ' + s.l.slice(0, 2), s.l)); tr.append(lc);
-        const bc = E('td', 'hide-sm'); const b = E('div', 'bar'); b.append(E('i')); b.firstChild.style.width = Math.max(0, Math.min(100, s.s || 0)) + '%'; bc.append(b); tr.append(bc);
-        const ic = E('td'); const inpt = E('input', 'cmp'); inpt.inputMode = 'decimal'; inpt.setAttribute('aria-label', 'Score on your card for ' + s.n); inpt.placeholder = '—'; ic.append(inpt); tr.append(ic);
-        inpt.addEventListener('input', () => { recompute(); });
-        cmps.push([inpt, s.s]); body.append(tr);
+  // marks
+  const mk = card('Learning areas', r.subjects && r.subjects.length ? r.subjects.length + ' assessed' : '');
+  if (r.subjects && r.subjects.length) {
+    const g = E('div', 'g'); const cmps = [];
+    const tip = E('div', 'tip', '💡 Type each score from your printed card into the boxes. A wrong one turns red.');
+    r.subjects.forEach((s, idx) => {
+      const lvl = (s.l || '').slice(0, 2).toLowerCase();
+      const t = E('div', 'sj s-' + (['ee','me','ae','be'].includes(lvl) ? lvl : 'xx') + (r.subjects.length % 2 && idx === r.subjects.length - 1 ? ' wide' : ''));
+      t.append(E('div', 'ic', subjIcon(s.n)), E('div', 'n', s.n));
+      const v = E('div', 'v'); v.append(E('b', '', s.s == null ? '—' : String(+s.s.toFixed(2))), E('i', '', s.l || '')); t.append(v);
+      const bar = E('div', 'bar'); const u = E('u'); u.style.width = Math.max(0, Math.min(100, s.s || 0)) + '%'; bar.append(u); t.append(bar);
+      const i = E('input', 'cmp'); i.inputMode = 'decimal'; i.placeholder = 'on your card?'; i.setAttribute('aria-label', 'Score on your card for ' + s.n);
+      i.addEventListener('input', recompute); t.append(i); cmps.push([i, s.s]); g.append(t);
+    });
+    mk.append(g, tip);
+    function recompute() {
+      let done = 0, bad = 0;
+      cmps.forEach(([i, official]) => {
+        i.classList.remove('ok', 'no'); const raw = i.value.trim().replace(',', '.'); if (!raw || isNaN(Number(raw))) return;
+        done++; const d = (raw.split('.')[1] || '').length;
+        const same = official != null && Math.abs(r2(official, Math.min(d, 2)) - Number(raw)) < 1e-9;
+        i.classList.add(same ? 'ok' : 'no'); if (!same) bad++;
       });
-      tb.append(body); const wrap = E('div'); wrap.style.overflowX = 'auto'; wrap.append(tb); mk.append(wrap);
-      const line = E('p', 'cmpline', 'Nothing compared yet.'); mk.append(line);
-      function recompute() {
-        let done = 0, bad = 0;
-        cmps.forEach(([i, official]) => {
-          i.classList.remove('ok', 'no');
-          const raw = i.value.trim().replace(',', '.'); if (!raw || isNaN(Number(raw))) return;
-          done++; const d = (raw.split('.')[1] || '').length;
-          const same = official != null && Math.abs(r2(official, Math.min(d, 2)) - Number(raw)) < 1e-9;
-          i.classList.add(same ? 'ok' : 'no'); if (!same) bad++;
-        });
-        line.className = 'cmpline' + (done ? (bad ? ' no' : ' ok') : '');
-        line.textContent = !done ? 'Nothing compared yet.' : bad ? bad + ' of ' + done + ' differ from the school record — this card may have been altered.' : 'All ' + done + ' scores you entered match the school record.';
-      }
-    } else {
-      mk.append(E('p', 'sub', 'This card was registered before detailed marks were stored. Reprint it from the Results Portal to add them here.'));
+      tip.className = 'tip' + (done ? (bad ? ' no' : ' ok') : '');
+      tip.textContent = !done ? '💡 Type each score from your printed card into the boxes. A wrong one turns red.'
+        : bad ? '⚠️ ' + bad + ' of ' + done + ' differ from the school record. This card may have been altered.'
+        : '✅ All ' + done + ' score' + (done > 1 ? 's' : '') + ' you entered match the school record.';
     }
-    root.append(mk);
+  } else mk.append(E('div', 'legacy', 'This card was registered before detailed marks were stored. Reprint it from the Results Portal to show them here.'));
+  out.append(mk);
 
-    // 5 — remark + people
-    if (r.remark) { const rm = block('Class teacher’s remark on record'); rm.append(E('p', 'remark', r.remark)); root.append(rm); }
-    if (r.classTeacher || r.headTeacher || r.issuedBy) {
-      const pp = block('Signatories'); const g = E('div', 'people');
-      if (r.classTeacher) g.append(tile('Class teacher', r.classTeacher));
-      if (r.headTeacher) g.append(tile('Head teacher', r.headTeacher));
-      if (r.issuedBy) g.append(tile('Printed by', r.issuedBy));
-      g.querySelectorAll('b').forEach(b => { b.style.fontSize = '1rem'; }); pp.append(g); root.append(pp);
-    }
-
-    // 6 — photo compare
-    const pc = block('Compare the photo', 'Take or choose a picture of the photo on your card. It stays on your device and is not uploaded.');
-    const g2 = E('div', 'pc'); const f1 = E('figure'), f2 = E('figure');
-    const a = E('div', 'frame', 'No photo on school record'); loadPhoto(r, a);
-    const b2 = E('div', 'frame', 'Your card photo will appear here');
-    f1.append(a, E('figcaption', '', 'School record')); f2.append(b2, E('figcaption', '', 'Your card')); g2.append(f1, f2); pc.append(g2);
-    const lab = E('label', 'filebtn', 'Add a photo of your card'); const fi = E('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.setAttribute('capture', 'environment'); lab.append(fi);
-    fi.addEventListener('change', () => { const f = fi.files && fi.files[0]; if (!f) return; const im = new Image(); im.alt = 'Photo you added'; im.src = URL.createObjectURL(f); b2.replaceChildren(im); });
-    pc.append(lab); root.append(pc);
-
-    // 7 — history + fingerprint
-    const hs = block('Record history'); const tl = E('ul', 'tl');
-    const li = (x, y) => { const l = E('li', '', x); if (y) l.append(E('small', '', y)); tl.append(l); };
-    li('First registered', when(r.issuedAt, true));
-    if ((r.rev || 1) > 1) li('Last corrected (revision ' + r.rev + ')', when(r.updatedAt, true));
-    li('Status: ' + (r.status === 'revoked' ? 'withdrawn' : 'valid'));
-    hs.append(tl);
-    const fp = String(r.contentHash || '').slice(0, 16).toUpperCase().match(/.{1,4}/g);
-    if (fp) { hs.append(E('p', 'sub', 'Record fingerprint (changes if any mark changes)')); hs.append(E('div', 'fp', fp.join(' · '))); }
-    root.append(hs);
-
-    const act = E('div', 'actions'); const pb = E('button', 'btn', 'Print or save this verification'); pb.type = 'button'; pb.onclick = () => window.print(); act.append(pb); root.append(act);
-    root.append(E('p', 'note', 'Verified against the Kanyadet school register on ' + when(new Date().toISOString(), true) + '. The school can confirm any result at the school office.'));
+  // teacher note + people
+  if (r.remark || r.classTeacher || r.headTeacher || r.issuedBy) {
+    const tn = card('Teacher’s note');
+    if (r.remark) tn.append(E('div', 'bub', r.remark));
+    if (r.classTeacher) { const w = E('div', 'who'); w.append(E('div', 'av', initials(r.classTeacher))); const sp = E('span'); sp.append(E('b', '', r.classTeacher), document.createTextNode(' · Class teacher')); w.append(sp); tn.append(w); }
+    const pp = E('div', 'ppl');
+    if (r.headTeacher) { const d = E('div'); d.append(E('small', '', 'Head teacher'), E('b', '', r.headTeacher)); pp.append(d); }
+    if (r.issuedBy) { const d = E('div'); d.append(E('small', '', 'Printed by'), E('b', '', r.issuedBy)); pp.append(d); }
+    if (pp.children.length) tn.append(pp);
+    out.append(tn);
   }
-  out.append(root);
+
+  // checks
+  const kc = card('Safety checks');
+  const list = E('div', 'ck');
+  list.append(ck('ok', 'Found in the school register', 'Registered ' + when(r.issuedAt, true)));
+  list.append(r.status === 'revoked' ? ck('bad', 'This card has been withdrawn') : ck('ok', 'Card has not been withdrawn'));
+  list.append(hashOk === null ? ck('in', 'QR code not scanned', 'You typed the code. Scan the QR on the card to also catch corrections made after printing.')
+    : hashOk ? ck('ok', 'QR code matches the record', 'Fingerprint ' + h.toUpperCase() + ' · marks unchanged since printing')
+    : ck('warn', 'QR code does not match', 'The record was corrected after this card was printed. Trust the figures on this page.'));
+  if ((r.rev || 1) > 1) list.append(ck('in', 'Corrected ' + ((r.rev || 1) - 1) + ' time' + ((r.rev || 1) > 2 ? 's' : '') + ' (revision ' + r.rev + ')', when(r.updatedAt, true)));
+  kc.append(list); out.append(kc);
+
+  // photo
+  const pc = card('Photo match', 'stays on your phone');
+  const pg = E('div', 'pm'); const f1 = E('figure'), f2 = E('figure');
+  const a = E('div', 'fr r', 'No photo on school record'); a.append(E('figcaption', '', 'School record')); loadPhoto(r, a, true);
+  const lab = E('label'); const b2 = E('div', 'fr'); b2.textContent = '📷 Take a photo of your card'; lab.append(b2);
+  const fi = E('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.setAttribute('capture', 'environment'); lab.append(fi);
+  fi.addEventListener('change', () => { const f = fi.files && fi.files[0]; if (!f) return; const im = new Image(); im.alt = 'Photo you added'; im.src = URL.createObjectURL(f); b2.replaceChildren(im, E('figcaption', '', 'Your card')); });
+  f1.append(a); f2.append(lab); pg.append(f1, f2); pc.append(pg); out.append(pc);
+
+  // fingerprint + history
+  const fc = card('Record fingerprint');
+  const fp = String(r.contentHash || '').slice(0, 16).toUpperCase().match(/.{1,4}/g);
+  if (fp) fc.append(E('div', 'fp', fp.join(' · ')));
+  const tl = E('ul', 'tl'); const li = (x, y) => { const l = E('li', '', x); if (y) l.append(E('small', '', y)); tl.append(l); };
+  li('First registered', when(r.issuedAt, true));
+  if ((r.rev || 1) > 1) li('Last corrected (revision ' + r.rev + ')', when(r.updatedAt, true));
+  li('Status: ' + (r.status === 'revoked' ? 'withdrawn' : 'valid')); fc.append(tl); out.append(fc);
+
+  const sr = E('div', 'srl'); sr.append(E('span', '', 'Serial'), E('code', '', pretty(serial))); out.append(sr);
+  const pb = E('button', 'btn', 'Save or print this verification'); pb.type = 'button'; pb.onclick = () => window.print(); out.append(pb);
+  out.append(E('p', 'foot', 'Checked against the Kanyadet school register on ' + when(new Date().toISOString(), true) + '.'));
+}
+
+function hello() {
+  out.replaceChildren(banner('hello', 'Is this report card genuine?', 'Scan the QR on the card, or type the code printed beneath it. You’ll see the school’s full record.'));
 }
 
 async function lookup(rawCode, h) {
@@ -343,6 +335,7 @@ document.getElementById('f').addEventListener('submit', e => {
 });
 const q = new URLSearchParams(location.search);
 if (q.get('c')) { inp.value = q.get('c'); lookup(q.get('c'), (q.get('h') || '').toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 8) || null); }
+else hello();
 </script>
 </body>
 </html>
