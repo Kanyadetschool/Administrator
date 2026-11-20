@@ -26961,7 +26961,7 @@ async function loadStudentImage(studentName, grade, studentId) {
 //  Public page: verify.html?c=SERIAL&h=HASH8 (h = first 8 hex of the marks hash,
 //  so a card printed before a correction shows as "superseded").
 // ═══════════════════════════════════════════════════════════════════════
-const CARD_VERIFY_BASE = 'https://kanyadet-school-admin.web.app/verify.html';
+const CARD_VERIFY_BASE = 'https://kanyadet-school-portal.web.app/verify.html';
 const _CARD_B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';   // Crockford: no I L O U
 
 function _cardRandSerial() {
@@ -27013,7 +27013,27 @@ async function issueCardToken(student) {
                 const stats  = calculateStudentStats(student);
                 const now    = new Date().toISOString();
                 const cu     = (F.getAuth && F.getAuth().currentUser) || {};
+                const subj = getSubjects_rc(student).map(n => {
+                    const v = parseFloat(student[n]);
+                    const g = isNaN(v) ? null : (GRADE_SCALE.find(b => v >= b.min) || GRADE_SCALE[GRADE_SCALE.length - 1]);
+                    return { n: String(n), s: isNaN(v) ? null : Number(v.toFixed(2)), l: g ? g.level : '', p: g ? Number(g.pts) : null };
+                });
+                let signers = {};
+                try { signers = await _rcSignerNames(student); } catch (e) { /* names are optional */ }
                 const base = {
+                    schema: 3,
+                    subjects: subj,
+                    total: Number(stats.total) || 0,
+                    points: Number(stats.totalPoints) || 0,
+                    maxPoints: Number(stats.maxPoints) || 0,
+                    cls: String(student['Class'] || ''),
+                    position: String(student['Position'] || ''),
+                    uliTail: String(student['ULI'] || '').slice(-4),
+                    remark: String(generateTeacherRemark(student) || '').slice(0, 500),
+                    classTeacher: String(signers.ct || ''),
+                    headTeacher: String(signers.ht || ''),
+                    photoName: String(student['Official Student Name'] || '').trim(),
+                    photoGrade: String(extractGrade(student['Grade']) || ''),
                     name:  String(student['Official Student Name'] || '').slice(0, 60),
                     grade: String(student['Grade'] || ''),
                     term:  String(student['Term'] || ''),
@@ -27029,9 +27049,9 @@ async function issueCardToken(student) {
                 if (serial) {
                     const recRef = F.doc(firestoreDb, 'cardVerifications', serial);
                     const rec    = await F.getDoc(recRef);
-                    if (rec.exists() && rec.data().contentHash === full) return { serial, h };   // unchanged
+                    if (rec.exists() && rec.data().contentHash === full && rec.data().schema === 3) return { serial, h };   // unchanged
                     const old = rec.exists() ? rec.data() : {};
-                    await F.setDoc(recRef, { ...base, status: old.status || 'valid', rev: (old.rev || 0) + 1, issuedAt: old.issuedAt || now });
+                    await F.setDoc(recRef, { ...base, status: old.status || 'valid', rev: old.contentHash === full ? (old.rev || 1) : (old.rev || 0) + 1, issuedAt: old.issuedAt || now });
                     return { serial, h };
                 }
                 for (let i = 0; i < 4 && !serial; i++) {
@@ -27200,7 +27220,12 @@ async function _rcSignerNames(student) {
     }
     if (!ct) ct = String(student['Class Teacher'] || '').trim();
     let ht = '';
-    const htUser = users.find(u => u.isHeadTeacher === true ||
+    // The Advanced Admin is the head teacher. If several accounts hold the flag, prefer one explicitly
+    // marked head teacher, else the first by name so the result is stable.
+    const _advs = users.filter(u => u.Advancedadmin === true);
+    const htUser = _advs.find(u => u.isHeadTeacher === true) ||
+        _advs.slice().sort((x, y) => nameOf(x).localeCompare(nameOf(y)))[0] ||
+        users.find(u => u.isHeadTeacher === true ||
         /head\s*-?\s*teacher|headmaster|headmistress|principal/i.test(`${u.role||''} ${u.title||''} ${u.position||''}`));
     if (htUser) { ht = nameOf(htUser); htSig = _stored(htUser); }
     if (!ht) ht = String(window.RC_HEAD_TEACHER_NAME || '').trim();
@@ -27419,7 +27444,7 @@ async function drawBottomSection(d, yPos, student, pageWidth, pageHeight) {
 
     // Footer text
     d.setFontSize(6.5); d.setTextColor(128,128,128);
-    d.text(`Generated: ${new Date().toLocaleDateString()}  |  Verify: kanyadet-school-admin.web.app/verify.html`,
+    d.text(`Generated: ${new Date().toLocaleDateString()}  |  Verify: kanyadet-school-portal.web.app/verify.html`,
         pageWidth / 2, FOOTER_TEXT_Y, { align: 'center' });
 
     // QR code — bottom-right corner
