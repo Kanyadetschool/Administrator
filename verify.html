@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <title>Verify a report card · Kanyadet Primary & Junior School</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,8 +96,8 @@ h2 small{font:500 12px 'Poppins';color:#6a7a88}
 /* ── score ── */
 .sc{display:grid;grid-template-columns:140px 1fr;gap:14px;align-items:center}
 .ring{--p:0;width:140px;height:140px;border-radius:50%;display:grid;place-items:center;position:relative;
- background:conic-gradient(from 0deg,#2980b9,#4aa3d8 calc(var(--p)*.5%),#27ae60 calc(var(--p)*1%),#e8eef3 0);box-shadow:0 12px 24px -12px rgba(41,128,185,.7)}
-.ring:before{content:"";position:absolute;inset:14px;border-radius:50%;background:#fff}
+ background:conic-gradient(from 0deg,#2980b9,#4aa3d8 calc(var(--p)*.5%),#27ae60 calc(var(--p)*1%),var(--track,#e8eef3) 0);box-shadow:0 12px 24px -12px rgba(41,128,185,.7)}
+.ring:before{content:"";position:absolute;inset:14px;border-radius:50%;background:var(--surface,#fff)}
 .ring div{position:relative;text-align:center}.ring b{display:block;font:800 30px/1 'Poppins';color:var(--navy)}.ring span{font-size:11px;color:var(--muted)}
 .st{display:grid;gap:8px}.st div{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:16px}
 .st div:nth-child(1){background:#e3f0fa}.st div:nth-child(2){background:#fdecd8}.st div:nth-child(3){background:#efe2f6}
@@ -196,72 +196,245 @@ label.l{display:block;margin:0 0 8px 6px;font-size:13px;color:var(--muted)}
 .loading{padding:26px 12px;text-align:center;color:var(--muted)}
 [hidden]{display:none!important}
 @media print{body{background:#fff}.card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}#f,.acts,.photobtn,.match .stars,.conf{display:none!important}.pass{background:#14405f!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* ═════ v3 additions ═════ */
+.skip{position:absolute;left:-999px;top:8px;background:#fff;color:#14405f;padding:10px 16px;border-radius:99px;font:600 14px 'Poppins';z-index:100;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.skip:focus{left:12px}
+.head{align-items:center}.head>div:nth-child(2){min-width:0}
+.tools{margin-left:auto;display:flex;gap:6px;flex:none}
+.tool{min-width:42px;height:36px;border:2px solid rgba(20,64,95,.22);background:var(--surface,#fff);color:var(--navy);border-radius:99px;font:700 12px 'Poppins';padding:0 11px;cursor:pointer}
+.tool:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.ban h1:focus{outline:none}
+.crow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.copy{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:99px;font:600 11px 'Poppins';padding:4px 10px;cursor:pointer}
+.copy:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.scanbtn{display:block;width:100%;margin-top:10px;padding:12px;border:2px solid var(--navy);border-radius:99px;background:transparent;color:var(--navy);font:600 14.5px 'Poppins';cursor:pointer}
+.scanbtn[hidden]{display:none}
+details.acc{border-top:1px solid #e6ecf0}details.acc:first-child{border-top:0}
+details.acc summary{list-style:none;cursor:pointer;padding:12px 4px;font:600 14px 'Poppins';color:var(--navy);display:flex;justify-content:space-between;align-items:center}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary:after{content:"＋";font-size:16px}details.acc[open] summary:after{content:"－"}
+details.acc summary:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:10px}
+details.acc dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 4px 10px;font-size:12.5px}
+details.acc dt{color:#6a7a88}details.acc dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+details.acc .small{margin:0 4px 12px;font-size:12.5px;color:#5d6d7b;line-height:1.55}
+.btn.warnb{border-color:#c0392b;color:#c0392b}
+.foot.rc{font:500 11px 'DejaVu Sans Mono',ui-monospace,Menlo,monospace;letter-spacing:.02em}
+.radar .rg{fill:none;stroke:#d6dee5;stroke-width:1}.radar .rgo{fill:#f7fafc}.radar .ra{stroke:#e1e7ec;stroke-width:1}
+.scanner{position:fixed;inset:0;z-index:200;background:#000;display:grid}
+.scanner[hidden]{display:none}
+.scanner video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.reticle{position:absolute;left:50%;top:44%;width:min(68vw,300px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:4px;box-shadow:0 0 0 100vmax rgba(5,15,25,.62);
+ background:
+  linear-gradient(#17c27b,#17c27b) 0 0/34px 5px no-repeat,linear-gradient(#17c27b,#17c27b) 0 0/5px 34px no-repeat,
+  linear-gradient(#17c27b,#17c27b) 100% 0/34px 5px no-repeat,linear-gradient(#17c27b,#17c27b) 100% 0/5px 34px no-repeat,
+  linear-gradient(#17c27b,#17c27b) 0 100%/34px 5px no-repeat,linear-gradient(#17c27b,#17c27b) 0 100%/5px 34px no-repeat,
+  linear-gradient(#17c27b,#17c27b) 100% 100%/34px 5px no-repeat,linear-gradient(#17c27b,#17c27b) 100% 100%/5px 34px no-repeat}
+.reticle:after{content:"";position:absolute;left:8%;right:8%;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#2ecc8a,transparent);top:10%;box-shadow:0 0 14px #2ecc8a}
+@media (prefers-reduced-motion:no-preference){.reticle:after{animation:sweep 2s ease-in-out infinite alternate}@keyframes sweep{to{top:90%}}}
+#scanmsg{position:absolute;left:16px;right:16px;bottom:max(34px,env(safe-area-inset-bottom));margin:0;text-align:center;color:#fff;font:500 15px 'Poppins';text-shadow:0 2px 8px #000}
+.sclose{position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;width:46px;height:46px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:#14405f;font:700 18px sans-serif;cursor:pointer}
+.sclose:focus-visible{outline:3px solid #2ecc8a;outline-offset:2px}
+
+/* ═════ dark theme ═════ */
+html[data-theme=dark]{color-scheme:dark;--navy:#8cc4ee;--muted:#9db0c1;--ink:#e6eef5;--track:#26384a;--surface:#12202e}
+html[data-theme=dark] body{background:var(--pat1) 0 0/480px fixed,var(--pat2) 170px 90px/330px fixed,linear-gradient(135deg,#091420 0%,#0e1e2d 50%,#1a2230 100%) fixed}
+html[data-theme=dark] .card{background:#12202e;border-color:#1d3246;box-shadow:0 2px 0 rgba(0,0,0,.3),0 16px 30px -16px rgba(0,0,0,.8)}
+html[data-theme=dark] .logo{background:#14405f}
+html[data-theme=dark] .head b{color:#e6eef5}
+html[data-theme=dark] .ring:before{background:#12202e}
+html[data-theme=dark] .ring b{color:#e6eef5}
+html[data-theme=dark] .st div:nth-child(1){background:#142c40}html[data-theme=dark] .st div:nth-child(2){background:#3a2814}html[data-theme=dark] .st div:nth-child(3){background:#2a1f38}
+html[data-theme=dark] .dist .bar{background:#1d2d3c}
+html[data-theme=dark] .ins.up{background:#12301f;color:#7fe0a8}html[data-theme=dark] .ins.dn{background:#3a2814;color:#ffb866}html[data-theme=dark] .ins.wide{background:#142c40;color:#8cc4ee}
+html[data-theme=dark] .ins b{color:#e6eef5}
+html[data-theme=dark] .radar text{fill:#cfdbe6}html[data-theme=dark] .radar .rg{stroke:#2c4156}html[data-theme=dark] .radar .rgo{fill:#0e1a26}html[data-theme=dark] .radar .ra{stroke:#243749}
+html[data-theme=dark] .radar .poly{fill:rgba(74,163,216,.28);stroke:#6fb8ea}
+html[data-theme=dark] .s-ee{background:#133526}html[data-theme=dark] .s-ee b,html[data-theme=dark] .s-ee i{color:#6fe0a0}
+html[data-theme=dark] .s-me{background:#122f45}html[data-theme=dark] .s-me b,html[data-theme=dark] .s-me i{color:#7cc0f0}
+html[data-theme=dark] .s-ae{background:#3d2a13}html[data-theme=dark] .s-ae b,html[data-theme=dark] .s-ae i{color:#ffb866}
+html[data-theme=dark] .s-be{background:#3d1a18}html[data-theme=dark] .s-be b,html[data-theme=dark] .s-be i{color:#ff8f86}
+html[data-theme=dark] .s-xx{background:#1c2a38}html[data-theme=dark] .s-xx b,html[data-theme=dark] .s-xx i{color:#aab9c6}
+html[data-theme=dark] .sj .v i{background:rgba(255,255,255,.1)}html[data-theme=dark] .sj .n{color:#d3e0ea}html[data-theme=dark] .sj .bar{background:rgba(255,255,255,.12)}
+html[data-theme=dark] .cmp{background:#0d1925;color:#e6eef5;border-color:#3b5266}
+html[data-theme=dark] .cmp.ok{background:#12301f;color:#7fe0a8;border-color:#27ae60}html[data-theme=dark] .cmp.no{background:#3a1816;color:#ff9a90;border-color:#e74c3c}
+html[data-theme=dark] .match{background:#33290f;color:#f0d68a;border-color:#8a6d1c}
+html[data-theme=dark] .match.ok{background:#12301f;color:#7fe0a8;border-color:#27ae60}html[data-theme=dark] .match.no{background:#3a1816;color:#ff9a90;border-color:#e74c3c}
+html[data-theme=dark] .legacy{background:#0e1a26;color:#9db0c1}
+html[data-theme=dark] .bub{background:#2a1f3a;color:#e0d0f2}
+html[data-theme=dark] .sig{background:#0e1a26}html[data-theme=dark] .sig path{stroke:#8cc4ee}html[data-theme=dark] .sig b{color:#e6eef5;border-top-color:#2a3f52}html[data-theme=dark] .sig small{color:#8da2b4}
+html[data-theme=dark] .ck div:not(:last-child):after{background:linear-gradient(#1d5a3a,#24384a)}
+html[data-theme=dark] .k-ok{background:#123826;color:#6fe0a0}html[data-theme=dark] .k-in{background:#142c40;color:#8cc4ee}html[data-theme=dark] .k-warn{background:#3d2a13;color:#ffb866}html[data-theme=dark] .k-bad{background:#3d1a18;color:#ff8f86}
+html[data-theme=dark] .ck small,html[data-theme=dark] .tl small,html[data-theme=dark] .fpn,html[data-theme=dark] .hint,html[data-theme=dark] details.acc dt{color:#8da2b4}
+html[data-theme=dark] .fp,html[data-theme=dark] .iden{background:#0e1a26;color:#cfe5f7}
+html[data-theme=dark] .tl{border-left-color:#24384a}html[data-theme=dark] .tl li:before{border-color:#12202e}
+html[data-theme=dark] .empty,html[data-theme=dark] .cmpbox{background:#0e1a26;border-color:#2a4054;color:#9db0c1}
+html[data-theme=dark] .cmpbox{border-color:#12202e}
+html[data-theme=dark] .btn{background:#8cc4ee;color:#06202f;box-shadow:none}html[data-theme=dark] .btn.alt{background:transparent;color:#8cc4ee;border-color:#8cc4ee}html[data-theme=dark] .btn.warnb{color:#ff8f86;border-color:#ff8f86}
+html[data-theme=dark] .photobtn label{background:#8cc4ee;color:#06202f}
+html[data-theme=dark] .go{background:#e67e22}
+html[data-theme=dark] #code{background:#0d1925;color:#e6eef5;border-color:#34495c}
+html[data-theme=dark] .scanbtn{color:#8cc4ee;border-color:#8cc4ee}
+html[data-theme=dark] .foot{color:#9db0c1}html[data-theme=dark] label.l{color:#9db0c1}
+html[data-theme=dark] details.acc{border-top-color:#24384a}html[data-theme=dark] details.acc .small{color:#9db0c1}
+html[data-theme=dark] .tool{border-color:rgba(255,255,255,.25)}
+html[data-theme=dark] .tag{background:rgba(255,255,255,.12)}
+
 </style>
 </head>
 <body>
+<a class="skip" href="#result" data-t="skip">Skip to result</a>
 <div class="wrap">
-  <div class="head"><div class="logo"><img src="./imgs/logo.png" alt="" onerror="this.parentNode.textContent='K'"></div><div><b>Kanyadet Primary &amp; Junior School</b><span>Report card verification</span></div></div>
+  <div class="head"><div class="logo"><img src="./imgs/logo.png" alt="" onerror="this.parentNode.textContent='K'"></div><div><b data-t="school">Kanyadet Primary &amp; Junior School</b><span data-t="sub">Report card verification</span></div>
+    <div class="tools"><button id="langbtn" class="tool" type="button" data-tl="toolLang">SW</button><button id="themebtn" class="tool" type="button" data-tl="toolTheme">🌙</button></div></div>
   <div id="result" style="display:grid;gap:14px" aria-live="polite"></div>
   <form id="f" class="card" autocomplete="off">
-    <label class="l" for="code">Enter the card code (printed under the QR)</label>
-    <div class="row"><input id="code" maxlength="12" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"><button class="go" type="submit">Check</button></div>
+    <label class="l" for="code" data-t="formLabel">Enter the card code (printed under the QR)</label>
+    <div class="row"><input id="code" maxlength="12" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"><button class="go" type="submit" data-t="check">Check</button></div>
+    <button id="scanbtn" class="scanbtn" type="button" data-t="scan">📷 Scan QR or barcode</button>
   </form>
-  <p class="foot">Always compare what you see here with the printed card. If anything differs, the card has been altered.</p>
+  <p class="foot" data-t="footer">Always compare what you see here with the printed card. If anything differs, the card has been altered.</p>
 </div>
-
+<div id="scanner" class="scanner" role="dialog" aria-modal="true" hidden>
+  <video id="scanvideo" playsinline muted></video><div class="reticle"></div><p id="scanmsg" role="status"></p><button id="scanclose" class="sclose" type="button">✕</button>
+</div>
 <script type="module">
 import { FIREBASE_CONFIG } from './js/config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+// ── School contact for the "Report a problem" button. Fill in what you have; leave the rest empty.
+//    whatsapp: digits only with country code, e.g. '2547XXXXXXXX'.  With none set, the button copies/shares a ready-made message instead.
+const SCHOOL = { name: 'Kanyadet Primary & Junior School', whatsapp: '', email: '', phone: '' };
 
 const db  = getFirestore(initializeApp(FIREBASE_CONFIG, 'verify'));
-const out = document.getElementById('result');
-const inp = document.getElementById('code');
+const $   = id => document.getElementById(id);
+const out = $('result'), inp = $('code');
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
 
+/* ───────────────────────── i18n ───────────────────────── */
+const I18N = {
+ en: {
+  skip:'Skip to result', toolLang:'Language', toolTheme:'Switch light/dark', school:'Kanyadet Primary & Junior School', sub:'Report card verification',
+  genuine:'Genuine report card', genuineSub:'Registered by the school and unchanged since it was printed.',
+  superseded:'Superseded', supersededSub:'This card was printed before a correction. Below is the school’s current record.',
+  withdrawn:'Card withdrawn', withdrawnSub:'The school has withdrawn this card. Do not rely on it.',
+  nosuch:'No such report card', nosuchSub:'This code isn’t in the school’s records. Treat the card as not genuine.',
+  badcode:'Code not recognised', badcodeSub:'Codes have 8 characters, like 7F3K-92QA.',
+  unavailable:'Check unavailable', unavailableSub:'We couldn’t reach the school records. Check your connection and try again.',
+  found:'Record found', foundSub:'This code is registered with the school. Compare the details below with your card.',
+  hello:'Is this report card genuine?', helloSub:'Scan the QR on the card, or type the code printed beneath it. You’ll see the school’s full record.',
+  tooMany:'Please wait', tooManySub:'Too many unrecognised codes. Try again in {n} seconds.',
+  chipReg:'Register', chipNotWd:'Not withdrawn', chipWd:'Withdrawn', chipQrOk:'QR matches', chipQrNo:'QR changed', chipQrNone:'QR not scanned',
+  pass:'Learner pass', vOk:'Verified', vWarn:'Superseded', vBad:'Withdrawn', serial:'Serial', issued:'Issued', inClass:'in class', of:'of', place:'Position', copy:'Copy', copied:'Copied ✓',
+  perf:'Performance', avg:'average', level:'Level', points:'Points', total:'Total marks', exc:'Exceeding', mee:'Meeting', app:'Approaching', bel:'Below',
+  best:'Strongest', focus:'Needs focus', meetAbove:'Meeting or above', areasN:'{a} of {b} learning areas',
+  glance:'Strengths at a glance', outOf100:'score out of 100', areas:'Learning areas', assessed:'{n} assessed',
+  onCard:'on your card?', tip:'💡 Type each score from your printed card into the boxes. A wrong one turns red.',
+  diff:'⚠️ {b} of {d} differ from the school record. This card may have been altered.', allMatch:'🎉 Every score matches the school record.', soFar:'✅ {d} of {n} checked — all match so far.',
+  legacy:'This card was registered before detailed marks were stored. Reprint it from the Results Portal to show them here.',
+  note:'Teacher’s note', ct:'Class teacher', ht:'Head teacher', printedBy:'Printed by {x}',
+  checks:'Safety checks', c1:'Found in the school register', c1d:'Registered {t}', c2ok:'Card has not been withdrawn', c2bad:'This card has been withdrawn',
+  c3none:'QR code not scanned', c3noned:'You typed the code. Scan the QR on the card to also catch corrections made after printing.',
+  c3ok:'QR code matches the record', c3okd:'Fingerprint {h} · marks unchanged since printing', c3no:'QR code does not match', c3nod:'The record was corrected after this card was printed. Trust the figures on this page.',
+  c4:'Corrected {n} time(s) (revision {r})',
+  photo:'Photo match', onPhone:'stays on your phone', addPhoto:'📷 Add a photo of your card', drag:'Drag the handle to compare the school’s photo with the one on your card.',
+  noPhoto:'No photo on the school record yet. Add a photo of your card.', schoolRec:'School record', yourCard:'Your card',
+  fpT:'Record fingerprint', fpN:'This pattern and code change if any mark changes.', first:'First registered', lastCorr:'Last corrected (revision {r})', status:'Status: {s}', sValid:'valid', sWd:'withdrawn',
+  bPrint:'🖨️ Print or save', bShare:'🔗 Share link', bJson:'⬇️ Download record', bReport:'🚩 Report a problem', linkCopied:'✓ Link copied',
+  how:'How this was verified', howRows:'Credential|Termly report card (CBC)|Issuer|{school}|Record version|v{v}|Integrity|SHA-256 fingerprint|Verification receipt|{rc}|Checked|{t}',
+  howP:'• Register: the serial exists in the school’s database. • Not withdrawn: the school has not cancelled it. • QR match: the fingerprint inside the QR equals the school’s current record, so any correction after printing is detected.',
+  priv:'Privacy', privP:'We record only the code that was checked and the result (valid, superseded, withdrawn or not found) to spot forged cards. We never store your name, location or any photo — photos you add stay on your device.',
+  rcpt:'Receipt {x} · checked {t}', footer:'Always compare what you see here with the printed card. If anything differs, the card has been altered.',
+  formLabel:'Enter the card code (printed under the QR)', check:'Check', scan:'📷 Scan QR or barcode',
+  scanAim:'Point the camera at the QR code or barcode on the card.', scanDenied:'Camera not available. Allow camera access, or type the code instead.', scanUnknown:'That isn’t a Kanyadet report card code. Keep scanning…', close:'Close',
+  reportMsg:'Hello, I want to report a problem with report card {s} (result: {r}). Receipt {rc}. Details: ', rJson:'verification record',
+ },
+ sw: {
+  skip:'Ruka hadi matokeo', toolLang:'Lugha', toolTheme:'Badilisha mwanga/giza', school:'Kanyadet Primary & Junior School', sub:'Uthibitishaji wa kadi ya matokeo',
+  genuine:'Kadi halisi ya matokeo', genuineSub:'Imesajiliwa na shule na haijabadilishwa tangu ilipochapishwa.',
+  superseded:'Imebadilishwa', supersededSub:'Kadi hii ilichapishwa kabla ya marekebisho. Hapa chini ni rekodi ya sasa ya shule.',
+  withdrawn:'Kadi imebatilishwa', withdrawnSub:'Shule imebatilisha kadi hii. Usiitegemee.',
+  nosuch:'Hakuna kadi kama hii', nosuchSub:'Msimbo huu haupo kwenye rekodi za shule. Chukulia kadi hii kuwa si halisi.',
+  badcode:'Msimbo haujatambuliwa', badcodeSub:'Misimbo ina herufi au tarakimu 8, mfano 7F3K-92QA.',
+  unavailable:'Uthibitishaji haupatikani', unavailableSub:'Hatukuweza kufikia rekodi za shule. Angalia mtandao wako kisha ujaribu tena.',
+  found:'Rekodi imepatikana', foundSub:'Msimbo huu umesajiliwa na shule. Linganisha maelezo hapa chini na kadi yako.',
+  hello:'Je, kadi hii ya matokeo ni halisi?', helloSub:'Changanua msimbo wa QR kwenye kadi, au andika msimbo ulioandikwa chini yake. Utaona rekodi kamili ya shule.',
+  tooMany:'Tafadhali subiri', tooManySub:'Umejaribu misimbo mingi isiyotambulika. Jaribu tena baada ya sekunde {n}.',
+  chipReg:'Rejista', chipNotWd:'Haijabatilishwa', chipWd:'Imebatilishwa', chipQrOk:'QR inalingana', chipQrNo:'QR imebadilika', chipQrNone:'QR haijachanganuliwa',
+  pass:'Kitambulisho cha mwanafunzi', vOk:'Imethibitishwa', vWarn:'Imebadilishwa', vBad:'Imebatilishwa', serial:'Namba ya kadi', issued:'Ilitolewa', inClass:'darasani', of:'kati ya', place:'Nafasi', copy:'Nakili', copied:'Imenakiliwa ✓',
+  perf:'Matokeo', avg:'wastani', level:'Kiwango', points:'Alama za kiwango', total:'Jumla ya alama', exc:'Kuzidi', mee:'Kufikia', app:'Karibia', bel:'Chini',
+  best:'Bora zaidi', focus:'Inahitaji juhudi', meetAbove:'Kufikia matarajio au zaidi', areasN:'maeneo {a} kati ya {b}',
+  glance:'Nguvu kwa mtazamo', outOf100:'alama kati ya 100', areas:'Maeneo ya kujifunza', assessed:'{n} yamepimwa',
+  onCard:'kwenye kadi yako?', tip:'💡 Andika kila alama kutoka kwenye kadi yako kwenye visanduku. Alama isiyo sahihi inakuwa nyekundu.',
+  diff:'⚠️ {b} kati ya {d} hazilingani na rekodi ya shule. Kadi hii huenda imebadilishwa.', allMatch:'🎉 Kila alama inalingana na rekodi ya shule.', soFar:'✅ {d} kati ya {n} zimekaguliwa — zote zinalingana hadi sasa.',
+  legacy:'Kadi hii ilisajiliwa kabla alama kamili hazijaanza kuhifadhiwa. Ichapishe tena kutoka Results Portal ili zionekane hapa.',
+  note:'Maoni ya mwalimu', ct:'Mwalimu wa darasa', ht:'Mwalimu mkuu', printedBy:'Imechapishwa na {x}',
+  checks:'Ukaguzi wa usalama', c1:'Imepatikana kwenye rejista ya shule', c1d:'Ilisajiliwa {t}', c2ok:'Kadi haijabatilishwa', c2bad:'Kadi hii imebatilishwa',
+  c3none:'Msimbo wa QR haukuchanganuliwa', c3noned:'Uliandika msimbo. Changanua QR kwenye kadi ili kugundua marekebisho yaliyofanywa baada ya kuchapishwa.',
+  c3ok:'Msimbo wa QR unalingana na rekodi', c3okd:'Alama ya kidijitali {h} · alama hazijabadilika tangu kuchapishwa', c3no:'Msimbo wa QR haulingani', c3nod:'Rekodi ilirekebishwa baada ya kadi hii kuchapishwa. Tegemea takwimu za ukurasa huu.',
+  c4:'Imerekebishwa mara {n} (toleo la {r})',
+  photo:'Ulinganisho wa picha', onPhone:'inabaki kwenye simu yako', addPhoto:'📷 Ongeza picha ya kadi yako', drag:'Buruta kishikio ili kulinganisha picha ya shule na ile iliyo kwenye kadi yako.',
+  noPhoto:'Bado hakuna picha kwenye rekodi ya shule. Ongeza picha ya kadi yako.', schoolRec:'Rekodi ya shule', yourCard:'Kadi yako',
+  fpT:'Alama ya kidijitali ya rekodi', fpN:'Mchoro na msimbo huu hubadilika kama alama yoyote ikibadilika.', first:'Ilisajiliwa mara ya kwanza', lastCorr:'Ilirekebishwa mwisho (toleo la {r})', status:'Hali: {s}', sValid:'halali', sWd:'imebatilishwa',
+  bPrint:'🖨️ Chapisha au hifadhi', bShare:'🔗 Shiriki kiungo', bJson:'⬇️ Pakua rekodi', bReport:'🚩 Ripoti tatizo', linkCopied:'✓ Kiungo kimenakiliwa',
+  how:'Jinsi uthibitisho ulivyofanyika', howRows:'Cheti|Kadi ya matokeo ya muhula (CBC)|Mtoaji|{school}|Toleo la rekodi|v{v}|Uadilifu|Alama ya kidijitali ya SHA-256|Risiti ya uthibitisho|{rc}|Ilikaguliwa|{t}',
+  howP:'• Rejista: namba ya kadi ipo kwenye hifadhidata ya shule. • Haijabatilishwa: shule haijaifuta. • QR inalingana: alama ndani ya QR ni sawa na rekodi ya sasa ya shule, hivyo marekebisho yoyote baada ya kuchapishwa yanagunduliwa.',
+  priv:'Faragha', privP:'Tunahifadhi msimbo uliokaguliwa na matokeo tu (halali, imebadilishwa, imebatilishwa au haipatikani) ili kugundua kadi bandia. Hatuhifadhi jina lako, eneo lako wala picha yoyote — picha unazoongeza zinabaki kwenye kifaa chako.',
+  rcpt:'Risiti {x} · ilikaguliwa {t}', footer:'Linganisha kila kitu unachoona hapa na kadi iliyochapishwa. Kama kuna tofauti, kadi imebadilishwa.',
+  formLabel:'Andika msimbo wa kadi (ulio chini ya QR)', check:'Kagua', scan:'📷 Changanua QR au msimbopau',
+  scanAim:'Elekeza kamera kwenye msimbo wa QR au msimbopau ulio kwenye kadi.', scanDenied:'Kamera haipatikani. Ruhusu kamera, au andika msimbo.', scanUnknown:'Huo si msimbo wa kadi ya Kanyadet. Endelea kuchanganua…', close:'Funga',
+  reportMsg:'Habari, nataka kuripoti tatizo kuhusu kadi ya matokeo {s} (matokeo: {r}). Risiti {rc}. Maelezo: ', rJson:'rekodi ya uthibitisho',
+ }
+};
+let lang = store.get('kv-lang') || ((navigator.language || '').toLowerCase().startsWith('sw') ? 'sw' : 'en');
+const t = (k, a) => { let s = (I18N[lang][k] ?? I18N.en[k] ?? k); if (a) for (const x in a) s = s.split('{' + x + '}').join(a[x]); return s; };
+
+/* ───────────────────────── helpers ───────────────────────── */
 const ICON = {
   ok:   '<path d="M7 16.5l6 6L24 10" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>',
   warn: '<path d="M16 8v11" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="16" cy="25" r="2.4" fill="currentColor"/>',
   bad:  '<path d="M9 9l14 14M23 9L9 23" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
   hello:'<circle cx="14" cy="14" r="7" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M19.5 19.5L26 26" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>'
 };
-const LV = { ee: ['#27ae60', 'Exceeding'], me: ['#2980b9', 'Meeting'], ae: ['#e67e22', 'Approaching'], be: ['#e74c3c', 'Below'] };
+const LV = { ee: ['#27ae60', 'exc'], me: ['#2980b9', 'mee'], ae: ['#e67e22', 'app'], be: ['#e74c3c', 'bel'] };
 const lvKey = l => { const k = (l || '').slice(0, 2).toLowerCase(); return LV[k] ? k : 'xx'; };
-
 const norm   = s => (s || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
 const pretty = s => s.slice(0, 4) + '-' + s.slice(4);
 const E = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const NS = 'http://www.w3.org/2000/svg';
 const S = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
-const when = (iso, t) => { const d = new Date(iso); return isNaN(d) ? '—' : d.toLocaleString('en-GB', Object.assign({ day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Nairobi' }, t ? { hour: '2-digit', minute: '2-digit' } : {})); };
+const loc = () => (lang === 'sw' ? 'sw-KE' : 'en-GB');
+const when = (iso, tm) => { const d = new Date(iso); return isNaN(d) ? '—' : d.toLocaleString(loc(), Object.assign({ day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Nairobi' }, tm ? { hour: '2-digit', minute: '2-digit' } : {})); };
 const initials = n => (n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
 const r2 = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
 const ordinal = n => { const s = ['th','st','nd','rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
 const titleCase = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+const nice = n => (n && n === n.toUpperCase() && /[A-Z]/.test(n)) ? n.split(/(\s+)/).map(w => (/^[A-Z.]{1,4}$/.test(w) || /^&$/.test(w)) ? w : titleCase(w)).join('') : n;
 const shortName = n => { const w = (n || '').split(/[\s&]+/).filter(Boolean)[0] || n; return w.length <= 4 ? w.toUpperCase() : titleCase(w).slice(0, 11); };
 const subjIcon = n => { n = n.toLowerCase();
   return /math/.test(n) ? '📐' : /engl/.test(n) ? '📖' : /kisw/.test(n) ? '🗣️' : /sci/.test(n) ? '🔬' : /social|geo|hist/.test(n) ? '🌍'
     : /c\.?r\.?e|i\.?r\.?e|h\.?r\.?e|relig/.test(n) ? '🙏' : /agri/.test(n) ? '🌱' : /art|creat/.test(n) ? '🎨' : /phys|p\.?e\b|sport/.test(n) ? '⚽'
     : /music/.test(n) ? '🎵' : /home|nutri/.test(n) ? '🏠' : /comput|ict/.test(n) ? '💻' : '📘'; };
 let seq = 0; const rise = el => { el.style.setProperty('--i', seq++); return el; };
+const flash = (btn, txt) => { const o = btn.textContent; btn.textContent = txt; setTimeout(() => { btn.textContent = o; }, 1600); };
 
 function countUp(el, to, dec, ms) {
   if (REDUCED) { el.textContent = to.toFixed(dec) + '%'; return; }
-  const t0 = performance.now();
-  (function f(t) { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = (to * e).toFixed(dec) + '%'; if (k < 1) requestAnimationFrame(f); })(t0);
+  const t0 = performance.now(); (function f(tt) { const k = Math.min(1, (tt - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = (to * e).toFixed(dec) + '%'; if (k < 1) requestAnimationFrame(f); })(t0);
 }
 function animateRing(ring, to) {
   if (REDUCED) { ring.style.setProperty('--p', to); return; }
-  const t0 = performance.now();
-  (function f(t) { const k = Math.min(1, (t - t0 - 250) / 1300), e = k <= 0 ? 0 : 1 - Math.pow(1 - k, 3); ring.style.setProperty('--p', (to * e).toFixed(2)); if (k < 1) requestAnimationFrame(f); })(t0);
+  const t0 = performance.now(); (function f(tt) { const k = Math.min(1, (tt - t0 - 250) / 1300), e = k <= 0 ? 0 : 1 - Math.pow(1 - k, 3); ring.style.setProperty('--p', (to * e).toFixed(2)); if (k < 1) requestAnimationFrame(f); })(t0);
 }
 
-function banner(kind, title, sub, checks) {
+function banner(kind, title, sub, checks, confetti) {
   const b = E('div', 'ban ' + kind);
-  const t = E('div', 'tick'); t.insertAdjacentHTML('beforeend', `<svg viewBox="0 0 32 32" aria-hidden="true">${ICON[kind]}</svg>`);
-  b.append(t, E('h1', '', title)); if (sub) b.append(E('p', '', sub));
+  const tk = E('div', 'tick'); tk.insertAdjacentHTML('beforeend', `<svg viewBox="0 0 32 32" aria-hidden="true">${ICON[kind]}</svg>`);
+  const h1 = E('h1', '', title); h1.tabIndex = -1; h1.id = 'verdict';
+  b.append(tk, h1); if (sub) b.append(E('p', '', sub));
   if (checks && checks.length) { const s = E('div', 'scan'); checks.forEach((c, k) => { const sp = E('span'); sp.style.setProperty('--k', k); sp.append(E('b', '', c[0]), document.createTextNode(c[1])); s.append(sp); }); b.append(s); }
-  if (kind === 'ok' && !REDUCED && checks) {
+  if (confetti && !REDUCED) {
     const cf = E('div', 'conf'); const cols = ['#fff', '#ffe08a', '#b8f2d2', '#ffd1a1', '#cfe8ff'];
     for (let i = 0; i < 26; i++) { const p = E('i'); p.style.left = (Math.random() * 100) + '%'; p.style.background = cols[i % cols.length]; p.style.setProperty('--d', (Math.random() * .9).toFixed(2)); p.style.transform = `rotate(${Math.random() * 90}deg)`; cf.append(p); }
     b.append(cf);
@@ -280,92 +453,100 @@ function photoCandidates(r) {
 function findPhoto(r) {
   return new Promise(res => { const list = photoCandidates(r); (function next(i) { if (i >= list.length) return res(null); const im = new Image(); im.onload = () => res(list[i]); im.onerror = () => next(i + 1); im.src = list[i]; })(0); });
 }
-
-// 5×5 mirrored identicon from the record hash — a quick "same fingerprint?" check for humans
 function identicon(hash) {
   const hex = (hash || '0'.repeat(20)).padEnd(20, '0'), hue = parseInt(hex.slice(15, 18), 16) % 360;
   const sv = S('svg', { viewBox: '0 0 5 5', 'aria-hidden': 'true' });
-  for (let y = 0; y < 5; y++) for (let x = 0; x < 3; x++) if (parseInt(hex[y * 3 + x], 16) % 2 === 0) {
+  for (let y = 0; y < 5; y++) for (let x = 0; x < 3; x++) if (parseInt(hex[y * 3 + x], 16) % 2 === 0)
     [x, 4 - x].forEach((xx, j) => { if (j && x === 2) return; sv.append(S('rect', { x: xx, y, width: 1, height: 1, rx: .18, fill: `hsl(${hue} 62% 42%)` })); });
-  }
   return sv;
 }
 function radar(subs) {
-  const n = subs.length, R = 100, C = 150, sv = S('svg', { viewBox: '0 0 300 300', class: 'radar', role: 'img', 'aria-label': 'Radar chart of scores by learning area' });
+  const n = subs.length, R = 100, C = 150, sv = S('svg', { viewBox: '-26 -4 352 308', class: 'radar', role: 'img', 'aria-label': t('glance') });
   const pt = (i, f) => { const a = -Math.PI / 2 + i * 2 * Math.PI / n; return [C + R * f * Math.cos(a), C + R * f * Math.sin(a)]; };
-  [.25, .5, .75, 1].forEach(f => sv.append(S('polygon', { points: subs.map((_, i) => pt(i, f).join(',')).join(' '), fill: f === 1 ? '#f7fafc' : 'none', stroke: '#d6dee5', 'stroke-width': 1 })));
-  subs.forEach((_, i) => { const [x, y] = pt(i, 1); sv.append(S('line', { x1: C, y1: C, x2: x, y2: y, stroke: '#e1e7ec', 'stroke-width': 1 })); });
+  [.25, .5, .75, 1].forEach(f => sv.append(S('polygon', { points: subs.map((_, i) => pt(i, f).join(',')).join(' '), class: 'rg' + (f === 1 ? ' rgo' : '') })));
+  subs.forEach((_, i) => { const [x, y] = pt(i, 1); sv.append(S('line', { x1: C, y1: C, x2: x, y2: y, class: 'ra' })); });
   sv.append(S('polygon', { class: 'poly', points: subs.map((s, i) => pt(i, Math.max(.03, Math.min(1, (s.s || 0) / 100))).join(',')).join(' ') }));
   subs.forEach((s, i) => {
     const [x, y] = pt(i, Math.max(.03, Math.min(1, (s.s || 0) / 100))); const k = lvKey(s.l);
     sv.append(S('circle', { cx: x, cy: y, r: 4.6, fill: k === 'xx' ? '#8a97a3' : LV[k][0], stroke: '#fff', 'stroke-width': 1.6 }));
-    const [lx, ly] = pt(i, 1.2), t = S('text', { x: lx, y: ly + 3.5, 'text-anchor': Math.abs(lx - C) < 8 ? 'middle' : lx > C ? 'start' : 'end' }); t.textContent = shortName(s.n); sv.append(t);
+    const [lx, ly] = pt(i, 1.2), tx = S('text', { x: lx, y: ly + 3.5, 'text-anchor': Math.abs(lx - C) < 8 ? 'middle' : lx > C ? 'start' : 'end' }); tx.textContent = shortName(nice(s.n)); sv.append(tx);
   });
   return sv;
 }
 
-function render(kind, title, sub, r, serial, h) {
+/* ───────────────────────── view state ───────────────────────── */
+let view = { kind: 'hello' };
+function setView(v) { view = v; draw(); }
+const receiptFor = serial => {   // Nairobi time, same clock as the “checked” line
+  const o = {}; new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Nairobi', year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date()).forEach(x => { o[x.type] = x.value; });
+  return `VR-${o.year}${o.month}${o.day}-${o.hour === '24' ? '00' : o.hour}${o.minute}-${serial.slice(0, 4)}`;
+};
+
+function draw() {
   out.replaceChildren(); seq = 0;
-  if (!r) { out.append(rise(banner(kind, title, sub))); return; }
-  const hashOk = h ? String(r.contentHash || '').startsWith(h) : null;
-  const chips = [[r.status === 'revoked' ? '✕' : '✓', 'Register'], [r.status === 'revoked' ? '✕' : '✓', r.status === 'revoked' ? 'Withdrawn' : 'Not withdrawn'],
-                 hashOk === null ? ['–', 'QR not scanned'] : hashOk ? ['✓', 'QR matches'] : ['!', 'QR changed']];
-  out.append(rise(banner(kind, title, sub, chips)));
+  const v = view;
+  if (v.kind === 'loading') { out.append(E('div', 'loading', '…')); return; }
+  if (v.kind === 'hello') { out.append(rise(banner('hello', t('hello'), t('helloSub')))); return; }
+  if (!v.r) { out.append(rise(banner(v.kind, t(v.tk), t(v.sk, v.a)))); focusVerdict(); return; }
+  const { kind, r, serial, h } = v, hashOk = h ? String(r.contentHash || '').startsWith(h) : null;
+  const wd = r.status === 'revoked';
+  const chips = [[wd ? '✕' : '✓', t('chipReg')], [wd ? '✕' : '✓', wd ? t('chipWd') : t('chipNotWd')], hashOk === null ? ['–', t('chipQrNone')] : hashOk ? ['✓', t('chipQrOk')] : ['!', t('chipQrNo')]];
+  out.append(rise(banner(kind, t(v.tk), t(v.sk), chips, kind === 'ok' && hashOk === true && !v.noFx)));
 
   // learner pass
   const pass = rise(E('div', 'card pass')); pass.append(E('div', 'foil'));
-  const top = E('div', 'ptop'); top.append(E('span', '', 'Learner pass'));
-  const vs = E('span', 'vseal ' + (kind === 'ok' ? '' : kind)); vs.append(E('b', '', kind === 'ok' ? '✓' : kind === 'warn' ? '!' : '✕'), document.createTextNode(kind === 'ok' ? 'Verified' : kind === 'warn' ? 'Superseded' : 'Withdrawn')); top.append(vs);
+  const top = E('div', 'ptop'); top.append(E('span', '', t('pass')));
+  const vs = E('span', 'vseal ' + (kind === 'ok' ? '' : kind)); vs.append(E('b', '', kind === 'ok' ? '✓' : kind === 'warn' ? '!' : '✕'), document.createTextNode(kind === 'ok' ? t('vOk') : kind === 'warn' ? t('vWarn') : t('vBad'))); top.append(vs);
   const body = E('div', 'pbody'); const ph = E('div', 'ph', initials(r.name));
-  findPhoto(r).then(u => { if (!u) return; const im = new Image(); im.alt = 'Official photo on school record'; im.src = u; ph.replaceChildren(im); });
+  findPhoto(r).then(u => { if (!u) return; const im = new Image(); im.alt = t('schoolRec'); im.src = u; ph.replaceChildren(im); });
   const side = E('div'); side.append(E('div', 'nm', r.name || '—')); const tg = E('div', 'tags');
   [[r.grade, r.cls].filter(Boolean).join(' · '), [r.term, r.year].filter(Boolean).join(' · '), r.uliTail ? 'ULI •••• ' + r.uliTail : ''].forEach(x => { if (x) tg.append(E('span', 'tag', x)); });
   side.append(tg); body.append(ph, side);
-  const foot = E('div', 'pfoot'); const sl = E('div'); sl.append(E('small', '', 'Serial'), E('code', '', pretty(serial)), E('small', '', 'Issued ' + when(r.issuedAt)));
-  foot.append(sl);
+  const foot = E('div', 'pfoot'); const sl = E('div'); const cp = E('button', 'copy', '⧉ ' + t('copy')); cp.type = 'button';
+  cp.onclick = async () => { try { await navigator.clipboard.writeText(serial); } catch (e) {} flash(cp, t('copied')); };
+  const codeRow = E('div', 'crow'); codeRow.append(E('code', '', pretty(serial)), cp);
+  sl.append(E('small', '', t('serial')), codeRow, E('small', '', t('issued') + ' ' + when(r.issuedAt))); foot.append(sl);
   const pm = String(r.position || '').trim().match(/^(\d+)\s*(?:\/|of|out of)?\s*(\d+)?/i);
-  if (pm) { const m = E('div', 'medal'); const sp = E('span'); sp.append(E('b', '', ordinal(+pm[1])), document.createTextNode(pm[2] ? 'of ' + pm[2] : 'in class')); m.append(sp); foot.append(m); }
+  if (pm) { const m = E('div', 'medal'); const sp = E('span'); sp.append(E('b', '', lang === 'sw' ? pm[1] : ordinal(+pm[1])), document.createTextNode(pm[2] ? t('of') + ' ' + pm[2] : t('inClass'))); m.append(sp); m.title = t('place'); foot.append(m); }
   pass.append(top, body, foot, E('div', 'micro', ('KANYADET PRIMARY ' + serial + ' ').repeat(10))); out.append(pass);
 
   // performance
   const avg = Math.max(0, Math.min(100, Number(r.avg) || 0)), subs = r.subjects || [];
-  const sc = rise(card('Performance')); const sg = E('div', 'sc');
-  const ring = E('div', 'ring'); const rin = E('div'); const rb = E('b', '', '0%'); rin.append(rb, E('span', '', 'average')); ring.append(rin);
+  const sc = rise(card(t('perf'))); const sg = E('div', 'sc');
+  const ring = E('div', 'ring'); const rin = E('div'); const rb = E('b', '', '0%'); rin.append(rb, E('span', '', t('avg'))); ring.append(rin);
   const st = E('div', 'st');
   const stat = (ic, lab, val) => { const d = E('div'); d.append(E('i', '', ic)); const s = E('span'); s.append(E('small', '', lab), E('b', '', val)); d.append(s); st.append(d); };
-  stat('🏅', 'Level', r.level || '—'); if (r.maxPoints) stat('⭐', 'Points', (r.points || 0) + ' of ' + r.maxPoints); if (r.total) stat('🧮', 'Total marks', String(r.total));
+  stat('🏅', t('level'), r.level || '—'); if (r.maxPoints) stat('⭐', t('points'), (r.points || 0) + ' ' + t('of') + ' ' + r.maxPoints); if (r.total) stat('🧮', t('total'), String(r.total));
   sg.append(ring, st); sc.append(sg);
   if (subs.length) {
     const cnt = { ee: 0, me: 0, ae: 0, be: 0 }; subs.forEach(s => { const k = lvKey(s.l); if (cnt[k] != null) cnt[k]++; });
     const d = E('div', 'dist'); const bar = E('div', 'bar');
     Object.keys(cnt).forEach(k => { if (cnt[k]) { const i = E('i'); i.style.flex = cnt[k]; i.style.background = LV[k][0]; bar.append(i); } });
-    const lg = E('div', 'leg'); Object.keys(cnt).forEach(k => { if (cnt[k]) { const sp = E('span', '', cnt[k] + ' ' + LV[k][1]); sp.style.setProperty('--c', LV[k][0]); lg.append(sp); } });
+    const lg = E('div', 'leg'); Object.keys(cnt).forEach(k => { if (cnt[k]) { const sp = E('span', '', cnt[k] + ' ' + t(LV[k][1])); sp.style.setProperty('--c', LV[k][0]); lg.append(sp); } });
     d.append(bar, lg); sc.append(d);
     const ins = E('div', 'insights'); const best = subs.reduce((a, b) => (b.s > a.s ? b : a)), low = subs.reduce((a, b) => (b.s < a.s ? b : a));
-    const meet = cnt.ee + cnt.me;
     const mk = (cls, lab, name, extra) => { const i = E('div', 'ins ' + cls); i.append(E('small', '', lab), E('b', '', name)); if (extra) i.append(E('span', '', extra)); ins.append(i); };
-    mk('up', '⭐ Strongest', best.n, best.s + '%'); if (low !== best) mk('dn', '🎯 Needs focus', low.n, low.s + '%');
-    mk('wide', '📈 Meeting or above', meet + ' of ' + subs.length + ' learning areas'); sc.append(ins);
+    mk('up', '⭐ ' + t('best'), nice(best.n), best.s + '%'); if (low !== best) mk('dn', '🎯 ' + t('focus'), nice(low.n), low.s + '%');
+    mk('wide', '📈 ' + t('meetAbove'), t('areasN', { a: cnt.ee + cnt.me, b: subs.length })); sc.append(ins);
   }
   out.append(sc); animateRing(ring, avg); countUp(rb, avg, 1, 1300);
 
-  // radar
-  if (subs.length >= 3) { const rc = rise(card('Strengths at a glance', 'score out of 100')); rc.append(radar(subs)); out.append(rc); }
+  if (subs.length >= 3) { const rc = rise(card(t('glance'), t('outOf100'))); rc.append(radar(subs)); out.append(rc); }
 
   // marks + compare
-  const mkc = rise(card('Learning areas', subs.length ? subs.length + ' assessed' : ''));
+  const mkc = rise(card(t('areas'), subs.length ? t('assessed', { n: subs.length }) : ''));
   if (subs.length) {
     const g = E('div', 'g'); const cmps = [];
-    const match = E('div', 'match'); const mt = E('div', '', '💡 Type each score from your printed card into the boxes. A wrong one turns red.'); const stars = E('div', 'stars'); match.append(mt, stars);
+    const match = E('div', 'match'); const mt = E('div', '', t('tip')); const stars = E('div', 'stars'); match.append(mt, stars);
     subs.forEach((s, idx) => {
       const k = lvKey(s.l);
-      const t = E('div', 'sj s-' + k + (subs.length % 2 && idx === subs.length - 1 ? ' wide' : ''));
-      t.append(E('div', 'ic', subjIcon(s.n)), E('div', 'n', s.n));
-      const v = E('div', 'v'); v.append(E('b', '', s.s == null ? '—' : String(+s.s.toFixed(2))), E('i', '', s.l || '')); t.append(v);
-      const bar = E('div', 'bar'); const u = E('u'); bar.append(u); t.append(bar);
+      const tile = E('div', 'sj s-' + k + (subs.length % 2 && idx === subs.length - 1 ? ' wide' : ''));
+      tile.append(E('div', 'ic', subjIcon(s.n)), E('div', 'n', nice(s.n)));
+      const vv = E('div', 'v'); vv.append(E('b', '', s.s == null ? '—' : String(+s.s.toFixed(2))), E('i', '', s.l || '')); tile.append(vv);
+      const bar = E('div', 'bar'); const u = E('u'); bar.append(u); tile.append(bar);
       setTimeout(() => { u.style.width = Math.max(0, Math.min(100, s.s || 0)) + '%'; }, REDUCED ? 0 : 400 + idx * 90);
-      const i = E('input', 'cmp'); i.inputMode = 'decimal'; i.placeholder = 'on your card?'; i.setAttribute('aria-label', 'Score on your card for ' + s.n);
-      i.addEventListener('input', recompute); t.append(i); cmps.push([i, s.s]); g.append(t);
+      const i = E('input', 'cmp'); i.inputMode = 'decimal'; i.placeholder = t('onCard'); i.setAttribute('aria-label', t('onCard') + ' ' + nice(s.n));
+      i.addEventListener('input', recompute); tile.append(i); cmps.push([i, s.s]); g.append(tile);
     });
     const starEls = subs.map(() => { const x = E('i', '', '⭐'); stars.append(x); return x; });
     mkc.append(g, match);
@@ -379,92 +560,159 @@ function render(kind, title, sub, r, serial, h) {
         i.classList.add(same ? 'ok' : 'no'); if (!same) { bad++; starEls[n].className = 'x'; starEls[n].textContent = '❌'; } else starEls[n].className = 'on';
       });
       match.className = 'match' + (done ? (bad ? ' no' : ' ok') : '');
-      mt.textContent = !done ? '💡 Type each score from your printed card into the boxes. A wrong one turns red.'
-        : bad ? '⚠️ ' + bad + ' of ' + done + ' differ from the school record. This card may have been altered.'
-        : (done === subs.length ? '🎉 Every score matches the school record.' : '✅ ' + done + ' of ' + subs.length + ' checked — all match so far.');
+      mt.textContent = !done ? t('tip') : bad ? t('diff', { b: bad, d: done }) : (done === subs.length ? t('allMatch') : t('soFar', { d: done, n: subs.length }));
     }
-  } else mkc.append(E('div', 'legacy', 'This card was registered before detailed marks were stored. Reprint it from the Results Portal to show them here.'));
+  } else mkc.append(E('div', 'legacy', t('legacy')));
   out.append(mkc);
 
-  // teacher note + signatures
+  // teacher note
   if (r.remark || r.classTeacher || r.headTeacher || r.issuedBy) {
-    const tn = rise(card('Teacher’s note'));
+    const tn = rise(card(t('note')));
     if (r.remark) tn.append(E('div', 'bub', r.remark));
     const sg2 = E('div', 'sigs'); const SIG = ['M4 22c8-20 12 6 20-4s6-12 12-4-2 14 6 8 12-16 18-6 10 6 18 0', 'M6 18c8-14 12 4 20-2s4-10 12-2 8 12 16 2 10-12 18-4 10 8 16 2'];
-    [['Class teacher', r.classTeacher, 0], ['Head teacher', r.headTeacher, 1]].forEach(([lab, nm, k]) => {
+    [[t('ct'), r.classTeacher, 0], [t('ht'), r.headTeacher, 1]].forEach(([lab, nm, k]) => {
       if (!nm) return; const d = E('div', 'sig'); const sv = S('svg', { viewBox: '0 0 120 30', 'aria-hidden': 'true' }); sv.append(S('path', { d: SIG[k] })); d.append(sv, E('b', '', nm), E('small', '', lab)); sg2.append(d);
     });
     if (sg2.children.length) tn.append(sg2);
-    if (r.issuedBy) tn.append(E('p', 'foot', 'Printed by ' + r.issuedBy)), tn.lastChild.style.marginTop = '10px';
+    if (r.issuedBy) { const pb = E('p', 'foot', t('printedBy', { x: r.issuedBy })); pb.style.marginTop = '10px'; tn.append(pb); }
     out.append(tn);
   }
 
-  // checks timeline
-  const kc = rise(card('Safety checks')); const list = E('div', 'ck');
-  list.append(ck('ok', 'Found in the school register', 'Registered ' + when(r.issuedAt, true)));
-  list.append(r.status === 'revoked' ? ck('bad', 'This card has been withdrawn') : ck('ok', 'Card has not been withdrawn'));
-  list.append(hashOk === null ? ck('in', 'QR code not scanned', 'You typed the code. Scan the QR on the card to also catch corrections made after printing.')
-    : hashOk ? ck('ok', 'QR code matches the record', 'Fingerprint ' + h.toUpperCase() + ' · marks unchanged since printing')
-    : ck('warn', 'QR code does not match', 'The record was corrected after this card was printed. Trust the figures on this page.'));
-  if ((r.rev || 1) > 1) list.append(ck('in', 'Corrected ' + ((r.rev || 1) - 1) + ' time' + ((r.rev || 1) > 2 ? 's' : '') + ' (revision ' + r.rev + ')', when(r.updatedAt, true)));
+  // checks
+  const kc = rise(card(t('checks'))); const list = E('div', 'ck');
+  list.append(ck('ok', t('c1'), t('c1d', { t: when(r.issuedAt, true) })));
+  list.append(wd ? ck('bad', t('c2bad')) : ck('ok', t('c2ok')));
+  list.append(hashOk === null ? ck('in', t('c3none'), t('c3noned')) : hashOk ? ck('ok', t('c3ok'), t('c3okd', { h: h.toUpperCase() })) : ck('warn', t('c3no'), t('c3nod')));
+  if ((r.rev || 1) > 1) list.append(ck('in', t('c4', { n: (r.rev || 1) - 1, r: r.rev }), when(r.updatedAt, true)));
   kc.append(list); out.append(kc);
 
-  // image comparison slider
-  const pc = rise(card('Photo match', 'stays on your phone')); const holder = E('div'); pc.append(holder);
-  const pb = E('div', 'photobtn'); const lab = E('label', '', '📷 Add a photo of your card'); const fi = E('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.setAttribute('capture', 'environment'); lab.append(fi); pb.append(lab); pc.append(pb);
-  const hint = E('p', 'hint', 'Drag the handle to compare the school’s photo with the one on your card.'); pc.append(hint);
+  // photo comparison
+  const pc = rise(card(t('photo'), t('onPhone'))); const holder = E('div'); pc.append(holder);
+  const pb = E('div', 'photobtn'); const lab = E('label', '', t('addPhoto')); const fi = E('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.setAttribute('capture', 'environment'); lab.append(fi); pb.append(lab); pc.append(pb);
+  pc.append(E('p', 'hint', t('drag')));
   let official = null;
-  const showOnly = u => { holder.replaceChildren(); if (u) { const bx = E('div', 'cmpbox'); const im = E('img'); im.src = u; im.alt = 'Official photo on school record'; bx.append(im, E('span', 'lab l', 'School record')); holder.append(bx); } else holder.append(E('div', 'empty', 'No photo on the school record yet. Add a photo of your card.')); };
+  const showOnly = u => { holder.replaceChildren(); if (u) { const bx = E('div', 'cmpbox'); const im = E('img'); im.src = u; im.alt = t('schoolRec'); bx.append(im, E('span', 'lab l', t('schoolRec'))); holder.append(bx); } else holder.append(E('div', 'empty', t('noPhoto'))); };
   findPhoto(r).then(u => { official = u; showOnly(u); });
   fi.addEventListener('change', () => {
     const f = fi.files && fi.files[0]; if (!f) return; const mine = URL.createObjectURL(f);
-    if (!official) { holder.replaceChildren(); const bx = E('div', 'cmpbox'); const im = E('img'); im.src = mine; im.alt = 'Photo you added'; bx.append(im, E('span', 'lab l', 'Your card')); holder.append(bx); return; }
     holder.replaceChildren(); const bx = E('div', 'cmpbox');
-    const a = E('img'); a.src = official; a.alt = 'Official photo on school record'; const b = E('img', 'top'); b.src = mine; b.alt = 'Photo you added';
-    const rg = E('input'); rg.type = 'range'; rg.min = 0; rg.max = 100; rg.value = 50; rg.setAttribute('aria-label', 'Compare photos: drag to reveal');
+    if (!official) { const im = E('img'); im.src = mine; im.alt = t('yourCard'); bx.append(im, E('span', 'lab l', t('yourCard'))); holder.append(bx); return; }
+    const a = E('img'); a.src = official; a.alt = t('schoolRec'); const b = E('img', 'top'); b.src = mine; b.alt = t('yourCard');
+    const rg = E('input'); rg.type = 'range'; rg.min = 0; rg.max = 100; rg.value = 50; rg.setAttribute('aria-label', t('photo'));
     const kn = E('div', 'knob'); rg.addEventListener('input', () => { b.style.clipPath = `inset(0 0 0 ${rg.value}%)`; kn.style.left = rg.value + '%'; });
-    bx.append(a, b, rg, kn, E('span', 'lab l', 'School record'), E('span', 'lab r', 'Your card')); holder.append(bx);
+    bx.append(a, b, rg, kn, E('span', 'lab l', t('schoolRec')), E('span', 'lab r', t('yourCard'))); holder.append(bx);
   });
   out.append(pc);
 
   // fingerprint + history
-  const fc = rise(card('Record fingerprint')); const fr = E('div', 'fprow'); const idn = E('div', 'iden'); idn.append(identicon(r.contentHash)); idn.title = 'Visual fingerprint';
+  const fc = rise(card(t('fpT'))); const fr = E('div', 'fprow'); const idn = E('div', 'iden'); idn.append(identicon(r.contentHash));
   const fcol = E('div'); const fp = String(r.contentHash || '').slice(0, 16).toUpperCase().match(/.{1,4}/g);
-  if (fp) fcol.append(E('div', 'fp', fp.join(' · '))); fcol.append(E('div', 'fpn', 'This pattern and code change if any mark changes.'));
+  if (fp) fcol.append(E('div', 'fp', fp.join(' · '))); fcol.append(E('div', 'fpn', t('fpN')));
   fr.append(idn, fcol); fc.append(fr);
   const tl = E('ul', 'tl'); const li = (x, y) => { const l = E('li', '', x); if (y) l.append(E('small', '', y)); tl.append(l); };
-  li('First registered', when(r.issuedAt, true)); if ((r.rev || 1) > 1) li('Last corrected (revision ' + r.rev + ')', when(r.updatedAt, true));
-  li('Status: ' + (r.status === 'revoked' ? 'withdrawn' : 'valid')); fc.append(tl); out.append(fc);
+  li(t('first'), when(r.issuedAt, true)); if ((r.rev || 1) > 1) li(t('lastCorr', { r: r.rev }), when(r.updatedAt, true));
+  li(t('status', { s: wd ? t('sWd') : t('sValid') })); fc.append(tl); out.append(fc);
 
-  const ac = rise(E('div', 'acts')); const b1 = E('button', 'btn', '🖨️ Print or save'); b1.type = 'button'; b1.onclick = () => window.print();
-  const b2 = E('button', 'btn alt', '🔗 Share link'); b2.type = 'button';
-  b2.onclick = async () => { const data = { title: 'Report card verification', text: (r.name || 'Report card') + ' — verified by Kanyadet Primary & Junior School', url: location.href };
-    try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(location.href); b2.textContent = '✓ Link copied'; } } catch (e) { /* cancelled */ } };
-  ac.append(b1, b2); out.append(ac);
-  out.append(rise(E('p', 'foot', 'Checked against the Kanyadet school register on ' + when(new Date().toISOString(), true) + '.')));
+  // how verified + privacy (native <details>: keyboard & screen-reader friendly)
+  const dc = rise(E('div', 'card')); const checkedAt = when(new Date().toISOString(), true);
+  const d1 = E('details', 'acc'); d1.append(E('summary', '', t('how')));
+  const rows = t('howRows', { school: SCHOOL.name, v: r.schema || 1, rc: v.receipt, t: checkedAt }).split('|'); const dl = E('dl');
+  for (let i = 0; i < rows.length; i += 2) dl.append(E('dt', '', rows[i]), E('dd', '', rows[i + 1]));
+  d1.append(dl, E('p', 'small', t('howP')));
+  const d2 = E('details', 'acc'); d2.append(E('summary', '', t('priv')), E('p', 'small', t('privP')));
+  dc.append(d1, d2); out.append(dc);
+
+  // actions
+  const ac = rise(E('div', 'acts'));
+  const bP = E('button', 'btn', t('bPrint')); bP.type = 'button'; bP.onclick = () => window.print();
+  const bS = E('button', 'btn alt', t('bShare')); bS.type = 'button';
+  bS.onclick = async () => { const data = { title: t('sub'), text: (r.name || '') + ' — ' + SCHOOL.name, url: location.href };
+    try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(location.href); flash(bS, t('linkCopied')); } } catch (e) { /* cancelled */ } };
+  const bJ = E('button', 'btn alt', t('bJson')); bJ.type = 'button';
+  bJ.onclick = () => {
+    const rec = { type: 'KanyadetReportCardVerification', schema: r.schema || 1, serial, receipt: v.receipt, verifiedAt: new Date().toISOString(), status: r.status || 'valid', qrFingerprintMatch: hashOk,
+      issuer: { name: SCHOOL.name }, learner: { name: r.name, grade: r.grade, class: r.cls }, period: { term: r.term, year: r.year },
+      results: { average: r.avg, level: r.level, total: r.total, points: r.points, maxPoints: r.maxPoints, position: r.position, subjects: r.subjects || [] },
+      remark: r.remark || '', signatories: { classTeacher: r.classTeacher || '', headTeacher: r.headTeacher || '' }, revision: r.rev || 1, registeredAt: r.issuedAt, updatedAt: r.updatedAt,
+      recordHash: { alg: 'SHA-256', value: r.contentHash }, note: 'Copy of the school register entry at the time of checking. Not a cryptographically signed credential.' };
+    const a = E('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(rec, null, 2)], { type: 'application/json' })); a.download = 'report-card-' + serial + '.json'; document.body.append(a); a.click(); a.remove();
+  };
+  const bR = E('button', 'btn alt warnb', t('bReport')); bR.type = 'button';
+  bR.onclick = async () => {
+    const msg = t('reportMsg', { s: pretty(serial), r: kind, rc: v.receipt });
+    if (SCHOOL.whatsapp) location.href = 'https://wa.me/' + SCHOOL.whatsapp.replace(/\D/g, '') + '?text=' + encodeURIComponent(msg);
+    else if (SCHOOL.email) location.href = 'mailto:' + SCHOOL.email + '?subject=' + encodeURIComponent('Report card ' + pretty(serial)) + '&body=' + encodeURIComponent(msg);
+    else { try { if (navigator.share) await navigator.share({ text: msg }); else { await navigator.clipboard.writeText(msg); flash(bR, t('copied')); } } catch (e) {} }
+  };
+  ac.append(bP, bS, bJ, bR); out.append(ac);
+  out.append(rise(E('p', 'foot rc', t('rcpt', { x: v.receipt, t: checkedAt }))));
+  focusVerdict();
 }
+function focusVerdict() { const h = document.getElementById('verdict'); if (h) { try { h.focus({ preventScroll: true }); } catch (e) {} } }
 
-function hello() { out.replaceChildren(); seq = 0; out.append(rise(banner('hello', 'Is this report card genuine?', 'Scan the QR on the card, or type the code printed beneath it. You’ll see the school’s full record.'))); }
+/* ───────────────────────── lookup, throttle, log ───────────────────────── */
+const fails = [];
+const noteFail = () => { const n = Date.now(); fails.push(n); while (fails.length && n - fails[0] > 600000) fails.shift(); };
+const blockedFor = () => { const n = Date.now(), rec = fails.filter(x => n - x < 600000); return rec.length < 5 ? 0 : Math.max(0, Math.ceil((rec[rec.length - 1] + 60000 - n) / 1000)); };
+async function logCheck(serial, result) { try { await addDoc(collection(db, 'verifyLog'), { serial, result, at: serverTimestamp(), lang }); } catch (e) { /* logging is best-effort */ } }
 
 async function lookup(rawCode, h) {
+  const wait = blockedFor(); if (wait) { setView({ kind: 'warn', tk: 'tooMany', sk: 'tooManySub', a: { n: wait } }); return; }
   const serial = norm(rawCode);
-  if (serial.length !== 8) { render('bad', 'Code not recognised', 'Codes have 8 characters, like 7F3K-92QA.'); return; }
-  out.replaceChildren(E('div', 'loading', 'Checking with the school records…'));
+  if (serial.length !== 8) { noteFail(); setView({ kind: 'bad', tk: 'badcode', sk: 'badcodeSub' }); return; }
+  setView({ kind: 'loading' });
   let snap;
   try { snap = await getDoc(doc(db, 'cardVerifications', serial)); }
-  catch (e) { render('warn', 'Check unavailable', 'We couldn’t reach the school records. Check your connection and try again.'); return; }
-  if (!snap.exists()) { render('bad', 'No such report card', 'This code isn’t in the school’s records. Treat the card as not genuine.'); return; }
-  const r = snap.data();
-  if (r.status === 'revoked') render('bad', 'Card withdrawn', 'The school has withdrawn this card. Do not rely on it.', r, serial, h);
-  else if (h && !String(r.contentHash || '').startsWith(h)) render('warn', 'Superseded', 'This card was printed before a correction. Below is the school’s current record.', r, serial, h);
-  else if (h) render('ok', 'Genuine report card', 'Registered by the school and unchanged since it was printed.', r, serial, h);
-  else render('ok', 'Record found', 'This code is registered with the school. Compare the details below with your card.', r, serial, null);
+  catch (e) { setView({ kind: 'warn', tk: 'unavailable', sk: 'unavailableSub' }); return; }
+  if (!snap.exists()) { noteFail(); logCheck(serial, 'notfound'); setView({ kind: 'bad', tk: 'nosuch', sk: 'nosuchSub' }); return; }
+  const r = snap.data(), receipt = receiptFor(serial);
+  if (r.status === 'revoked') { logCheck(serial, 'revoked'); setView({ kind: 'bad', tk: 'withdrawn', sk: 'withdrawnSub', r, serial, h, receipt }); }
+  else if (h && !String(r.contentHash || '').startsWith(h)) { logCheck(serial, 'superseded'); setView({ kind: 'warn', tk: 'superseded', sk: 'supersededSub', r, serial, h, receipt }); }
+  else if (h) { logCheck(serial, 'ok'); setView({ kind: 'ok', tk: 'genuine', sk: 'genuineSub', r, serial, h, receipt }); }
+  else { logCheck(serial, 'ok'); setView({ kind: 'ok', tk: 'found', sk: 'foundSub', r, serial, h: null, receipt }); }
 }
 
-document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); const s = norm(inp.value); history.replaceState(null, '', '?c=' + encodeURIComponent(s)); lookup(s, null); });
+/* ───────────────────────── camera scanner (QR + CODE128) ───────────────────────── */
+const CAN_SCAN = !!(window.BarcodeDetector && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+let scanStream = null, scanTimer = null;
+function parseScan(raw) {
+  try { const u = new URL(raw); const c = u.searchParams.get('c'); if (c && /verify/i.test(u.pathname)) return { c, h: (u.searchParams.get('h') || '').toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 8) || null }; } catch (e) {}
+  const n = norm(raw); return n.length === 8 ? { c: n, h: null } : null;
+}
+function closeScanner() { clearInterval(scanTimer); if (scanStream) { scanStream.getTracks().forEach(x => x.stop()); scanStream = null; } $('scanner').hidden = true; $('scanbtn').focus(); }
+async function openScanner() {
+  const box = $('scanner'), v = $('scanvideo'), msg = $('scanmsg'); box.hidden = false; msg.textContent = t('scanAim'); $('scanclose').focus();
+  try { scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); v.srcObject = scanStream; await v.play(); }
+  catch (e) { msg.textContent = t('scanDenied'); return; }
+  const det = new BarcodeDetector({ formats: ['qr_code', 'code_128'] });
+  scanTimer = setInterval(async () => {
+    try { const codes = await det.detect(v); if (!codes.length) return; const p = parseScan(codes[0].rawValue || ''); if (!p) { msg.textContent = t('scanUnknown'); return; }
+      closeScanner(); inp.value = p.c; history.replaceState(null, '', '?c=' + encodeURIComponent(norm(p.c)) + (p.h ? '&h=' + p.h : '')); lookup(p.c, p.h); } catch (e) {}
+  }, 300);
+}
+$('scanbtn').addEventListener('click', openScanner); $('scanclose').addEventListener('click', closeScanner);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('scanner').hidden) closeScanner(); });
+if (!CAN_SCAN) $('scanbtn').hidden = true;
+
+/* ───────────────────────── chrome: language, theme, static text ───────────────────────── */
+function applyStatic() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+  document.querySelectorAll('[data-tl]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.tl)); el.title = t(el.dataset.tl); });
+  inp.placeholder = 'XXXX-XXXX'; $('langbtn').textContent = lang === 'sw' ? 'EN' : 'SW';
+  $('scanclose').setAttribute('aria-label', t('close'));
+}
+$('langbtn').addEventListener('click', () => { lang = lang === 'sw' ? 'en' : 'sw'; store.set('kv-lang', lang); applyStatic(); draw(); });
+function setTheme(th) { document.documentElement.dataset.theme = th; store.set('kv-theme', th); $('themebtn').textContent = th === 'dark' ? '☀️' : '🌙'; }
+$('themebtn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+setTheme(store.get('kv-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+applyStatic();
+
+$('f').addEventListener('submit', e => { e.preventDefault(); const s = norm(inp.value); history.replaceState(null, '', '?c=' + encodeURIComponent(s)); lookup(s, null); });
 const q = new URLSearchParams(location.search);
 if (q.get('c')) { inp.value = q.get('c'); lookup(q.get('c'), (q.get('h') || '').toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 8) || null); }
-else hello();
+else setView({ kind: 'hello' });
+
 </script>
 </body>
 </html>
