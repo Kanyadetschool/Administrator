@@ -279,6 +279,25 @@ html[data-theme=dark] details.acc{border-top-color:#24384a}html[data-theme=dark]
 html[data-theme=dark] .tool{border-color:rgba(255,255,255,.25)}
 html[data-theme=dark] .tag{background:rgba(255,255,255,.12)}
 
+
+/* ═════ v4 additions ═════ */
+.scanrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.scanrow .scanbtn{margin-top:0;font-size:13px;padding:11px 6px}
+.scanrow .scanbtn[hidden]{display:none}.scanrow:has(#scanbtn[hidden]){grid-template-columns:1fr}
+.shield{display:flex;gap:12px;align-items:flex-start;padding:10px 14px;border-radius:18px;font-size:12.5px;line-height:1.4}
+.shield .si{font-size:20px;line-height:1.2}.shield b{display:block;font:700 13px 'Poppins'}.shield small{display:block;color:inherit;opacity:.85}
+.shield code{display:inline-block;margin-top:2px;font:700 12.5px 'DejaVu Sans Mono',ui-monospace,monospace;overflow-wrap:anywhere}
+.shield.ok{background:rgba(255,255,255,.75);border:1.5px solid #9fd8b4;color:#1b6a3f}
+.shield.bad{background:#fbe3e0;border:2px solid #e74c3c;color:#8f2a20}
+.rec{display:grid;gap:8px}
+.recitem{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;background:#f4f7f9;border-radius:16px;padding:10px 12px;cursor:pointer;color:var(--ink);font-family:'Poppins'}
+.recitem:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.recitem .ri{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 13px sans-serif}
+.ri.ok{background:#dff3ea;color:#1b7a45}.ri.warn{background:#fdecd8;color:#a85a0c}.ri.bad{background:#fbe3e0;color:#b03a2e}
+.recitem .rm b{display:block;font:600 13px/1.25 'Poppins';overflow-wrap:anywhere}.recitem .rm small{color:#6a7a88;font-size:11.5px}
+.recfoot{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:12px}.recfoot small{color:#6a7a88;font-size:11.5px}
+html[data-theme=dark] .shield.ok{background:rgba(18,48,31,.8);border-color:#2f7a4c;color:#7fe0a8}html[data-theme=dark] .shield.bad{background:#3a1816;color:#ff9a90}
+html[data-theme=dark] .recitem{background:#0e1a26}html[data-theme=dark] .ri.ok{background:#123826;color:#6fe0a0}html[data-theme=dark] .ri.warn{background:#3d2a13;color:#ffb866}html[data-theme=dark] .ri.bad{background:#3d1a18;color:#ff8f86}
+html[data-theme=dark] .recitem .rm small,html[data-theme=dark] .recfoot small{color:#8da2b4}
 </style>
 </head>
 <body>
@@ -286,11 +305,13 @@ html[data-theme=dark] .tag{background:rgba(255,255,255,.12)}
 <div class="wrap">
   <div class="head"><div class="logo"><img src="./imgs/logo.png" alt="" onerror="this.parentNode.textContent='K'"></div><div><b data-t="school">Kanyadet Primary &amp; Junior School</b><span data-t="sub">Report card verification</span></div>
     <div class="tools"><button id="langbtn" class="tool" type="button" data-tl="toolLang">SW</button><button id="themebtn" class="tool" type="button" data-tl="toolTheme">🌙</button></div></div>
+  <div id="shield" class="shield"></div>
   <div id="result" style="display:grid;gap:14px" aria-live="polite"></div>
   <form id="f" class="card" autocomplete="off">
     <label class="l" for="code" data-t="formLabel">Enter the card code (printed under the QR)</label>
     <div class="row"><input id="code" maxlength="12" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"><button class="go" type="submit" data-t="check">Check</button></div>
-    <button id="scanbtn" class="scanbtn" type="button" data-t="scan">📷 Scan QR or barcode</button>
+    <div class="scanrow"><button id="scanbtn" class="scanbtn" type="button" data-t="scan">📷 Scan QR or barcode</button><button id="photobtn" class="scanbtn" type="button" data-t="scanPhoto">🖼️ Use a photo</button></div>
+    <input id="scanfile" type="file" accept="image/*" hidden>
   </form>
   <p class="foot" data-t="footer">Always compare what you see here with the printed card. If anything differs, the card has been altered.</p>
 </div>
@@ -302,9 +323,11 @@ import { FIREBASE_CONFIG } from './js/config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-// ── School contact for the "Report a problem" button. Fill in what you have; leave the rest empty.
-//    whatsapp: digits only with country code, e.g. '2547XXXXXXXX'.  With none set, the button copies/shares a ready-made message instead.
-const SCHOOL = { name: 'Kanyadet Primary & Junior School', whatsapp: '', email: '', phone: '' };
+const SCHOOL = { name: 'Kanyadet Primary & Junior School' };
+// Hosts the school really serves this page from. Anything else gets a warning banner.
+const OFFICIAL_HOSTS = ['kanyadet-school-portal.web.app', 'kanyadet-school-admin.web.app', 'kanyadet-school-admin.firebaseapp.com', 'localhost', '127.0.0.1'];
+const HOST = window.__KV_HOST || location.hostname;
+const IS_OFFICIAL = OFFICIAL_HOSTS.includes(HOST);
 
 const db  = getFirestore(initializeApp(FIREBASE_CONFIG, 'verify'));
 const $   = id => document.getElementById(id);
@@ -348,7 +371,10 @@ const I18N = {
   rcpt:'Receipt {x} · checked {t}', footer:'Always compare what you see here with the printed card. If anything differs, the card has been altered.',
   formLabel:'Enter the card code (printed under the QR)', check:'Check', scan:'📷 Scan QR or barcode',
   scanAim:'Point the camera at the QR code or barcode on the card.', scanDenied:'Camera not available. Allow camera access, or type the code instead.', scanUnknown:'That isn’t a Kanyadet report card code. Keep scanning…', close:'Close',
-  reportMsg:'Hello, I want to report a problem with report card {s} (result: {r}). Receipt {rc}. Details: ', rJson:'verification record',
+  scanPhoto:'🖼️ Use a photo', scanNoQr:'No QR code found in that photo. Try a clearer, closer picture.', scanLoading:'Preparing the scanner…',
+  recent:'Recent checks on this device', clear:'Clear', recentNote:'Saved only on this phone. Nothing is sent anywhere.', recentNF:'Not found',
+  shieldOk:'Official school website', shieldOkSub:'Check that your address bar shows exactly this:', shieldBad:'This is not the school’s official website', shieldBadSub:'Do not trust results shown here. Open the real page at kanyadet-school-portal.web.app/verify.html',
+  reportCode:'🚩 Report this code',
  },
  sw: {
   skip:'Ruka hadi matokeo', toolLang:'Lugha', toolTheme:'Badilisha mwanga/giza', school:'Kanyadet Primary & Junior School', sub:'Uthibitishaji wa kadi ya matokeo',
@@ -384,7 +410,10 @@ const I18N = {
   rcpt:'Risiti {x} · ilikaguliwa {t}', footer:'Linganisha kila kitu unachoona hapa na kadi iliyochapishwa. Kama kuna tofauti, kadi imebadilishwa.',
   formLabel:'Andika msimbo wa kadi (ulio chini ya QR)', check:'Kagua', scan:'📷 Changanua QR au msimbopau',
   scanAim:'Elekeza kamera kwenye msimbo wa QR au msimbopau ulio kwenye kadi.', scanDenied:'Kamera haipatikani. Ruhusu kamera, au andika msimbo.', scanUnknown:'Huo si msimbo wa kadi ya Kanyadet. Endelea kuchanganua…', close:'Funga',
-  reportMsg:'Habari, nataka kuripoti tatizo kuhusu kadi ya matokeo {s} (matokeo: {r}). Risiti {rc}. Maelezo: ', rJson:'rekodi ya uthibitisho',
+  scanPhoto:'🖼️ Tumia picha', scanNoQr:'Hakuna msimbo wa QR kwenye picha hiyo. Jaribu picha iliyo wazi na karibu zaidi.', scanLoading:'Inaandaa kichanganuzi…',
+  recent:'Ukaguzi wa hivi karibuni kwenye kifaa hiki', clear:'Futa', recentNote:'Vinahifadhiwa kwenye simu hii tu. Hakuna kinachotumwa popote.', recentNF:'Haipatikani',
+  shieldOk:'Tovuti rasmi ya shule', shieldOkSub:'Hakikisha upau wa anwani unaonyesha hasa hii:', shieldBad:'Hii si tovuti rasmi ya shule', shieldBadSub:'Usiamini matokeo yanayoonyeshwa hapa. Fungua ukurasa halisi kwenye kanyadet-school-portal.web.app/verify.html',
+  reportCode:'🚩 Ripoti msimbo huu',
  }
 };
 let lang = store.get('kv-lang') || ((navigator.language || '').toLowerCase().startsWith('sw') ? 'sw' : 'en');
@@ -486,8 +515,12 @@ function draw() {
   out.replaceChildren(); seq = 0;
   const v = view;
   if (v.kind === 'loading') { out.append(E('div', 'loading', '…')); return; }
-  if (v.kind === 'hello') { out.append(rise(banner('hello', t('hello'), t('helloSub')))); return; }
-  if (!v.r) { out.append(rise(banner(v.kind, t(v.tk), t(v.sk, v.a)))); focusVerdict(); return; }
+  if (v.kind === 'hello') { out.append(rise(banner('hello', t('hello'), t('helloSub')))); const rc = recentCard(); if (rc) out.append(rise(rc)); return; }
+  if (!v.r) {
+    out.append(rise(banner(v.kind, t(v.tk), t(v.sk, v.a))));
+    if (v.tk === 'nosuch') { const a = E('a', 'btn alt warnb', t('reportCode')); a.href = './report.html?k=notfound&s=' + (v.serial || ''); a.style.textDecoration = 'none'; rise(a); out.append(a); }
+    const rc = recentCard(); if (rc) out.append(rise(rc)); focusVerdict(); return;
+  }
   const { kind, r, serial, h } = v, hashOk = h ? String(r.contentHash || '').startsWith(h) : null;
   const wd = r.status === 'revoked';
   const chips = [[wd ? '✕' : '✓', t('chipReg')], [wd ? '✕' : '✓', wd ? t('chipWd') : t('chipNotWd')], hashOk === null ? ['–', t('chipQrNone')] : hashOk ? ['✓', t('chipQrOk')] : ['!', t('chipQrNo')]];
@@ -638,12 +671,7 @@ function draw() {
     const a = E('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(rec, null, 2)], { type: 'application/json' })); a.download = 'report-card-' + serial + '.json'; document.body.append(a); a.click(); a.remove();
   };
   const bR = E('button', 'btn alt warnb', t('bReport')); bR.type = 'button';
-  bR.onclick = async () => {
-    const msg = t('reportMsg', { s: pretty(serial), r: kind, rc: v.receipt });
-    if (SCHOOL.whatsapp) location.href = 'https://wa.me/' + SCHOOL.whatsapp.replace(/\D/g, '') + '?text=' + encodeURIComponent(msg);
-    else if (SCHOOL.email) location.href = 'mailto:' + SCHOOL.email + '?subject=' + encodeURIComponent('Report card ' + pretty(serial)) + '&body=' + encodeURIComponent(msg);
-    else { try { if (navigator.share) await navigator.share({ text: msg }); else { await navigator.clipboard.writeText(msg); flash(bR, t('copied')); } } catch (e) {} }
-  };
+  bR.onclick = () => { location.href = './report.html?s=' + serial + '&rc=' + encodeURIComponent(v.receipt) + (kind === 'warn' ? '&k=marks' : ''); };
   ac.append(bP, bS, bJ, bR); out.append(ac);
   out.append(rise(E('p', 'foot rc', t('rcpt', { x: v.receipt, t: checkedAt }))));
   focusVerdict();
@@ -664,35 +692,83 @@ async function lookup(rawCode, h) {
   let snap;
   try { snap = await getDoc(doc(db, 'cardVerifications', serial)); }
   catch (e) { setView({ kind: 'warn', tk: 'unavailable', sk: 'unavailableSub' }); return; }
-  if (!snap.exists()) { noteFail(); logCheck(serial, 'notfound'); setView({ kind: 'bad', tk: 'nosuch', sk: 'nosuchSub' }); return; }
+  if (!snap.exists()) { noteFail(); logCheck(serial, 'notfound'); recentAdd({ s: serial, k: 'bad', at: new Date().toISOString() }); setView({ kind: 'bad', tk: 'nosuch', sk: 'nosuchSub', serial }); return; }
   const r = snap.data(), receipt = receiptFor(serial);
+  recentAdd({ s: serial, h: h || '', k: r.status === 'revoked' ? 'bad' : (h && !String(r.contentHash || '').startsWith(h)) ? 'warn' : 'ok', n: initials(r.name), g: r.grade || '', tm: [r.term, r.year].filter(Boolean).join(' '), at: new Date().toISOString() });
   if (r.status === 'revoked') { logCheck(serial, 'revoked'); setView({ kind: 'bad', tk: 'withdrawn', sk: 'withdrawnSub', r, serial, h, receipt }); }
   else if (h && !String(r.contentHash || '').startsWith(h)) { logCheck(serial, 'superseded'); setView({ kind: 'warn', tk: 'superseded', sk: 'supersededSub', r, serial, h, receipt }); }
   else if (h) { logCheck(serial, 'ok'); setView({ kind: 'ok', tk: 'genuine', sk: 'genuineSub', r, serial, h, receipt }); }
   else { logCheck(serial, 'ok'); setView({ kind: 'ok', tk: 'found', sk: 'foundSub', r, serial, h: null, receipt }); }
 }
 
-/* ───────────────────────── camera scanner (QR + CODE128) ───────────────────────── */
-const CAN_SCAN = !!(window.BarcodeDetector && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+/* ───────────────────────── recent checks (this device only) ───────────────────────── */
+const recentGet = () => { try { return JSON.parse(store.get('kv-recent') || '[]'); } catch (e) { return []; } };
+function recentAdd(x) { const l = recentGet().filter(y => y.s !== x.s); l.unshift(x); store.set('kv-recent', JSON.stringify(l.slice(0, 8))); }
+function recentCard() {
+  const l = recentGet(); if (!l.length) return null;
+  const c = card(t('recent')); const list = E('div', 'rec');
+  l.forEach(x => {
+    const b = E('button', 'recitem'); b.type = 'button';
+    const ic = E('span', 'ri ' + x.k, x.k === 'ok' ? '✓' : x.k === 'warn' ? '!' : '✕');
+    const mid = E('span', 'rm'); mid.append(E('b', '', x.k === 'bad' && !x.n ? t('recentNF') : [x.n, x.g, x.tm].filter(Boolean).join(' · ')), E('small', '', pretty(x.s) + ' · ' + when(x.at, true)));
+    b.append(ic, mid); b.onclick = () => { inp.value = x.s; history.replaceState(null, '', '?c=' + x.s + (x.h ? '&h=' + x.h : '')); lookup(x.s, x.h || null); window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' }); };
+    list.append(b);
+  });
+  const row = E('div', 'recfoot'); const clr = E('button', 'tool', t('clear')); clr.type = 'button'; clr.onclick = () => { store.set('kv-recent', '[]'); draw(); };
+  row.append(E('small', '', t('recentNote')), clr); c.append(list, row); return c;
+}
+
+/* ───────────────────────── scanner: native BarcodeDetector, else jsQR (iPhone/Firefox) ───────────────────────── */
+const JSQR_URL = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';   // pinned version; host it yourself to remove the third-party dependency
+let jsqrP = null;
+const loadJsQR = () => window.jsQR ? Promise.resolve(window.jsQR) : (jsqrP || (jsqrP = new Promise((res, rej) => { const s = document.createElement('script'); s.src = JSQR_URL; s.onload = () => res(window.jsQR); s.onerror = () => rej(new Error('jsQR')); document.head.append(s); })));
+async function makeDecoder() {
+  if (window.BarcodeDetector) { const det = new BarcodeDetector({ formats: ['qr_code', 'code_128'] }); return async src => { const c = await det.detect(src); return c.length ? (c[0].rawValue || '') : ''; }; }
+  const jsQR = await loadJsQR(); const cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+  return async src => {
+    const w = src.videoWidth || src.naturalWidth || src.width, h = src.videoHeight || src.naturalHeight || src.height; if (!w || !h) return '';
+    const k = Math.min(1, 720 / Math.max(w, h)); cv.width = Math.round(w * k); cv.height = Math.round(h * k); cx.drawImage(src, 0, 0, cv.width, cv.height);
+    const id = cx.getImageData(0, 0, cv.width, cv.height), r = jsQR(id.data, id.width, id.height, { inversionAttempts: 'attemptBoth' }); return r ? r.data : '';
+  };
+}
+const CAN_CAM = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 let scanStream = null, scanTimer = null;
 function parseScan(raw) {
   try { const u = new URL(raw); const c = u.searchParams.get('c'); if (c && /verify/i.test(u.pathname)) return { c, h: (u.searchParams.get('h') || '').toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 8) || null }; } catch (e) {}
   const n = norm(raw); return n.length === 8 ? { c: n, h: null } : null;
 }
+function goScanned(p) { inp.value = p.c; history.replaceState(null, '', '?c=' + encodeURIComponent(norm(p.c)) + (p.h ? '&h=' + p.h : '')); lookup(p.c, p.h); }
 function closeScanner() { clearInterval(scanTimer); if (scanStream) { scanStream.getTracks().forEach(x => x.stop()); scanStream = null; } $('scanner').hidden = true; $('scanbtn').focus(); }
 async function openScanner() {
-  const box = $('scanner'), v = $('scanvideo'), msg = $('scanmsg'); box.hidden = false; msg.textContent = t('scanAim'); $('scanclose').focus();
+  const box = $('scanner'), v = $('scanvideo'), msg = $('scanmsg'); box.hidden = false; msg.textContent = t('scanLoading'); $('scanclose').focus();
+  let decode; try { decode = await makeDecoder(); } catch (e) { msg.textContent = t('scanDenied'); return; }
   try { scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); v.srcObject = scanStream; await v.play(); }
   catch (e) { msg.textContent = t('scanDenied'); return; }
-  const det = new BarcodeDetector({ formats: ['qr_code', 'code_128'] });
+  msg.textContent = t('scanAim'); let busy = false;
   scanTimer = setInterval(async () => {
-    try { const codes = await det.detect(v); if (!codes.length) return; const p = parseScan(codes[0].rawValue || ''); if (!p) { msg.textContent = t('scanUnknown'); return; }
-      closeScanner(); inp.value = p.c; history.replaceState(null, '', '?c=' + encodeURIComponent(norm(p.c)) + (p.h ? '&h=' + p.h : '')); lookup(p.c, p.h); } catch (e) {}
+    if (busy) return; busy = true;
+    try { const raw = await decode(v); if (raw) { const p = parseScan(raw); if (!p) msg.textContent = t('scanUnknown'); else { closeScanner(); goScanned(p); } } } catch (e) {} busy = false;
   }, 300);
 }
+async function scanFromPhoto(file) {
+  if (!file) return; setView({ kind: 'loading' });
+  try { const decode = await makeDecoder(); const bmp = await createImageBitmap(file); const raw = await decode(bmp); const p = raw && parseScan(raw);
+    if (p) { goScanned(p); return; } setView({ kind: 'bad', tk: 'badcode', sk: 'scanNoQr' }); }
+  catch (e) { setView({ kind: 'bad', tk: 'badcode', sk: 'scanNoQr' }); }
+}
 $('scanbtn').addEventListener('click', openScanner); $('scanclose').addEventListener('click', closeScanner);
+$('photobtn').addEventListener('click', () => $('scanfile').click()); $('scanfile').addEventListener('change', e => { scanFromPhoto(e.target.files && e.target.files[0]); e.target.value = ''; });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('scanner').hidden) closeScanner(); });
-if (!CAN_SCAN) $('scanbtn').hidden = true;
+if (!CAN_CAM) $('scanbtn').hidden = true;
+
+/* ───────────────────────── official-site shield ───────────────────────── */
+function drawShield() {
+  const el = $('shield'); el.replaceChildren(); el.className = 'shield ' + (IS_OFFICIAL ? 'ok' : 'bad'); el.setAttribute('role', IS_OFFICIAL ? 'note' : 'alert');
+  el.append(E('span', 'si', IS_OFFICIAL ? '🔒' : '⚠️'));
+  const d = E('div'); d.append(E('b', '', t(IS_OFFICIAL ? 'shieldOk' : 'shieldBad')));
+  if (IS_OFFICIAL) { d.append(E('small', '', t('shieldOkSub')), E('code', '', HOST || 'kanyadet-school-portal.web.app')); } else { d.append(E('code', '', HOST), E('small', '', t('shieldBadSub'))); }
+  el.append(d);
+}
 
 /* ───────────────────────── chrome: language, theme, static text ───────────────────────── */
 function applyStatic() {
@@ -702,11 +778,11 @@ function applyStatic() {
   inp.placeholder = 'XXXX-XXXX'; $('langbtn').textContent = lang === 'sw' ? 'EN' : 'SW';
   $('scanclose').setAttribute('aria-label', t('close'));
 }
-$('langbtn').addEventListener('click', () => { lang = lang === 'sw' ? 'en' : 'sw'; store.set('kv-lang', lang); applyStatic(); draw(); });
+$('langbtn').addEventListener('click', () => { lang = lang === 'sw' ? 'en' : 'sw'; store.set('kv-lang', lang); applyStatic(); drawShield(); draw(); });
 function setTheme(th) { document.documentElement.dataset.theme = th; store.set('kv-theme', th); $('themebtn').textContent = th === 'dark' ? '☀️' : '🌙'; }
 $('themebtn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
 setTheme(store.get('kv-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-applyStatic();
+applyStatic(); drawShield();
 
 $('f').addEventListener('submit', e => { e.preventDefault(); const s = norm(inp.value); history.replaceState(null, '', '?c=' + encodeURIComponent(s)); lookup(s, null); });
 const q = new URLSearchParams(location.search);
