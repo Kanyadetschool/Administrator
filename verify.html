@@ -524,6 +524,215 @@ const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { 
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let lang = store.get('kv-lang') || ((navigator.language || '').toLowerCase().startsWith('sw') ? 'sw' : 'en');
 
+/* ═════════════════════ PDF receipts: one engine shared by Verify, Report and Inbox ═════════════════════
+   Built in the browser with jsPDF and qrcode-generator (pinned versions, loaded only when someone taps a PDF button). */
+const PDFX = (() => {
+  const SCHOOL_NAME = 'Kanyadet Primary & Junior School';
+  const JSPDF_URLS = ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'];
+  const QR_URLS = ['https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js', 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'];
+  const loadScript = urls => new Promise((res, rej) => {
+    const next = i => { if (i >= urls.length) { rej(new Error('lib')); return; } const s = document.createElement('script'); s.src = urls[i]; s.onload = () => res(); s.onerror = () => { s.remove(); next(i + 1); }; document.head.append(s); };
+    next(0);
+  });
+  let libP = null;
+  const libs = () => libP || (libP = Promise.all([window.jspdf ? 0 : loadScript(JSPDF_URLS), window.qrcode ? 0 : loadScript(QR_URLS)])
+    .then(() => { if (!(window.jspdf && window.jspdf.jsPDF) || !window.qrcode) throw new Error('lib'); }).catch(e => { libP = null; throw e; }));
+
+  const COL = { navy: '#14405f', navy2: '#0c2b42', blue: '#2980b9', orange: '#e67e22', green: '#27ae60', gold: '#d3a437', purple: '#8e44ad', ink: '#1d2b3a', muted: '#5d6d7b', line: '#dde6ee', soft: '#f3f7fa', white: '#ffffff' };
+  const TONE = { ok: { fg: '#1b7a45', bg: '#e9f8ef', ac: '#27ae60' }, warn: { fg: '#a85a0c', bg: '#fdecd8', ac: '#e67e22' }, bad: { fg: '#b03a2e', bg: '#fbe3e0', ac: '#e74c3c' }, info: { fg: '#14405f', bg: '#e3f0fa', ac: '#2980b9' }, gray: { fg: '#4a5a68', bg: '#eef2f5', ac: '#8394a3' } };
+  const rgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+  const tint = (h, k) => { const c = mix(rgb(h), [255, 255, 255], k); return '#' + c.map(v => v.toString(16).padStart(2, '0')).join(''); };
+  const clean = (s, keepNl) => { const f = x => String(x == null ? '' : x).replace(/[\u2018\u2019\u02BC]/g, "'").replace(/[\u201C\u201D]/g, '"').replace(/[\u2013\u2014]/g, '-').replace(/\u2026/g, '...').replace(/[\u2022\u25CF]/g, '·').replace(/[\u00A0\t]/g, ' ').replace(/[^\x20-\x7E\xA1-\xFF]/g, '').replace(/ {2,}/g, ' ').trim(); return keepNl ? String(s == null ? '' : s).split(/\r?\n/).map(f).join('\n').replace(/\n{3,}/g, '\n\n').trim() : f(s); };
+  const nowStamp = () => new Date().toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Nairobi' }) + ' EAT';
+
+  function image(url, type) {
+    return new Promise(res => {
+      const im = new Image(); im.crossOrigin = 'anonymous'; let done = false; const fin = v => { if (!done) { done = true; res(v); } };
+      im.onload = () => { try { const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const x = c.getContext('2d'); if (type === 'jpeg') { x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); } x.drawImage(im, 0, 0); fin({ data: c.toDataURL(type === 'jpeg' ? 'image/jpeg' : 'image/png', 0.9), w: c.width, h: c.height, fmt: type === 'jpeg' ? 'JPEG' : 'PNG' }); } catch (e) { fin(null); } };
+      im.onerror = () => fin(null); setTimeout(() => fin(null), 4000); im.src = url;
+    });
+  }
+  let logoP = null; const logo = () => logoP || (logoP = image('./imgs/logo.png', 'png'));
+
+  /* begin({ kind, no, noLabel, sub, title, confidential }) → builder */
+  async function begin(o) {
+    await libs(); const lg = await logo();
+    const d = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+    d.setProperties({ title: clean(o.title || o.kind), subject: clean(o.kind), author: SCHOOL_NAME, creator: 'Kanyadet School Portal' });
+    const W = 210, H = 297, M = 15, CW = W - 2 * M;
+    const S = { d, W, H, M, CW, y: 0, limit: H - 19 };
+    const fc = h => d.setFillColor(...rgb(h)), dc = h => d.setDrawColor(...rgb(h)), tc = h => d.setTextColor(...rgb(h));
+    const font = (sz, bold, mono) => { d.setFont(mono ? 'courier' : 'helvetica', bold ? 'bold' : 'normal'); d.setFontSize(sz); };
+    const T = (s, x, y, op) => d.text(clean(s), x, y, op || {});
+    const alpha = (a, fn) => { d.saveGraphicsState(); d.setGState(new d.GState({ opacity: a })); fn(); d.restoreGraphicsState(); };
+    const wrap = (s, w) => d.splitTextToSize(clean(s, true), w);
+    const rr = (x, y, w, h, r, fill, stroke, lw) => { if (fill) fc(fill); if (stroke) { dc(stroke); d.setLineWidth(lw || 0.25); } d.roundedRect(x, y, w, h, r, r, fill && stroke ? 'FD' : fill ? 'F' : 'S'); };
+    const fit = (s, w, sz, bold, mono) => { font(sz, bold, mono); let t = clean(s); if (d.getTextWidth(t) <= w) return t; while (t.length > 1 && d.getTextWidth(t + '...') > w) t = t.slice(0, -1); return t + '...'; };
+
+    // ── glyphs drawn as vectors (the built-in PDF fonts have no ✓ ✕ symbols)
+    const glyph = (kind, cx, cy, col, s) => {
+      s = s || 1; dc(col); fc(col); d.setLineCap('round'); d.setLineJoin('round'); d.setLineWidth(0.9 * s);
+      if (kind === '✓' || kind === 'ok') { d.line(cx - 2.6 * s, cy + 0.1 * s, cx - 0.8 * s, cy + 2.1 * s); d.line(cx - 0.8 * s, cy + 2.1 * s, cx + 2.7 * s, cy - 2.3 * s); }
+      else if (kind === '✕' || kind === 'bad') { d.line(cx - 2.2 * s, cy - 2.2 * s, cx + 2.2 * s, cy + 2.2 * s); d.line(cx + 2.2 * s, cy - 2.2 * s, cx - 2.2 * s, cy + 2.2 * s); }
+      else if (kind === '!' || kind === 'warn') { d.line(cx, cy - 3 * s, cx, cy + 0.8 * s); d.circle(cx, cy + 2.7 * s, 0.55 * s, 'F'); }
+      else if (kind === 'i' || kind === 'info') { d.circle(cx, cy - 2.7 * s, 0.55 * s, 'F'); d.line(cx, cy - 0.8 * s, cx, cy + 3 * s); }
+      else { d.line(cx - 2 * s, cy, cx + 2 * s, cy); }
+    };
+
+    // ── page furniture
+    const watermark = () => alpha(0.05, () => {
+      font(62, true); tc(COL.navy); const w = d.getTextWidth('KANYADET'), a = 35 * Math.PI / 180, cx = W / 2, cy = H / 2 + 8;
+      d.text('KANYADET', cx - (w / 2) * Math.cos(a), cy + (w / 2) * Math.sin(a), { angle: 35 });
+    });
+    const accentStrip = (y, h) => { const cs = [COL.blue, COL.orange, COL.green, COL.purple, COL.gold]; cs.forEach((c, i) => { fc(c); d.rect(i * W / 5, y, W / 5 + 0.1, h, 'F'); }); };
+    const bigHeader = () => {
+      const hh = 54, a = rgb(COL.navy2), b = rgb(COL.blue);
+      for (let x = 0; x < W; x += 1) { const k = Math.pow(x / W, 1.35); d.setFillColor(...mix(a, mix(rgb(COL.navy), b, 0.55), k)); d.rect(x, 0, 1.2, hh, 'F'); }
+      alpha(0.07, () => { fc('#ffffff'); d.circle(W - 14, 6, 42, 'F'); d.circle(W - 72, 64, 30, 'F'); });
+      alpha(0.5, () => { fc(COL.gold); d.circle(W - 11, 45, 1.6, 'F'); fc(COL.orange); d.circle(W - 22, 49, 1, 'F'); });
+      accentStrip(hh, 1.6);
+      // logo + school
+      fc('#ffffff'); d.circle(M + 10, 19, 10.5, 'F');
+      if (lg) { const r = Math.min(15 / lg.w, 15 / lg.h); const iw = lg.w * r, ih = lg.h * r; try { d.addImage(lg.data, lg.fmt, M + 10 - iw / 2, 19 - ih / 2, iw, ih); } catch (e) { /* ignore */ } }
+      else { font(16, true); tc(COL.navy); T('K', M + 10, 24, { align: 'center' }); }
+      font(14.5, true); tc('#ffffff'); T(SCHOOL_NAME, M + 25, 17.5);
+      font(8, false); tc('#cfe2f1'); T('Akala, Kenya  ·  Official school record', M + 25, 23.5);
+      // document pill
+      const kind = clean(o.kind).toUpperCase(); font(7.2, true); const pw = d.getTextWidth(kind) + 9;
+      alpha(0.18, () => { fc('#ffffff'); d.roundedRect(W - M - pw, 9, pw, 7, 3.5, 3.5, 'F'); }); tc('#ffffff'); T(kind, W - M - pw / 2, 13.7, { align: 'center' });
+      if (o.confidential) { font(6.6, true); const cw = d.getTextWidth('CONFIDENTIAL - INTERNAL') + 8; fc('#e74c3c'); d.roundedRect(W - M - cw, 18, cw, 6, 3, 3, 'F'); tc('#ffffff'); T('CONFIDENTIAL - INTERNAL', W - M - cw / 2, 22.1, { align: 'center' }); }
+      alpha(0.25, () => { dc('#ffffff'); d.setLineWidth(0.25); d.line(M, 33, W - M, 33); });
+      font(22, true); tc('#ffffff'); T(o.kind, M, 42.5);
+      font(8.6, false); tc('#cfe2f1'); T(o.sub || '', M, 49);
+      if (o.no) { font(6.4, true); tc('#9fc3de'); T(clean(o.noLabel || 'RECEIPT NO.').toUpperCase(), W - M, 38.5, { align: 'right' }); font(11.5, true, true); tc('#ffffff'); T(o.no, W - M, 45.5, { align: 'right' }); }
+      S.y = hh + 9;
+    };
+    const miniHeader = () => {
+      fc(COL.navy); d.rect(0, 0, W, 15, 'F'); accentStrip(15, 1.1);
+      font(9, true); tc('#ffffff'); T(SCHOOL_NAME, M, 9.6); font(8, true, true); tc('#cfe2f1'); T(o.no || o.kind, W - M, 9.6, { align: 'right' });
+      S.y = 26;
+    };
+    const newPage = () => { d.addPage(); watermark(); miniHeader(); };
+    const need = h => { if (S.y + h > S.limit) newPage(); };
+    S.need = need; S.newPage = newPage;
+    watermark(); bigHeader();
+
+    // ── components
+    S.banner = (tone, title, sub, chips) => {
+      const Tn = TONE[tone] || TONE.info; font(8.6); const sl = sub ? wrap(sub, CW - 34) : []; const h = Math.max(24, 15 + sl.length * 4.1 + (chips && chips.length ? 9 : 0)); need(h + 6);
+      const y0 = S.y; rr(M, y0, CW, h, 4, Tn.bg); fc(Tn.ac); d.roundedRect(M, y0, 2.6, h, 1.3, 1.3, 'F');
+      const cy = y0 + 12; fc(Tn.ac); d.circle(M + 14, cy, 7, 'F'); glyph(tone === 'ok' ? '✓' : tone === 'bad' ? '✕' : tone === 'warn' ? '!' : 'i', M + 14, cy, '#ffffff', 1);
+      font(15, true); tc(Tn.fg); T(fit(title, CW - 36, 15, true), M + 26, y0 + 10.5);
+      font(8.6); tc(COL.muted); let yy = y0 + 16.5; sl.forEach(l => { T(l, M + 26, yy); yy += 4.1; });
+      if (chips && chips.length) { let x = M + 26; const cyy = y0 + h - 6.2; font(7, true); chips.forEach(([g, lab]) => { const c = g === '✓' ? '#27ae60' : g === '✕' ? '#e74c3c' : g === '!' ? '#e67e22' : '#8394a3'; const w = d.getTextWidth(clean(lab)) + 9; if (x + w > W - M - 2) return; fc('#ffffff'); dc(c); d.setLineWidth(0.3); d.roundedRect(x, cyy - 3.3, w, 6, 3, 3, 'FD'); fc(c); d.circle(x + 3.2, cyy - 0.3, 1, 'F'); tc(Tn.fg); T(lab, x + 5.6, cyy + 0.9); x += w + 2.4; }); }
+      S.y = y0 + h + 7;
+    };
+    S.section = (label, after) => {
+      need(14 + (after || 24)); fc(COL.blue); d.roundedRect(M, S.y + 0.4, 2.6, 4.2, 1.1, 1.1, 'F'); font(8.2, true); tc(COL.navy); const s = clean(label).toUpperCase(); T(s, M + 5, S.y + 3.8);
+      dc(COL.line); d.setLineWidth(0.3); d.line(M + 8 + d.getTextWidth(s), S.y + 2.9, W - M, S.y + 2.9); S.y += 9;
+    };
+    S.profile = p => {
+      const h = 42; need(h + 6); const y0 = S.y, Tn = TONE[p.tone || 'info'];
+      rr(M, y0, CW, h, 4, '#ffffff', COL.line, 0.3); fc(Tn.ac); d.roundedRect(M + 0.3, y0 + 0.3, CW - 0.6, 2.4, 1.2, 1.2, 'F');
+      const px = M + 6, py = y0 + 7.5, pw = 25, ph = 29; rr(px, py, pw, ph, 3, COL.soft, COL.line, 0.25);
+      if (p.photo) { const r = Math.min((pw - 1) / p.photo.w, (ph - 1) / p.photo.h); const iw = p.photo.w * r, ih = p.photo.h * r; try { d.addImage(p.photo.data, p.photo.fmt, px + (pw - iw) / 2, py + (ph - ih) / 2, iw, ih); } catch (e) { p.photo = null; } }
+      if (!p.photo) { fc(COL.navy); d.circle(px + pw / 2, py + ph / 2, 9.5, 'F'); font(13, true); tc('#ffffff'); T(p.initials || '?', px + pw / 2, py + ph / 2 + 2, { align: 'center' }); }
+      const tx = px + pw + 7, mw = (p.medal ? 38 : 8); const nw = W - M - mw - tx;
+      font(15.5, true); tc(COL.ink); T(fit(p.name || '-', nw, 15.5, true), tx, y0 + 15.5);
+      let x = tx; const ty = y0 + 20.6; font(7.4, true);
+      (p.tags || []).filter(Boolean).forEach(tag => { const w = d.getTextWidth(clean(tag)) + 7; if (x + w > W - M - mw) return; fc(TONE.info.bg); d.roundedRect(x, ty, w, 6, 3, 3, 'F'); tc(COL.navy); T(tag, x + 3.5, ty + 4.1); x += w + 2.2; });
+      if (p.code) { font(6.4, true); tc(COL.muted); T(clean(p.codeLabel || 'CODE').toUpperCase(), tx, y0 + 31.4); font(13, true, true); tc(COL.navy); T(p.code, tx, y0 + 37.4); }
+      if (p.meta) { const mx2 = tx + 50; font(7.4); tc(COL.muted); T(fit(p.meta, W - M - mw - mx2, 7.4), mx2, y0 + 37.4); }
+      if (p.medal) { const cx = W - M - 19, cy = y0 + 22; fc(COL.gold); d.circle(cx, cy, 12.5, 'F'); fc('#f7e3a6'); d.circle(cx, cy, 10.2, 'F'); font(14, true); tc(COL.navy2); T(p.medal.main, cx, cy + 1.2, { align: 'center' }); font(6.8, true); tc('#7a5b0a'); T(p.medal.sub || '', cx, cy + 6.2, { align: 'center' }); }
+      S.y = y0 + h + 7;
+    };
+    S.tiles = arr => {
+      const n = arr.length, gap = 3.5, w = (CW - (n - 1) * gap) / n, h = 21; need(h + 6); const y0 = S.y;
+      arr.forEach((t, i) => {
+        const x = M + i * (w + gap), Tn = TONE[t.tone || 'info']; rr(x, y0, w, h, 3.5, '#ffffff', COL.line, 0.3); fc(Tn.ac); d.roundedRect(x + 4, y0, w - 8, 1.3, 0.65, 0.65, 'F');
+        let sz = 16; font(sz, true); const v = clean(t.value); while (d.getTextWidth(v) > w - 5 && sz > 8) { sz -= 1; font(sz, true); } tc(Tn.fg); T(v, x + w / 2, y0 + 12, { align: 'center' });
+        font(6.4, true); tc(COL.muted); T(fit(clean(t.label).toUpperCase(), w - 3, 6.4, true), x + w / 2, y0 + 17.6, { align: 'center' });
+      }); S.y = y0 + h + 7;
+    };
+    S.kv = (items, cols) => {
+      cols = cols || 2; const pad = 5, gap = 6, cw = (CW - 2 * pad - (cols - 1) * gap) / cols; font(9.6, true);
+      const cells = items.filter(Boolean).map(([k, v]) => ({ k, l: wrap(v == null || v === '' ? '-' : v, cw) }));
+      const rows = []; for (let i = 0; i < cells.length; i += cols) rows.push(cells.slice(i, i + cols));
+      const rh = rows.map(r => 7.2 + Math.max(...r.map(c => c.l.length)) * 4.5); const total = rh.reduce((a, b) => a + b, 0) + 4;
+      if (S.y + total > S.limit) newPage();
+      const y0 = S.y; rr(M, y0, CW, total, 4, COL.soft, COL.line, 0.25); let y = y0 + 2;
+      rows.forEach((r, ri) => {
+        r.forEach((c, ci) => { const x = M + pad + ci * (cw + gap); font(6.4, true); tc(COL.muted); T(clean(c.k).toUpperCase(), x, y + 4.6); font(9.6, true); tc(COL.ink); c.l.forEach((ln, li) => T(ln, x, y + 9.4 + li * 4.5)); });
+        y += rh[ri]; if (ri < rows.length - 1) { dc(COL.line); d.setLineWidth(0.2); d.line(M + pad, y, W - M - pad, y); }
+      }); S.y = y0 + total + 7;
+    };
+    S.note = (title, text, tone) => {
+      const Tn = TONE[tone || 'gray']; font(9); const ls = wrap(text, CW - 14); let i = 0;
+      while (i < ls.length || i === 0) { const room = Math.floor((S.limit - S.y - 16) / 4.3); if (room < 3) { newPage(); continue; } const part = ls.slice(i, i + Math.max(room, 3)); const h = 12 + part.length * 4.3;
+        const y0 = S.y; rr(M, y0, CW, h, 3.5, Tn.bg); fc(Tn.ac); d.roundedRect(M, y0, 2.2, h, 1.1, 1.1, 'F'); font(7, true); tc(Tn.fg); T((title || '').toUpperCase() + (i > 0 ? ' (CONT.)' : ''), M + 7, y0 + 6.2);
+        font(9); tc(COL.ink); part.forEach((l, k) => T(l, M + 7, y0 + 11.6 + k * 4.3)); S.y = y0 + h + 6; i += part.length; if (!ls.length) break; }
+    };
+    S.table = ({ cols, rows, rowH }) => {
+      rowH = rowH || 8.6; const tw = cols.reduce((a, c) => a + c.w, 0); const xs = []; let ax = M; cols.forEach(c => { xs.push(ax); ax += CW * c.w / tw; }); const cw = cols.map(c => CW * c.w / tw);
+      const head = () => { need(rowH * 2); rr(M, S.y, CW, 7.4, 2.5, '#e6eef5'); font(6.8, true); tc(COL.navy); cols.forEach((c, i) => { const x = c.align === 'right' ? xs[i] + cw[i] - 3 : c.align === 'center' ? xs[i] + cw[i] / 2 : xs[i] + 3; T(clean(c.label).toUpperCase(), x, S.y + 4.9, { align: c.align || 'left' }); }); S.y += 8.4; };
+      head();
+      rows.forEach((r, ri) => {
+        if (S.y + rowH > S.limit) { newPage(); head(); }
+        if (ri % 2 === 0) { fc('#f7fafc'); d.rect(M, S.y, CW, rowH, 'F'); }
+        cols.forEach((c, i) => {
+          const cell = r[i]; const o2 = typeof cell === 'object' && cell ? cell : { t: cell }; const cx = c.align === 'right' ? xs[i] + cw[i] - 3 : c.align === 'center' ? xs[i] + cw[i] / 2 : xs[i] + 3; const cy = S.y + rowH / 2 + 1.2;
+          if (o2.bar) { const bw = cw[i] - 8; fc('#e6eef5'); d.roundedRect(xs[i] + 3, S.y + rowH / 2 - 1.5, bw, 3, 1.5, 1.5, 'F'); fc(o2.bar.color); d.roundedRect(xs[i] + 3, S.y + rowH / 2 - 1.5, Math.max(2.4, bw * Math.max(0, Math.min(100, o2.bar.pct)) / 100), 3, 1.5, 1.5, 'F'); return; }
+          if (o2.chip) { font(7.2, true); const s = clean(o2.t); const w = d.getTextWidth(s) + 6; const x0 = c.align === 'center' ? cx - w / 2 : cx; fc(o2.chip.bg); d.roundedRect(x0, S.y + rowH / 2 - 3, w, 6, 3, 3, 'F'); tc(o2.chip.fg); T(s, x0 + 3, cy, {}); return; }
+          font(o2.size || 8.8, !!o2.bold, !!o2.mono); tc(o2.fg || COL.ink); T(fit(o2.t == null ? '' : o2.t, cw[i] - 6, o2.size || 8.8, !!o2.bold, !!o2.mono), cx, cy, { align: c.align || 'left' });
+        }); S.y += rowH;
+      }); S.y += 6;
+    };
+    S.stepper = (steps, active, tone) => {
+      need(30); const Tn = TONE[tone || 'info'], n = steps.length, x0 = M + 16, x1 = W - M - 16, y0 = S.y + 8; rr(M, S.y - 2, CW, 26, 4, COL.soft, COL.line, 0.25);
+      for (let i = 0; i < n - 1; i++) { const xa = x0 + i * (x1 - x0) / (n - 1), xb = x0 + (i + 1) * (x1 - x0) / (n - 1); dc(i < active ? Tn.ac : '#cbd6df'); d.setLineWidth(1.1); d.line(xa + 4, y0, xb - 4, y0); }
+      steps.forEach((s, i) => { const cx = x0 + i * (x1 - x0) / (n - 1); if (i <= active) { fc(Tn.ac); d.circle(cx, y0, 4, 'F'); if (i < active || s.done) glyph('✓', cx, y0, '#ffffff', 0.8); else { fc('#ffffff'); d.circle(cx, y0, 1.5, 'F'); } } else { fc('#ffffff'); dc('#cbd6df'); d.setLineWidth(0.6); d.circle(cx, y0, 4, 'FD'); }
+        font(8.2, true); tc(i <= active ? Tn.fg : COL.muted); T(s.label, cx, y0 + 9, { align: 'center' }); if (s.sub) { font(6.8); tc(COL.muted); T(s.sub, cx, y0 + 13, { align: 'center' }); } });
+      S.y += 28;
+    };
+    const qrDraw = (url, x, y, size, color) => { const q = window.qrcode(0, 'M'); q.addData(url); q.make(); const n = q.getModuleCount(), m = size / n; fc(color || COL.navy); for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d.rect(x + c * m, y + r * m, m + 0.05, m + 0.05, 'F'); };
+    S.verifyBox = ({ title, lines, url, caption }) => {
+      const h = 42; need(h + 1); const y0 = S.y; rr(M, y0, CW, h, 4, COL.soft, COL.line, 0.25);
+      font(10.5, true); tc(COL.navy); T(title, M + 7, y0 + 11); font(8.2); tc(COL.muted); let yy = y0 + 17; (lines || []).forEach(l => wrap(l, CW - 62).forEach(w2 => { T(w2, M + 7, yy); yy += 4.1; }));
+      const qs = 29, qx = W - M - qs - 7, qy = y0 + 4.5; rr(qx - 2.5, qy - 2.5, qs + 5, qs + 5, 3, '#ffffff', COL.line, 0.25); qrDraw(url, qx, qy, qs); font(6.2, true); tc(COL.muted); T(caption || 'SCAN TO OPEN', qx + qs / 2, y0 + h - 1.8, { align: 'center' });
+      S.y = y0 + h + 4;
+    };
+    S.bars = ({ title, sub, data, colors, legend }) => {
+      const h = 58; need(h + 6); const y0 = S.y; rr(M, y0, CW, h, 4, '#ffffff', COL.line, 0.3); font(9.6, true); tc(COL.navy); T(title, M + 6, y0 + 8); if (sub) { font(7.2); tc(COL.muted); T(sub, W - M - 6, y0 + 8, { align: 'right' }); }
+      const gx = M + 8, gw = CW - 16, base = y0 + h - 11, top = y0 + 16, n = data.length, bw = gw / n, mx = Math.max(1, ...data.map(x => x.a + (x.b || 0)));
+      dc('#e6eef5'); d.setLineWidth(0.2); for (let i = 0; i <= 3; i++) { const yy = base - (base - top) * i / 3; d.line(gx, yy, gx + gw, yy); }
+      data.forEach((x, i) => { const bx = gx + i * bw + bw * 0.18, w = bw * 0.64, ha = (x.a / mx) * (base - top), hb = ((x.b || 0) / mx) * (base - top);
+        if (ha > 0) { fc((colors || [COL.blue])[0]); d.roundedRect(bx, base - ha, w, ha, 0.9, 0.9, 'F'); } if (hb > 0) { fc((colors || [COL.blue, COL.red || '#e74c3c'])[1] || '#e74c3c'); d.roundedRect(bx, base - ha - hb, w, hb, 0.9, 0.9, 'F'); }
+        if (x.a + (x.b || 0) > 0) { font(6.4, true); tc(COL.ink); T(String(x.a + (x.b || 0)), bx + w / 2, base - ha - hb - 1.2, { align: 'center' }); }
+        if (i % 2 === 0) { font(6.2); tc(COL.muted); T(x.label, bx + w / 2, base + 4.2, { align: 'center' }); } });
+      if (legend) { font(6.8); tc(COL.muted); T(legend, M + 6, y0 + h - 2.4); }
+      S.y = y0 + h + 7;
+    };
+    S.hbars = ({ title, rows }) => {
+      const h = 14 + rows.length * 7.4; need(h + 6); const y0 = S.y; rr(M, y0, CW, h, 4, '#ffffff', COL.line, 0.3); font(9.6, true); tc(COL.navy); T(title, M + 6, y0 + 8); const mx = Math.max(1, ...rows.map(r => r.v));
+      rows.forEach((r, i) => { const yy = y0 + 15 + i * 7.4; font(8.2); tc(COL.ink); T(fit(r.label, 56, 8.2), M + 6, yy + 1.2); fc('#e6eef5'); d.roundedRect(M + 66, yy - 2, CW - 66 - 22, 3.2, 1.6, 1.6, 'F'); if (r.v) { fc(COL.blue); d.roundedRect(M + 66, yy - 2, Math.max(2.4, (CW - 66 - 22) * r.v / mx), 3.2, 1.6, 1.6, 'F'); } font(8.2, true); tc(COL.navy); T(String(r.v), W - M - 6, yy + 1.2, { align: 'right' }); });
+      S.y = y0 + h + 7;
+    };
+    S.fine = text => { font(7.2); const ls = wrap(text, CW); ls.forEach(l => { if (S.y + 3.7 > H - 18) newPage(); font(7.2); tc(COL.muted); T(l, M, S.y); S.y += 3.7; }); S.y += 2; };
+    S.finish = filename => {
+      const n = d.getNumberOfPages();
+      for (let i = 1; i <= n; i++) {
+        d.setPage(i); dc(COL.line); d.setLineWidth(0.3); d.line(M, H - 16, W - M, H - 16);
+        font(7); tc(COL.muted); T(SCHOOL_NAME + '  ·  Akala, Kenya' + (o.confidential ? '  ·  Confidential, for school administration' : ''), M, H - 11.2); T('Generated ' + nowStamp(), M, H - 7.6);
+        font(7.4, true); tc(COL.navy); T('Page ' + i + ' of ' + n, W - M, H - 11.2, { align: 'right' }); accentStrip(H - 2.4, 2.4);
+      }
+      d.save(filename);
+    };
+    return S;
+  }
+  return { begin, image, tint, clean, nowStamp, COL };
+})();
+
 /* ═════════════════════ VERIFY — check a report card ═════════════════════ */
 const Verify = (() => {
 
@@ -580,6 +789,9 @@ const I18N = {
   speak:'🔊 Read aloud', speakStop:'⏹ Stop reading', spk:'{v}. Learner {name}. {grade}, {term}. Average {avg} percent. Level {lvl}.',
   bWa:'💬 Share on WhatsApp', bMail:'✉️ Share by email', shareMsg:'{icon} {v}: {name}, {grade}, {term}. Checked against {school} records. See it here: {url}', mailSub:'Report card check: {name}',
   lvT:'Understanding the levels', lvEE:'EE · Exceeding expectations: goes beyond what is expected for the grade.', lvME:'ME · Meeting expectations: has the skills expected for the grade.', lvAE:'AE · Approaching expectations: close to the expected skills and still building up.', lvBE:'BE · Below expectations: needs extra support to reach the expected skills.', lvNote:'Levels describe how well a learner meets the expected skills in each learning area. They are not a pass or fail.', lvYour:'This learner’s results by learning area:',
+  pdfBtn:'📄 PDF receipt', pdfWait:'Preparing PDF…', pdfFail:'Couldn’t make the PDF. Check your connection and try again.',
+  pdfKind:'Verification Receipt', pdfNo:'Receipt no.', pdfChecked:'Checked', pdfSubject:'Learning area', pdfScore:'Score', pdfRemark:'Teacher’s remark', pdfClassT:'Class teacher', pdfHeadT:'Head teacher', pdfVerif:'Verification details', pdfRc:'Receipt number', pdfRegistered:'First registered', pdfRev:'Revision', pdfCorrected:'Corrected, revision {r}', pdfQrMatch:'QR fingerprint', pdfScanT:'Check this card again, live', pdfScanRe:'Scan the QR code or open the link to see the school’s current record for this card. A card can be corrected or withdrawn after this receipt was made.', pdfScanCap:'SCAN TO RE-CHECK', pdfFine:'This receipt records a check made at the time shown. The live result at the link or QR code is always the authority. It is a copy of the school register entry, not a signed credential.',
+  pdfBatchKind:'Batch Check Receipt', pdfBatchTitle:'{n} codes checked', pdfCode:'Code', pdfResult:'Result', pdfLearnerCol:'Learner', pdfNum:'No.', pdfBatchFine:'Each code was checked against the school register at the time shown. Scan or open a code individually for the full live record.',
   paste:'Paste a code or link', pasteNone:'No code or link found on the clipboard.', codeHint:'{n} of 8 characters', codeDone:'✓ Complete, checking…', codeLink:'Code recognised, checking…',
  },
  sw: {
@@ -624,6 +836,9 @@ const I18N = {
   speak:'🔊 Soma kwa sauti', speakStop:'⏹ Acha kusoma', spk:'{v}. Mwanafunzi {name}. {grade}, {term}. Wastani asilimia {avg}. Kiwango {lvl}.',
   bWa:'💬 Shiriki kwa WhatsApp', bMail:'✉️ Shiriki kwa barua pepe', shareMsg:'{icon} {v}: {name}, {grade}, {term}. Imekaguliwa kwenye rekodi za {school}. Iangalie hapa: {url}', mailSub:'Ukaguzi wa kadi ya matokeo: {name}',
   lvT:'Kuelewa viwango', lvEE:'EE · Kuzidi matarajio: anazidi kinachotarajiwa kwa darasa.', lvME:'ME · Kufikia matarajio: ana ujuzi unaotarajiwa kwa darasa.', lvAE:'AE · Karibia matarajio: yuko karibu na ujuzi unaotarajiwa na anaendelea kujenga.', lvBE:'BE · Chini ya matarajio: anahitaji msaada zaidi kufikia ujuzi unaotarajiwa.', lvNote:'Viwango vinaeleza jinsi mwanafunzi anavyofikia ujuzi unaotarajiwa katika kila eneo la kujifunza. Si ufaulu wala kufeli.', lvYour:'Matokeo ya mwanafunzi huyu kwa kila eneo la kujifunza:',
+  pdfBtn:'📄 Risiti ya PDF', pdfWait:'Inaandaa PDF…', pdfFail:'Imeshindwa kutengeneza PDF. Angalia mtandao kisha ujaribu tena.',
+  pdfKind:'Risiti ya Uthibitisho', pdfNo:'Namba ya risiti', pdfChecked:'Imekaguliwa', pdfSubject:'Eneo la kujifunza', pdfScore:'Alama', pdfRemark:'Maoni ya mwalimu', pdfClassT:'Mwalimu wa darasa', pdfHeadT:'Mwalimu mkuu', pdfVerif:'Maelezo ya uthibitisho', pdfRc:'Namba ya risiti', pdfRegistered:'Ilisajiliwa kwanza', pdfRev:'Toleo', pdfCorrected:'Imesahihishwa, toleo {r}', pdfQrMatch:'Alama ya QR', pdfScanT:'Kagua kadi hii tena, moja kwa moja', pdfScanRe:'Changanua QR au fungua kiungo kuona rekodi ya sasa ya shule ya kadi hii. Kadi inaweza kusahihishwa au kubatilishwa baada ya risiti hii kutengenezwa.', pdfScanCap:'CHANGANUA KUKAGUA', pdfFine:'Risiti hii inaonyesha ukaguzi uliofanywa wakati ulioandikwa. Matokeo ya moja kwa moja kwenye kiungo au QR ndiyo ya mwisho. Ni nakala ya rekodi ya shule, si cheti kilichotiwa sahihi.',
+  pdfBatchKind:'Risiti ya Ukaguzi wa Kundi', pdfBatchTitle:'Misimbo {n} imekaguliwa', pdfCode:'Msimbo', pdfResult:'Matokeo', pdfLearnerCol:'Mwanafunzi', pdfNum:'Na.', pdfBatchFine:'Kila msimbo ulikaguliwa kwenye rekodi za shule wakati ulioandikwa. Changanua au fungua msimbo mmoja kuona rekodi kamili ya sasa.',
   paste:'Bandika msimbo au kiungo', pasteNone:'Hakuna msimbo au kiungo kwenye ubao wa kunakili.', codeHint:'herufi {n} kati ya 8', codeDone:'✓ Imekamilika, inakagua…', codeLink:'Msimbo umetambuliwa, inakagua…',
  }
 };
@@ -871,7 +1086,7 @@ function draw() {
 
   // actions
   const ac = rise(E('div', 'acts'));
-  const bP = E('button', 'btn', t('bPrint')); bP.type = 'button'; bP.onclick = () => window.print();
+  const bP = E('button', 'btn alt', t('bPrint')); bP.type = 'button'; bP.onclick = () => window.print();
   const bS = E('button', 'btn alt', t('bShare')); bS.type = 'button';
   bS.onclick = async () => { const data = { title: t('sub'), text: (r.name || '') + ' — ' + SCHOOL.name, url: location.href };
     try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(location.href); flash(bS, t('linkCopied')); } } catch (e) { /* cancelled */ } };
@@ -886,7 +1101,8 @@ function draw() {
   };
   const bR = E('button', 'btn alt warnb', t('bReport')); bR.type = 'button';
   bR.onclick = () => { go('report', { s: serial, rc: v.receipt, k: kind === 'warn' ? 'marks' : '' }); };
-  ac.append(bP, bS, bJ, bR);
+  const bPdf = E('button', 'btn', t('pdfBtn')); bPdf.type = 'button'; bPdf.onclick = () => pdfReceipt(bPdf);
+  ac.append(bPdf, bP, bS, bJ, bR);
   const sumLine = () => t('spk', { v: t(v.tk), name: r.name || '', grade: [r.grade, r.cls].filter(Boolean).join(' '), term: [r.term, r.year].filter(Boolean).join(' '), avg: r2(Number(r.avg) || 0, 1), lvl: r.level || '—' });
   const shareText = () => t('shareMsg', { icon: kind === 'ok' ? '✅' : kind === 'warn' ? '⚠️' : '⛔', v: t(v.tk), name: r.name || '—', grade: [r.grade, r.cls].filter(Boolean).join(' '), term: [r.term, r.year].filter(Boolean).join(' '), school: SCHOOL.name, url: location.href.split(/[?#]/)[0] + '?c=' + serial + (h ? '&h=' + h : '') });
   if ('speechSynthesis' in window && window.SpeechSynthesisUtterance) {
@@ -1002,6 +1218,53 @@ function applyStatic() {
 }
 applyStatic(); drawShield();
 $('f').addEventListener('submit', e => { e.preventDefault(); const s = norm(inp.value); history.replaceState(null, '', '?c=' + encodeURIComponent(s)); lookup(s, null); });
+/* ───────────────────────── PDF receipts ───────────────────────── */
+const verifyUrl = (serial, r) => location.href.split(/[?#]/)[0] + '?c=' + serial + (r && r.contentHash ? '&h=' + String(r.contentHash).slice(0, 8).toLowerCase() : '');
+async function pdfBusy(btn, job) {
+  const o = btn.textContent; btn.disabled = true; btn.textContent = t('pdfWait');
+  try { await job(); btn.textContent = o; } catch (e) { console.error(e); btn.textContent = t('pdfFail'); setTimeout(() => { btn.textContent = o; }, 3500); }
+  btn.disabled = false;
+}
+function pdfReceipt(btn) {
+  const v = view; if (!v || !v.r) return Promise.resolve();
+  return pdfBusy(btn, async () => {
+    const { kind, r, serial, h } = v, subs = r.subjects || [], wd = r.status === 'revoked', hashOk = h ? String(r.contentHash || '').startsWith(h) : null, now = new Date().toISOString();
+    const pu = await findPhoto(r).catch(() => null); const photo = pu ? await PDFX.image(pu, 'jpeg') : null;
+    const S = await PDFX.begin({ kind: t('pdfKind'), no: v.receipt, noLabel: t('pdfNo'), title: t('pdfKind') + ' ' + pretty(serial), sub: t('pdfChecked') + ' ' + when(now, true) + ' EAT' });
+    S.banner(kind, t(v.tk), t(v.sk), [[wd ? '✕' : '✓', t('chipReg')], [wd ? '✕' : '✓', wd ? t('chipWd') : t('chipNotWd')], hashOk === null ? ['–', t('chipQrNone')] : hashOk ? ['✓', t('chipQrOk')] : ['!', t('chipQrNo')]]);
+    const pm = String(r.position || '').trim().match(/^(\d+)\s*(?:\/|of|out of)?\s*(\d+)?/i);
+    S.profile({ name: r.name, initials: initials(r.name), photo, tone: kind, tags: [[r.grade, r.cls].filter(Boolean).join(' · '), [r.term, r.year].filter(Boolean).join(' · '), r.uliTail ? 'ULI **** ' + r.uliTail : ''], code: pretty(serial), codeLabel: t('serial'), meta: t('issued') + ' ' + when(r.issuedAt), medal: pm ? { main: lang === 'sw' ? pm[1] : ordinal(+pm[1]), sub: pm[2] ? t('of') + ' ' + pm[2] : t('inClass') } : null });
+    const avg = Math.max(0, Math.min(100, Number(r.avg) || 0)); const tiles = [{ label: t('avg'), value: r2(avg, 1) + '%', tone: 'info' }, { label: t('level'), value: r.level || '-', tone: 'ok' }];
+    if (r.maxPoints) tiles.push({ label: t('points'), value: (r.points || 0) + ' / ' + r.maxPoints, tone: 'warn' }); if (r.total) tiles.push({ label: t('total'), value: String(r.total), tone: 'info' }); S.tiles(tiles);
+    if (subs.length) {
+      S.section(t('areas'));
+      S.table({ cols: [{ label: t('pdfSubject'), w: 36 }, { label: t('pdfScore'), w: 13, align: 'right' }, { label: '', w: 33 }, { label: t('level'), w: 14, align: 'center' }],
+        rows: subs.map(s => { const c = (LV[lvKey(s.l)] || ['#8394a3'])[0]; return [{ t: nice(s.n).replace(/\b(And|AND|Of|OF|The|THE|In|IN|For|FOR)\b/g, w => w.toLowerCase()).replace(/\b(ARTS?|MATH)\b/g, w => titleCase(w)), bold: true }, { t: s.s == null ? '-' : String(+s.s.toFixed(2)), bold: true }, { bar: { pct: s.s || 0, color: c } }, { t: s.l || '-', chip: { bg: PDFX.tint(c, 0.86), fg: c } }]; }) });
+    }
+    if (r.remark) S.note(t('pdfRemark'), r.remark, 'info');
+    const sg = [r.classTeacher && [t('pdfClassT'), r.classTeacher], r.headTeacher && [t('pdfHeadT'), r.headTeacher]].filter(Boolean); if (sg.length) S.kv(sg, 2);
+    S.section(t('pdfVerif'));
+    const fp = String(r.contentHash || '').slice(0, 16).toUpperCase().match(/.{1,4}/g);
+    S.kv([[t('pdfRc'), v.receipt], [t('pdfChecked'), when(now, true) + ' EAT'], [t('pdfRegistered'), when(r.issuedAt, true)], [t('pdfRev'), (r.rev || 1) > 1 ? t('pdfCorrected', { r: r.rev }) + ' · ' + when(r.updatedAt, true) : '1'], [t('fpT'), fp ? fp.join(' · ') : '-'], [t('pdfQrMatch'), hashOk === null ? t('chipQrNone') : hashOk ? t('chipQrOk') : t('chipQrNo')]], 2);
+    S.verifyBox({ title: t('pdfScanT'), lines: [t('pdfScanRe')], url: verifyUrl(serial, r), caption: t('pdfScanCap') });
+    S.fine(t('pdfFine')); S.finish('report-card-receipt-' + serial + '.pdf');
+  });
+}
+function pdfBatch(btn) {
+  return pdfBusy(btn, async () => {
+    const n = k => batchRows.filter(x => x.k === k).length, now = new Date().toISOString(), rno = 'VB-' + now.slice(2, 10).replace(/-/g, '') + '-' + now.slice(11, 16).replace(':', '');
+    const S = await PDFX.begin({ kind: t('pdfBatchKind'), no: rno, noLabel: t('pdfNo'), title: t('pdfBatchKind') + ' ' + rno, sub: t('pdfChecked') + ' ' + when(now, true) + ' EAT' });
+    const issues = n('bad') + n('nf') + n('warn') + n('err') + n('skip');
+    S.banner(issues ? 'warn' : 'ok', t('pdfBatchTitle', { n: batchRows.length }), t('batchSum', { ok: n('ok'), warn: n('warn'), bad: n('bad'), nf: n('nf') }));
+    S.tiles([{ label: t('stOk'), value: String(n('ok')), tone: 'ok' }, { label: t('stWarn'), value: String(n('warn')), tone: 'warn' }, { label: t('stBad'), value: String(n('bad')), tone: 'bad' }, { label: t('stNf'), value: String(n('nf')), tone: 'bad' }]);
+    S.section(t('pdfResult'));
+    const CH = { ok: ['#1b7a45', '#e9f8ef'], warn: ['#a85a0c', '#fdecd8'], bad: ['#b03a2e', '#fbe3e0'], nf: ['#b03a2e', '#fbe3e0'], err: ['#4a5a68', '#eef2f5'], skip: ['#4a5a68', '#eef2f5'] };
+    S.table({ cols: [{ label: t('pdfNum'), w: 6 }, { label: t('pdfCode'), w: 17 }, { label: t('pdfLearnerCol'), w: 49 }, { label: t('pdfResult'), w: 24, align: 'center' }],
+      rows: batchRows.map((x, i) => [{ t: String(i + 1), fg: '#5d6d7b' }, { t: pretty(x.s), mono: true, bold: true, size: 9.4 }, { t: x.r ? [x.r.name, x.r.grade, [x.r.term, x.r.year].filter(Boolean).join(' ')].filter(Boolean).join(' · ') : '-' }, { t: t(BST[x.k][1]), chip: { bg: CH[x.k][1], fg: CH[x.k][0] } }]) });
+    S.fine(t('pdfBatchFine')); S.finish('batch-check-' + now.slice(0, 10) + '.pdf');
+  });
+}
+
 /* ───────────────────────── smart code entry: auto-format, paste, auto-check ───────────────────────── */
 const setHint = x => { $('codehint').textContent = x || ''; };
 let lastAuto = '', autoT = null;
@@ -1049,7 +1312,8 @@ function batchResults(res) {
     batchRows.forEach(x => rows.push([pretty(x.s), I18N.en[BST[x.k][1]], x.r ? x.r.name : '', x.r ? [x.r.grade, x.r.cls].filter(Boolean).join(' ') : '', x.r ? x.r.term : '', x.r ? x.r.year : '', x.r ? x.r.avg : '', x.r ? x.r.level : '', new Date().toISOString()]));
     const a = E('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv' })); a.download = 'card-checks-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.append(a); a.click(); a.remove();
   };
-  res.append(dl);
+  const pdb = E('button', 'btn', t('pdfBtn')); pdb.type = 'button'; pdb.style.marginTop = '8px'; pdb.onclick = () => pdfBatch(pdb);
+  res.append(dl, pdb);
 }
 function drawBatch() {
   const box = $('batch'); box.replaceChildren(); if (box.hidden) return;
@@ -1121,6 +1385,8 @@ const I18N = {
   hintSame:'This matches the school record ({v}). Please double-check the subject and the number.', hintDiff:'The school record shows {v}. Your card shows {p}.',
   notify:'🔔 Notify me', notifyOn:'You’ll get a notification when it changes.', notifTitle:'Kanyadet report update', statusChanged:'Your report is now: {s}', autoUpd:'This page checks for updates every 30 seconds.',
   printRcpt:'🖨️ Print receipt', copyLink:'🔗 Copy link', shareWa:'💬 Share on WhatsApp', linkCopied:'Link copied', shareTxt:'My report {ref} to Kanyadet Primary & Junior School. Track it here: {url}',
+  pdfBtn:'📄 PDF receipt', pdfWait:'Preparing PDF…', pdfFail:'Couldn’t make the PDF. Check your connection and try again.',
+  pdfKind:'Report Receipt', pdfNoLbl:'Reference', pdfNext:'What happens next', pdfNextTxt:'The head teacher reviews every report. Open the tracking page with your reference, or scan the QR code, to see when the status changes. Keep this receipt and quote the reference if you contact the school.', pdfContact:'School WhatsApp', pdfTrackT:'Track this report', pdfTrackTxt:'Scan the QR code or open the link to see the latest status and any message from the school.', pdfTrackCap:'SCAN TO TRACK', pdfChannel:'Sent from', chPage:'This web page', chWa:'WhatsApp', pdfCardCode:'Card code', pdfFineR:'This receipt confirms the school received your report on the date shown. It is not a decision on the report. The tracking page always shows the current status.',
   rcptTitle:'Report receipt', rcptCat:'Problem', rcptDate:'Sent', rcptStatus:'Status', rcptLink:'Track at',
  },
  sw: {
@@ -1145,6 +1411,8 @@ const I18N = {
   hintSame:'Hii inalingana na rekodi ya shule ({v}). Tafadhali hakikisha somo na namba.', hintDiff:'Rekodi ya shule inaonyesha {v}. Kadi yako inaonyesha {p}.',
   notify:'🔔 Nijulishe', notifyOn:'Utapata arifa hali ikibadilika.', notifTitle:'Taarifa ya ripoti ya Kanyadet', statusChanged:'Ripoti yako sasa ni: {s}', autoUpd:'Ukurasa huu hukagua mabadiliko kila sekunde 30.',
   printRcpt:'🖨️ Chapisha risiti', copyLink:'🔗 Nakili kiungo', shareWa:'💬 Shiriki kwa WhatsApp', linkCopied:'Kiungo kimenakiliwa', shareTxt:'Ripoti yangu {ref} kwa Kanyadet Primary & Junior School. Ifuatilie hapa: {url}',
+  pdfBtn:'📄 Risiti ya PDF', pdfWait:'Inaandaa PDF…', pdfFail:'Imeshindwa kutengeneza PDF. Angalia mtandao kisha ujaribu tena.',
+  pdfKind:'Risiti ya Ripoti', pdfNoLbl:'Namba ya kumbukumbu', pdfNext:'Hatua zinazofuata', pdfNextTxt:'Mwalimu mkuu hupitia kila ripoti. Fungua ukurasa wa kufuatilia kwa kutumia namba yako, au changanua QR, kuona hali ikibadilika. Hifadhi risiti hii na utaje namba ukiwasiliana na shule.', pdfContact:'WhatsApp ya shule', pdfTrackT:'Fuatilia ripoti hii', pdfTrackTxt:'Changanua QR au fungua kiungo kuona hali ya sasa na ujumbe wowote kutoka shuleni.', pdfTrackCap:'CHANGANUA KUFUATILIA', pdfChannel:'Ilitumwa kupitia', chPage:'Ukurasa huu', chWa:'WhatsApp', pdfCardCode:'Msimbo wa kadi', pdfFineR:'Risiti hii inathibitisha shule ilipokea ripoti yako tarehe iliyoandikwa. Si uamuzi kuhusu ripoti. Ukurasa wa kufuatilia huonyesha hali ya sasa kila wakati.',
   rcptTitle:'Risiti ya ripoti', rcptCat:'Tatizo', rcptDate:'Ilitumwa', rcptStatus:'Hali', rcptLink:'Fuatilia hapa',
  }
 };
@@ -1263,7 +1531,7 @@ async function openStatus(ref, extra) { view = { name: 'loading' }; draw(); cons
 
 /* ── submit ── */
 function validate() { if (!m.cat) return 'errCat'; if (m.msg.trim().length < 5 && !guideLine()) return 'errMsg'; return ''; }
-function remember(ref) { const l = JSON.parse(store.get('kr-refs') || '[]'); l.unshift({ ref, cat: m.cat, at: new Date().toISOString() }); store.set('kr-refs', JSON.stringify(l.slice(0, 10))); }
+function remember(ref) { const l = JSON.parse(store.get('kr-refs') || '[]'); l.unshift({ ref, cat: m.cat, at: new Date().toISOString(), s: m.serial || '' }); store.set('kr-refs', JSON.stringify(l.slice(0, 10))); }
 async function save(via, ref) {
   const data = { ref, serial: m.serial, receipt: m.receipt, category: m.cat, message: fullMessage(), name: m.name.trim().slice(0, 80), contact: m.contact.trim().slice(0, 80), lang, via, at: serverTimestamp() };
   const b = writeBatch(db); b.set(doc(db, 'cardReports', ref), data); b.set(doc(db, 'reportStatus', ref), { status: 'received', note: '', updatedAt: serverTimestamp() }); await b.commit();
@@ -1386,7 +1654,8 @@ function shareCard(ref) {
   const c = E('div', 'card'); const row = E('div', 'acts');
   const mk = (cls, txt, fn) => { const b = E('button', cls, txt); b.type = 'button'; b.onclick = () => fn(b); return b; };
   row.append(
-    mk('btn', t('printRcpt'), () => window.print()),
+    mk('btn', t('pdfBtn'), b => pdfReceipt(b, ref)),
+    mk('btn alt', t('printRcpt'), () => window.print()),
     mk('btn alt', t('copyLink'), async b => { try { await navigator.clipboard.writeText(trackURL(ref)); } catch (e) {} flash(b, t('linkCopied')); }),
     mk('btn alt', t('shareWa'), () => { window.open('https://wa.me/?text=' + encodeURIComponent(t('shareTxt', { ref: prettyRef(ref), url: trackURL(ref) })), '_blank', 'noopener'); })
   );
@@ -1397,6 +1666,25 @@ function printBlock(ref, st) {
   d.append(E('h2', '', t('rcptTitle'))); const dl = E('dl'); dl.style.cssText = 'display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px';
   [[t('refLbl'), prettyRef(ref)], loc ? [t('rcptCat'), t('cat_' + loc.cat)] : null, loc ? [t('rcptDate'), when(loc.at, true)] : null, [t('rcptStatus'), st && st.status ? t(STL[st.status]) : '—'], st && st.note ? [t('noteT'), st.note] : null, [t('rcptLink'), trackURL(ref)]].filter(Boolean).forEach(([k, v2]) => dl.append(E('dt', '', k), E('dd', '', v2)));
   d.append(dl, E('p', 'foot', t('school'))); return d;
+}
+
+async function pdfReceipt(btn, ref) {
+  const o = btn.textContent; btn.disabled = true; btn.textContent = t('pdfWait');
+  try {
+    const st = view.ref === ref ? view.st : null; let loc = null; try { loc = JSON.parse(store.get('kr-refs') || '[]').find(x => x.ref === ref); } catch (e) {}
+    const status = st && st.status ? st.status : 'received', tone = { received: 'info', reviewing: 'warn', resolved: 'ok', dismissed: 'gray' }[status] || 'info', idx = { received: 0, reviewing: 1, resolved: 2, dismissed: 2 }[status] || 0;
+    const S = await PDFX.begin({ kind: t('pdfKind'), no: prettyRef(ref), noLabel: t('pdfNoLbl'), title: t('pdfKind') + ' ' + prettyRef(ref), sub: loc ? t('rcptDate') + ' ' + when(loc.at, true) + ' EAT' : '' });
+    S.banner(tone, t(STL[status]), t(STL[status] + 'D'));
+    S.section(t('prog'));
+    S.stepper([{ label: t('sRecv'), sub: loc ? when(loc.at) : '' }, { label: t('sRev') }, { label: status === 'dismissed' ? t('sDis') : t('sRes'), done: status === 'resolved' || status === 'dismissed' }], idx, tone);
+    S.section(t('rcptTitle'));
+    S.kv([[t('refLbl'), prettyRef(ref)], [t('rcptStatus'), t(STL[status])], [t('rcptCat'), loc ? t('cat_' + loc.cat) : '-'], [t('rcptDate'), loc ? when(loc.at, true) : '-'], loc && loc.s ? [t('pdfCardCode'), pretty(loc.s)] : null, view.via ? [t('pdfChannel'), view.via === 'whatsapp' ? t('chWa') : t('chPage')] : null, st && st.updatedAt ? [t('updated', { t: '' }).replace(/\s+$/, ''), when(st.updatedAt, true)] : null, contact && contact.whatsapp ? [t('pdfContact'), '+' + contact.whatsapp + (contact.name ? ' (' + contact.name + ')' : '')] : null], 2);
+    if (st && st.note) S.note(t('noteT'), st.note, tone === 'gray' ? 'gray' : 'info');
+    S.note(t('pdfNext'), t('pdfNextTxt'), 'gray');
+    S.verifyBox({ title: t('pdfTrackT'), lines: [t('pdfTrackTxt')], url: trackURL(ref), caption: t('pdfTrackCap') });
+    S.fine(t('pdfFineR')); S.finish('report-receipt-' + ref + '.pdf'); btn.textContent = o;
+  } catch (e) { console.error(e); btn.textContent = t('pdfFail'); setTimeout(() => { btn.textContent = o; }, 3500); }
+  btn.disabled = false;
 }
 
 /* ── entry ── */
@@ -1416,7 +1704,7 @@ async function enter(p) {
   await Promise.all([loadContact(), fresh ? loadCard() : Promise.resolve()]);
   if (ref) await openStatus(ref); else draw();
 }
-function relang() { applyStatic(); draw(); }
+function relang() { applyStatic(); if (m) draw(); }
 return { enter, relang, t };
 
 })();
@@ -1513,6 +1801,68 @@ function startPoll() {
     const ae = document.activeElement; const typing = ae && main.contains(ae) && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
     if (!typing && !selMode) render(); else updateTitle();
   }, 60000);
+}
+
+/* ── PDF receipts (English, internal) ── */
+const baseUrl = () => location.href.replace(/[?#].*$/, '');
+const TONE_OF = { received: 'info', reviewing: 'warn', resolved: 'ok', dismissed: 'gray' };
+async function pdfBusy(btn, job) { const o = btn.textContent; btn.disabled = true; btn.textContent = 'Preparing PDF…'; try { await job(); } catch (e) { console.error(e); toast('Couldn’t create the PDF. Check your connection and try again.'); } btn.textContent = o; btn.disabled = false; }
+function pdfCase(r, withNote, btn) {
+  return pdfBusy(btn, async () => {
+    const card = r.serial ? await cardOf(r.serial) : null, stt = statusOf(r), lab = (CATS[r.category] || CATS.other)[1], others = r.serial ? reports.filter(x => x.serial === r.serial && x.id !== r.id).length : 0;
+    const S = await PDFX.begin({ kind: 'Case File', no: prettyRef(r.id), noLabel: 'Reference', title: 'Case file ' + prettyRef(r.id), sub: 'Report received ' + fmt(r.at, true) + ' EAT', confidential: true });
+    S.banner(TONE_OF[stt] || 'info', STATUS[stt] + (overdue(r) ? '  ·  overdue' : ''), lab + (r.name ? '  ·  reported by ' + r.name : '  ·  anonymous report'));
+    S.section('Report');
+    S.kv([['Problem', lab], ['Received', fmt(r.at, true)], ['Sent from', r.via === 'whatsapp' ? 'WhatsApp' : 'The report page'], ['Language', r.lang === 'sw' ? 'Kiswahili' : 'English'], ['Reporter', r.name || 'Anonymous'], ['Contact', r.contact || '-'], ['Card code', r.serial ? pretty(r.serial) : 'Not given'], ['Check receipt', r.receipt || '-'], ['Handled by', r.handledBy || '-'], ['Handled on', r.handledAt ? fmt(r.handledAt, true) : '-']], 2);
+    S.note('Message from the reporter', r.message || '-', 'info');
+    if (card) { S.section('Card on record'); S.kv([['Learner', card.name], ['Class', [card.grade, card.cls].filter(Boolean).join(' · ') || '-'], ['Term', [card.term, card.year].filter(Boolean).join(' ') || '-'], ['Average · level', (Number(card.avg) || 0).toFixed(1) + '% · ' + (card.level || '-')], ['Register status', card.status === 'revoked' ? 'Withdrawn' + (card.statusReason ? ' (' + card.statusReason + ')' : '') : 'Valid'], ['Other reports on this card', String(others)]], 2); }
+    else if (card === false) S.note('Card code', 'This code is not in the register.', 'bad');
+    S.section('Response');
+    S.note('Reply shown to the reporter', r.note || 'No reply yet.', r.note ? 'ok' : 'gray');
+    if (withNote && r.internalNote) S.note('Private note (never shown to the reporter)', r.internalNote, 'warn');
+    S.verifyBox({ title: r.serial ? 'Open this card in the register' : 'Open the reporter’s tracking page', lines: [r.serial ? 'Scan to see the card exactly as the public sees it.' : 'Scan to see what the reporter sees.'], url: r.serial ? baseUrl() + '?c=' + r.serial + (card && card.contentHash ? '&h=' + String(card.contentHash).slice(0, 8).toLowerCase() : '') : baseUrl() + '?v=report&ref=' + r.id, caption: 'SCAN TO OPEN' });
+    S.fine('Internal document for school administration. It contains the reporter’s contact details' + (withNote && r.internalNote ? ' and a private note' : '') + '. Do not share it outside the school.');
+    S.finish('case-file-' + r.id + '.pdf');
+  });
+}
+function pdfCardRecord(serial, card, btn) {
+  return pdfBusy(btn, async () => {
+    const wd = card.status === 'revoked', hits = logs.filter(l => l.serial === serial), cnt = x => hits.filter(l => l.result === x).length, rel = reports.filter(r => r.serial === serial);
+    const S = await PDFX.begin({ kind: 'Card Record', no: pretty(serial), noLabel: 'Card code', title: 'Card record ' + pretty(serial), sub: 'Register entry as at ' + PDFX.nowStamp(), confidential: true });
+    S.banner(wd ? 'bad' : 'ok', wd ? 'Card withdrawn' : 'Valid card, registered and not withdrawn', wd ? (card.statusReason ? 'Reason: ' + card.statusReason : 'Anyone who checks this card sees “Card withdrawn”.') : 'Anyone who checks this card sees it as genuine.');
+    const pm = String(card.position || '').trim().match(/^(\d+)\s*(?:\/|of|out of)?\s*(\d+)?/i), ord = n => { const q = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (q[(v - 20) % 10] || q[v] || q[0]); };
+    S.profile({ name: card.name, initials: (card.name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase(), tone: wd ? 'bad' : 'ok', tags: [[card.grade, card.cls].filter(Boolean).join(' · '), [card.term, card.year].filter(Boolean).join(' · ')], code: pretty(serial), codeLabel: 'Card code', meta: 'Registered ' + fmt(card.issuedAt), medal: pm ? { main: ord(+pm[1]), sub: pm[2] ? 'of ' + pm[2] : 'in class' } : null });
+    const tiles = [{ label: 'Average', value: (Number(card.avg) || 0).toFixed(1) + '%', tone: 'info' }, { label: 'Level', value: card.level || '-', tone: 'ok' }]; if (card.maxPoints) tiles.push({ label: 'Points', value: (card.points || 0) + ' / ' + card.maxPoints, tone: 'warn' }); tiles.push({ label: 'Revision', value: String(card.rev || 1), tone: 'info' }); S.tiles(tiles);
+    S.section('Register details');
+    S.kv([['First registered', fmt(card.issuedAt, true)], ['Last corrected', fmt(card.updatedAt, true)], ['Printed by', card.issuedBy || '-'], ['Status', wd ? 'Withdrawn' : 'Valid'], ['Status changed', card.statusChangedAt ? fmt(card.statusChangedAt, true) + (card.statusChangedBy ? ' by ' + card.statusChangedBy : '') : '-'], ['Fingerprint', (String(card.contentHash || '').slice(0, 16).toUpperCase().match(/.{1,4}/g) || ['-']).join(' · ')]], 2);
+    S.section('Activity (latest 300 checks)');
+    S.tiles([{ label: 'Genuine', value: String(cnt('ok')), tone: 'ok' }, { label: 'Superseded', value: String(cnt('superseded')), tone: 'warn' }, { label: 'Withdrawn', value: String(cnt('revoked')), tone: 'bad' }, { label: 'Reports', value: String(rel.length), tone: rel.length ? 'warn' : 'info' }]);
+    if (rel.length) { S.section('Reports about this card'); S.table({ cols: [{ label: 'Reference', w: 24 }, { label: 'Problem', w: 38 }, { label: 'Received', w: 22 }, { label: 'Status', w: 16, align: 'center' }], rows: rel.slice(0, 20).map(r => { const st = statusOf(r), T2 = { received: ['#14405f', '#e3f0fa'], reviewing: ['#a85a0c', '#fdecd8'], resolved: ['#1b7a45', '#e9f8ef'], dismissed: ['#4a5a68', '#eef2f5'] }[st]; return [{ t: prettyRef(r.id), mono: true, bold: true, size: 8.4 }, { t: (CATS[r.category] || CATS.other)[1] }, { t: fmt(r.at) }, { t: STATUS[st], chip: { bg: T2[1], fg: T2[0] } }]; }) }); }
+    S.verifyBox({ title: 'Check this card live', lines: ['Scan to see the card exactly as the public sees it.'], url: baseUrl() + '?c=' + serial + (card.contentHash ? '&h=' + String(card.contentHash).slice(0, 8).toLowerCase() : ''), caption: 'SCAN TO OPEN' });
+    S.fine('Internal record for school administration. Check counts come from the latest 300 entries in the forgery log.'); S.finish('card-record-' + serial + '.pdf');
+  });
+}
+function pdfSummary(btn) {
+  return pdfBusy(btn, async () => {
+    const al = alerts(), open = reports.filter(r => !['resolved', 'dismissed'].includes(statusOf(r))).length, od = reports.filter(overdue).length, today = stamp();
+    const handled = reports.filter(r => r.handledAt && toDate(r.handledAt) && toDate(r.at)).map(r => (toDate(r.handledAt) - toDate(r.at)) / 36e5), avg = handled.length ? handled.reduce((a, b) => a + b, 0) / handled.length : null;
+    const S = await PDFX.begin({ kind: 'Summary Report', no: 'SUM-' + today.replace(/-/g, ''), noLabel: 'Report no.', title: 'Reports and card checks summary ' + today, sub: 'Reports and card checks · last 14 days', confidential: true });
+    S.banner(al.length ? 'warn' : 'ok', al.length ? al.length + (al.length > 1 ? ' items need' : ' item needs') + ' your attention' : 'Nothing needs attention', al.length ? 'Details are listed below.' : 'No repeated unknown codes, spikes or overdue reports right now.');
+    S.tiles([{ label: 'Reports', value: String(reports.length), tone: 'info' }, { label: 'Open', value: String(open), tone: open ? 'warn' : 'ok' }, { label: 'Finished', value: String(reports.length - open), tone: 'ok' }, { label: 'Overdue', value: String(od), tone: od ? 'bad' : 'ok' }, { label: 'Avg. to handle', value: avg == null ? '-' : avg < 48 ? avg.toFixed(1) + ' h' : (avg / 24).toFixed(1) + ' d', tone: 'info' }]);
+    if (al.length) { S.section('Needs attention'); al.forEach(a => S.note(a.title, a.text, a.lvl === 'bad' ? 'bad' : 'warn')); }
+    const days = []; for (let i = 13; i >= 0; i--) { const k = dayKey(new Date(Date.now() - i * 864e5)); days.push({ k, label: k.slice(8) + '/' + k.slice(5, 7), ra: 0, ca: 0, cb: 0 }); }
+    const idx = {}; days.forEach((d, i) => { idx[d.k] = i; });
+    reports.forEach(r => { const d = toDate(r.at); if (d) { const i = idx[dayKey(d)]; if (i != null) days[i].ra++; } });
+    logs.forEach(l => { const d = toDate(l.at); if (d) { const i = idx[dayKey(d)]; if (i != null) { l.result === 'ok' ? days[i].ca++ : days[i].cb++; } } });
+    S.section('Trends', 58);
+    S.bars({ title: 'Reports per day', sub: 'Last 14 days', data: days.map(d => ({ label: d.label, a: d.ra })), colors: ['#2980b9'] });
+    S.bars({ title: 'Card checks per day', sub: 'From the latest ' + logs.length + ' checks', data: days.map(d => ({ label: d.label, a: d.ca, b: d.cb })), colors: ['#2980b9', '#e74c3c'], legend: 'Blue: genuine.   Red: superseded, withdrawn or not found.' });
+    const by = {}; reports.forEach(r => { by[r.category] = (by[r.category] || 0) + 1; });
+    S.hbars({ title: 'What people report', rows: Object.entries(CATS).map(([k, [ic, l]]) => ({ label: l, v: by[k] || 0 })) });
+    const odl = reports.filter(overdue).sort((a, b) => ageH(b) - ageH(a)).slice(0, 12);
+    if (odl.length) { S.section('Overdue reports'); S.table({ cols: [{ label: 'Reference', w: 24 }, { label: 'Problem', w: 36 }, { label: 'Waiting', w: 14, align: 'right' }, { label: 'Status', w: 16, align: 'center' }], rows: odl.map(r => { const st = statusOf(r); return [{ t: prettyRef(r.id), mono: true, bold: true, size: 8.4 }, { t: (CATS[r.category] || CATS.other)[1] }, { t: ageH(r) >= 48 ? Math.round(ageH(r) / 24) + ' d' : Math.round(ageH(r)) + ' h', bold: true }, { t: STATUS[st], chip: st === 'reviewing' ? { bg: '#fdecd8', fg: '#a85a0c' } : { bg: '#e3f0fa', fg: '#14405f' } }]; }) }); }
+    S.fine('Internal summary for school administration, built from the reports and card checks loaded in the inbox at the time shown.'); S.finish('summary-' + today + '.pdf');
+  });
 }
 
 /* ── shell ── */
@@ -1634,6 +1984,8 @@ function detailCard(r) {
   c.append(E('div', 'msg', r.message || ''));
   const kv = E('dl', 'kv'); [['Name', r.name || '—'], ['Contact', r.contact || '—'], ['Receipt', r.receipt || '—'], ['Language', r.lang === 'sw' ? 'Kiswahili' : 'English']].forEach(([k, v]) => kv.append(E('dt', '', k), E('dd', '', v))); c.append(kv);
   const slot = E('div'); c.append(slot);
+  const prow = E('div', 'row2'); prow.style.marginTop = '10px'; const bpdf = E('button', 'b line', '📄 PDF case file'); bpdf.type = 'button';
+  bpdf.onclick = () => { const withNote = r.internalNote ? confirm('Include your private note in the PDF?\n\nOK = include it\nCancel = leave it out') : false; pdfCase(r, withNote, bpdf); }; prow.append(bpdf); c.append(prow);
   if (r.serial) {
     cardOf(r.serial).then(card => { slot.replaceChildren(cardBox(r, card)); });
     const n = reports.filter(x => x.serial === r.serial).length;
@@ -1725,7 +2077,7 @@ function insightsView() {
   const mx = Math.max(1, ...Object.values(by)); Object.entries(CATS).forEach(([k, [ic, l]]) => { const n = by[k] || 0; const row = E('div', 'hrow'); const bar = E('div', 'hbar'); const i = E('i'); i.style.width = (n / mx * 100) + '%'; bar.append(i); row.append(E('span', '', ic + ' ' + l), bar, E('b', '', String(n))); c4.append(row); });
   wrap.append(c4);
   const ex = E('div', 'row2'); const b1 = E('button', 'b line', '⬇️ Export all reports (CSV)'); b1.type = 'button'; b1.onclick = () => { const keep = [filter, catF, q, overdueOnly]; filter = 'all'; catF = ''; q = ''; overdueOnly = false; exportReports(); [filter, catF, q, overdueOnly] = keep; };
-  const b2 = E('button', 'b line', '⬇️ Export card checks (CSV)'); b2.type = 'button'; b2.onclick = exportLog; ex.append(b1, b2); wrap.append(ex);
+  const b2 = E('button', 'b line', '⬇️ Export card checks (CSV)'); b2.type = 'button'; b2.onclick = exportLog; const b3 = E('button', 'b', '📄 PDF summary'); b3.type = 'button'; b3.onclick = () => pdfSummary(b3); ex.append(b3, b1, b2); wrap.append(ex);
   return wrap;
 }
 
@@ -1746,6 +2098,7 @@ function cardsView() {
     if (lk.card === undefined) res.append(E('div', 'loading', 'Looking up…'));
     else {
       res.append(cardBox({ serial: lk.serial }, lk.card));
+      if (lk.card) { const pr = E('div', 'row2'); pr.style.marginTop = '8px'; const bp = E('button', 'b line', '📄 PDF card record'); bp.type = 'button'; bp.onclick = () => pdfCardRecord(lk.serial, lk.card, bp); pr.append(bp); res.append(pr); }
       if (lk.card) {
         const k = lk.card, kv = E('dl', 'kv');
         [['Learner', k.name || '—'], ['Class', [k.grade, k.cls].filter(Boolean).join(' · ') || '—'], ['Term', [k.term, k.year].filter(Boolean).join(' ') || '—'], ['Average / level', (Number(k.avg) || 0).toFixed(1) + '% · ' + (k.level || '—')], ['Position', k.position || '—'], ['Revision', String(k.rev || 1)], ['First registered', fmt(k.issuedAt, true)], ['Last corrected', fmt(k.updatedAt, true)], ['Printed by', k.issuedBy || '—'], ['Fingerprint', String(k.contentHash || '').slice(0, 16).toUpperCase() || '—']].forEach(([a, b]) => kv.append(E('dt', '', a), E('dd', '', b)));
