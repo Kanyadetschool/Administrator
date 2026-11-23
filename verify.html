@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="robots" content="noindex">
+<meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="light dark">
-<title>Verify a report card · Kanyadet Primary & Junior School</title>
+<title>Verify a report card · Kanyadet Primary &amp; Junior School</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;1,400&family=Poppins:wght@500;600;700;800&display=swap">
@@ -298,22 +298,168 @@ html[data-theme=dark] .tag{background:rgba(255,255,255,.12)}
 html[data-theme=dark] .shield.ok{background:rgba(18,48,31,.8);border-color:#2f7a4c;color:#7fe0a8}html[data-theme=dark] .shield.bad{background:#3a1816;color:#ff9a90}
 html[data-theme=dark] .recitem{background:#0e1a26}html[data-theme=dark] .ri.ok{background:#123826;color:#6fe0a0}html[data-theme=dark] .ri.warn{background:#3d2a13;color:#ffb866}html[data-theme=dark] .ri.bad{background:#3d1a18;color:#ff8f86}
 html[data-theme=dark] .recitem .rm small,html[data-theme=dark] .recfoot small{color:#8da2b4}
+
+/* ═════ report page ═════ */
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cat{display:flex;align-items:center;gap:8px;padding:11px 12px;border:2px solid #dbe4ea;border-radius:16px;background:var(--surface,#fff);color:var(--ink);font:600 13px/1.25 'Poppins';text-align:left;cursor:pointer}
+.cat span.e{font-size:20px}
+.cat[aria-checked=true]{border-color:var(--orange);background:#fff4e6;box-shadow:0 0 0 3px rgba(230,126,34,.18)}
+.cat:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.fld{display:block;margin-top:14px}
+.fld>span{display:flex;justify-content:space-between;font:600 12.5px 'Poppins';color:var(--muted);margin:0 4px 6px}
+.fld input,.fld textarea{width:100%;border:2px solid #c9d6e0;border-radius:16px;background:var(--surface,#fff);color:var(--ink);font:500 15px 'Poppins';padding:11px 14px}
+.fld textarea{min-height:120px;resize:vertical;line-height:1.5}
+.fld input:focus,.fld textarea:focus{outline:3px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+.fld .cnt{font-weight:500}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.cta{display:grid;gap:10px;margin-top:18px}
+.bsend,.bwa{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px;border:0;border-radius:99px;font:700 15px 'Poppins';cursor:pointer;color:#fff}
+.bsend{background:var(--navy);box-shadow:0 10px 18px -10px rgba(20,64,95,.8)}
+.bwa{background:#1faa55;box-shadow:0 10px 18px -10px rgba(31,170,85,.9)}
+.bsend:disabled,.bwa:disabled{opacity:.55;cursor:wait}
+.bsend:focus-visible,.bwa:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}.or:before,.or:after{content:"";flex:1;height:1px;background:#dbe4ea}
+.err{margin-top:12px;padding:10px 14px;border-radius:14px;background:#fdeceb;color:#b03a2e;font-weight:600;font-size:13px;border:1.5px solid #e74c3c}
+.cardsum{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center}
+.cardsum .ci{width:48px;height:48px;border-radius:16px;background:#e3f0fa;display:grid;place-items:center;font-size:24px}
+.cardsum b{display:block;font:700 15px/1.2 'Poppins';overflow-wrap:anywhere}.cardsum small{color:var(--muted);font-size:12px}
+.pill{font:700 11px 'DejaVu Sans Mono',monospace;letter-spacing:.08em;background:#eef2f5;color:var(--navy);padding:5px 10px;border-radius:99px}
+.refbox{text-align:center;padding:18px 12px;border-radius:22px;background:#f1f8f4;border:2px dashed #7fcf9d}
+.refbox small{display:block;font:600 11px 'Poppins';letter-spacing:.14em;text-transform:uppercase;color:#1b7a45}
+.refbox code{display:block;margin:6px 0 10px;font:800 24px 'DejaVu Sans Mono',monospace;letter-spacing:.1em;color:#14405f}
+.steps{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:0}
+.steps li{display:flex;gap:12px;align-items:flex-start;padding-bottom:16px;position:relative;font-size:14px}
+.steps li:not(:last-child):after{content:"";position:absolute;left:13px;top:30px;bottom:2px;width:2px;background:#e2e8ed}
+.steps li.done:not(:last-child):after{background:#7fcf9d}
+.steps i{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 13px sans-serif;font-style:normal;background:#eef2f5;color:#8a97a3;z-index:1}
+.steps li.done i{background:#dff3ea;color:#1b7a45}.steps li.now i{background:var(--orange);color:#fff;box-shadow:0 0 0 5px rgba(230,126,34,.2)}
+.steps li.bad i{background:#fbe3e0;color:#b03a2e}
+.steps small{display:block;color:var(--muted);font-size:12px}
+.notebox{margin-top:6px;padding:12px 14px;border-radius:18px;background:#e3f0fa;color:#1f5f8b;font-size:13.5px}
+.notebox b{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.mine{display:grid;gap:8px}.mine button{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;border-radius:16px;border:0;background:#f4f7f9;color:var(--ink);font:600 13px 'Poppins';cursor:pointer;text-align:left}
+.mine small{color:var(--muted);font-weight:500}
+.lookrow{display:flex;gap:8px}.lookrow input{flex:1;min-width:0;border:2px solid #c9d6e0;border-radius:99px;padding:.7rem .9rem;font:600 1rem 'DejaVu Sans Mono',monospace;text-transform:uppercase;text-align:center;background:var(--surface,#fff);color:var(--ink)}
+.lookrow button{border:0;border-radius:99px;background:var(--orange);color:#fff;font:600 1rem 'Poppins';padding:0 1.2rem;cursor:pointer}
+.back{display:inline-flex;align-items:center;gap:6px;padding:6px 4px;color:var(--navy);font:600 13px 'Poppins';text-decoration:none}
+html[data-theme=dark] .cat{border-color:#2a4054;background:#0e1a26}html[data-theme=dark] .cat[aria-checked=true]{background:#3a2814;border-color:#e67e22}
+html[data-theme=dark] .fld input,html[data-theme=dark] .fld textarea,html[data-theme=dark] .lookrow input{background:#0d1925;border-color:#34495c;color:#e6eef5}
+html[data-theme=dark] .refbox{background:#112b1d;border-color:#2f7a4c}html[data-theme=dark] .refbox code{color:#e6eef5}html[data-theme=dark] .refbox small{color:#7fe0a8}
+html[data-theme=dark] .pill{background:#0e1a26}html[data-theme=dark] .cardsum .ci{background:#142c40}
+html[data-theme=dark] .steps i{background:#1d2d3c}html[data-theme=dark] .steps li.done i{background:#123826;color:#6fe0a0}html[data-theme=dark] .steps li:not(:last-child):after{background:#24384a}
+html[data-theme=dark] .notebox{background:#142c40;color:#8cc4ee}html[data-theme=dark] .mine button{background:#0e1a26}html[data-theme=dark] .err{background:#3a1816;color:#ff9a90}
+html[data-theme=dark] .bsend{background:#8cc4ee;color:#06202f;box-shadow:none}
+html[data-theme=dark] .or:before,html[data-theme=dark] .or:after{background:#24384a}
+
+
+/* ═════ inbox ═════ */
+.wrap.wide{max-width:1080px}
+.top{display:flex;gap:12px;align-items:center}
+.who{margin-left:auto;font-size:12px;color:var(--muted);text-align:right;line-height:1.3}.who b{display:block;color:var(--ink);font:600 13px 'Poppins'}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px}
+.tabs button{display:flex;gap:8px;align-items:center;white-space:nowrap;border:2px solid transparent;background:var(--surface,#fff);color:var(--navy);padding:10px 16px;border-radius:99px;font:600 14px 'Poppins';cursor:pointer;box-shadow:0 6px 14px -10px rgba(20,64,95,.6)}
+.tabs button[aria-selected=true]{background:var(--navy);color:#fff}
+.tabs .n{background:var(--orange);color:#fff;border-radius:99px;font:700 11px 'Poppins';padding:1px 8px}
+.tabs button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.split{display:grid;gap:14px}
+@media (min-width:900px){.split{grid-template-columns:minmax(300px,380px) 1fr;align-items:start}.split .detail{position:sticky;top:12px}.mobback{display:none!important}}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.fchip{border:0;border-radius:99px;padding:6px 12px;background:#eef2f5;color:var(--ink);font:600 12px 'Poppins';cursor:pointer}
+.fchip[aria-pressed=true]{background:var(--navy);color:#fff}
+.list{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;text-align:left;width:100%;padding:10px 12px;border:2px solid transparent;border-radius:18px;background:#f6f8fa;cursor:pointer;color:var(--ink);font-family:'Poppins'}
+.item[aria-current=true]{border-color:var(--orange);background:#fff7ec}
+.item .ic{width:40px;height:40px;border-radius:14px;background:#fff;display:grid;place-items:center;font-size:20px}
+.item b{display:block;font:600 13.5px/1.25 'Poppins';overflow-wrap:anywhere}.item small{display:block;color:var(--muted);font-size:11.5px;line-height:1.3}
+.ist{font:700 10.5px 'Poppins';padding:3px 9px;border-radius:99px;white-space:nowrap}
+.ist.received{background:#fdecd8;color:#a85a0c}.ist.reviewing{background:#e3f0fa;color:#1f5f8b}.ist.resolved{background:#dff3ea;color:#1b7a45}.ist.dismissed{background:#eceff2;color:#5d6d7b}
+.ist.valid{background:#dff3ea;color:#1b7a45}.ist.revoked{background:#fbe3e0;color:#b03a2e}
+.dh{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.dh h2{margin:0}.dh small{display:block;color:var(--muted);font:500 12px 'Poppins'}
+.msg{margin:12px 0;padding:14px 16px;border-radius:18px;background:#f4f7f9;font-size:14.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;margin:12px 0}.kv dt{color:var(--muted)}.kv dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.cbox{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:12px;border-radius:18px;background:#e3f0fa;margin:12px 0}
+.cbox .ci{width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;font-size:22px}
+.cbox b{display:block;font:700 14px/1.25 'Poppins'}.cbox small{font-size:12px;color:var(--muted)}
+.cbox.bad{background:#fbe3e0}
+.sec{margin-top:16px;padding-top:14px;border-top:1px solid #e6ecf0}
+.sec h3{margin:0 0 8px;font:700 13px 'Poppins';color:var(--navy);text-transform:uppercase;letter-spacing:.06em}
+.row2{display:flex;gap:8px;flex-wrap:wrap}
+.b{border:0;border-radius:99px;padding:10px 16px;font:600 13.5px 'Poppins';cursor:pointer;color:#fff;background:var(--navy);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.b.blue{background:var(--blue)}.b.green{background:#1faa55}.b.gray{background:#6b7b89}.b.red{background:#c0392b}.b.line{background:transparent;color:var(--navy);border:2px solid var(--navy)}
+.b:disabled{opacity:.5;cursor:wait}.b:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+textarea.note,.in{width:100%;border:2px solid #c9d6e0;border-radius:16px;background:var(--surface,#fff);color:var(--ink);font:500 14px 'Poppins';padding:10px 14px}
+textarea.note{min-height:84px;resize:vertical;margin-bottom:10px}
+.in:focus,textarea.note:focus{outline:3px solid var(--blue);outline-offset:1px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.tl2{padding:12px 14px;border-radius:18px;background:#f4f7f9}.tl2 small{display:block;color:var(--muted);font:600 10.5px 'Poppins';letter-spacing:.08em;text-transform:uppercase}.tl2 b{font:800 26px/1.2 'Poppins';color:var(--navy)}
+.tl2.warn{background:#fdecd8}.tl2.warn b{color:#a85a0c}.tl2.bad{background:#fbe3e0}.tl2.bad b{color:#b03a2e}.tl2.ok{background:#dff3ea}.tl2.ok b{color:#1b7a45}
+table.t{width:100%;border-collapse:collapse;font-size:13px}table.t th{text-align:left;font:600 11px 'Poppins';text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px 8px;border-bottom:2px solid #e6ecf0}
+table.t td{padding:8px;border-bottom:1px solid #eef2f5}table.t code{font:700 12.5px 'DejaVu Sans Mono',monospace;letter-spacing:.06em}
+.iempty{padding:28px 12px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#14405f;color:#fff;padding:12px 20px;border-radius:99px;font:600 14px 'Poppins';z-index:300;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+.gate{max-width:460px;margin:12vh auto 0;text-align:center}
+.mobback{margin-bottom:8px}
+.lbl{display:block;font:600 12.5px 'Poppins';color:var(--muted);margin:12px 4px 6px}
+html[data-theme=dark] .item,html[data-theme=dark] .msg,html[data-theme=dark] .tl2,html[data-theme=dark] .fchip{background:#0e1a26;color:#e6eef5}
+html[data-theme=dark] .item .ic,html[data-theme=dark] .cbox .ci{background:#12202e}html[data-theme=dark] .item[aria-current=true]{background:#3a2814}
+html[data-theme=dark] .fchip[aria-pressed=true]{background:#8cc4ee;color:#06202f}
+html[data-theme=dark] .cbox{background:#142c40}html[data-theme=dark] .cbox.bad{background:#3a1816}
+html[data-theme=dark] .tabs button{background:#12202e;color:#8cc4ee}html[data-theme=dark] .tabs button[aria-selected=true]{background:#8cc4ee;color:#06202f}
+html[data-theme=dark] .b{color:#06202f;background:#8cc4ee}html[data-theme=dark] .b.green{background:#34d27a}html[data-theme=dark] .b.red{background:#ff8f86}html[data-theme=dark] .b.gray{background:#9db0c1}html[data-theme=dark] .b.line{background:transparent;color:#8cc4ee;border-color:#8cc4ee}
+html[data-theme=dark] .in,html[data-theme=dark] textarea.note{background:#0d1925;border-color:#34495c;color:#e6eef5}
+html[data-theme=dark] table.t th,html[data-theme=dark] table.t td,html[data-theme=dark] .sec{border-color:#24384a}
+html[data-theme=dark] .tl2 b{color:#e6eef5}html[data-theme=dark] .tl2.warn{background:#3a2814}html[data-theme=dark] .tl2.bad{background:#3a1816}html[data-theme=dark] .tl2.ok{background:#12301f}
+
+
+
+/* ═════ merged shell ═════ */
+.pane{display:grid;gap:14px}
+main#app{display:grid;gap:14px;outline:none}
+.mainnav{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px}
+.mainnav button{flex:1 1 auto;white-space:nowrap;border:2px solid transparent;background:var(--surface,#fff);color:var(--navy);padding:9px 14px;border-radius:99px;font:600 13px 'Poppins';cursor:pointer;box-shadow:0 6px 14px -10px rgba(20,64,95,.6)}
+.mainnav button[aria-selected=true]{background:var(--navy);color:#fff}
+.mainnav button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.linkbtn{background:none;border:0;padding:6px;color:inherit;font:inherit;text-decoration:underline;cursor:pointer;opacity:.85}
+.linkbtn:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:6px}
+.loading{padding:26px 12px;text-align:center;color:var(--muted)}
+@media (max-width:600px){.who{display:none}}
+html[data-theme=dark] .mainnav button{background:#12202e;color:#8cc4ee}
+html[data-theme=dark] .mainnav button[aria-selected=true]{background:#8cc4ee;color:#06202f}
+@media print{.mainnav,#staffrow,.tools{display:none!important}}
 </style>
 </head>
 <body>
-<a class="skip" href="#result" data-t="skip">Skip to result</a>
-<div class="wrap">
-  <div class="head"><div class="logo"><img src="./imgs/logo.png" alt="" onerror="this.parentNode.textContent='K'"></div><div><b data-t="school">Kanyadet Primary &amp; Junior School</b><span data-t="sub">Report card verification</span></div>
-    <div class="tools"><button id="langbtn" class="tool" type="button" data-tl="toolLang">SW</button><button id="themebtn" class="tool" type="button" data-tl="toolTheme">🌙</button></div></div>
+<a class="skip" href="#app" data-sh="skip">Skip to content</a>
+<div class="wrap" id="wrap">
+  <div class="head"><div class="logo"><img src="./imgs/logo.png" alt="" onerror="this.parentNode.textContent='K'"></div><div><b>Kanyadet Primary &amp; Junior School</b><span id="hsub"></span></div>
+    <div class="tools"><div id="who" class="who" hidden><b id="whoname"></b>signed in</div><button id="langbtn" class="tool" type="button" data-shl="toolLang">SW</button><button id="themebtn" class="tool" type="button" data-shl="toolTheme">🌙</button></div></div>
+  <nav id="mainnav" class="mainnav">
+    <button id="nav-verify" type="button" aria-selected="true" data-sh="nav_verify">🔍 Verify a card</button>
+    <button id="nav-report" type="button" aria-selected="false" data-sh="nav_report">🚩 Report a problem</button>
+    <button id="nav-inbox" type="button" aria-selected="false" data-sh="nav_inbox" hidden>📥 Reports inbox</button>
+  </nav>
   <div id="shield" class="shield"></div>
-  <div id="result" style="display:grid;gap:14px" aria-live="polite"></div>
-  <form id="f" class="card" autocomplete="off">
-    <label class="l" for="code" data-t="formLabel">Enter the card code (printed under the QR)</label>
-    <div class="row"><input id="code" maxlength="12" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"><button class="go" type="submit" data-t="check">Check</button></div>
-    <div class="scanrow"><button id="scanbtn" class="scanbtn" type="button" data-t="scan">📷 Scan QR or barcode</button><button id="photobtn" class="scanbtn" type="button" data-t="scanPhoto">🖼️ Use a photo</button></div>
-    <input id="scanfile" type="file" accept="image/*" hidden>
-  </form>
-  <p class="foot" data-t="footer">Always compare what you see here with the printed card. If anything differs, the card has been altered.</p>
+  <main id="app" tabindex="-1">
+    <section id="pane-verify" class="pane">
+      <div id="result" style="display:grid;gap:14px" aria-live="polite"></div>
+      <form id="f" class="card" autocomplete="off">
+        <label class="l" for="code" data-t="formLabel">Enter the card code (printed under the QR)</label>
+        <div class="row"><input id="code" maxlength="12" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"><button class="go" type="submit" data-t="check">Check</button></div>
+        <div class="scanrow"><button id="scanbtn" class="scanbtn" type="button" data-t="scan">📷 Scan QR or barcode</button><button id="photobtn" class="scanbtn" type="button" data-t="scanPhoto">🖼️ Use a photo</button></div>
+        <input id="scanfile" type="file" accept="image/*" hidden>
+      </form>
+      <p class="foot" data-t="footer">Always compare what you see here with the printed card. If anything differs, the card has been altered.</p>
+    </section>
+    <section id="pane-report" class="pane" hidden>
+      <div id="view" style="display:grid;gap:14px" aria-live="polite"></div>
+      <p class="foot" data-t="footer">For anything urgent, please contact the school office directly.</p>
+    </section>
+    <section id="pane-inbox" class="pane" hidden>
+      <div id="main" style="display:grid;gap:14px"></div>
+    </section>
+  </main>
+  <p id="staffrow" class="foot"><button id="staffbtn" class="linkbtn" type="button" data-sh="staff">Staff sign-in</button></p>
 </div>
 <div id="scanner" class="scanner" role="dialog" aria-modal="true" hidden>
   <video id="scanvideo" playsinline muted></video><div class="reticle"></div><p id="scanmsg" role="status"></p><button id="scanclose" class="sclose" type="button">✕</button>
@@ -321,7 +467,20 @@ html[data-theme=dark] .recitem .rm small,html[data-theme=dark] .recfoot small{co
 <script type="module">
 import { FIREBASE_CONFIG } from './js/config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, orderBy, limit, getDocs, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+/* One Firebase app for the whole site. Visitors stay signed out; the head teacher's sign-in (from login.html) is picked up automatically for the Inbox tab. */
+const app = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app), db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let lang = store.get('kv-lang') || ((navigator.language || '').toLowerCase().startsWith('sw') ? 'sw' : 'en');
+
+/* ═════════════════════ VERIFY — check a report card ═════════════════════ */
+const Verify = (() => {
+
 
 const SCHOOL = { name: 'Kanyadet Primary & Junior School' };
 // Hosts the school really serves this page from. Anything else gets a warning banner.
@@ -329,11 +488,7 @@ const OFFICIAL_HOSTS = ['kanyadet-school-portal.web.app', 'kanyadet-school-admin
 const HOST = window.__KV_HOST || location.hostname;
 const IS_OFFICIAL = OFFICIAL_HOSTS.includes(HOST);
 
-const db  = getFirestore(initializeApp(FIREBASE_CONFIG, 'verify'));
-const $   = id => document.getElementById(id);
 const out = $('result'), inp = $('code');
-const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
 
 /* ───────────────────────── i18n ───────────────────────── */
 const I18N = {
@@ -416,7 +571,6 @@ const I18N = {
   reportCode:'🚩 Ripoti msimbo huu',
  }
 };
-let lang = store.get('kv-lang') || ((navigator.language || '').toLowerCase().startsWith('sw') ? 'sw' : 'en');
 const t = (k, a) => { let s = (I18N[lang][k] ?? I18N.en[k] ?? k); if (a) for (const x in a) s = s.split('{' + x + '}').join(a[x]); return s; };
 
 /* ───────────────────────── helpers ───────────────────────── */
@@ -518,7 +672,7 @@ function draw() {
   if (v.kind === 'hello') { out.append(rise(banner('hello', t('hello'), t('helloSub')))); const rc = recentCard(); if (rc) out.append(rise(rc)); return; }
   if (!v.r) {
     out.append(rise(banner(v.kind, t(v.tk), t(v.sk, v.a))));
-    if (v.tk === 'nosuch') { const a = E('a', 'btn alt warnb', t('reportCode')); a.href = './report.html?k=notfound&s=' + (v.serial || ''); a.style.textDecoration = 'none'; rise(a); out.append(a); }
+    if (v.tk === 'nosuch') { const a = E('a', 'btn alt warnb', t('reportCode')); a.href = '?v=report&k=notfound&s=' + (v.serial || ''); a.onclick = e => { e.preventDefault(); go('report', { k: 'notfound', s: v.serial || '' }); }; a.style.textDecoration = 'none'; rise(a); out.append(a); }
     const rc = recentCard(); if (rc) out.append(rise(rc)); focusVerdict(); return;
   }
   const { kind, r, serial, h } = v, hashOk = h ? String(r.contentHash || '').startsWith(h) : null;
@@ -671,7 +825,7 @@ function draw() {
     const a = E('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(rec, null, 2)], { type: 'application/json' })); a.download = 'report-card-' + serial + '.json'; document.body.append(a); a.click(); a.remove();
   };
   const bR = E('button', 'btn alt warnb', t('bReport')); bR.type = 'button';
-  bR.onclick = () => { location.href = './report.html?s=' + serial + '&rc=' + encodeURIComponent(v.receipt) + (kind === 'warn' ? '&k=marks' : ''); };
+  bR.onclick = () => { go('report', { s: serial, rc: v.receipt, k: kind === 'warn' ? 'marks' : '' }); };
   ac.append(bP, bS, bJ, bR); out.append(ac);
   out.append(rise(E('p', 'foot rc', t('rcpt', { x: v.receipt, t: checkedAt }))));
   focusVerdict();
@@ -770,24 +924,440 @@ function drawShield() {
   el.append(d);
 }
 
-/* ───────────────────────── chrome: language, theme, static text ───────────────────────── */
+/* ───────────────────────── chrome: static text, form, entry ───────────────────────── */
 function applyStatic() {
-  document.documentElement.lang = lang;
-  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
-  document.querySelectorAll('[data-tl]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.tl)); el.title = t(el.dataset.tl); });
-  inp.placeholder = 'XXXX-XXXX'; $('langbtn').textContent = lang === 'sw' ? 'EN' : 'SW';
+  $('pane-verify').querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+  inp.placeholder = 'XXXX-XXXX';
   $('scanclose').setAttribute('aria-label', t('close'));
 }
-$('langbtn').addEventListener('click', () => { lang = lang === 'sw' ? 'en' : 'sw'; store.set('kv-lang', lang); applyStatic(); drawShield(); draw(); });
+applyStatic(); drawShield();
+$('f').addEventListener('submit', e => { e.preventDefault(); const s = norm(inp.value); history.replaceState(null, '', '?c=' + encodeURIComponent(s)); lookup(s, null); });
+let started = false;
+const cleanH = h => (h || '').toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 8) || null;
+function enter(p) {
+  p = p || {};
+  if (p.c) { const h = cleanH(p.h); inp.value = p.c; history.replaceState(null, '', '?c=' + encodeURIComponent(norm(p.c)) + (h ? '&h=' + h : '')); lookup(p.c, h); }
+  else if (!started) { setView({ kind: 'hello' }); history.replaceState(null, '', location.pathname); }
+  else history.replaceState(null, '', view.serial ? '?c=' + view.serial : location.pathname);
+  started = true;
+}
+function relang() { applyStatic(); drawShield(); draw(); }
+return { enter, relang, t };
+
+})();
+
+/* ═════════════════════ REPORT — report a problem ═════════════════════ */
+const Report = (() => {
+
+
+// Used only if the Advanced Admin hasn't saved a WhatsApp number in report-inbox.html yet (digits, country code, e.g. '2547XXXXXXXX').
+const FALLBACK_WHATSAPP = '';
+
+const root = $('view');
+
+const I18N = {
+ en: {
+  skip:'Skip to content', school:'Kanyadet Primary & Junior School', sub:'Report a problem', toolLang:'Language', toolTheme:'Switch light/dark',
+  hello:'Something doesn’t look right?', helloSub:'Tell the school what you noticed. The head teacher reviews every report, and you can follow the result here.',
+  back:'← Back to verification', reporting:'Reporting card', notInRecords:'This code is not in the school records',
+  q1:'What’s the problem?', cat_marks:'Marks don’t match', cat_photo:'Photo doesn’t match', cat_fake:'Card looks fake', cat_notfound:'Code not found', cat_details:'Wrong name or details', cat_lost:'Lost or stolen card', cat_other:'Something else',
+  q2:'Tell us more', q2ph:'Describe what you saw. For example: “The printed Mathematics mark is 85 but the page shows 58.”',
+  q3:'Your name (optional)', q4:'Phone or email, so we can reply', q4ph:'07XX XXX XXX or name@email.com', qs:'Card code (if you have it)',
+  sendPage:'📨 Send report on this page', sendWa:'💬 WhatsApp the head teacher', sendWaN:'💬 WhatsApp {n}', or:'or', sending:'Sending…',
+  privacy:'Your report goes only to the school’s head teacher (Advanced Admin). Your contact details stay private and are used only to reply.',
+  errCat:'Please choose what the problem is.', errMsg:'Please write a few words about the problem.', errWait:'You just sent a report. Please wait a minute before sending another.', errFail:'We couldn’t send the report. Check your connection, or use WhatsApp instead.',
+  sentT:'Report received', sentSub:'Thank you. The head teacher has been notified.', sentWa:'WhatsApp is opening with your message. Press send there. Your reference is below.',
+  refLbl:'Your reference', copy:'⧉ Copy', copied:'Copied ✓', saveRef:'Save this reference. You can check progress here at any time.',
+  prog:'Progress', sRecv:'Received', sRecvD:'The school has your report.', sRev:'Being reviewed', sRevD:'The head teacher is looking into it.', sRes:'Resolved', sResD:'The school has finished looking into it.', sDis:'Closed', sDisD:'No problem was found.',
+  noteT:'Message from the school', refresh:'↻ Refresh', updated:'Updated {t}', newRep:'Send another report',
+  track:'Check progress of a report', trackBtn:'Check', trackNone:'No report found with that reference.',
+  mine:'Your reports on this device', footer:'For anything urgent, please contact the school office directly.', loading:'Loading…',
+  waMsg:'Hello, I’m reporting a problem with a Kanyadet report card.\nReference: {ref}\nProblem: {cat}\nCard code: {s}\nDetails: {m}\nName: {n}',
+ },
+ sw: {
+  skip:'Ruka hadi maudhui', school:'Kanyadet Primary & Junior School', sub:'Ripoti tatizo', toolLang:'Lugha', toolTheme:'Badilisha mwanga/giza',
+  hello:'Kuna kitu hakionekani sawa?', helloSub:'Ieleze shule ulichoona. Mwalimu mkuu hupitia kila ripoti, na unaweza kufuatilia matokeo hapa.',
+  back:'← Rudi kwenye uthibitishaji', reporting:'Unaripoti kadi', notInRecords:'Msimbo huu haupo kwenye rekodi za shule',
+  q1:'Tatizo ni lipi?', cat_marks:'Alama hazilingani', cat_photo:'Picha hailingani', cat_fake:'Kadi inaonekana bandia', cat_notfound:'Msimbo haupatikani', cat_details:'Jina au maelezo si sahihi', cat_lost:'Kadi imepotea au kuibwa', cat_other:'Jambo lingine',
+  q2:'Tuambie zaidi', q2ph:'Eleza ulichoona. Kwa mfano: “Alama ya Hisabati iliyochapishwa ni 85 lakini ukurasa unaonyesha 58.”',
+  q3:'Jina lako (si lazima)', q4:'Simu au barua pepe, ili tukujibu', q4ph:'07XX XXX XXX au jina@barua.com', qs:'Msimbo wa kadi (kama unao)',
+  sendPage:'📨 Tuma ripoti kwenye ukurasa huu', sendWa:'💬 Tuma WhatsApp kwa mwalimu mkuu', sendWaN:'💬 Tuma WhatsApp kwa {n}', or:'au', sending:'Inatuma…',
+  privacy:'Ripoti yako huenda kwa mwalimu mkuu wa shule (Advanced Admin) pekee. Mawasiliano yako ni siri na yanatumika kukujibu tu.',
+  errCat:'Tafadhali chagua tatizo ni lipi.', errMsg:'Tafadhali andika maneno machache kuhusu tatizo.', errWait:'Umetuma ripoti hivi punde. Tafadhali subiri dakika moja kabla ya kutuma nyingine.', errFail:'Hatukuweza kutuma ripoti. Angalia mtandao wako, au tumia WhatsApp.',
+  sentT:'Ripoti imepokelewa', sentSub:'Asante. Mwalimu mkuu amearifiwa.', sentWa:'WhatsApp inafunguka na ujumbe wako. Bonyeza tuma huko. Namba yako ya kumbukumbu iko hapa chini.',
+  refLbl:'Namba yako ya kumbukumbu', copy:'⧉ Nakili', copied:'Imenakiliwa ✓', saveRef:'Hifadhi namba hii. Unaweza kuangalia maendeleo hapa wakati wowote.',
+  prog:'Maendeleo', sRecv:'Imepokelewa', sRecvD:'Shule imepokea ripoti yako.', sRev:'Inakaguliwa', sRevD:'Mwalimu mkuu anaishughulikia.', sRes:'Imeshughulikiwa', sResD:'Shule imemaliza kuishughulikia.', sDis:'Imefungwa', sDisD:'Hakuna tatizo lililopatikana.',
+  noteT:'Ujumbe kutoka shuleni', refresh:'↻ Onyesha upya', updated:'Imesasishwa {t}', newRep:'Tuma ripoti nyingine',
+  track:'Angalia maendeleo ya ripoti', trackBtn:'Angalia', trackNone:'Hakuna ripoti yenye namba hiyo.',
+  mine:'Ripoti zako kwenye kifaa hiki', footer:'Kwa jambo la dharura, wasiliana na ofisi ya shule moja kwa moja.', loading:'Inapakia…',
+  waMsg:'Habari, naripoti tatizo kuhusu kadi ya matokeo ya Kanyadet.\nNamba ya kumbukumbu: {ref}\nTatizo: {cat}\nMsimbo wa kadi: {s}\nMaelezo: {m}\nJina: {n}',
+ }
+};
+const t = (k, a) => { let s = I18N[lang][k] ?? I18N.en[k] ?? k; if (a) for (const x in a) s = s.split('{' + x + '}').join(a[x]); return s; };
+const E = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const norm = s => (s || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
+const pretty = s => s.length === 8 ? s.slice(0, 4) + '-' + s.slice(4) : s;
+const B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+const genRef = () => { const b = new Uint8Array(8); crypto.getRandomValues(b); return 'REP-' + Array.from(b, x => B32[x & 31]).join(''); };
+const prettyRef = r => r.slice(0, 8) + '-' + r.slice(8);   // REP-XXXX-XXXX for reading aloud
+const normRef = s => { const n = norm(s).replace(/^REP/, ''); return n.length === 8 ? 'REP-' + n : ''; };
+const when = (d, tm) => { const x = d && d.toDate ? d.toDate() : new Date(d); return isNaN(x) ? '—' : x.toLocaleString(lang === 'sw' ? 'sw-KE' : 'en-GB', Object.assign({ day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Nairobi' }, tm ? { hour: '2-digit', minute: '2-digit' } : {})); };
+const CATS = [['marks', '📊'], ['photo', '🖼️'], ['fake', '🕵️'], ['notfound', '🔍'], ['details', '📛'], ['lost', '📄'], ['other', '💬']];
+let seq = 0; const rise = el => { el.style.setProperty('--i', seq++); return el; };
+const flash = (b, txt) => { const o = b.textContent; b.textContent = txt; setTimeout(() => { b.textContent = o; }, 1600); };
+
+/* ── state ── */
+let m = null, contact = null, contactLoaded = false, cardRec = undefined, view = { name: 'form' }, busy = false, err = '';
+function initM(p) { m = { cat: CATS.some(c => c[0] === p.k) ? p.k : '', msg: '', name: '', contact: '', serial: norm(p.s || '').length === 8 ? norm(p.s) : '', receipt: (p.rc || '').slice(0, 40), hp: '' }; }
+
+async function loadContact() { if (contactLoaded) return; contactLoaded = true; try { const s = await getDoc(doc(db, 'publicConfig', 'reportContact')); if (s.exists() && /^\d{10,15}$/.test(s.data().whatsapp || '')) contact = s.data(); } catch (e) {} if (!contact && FALLBACK_WHATSAPP) contact = { whatsapp: FALLBACK_WHATSAPP, name: '' }; }
+async function loadCard() { if (m.serial.length !== 8) { cardRec = null; return; } try { const s = await getDoc(doc(db, 'cardVerifications', m.serial)); cardRec = s.exists() ? s.data() : false; } catch (e) { cardRec = null; } }
+
+/* ── pieces ── */
+function banner(kind, title, sub) {
+  const b = E('div', 'ban ' + kind); const tk = E('div', 'tick');
+  const ic = { hello: '<path d="M16 7a9 9 0 0 0-9 9v5l-2 3h22l-2-3v-5a9 9 0 0 0-9-9z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M13 27a3 3 0 0 0 6 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>',
+               ok: '<path d="M7 16.5l6 6L24 10" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>' }[kind === 'ok' ? 'ok' : 'hello'];
+  tk.insertAdjacentHTML('beforeend', `<svg viewBox="0 0 32 32" aria-hidden="true">${ic}</svg>`);
+  const h1 = E('h1', '', title); h1.tabIndex = -1; h1.id = 'h1'; b.append(tk, h1); if (sub) b.append(E('p', '', sub)); return b;
+}
+function card(title, small) { const c = E('div', 'card'); if (title) { const h = E('h2', '', title); if (small) h.append(E('small', '', small)); c.append(h); } return c; }
+const backLink = () => { const a = E('a', 'back', t('back')); a.href = m.serial ? '?c=' + m.serial : location.pathname; a.onclick = e => { e.preventDefault(); go('verify', m.serial ? { c: m.serial } : {}); }; return a; };
+
+function cardSummary() {
+  if (m.serial.length !== 8) return null; const c = E('div', 'card'); const row = E('div', 'cardsum');
+  const ci = E('div', 'ci', cardRec === false ? '❓' : '🎓'); const mid = E('div');
+  if (cardRec) { mid.append(E('b', '', cardRec.name || '—'), E('small', '', [cardRec.grade, [cardRec.term, cardRec.year].filter(Boolean).join(' ')].filter(Boolean).join(' · '))); }
+  else if (cardRec === false) { mid.append(E('b', '', t('notInRecords')), E('small', '', t('reporting'))); }
+  else mid.append(E('b', '', t('reporting')), E('small', '', ''));
+  row.append(ci, mid, E('span', 'pill', pretty(m.serial))); c.append(row); return c;
+}
+
+function formView() {
+  const wrap = [];
+  wrap.push(rise(banner('hello', t('hello'), t('helloSub'))));
+  const cs = cardSummary(); if (cs) wrap.push(rise(cs));
+
+  const f = rise(E('form', 'card')); f.noValidate = true; f.autocomplete = 'off';
+  const h = E('h2', '', t('q1')); f.append(h);
+  const g = E('div', 'cats'); g.setAttribute('role', 'radiogroup'); g.setAttribute('aria-label', t('q1'));
+  CATS.forEach(([k, ic]) => { const b = E('button', 'cat'); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(m.cat === k)); b.append(E('span', 'e', ic), E('span', '', t('cat_' + k)));
+    b.onclick = () => { m.cat = k; g.querySelectorAll('.cat').forEach((x, i) => x.setAttribute('aria-checked', String(CATS[i][0] === k))); }; g.append(b); });
+  f.append(g);
+  const field = (label, el, extra) => { const l = E('label', 'fld'); const sp = E('span', '', label); if (extra) sp.append(extra); l.append(sp, el); return l; };
+  const ta = E('textarea'); ta.maxLength = 1000; ta.placeholder = t('q2ph'); ta.value = m.msg; const cnt = E('span', 'cnt', m.msg.length + '/1000');
+  ta.oninput = () => { m.msg = ta.value; cnt.textContent = ta.value.length + '/1000'; }; f.append(field(t('q2'), ta, cnt));
+  if (m.serial.length !== 8) { const si = E('input'); si.maxLength = 12; si.placeholder = 'XXXX-XXXX'; si.style.textTransform = 'uppercase'; si.style.fontFamily = "'DejaVu Sans Mono',monospace"; si.value = m.serialRaw || ''; si.oninput = () => { m.serialRaw = si.value; const n = norm(si.value); m.serial = n.length === 8 ? n : ''; }; f.append(field(t('qs'), si)); }
+  const ni = E('input'); ni.maxLength = 80; ni.autocomplete = 'name'; ni.value = m.name; ni.oninput = () => { m.name = ni.value; }; f.append(field(t('q3'), ni));
+  const ci = E('input'); ci.maxLength = 80; ci.placeholder = t('q4ph'); ci.autocomplete = 'tel'; ci.value = m.contact; ci.oninput = () => { m.contact = ci.value; }; f.append(field(t('q4'), ci));
+  const hp = E('input', 'hp'); hp.tabIndex = -1; hp.autocomplete = 'off'; hp.setAttribute('aria-hidden', 'true'); hp.name = 'website'; hp.oninput = () => { m.hp = hp.value; }; f.append(hp);
+  if (err) { const e = E('div', 'err', t(err)); e.setAttribute('role', 'alert'); f.append(e); }
+  const cta = E('div', 'cta');
+  const bs = E('button', 'bsend', busy ? t('sending') : t('sendPage')); bs.type = 'submit'; bs.disabled = busy; cta.append(bs);
+  if (contact) { cta.append(E('div', 'or', t('or'))); const bw = E('button', 'bwa', contact.name ? t('sendWaN', { n: contact.name }) : t('sendWa')); bw.type = 'button'; bw.disabled = busy; bw.onclick = () => submit('whatsapp'); cta.append(bw); }
+  f.append(cta, E('p', 'foot', t('privacy'))); f.lastChild.style.marginTop = '14px';
+  f.addEventListener('submit', e => { e.preventDefault(); submit('page'); });
+  wrap.push(f);
+
+  // check an existing report
+  const tr = rise(card(t('track'))); const row = E('div', 'lookrow'); const ti = E('input'); ti.placeholder = 'REP-XXXX-XXXX'; ti.maxLength = 14; ti.setAttribute('aria-label', t('track')); const tb = E('button', '', t('trackBtn')); tb.type = 'button';
+  const msg = E('p', 'foot'); msg.style.marginTop = '8px';
+  tb.onclick = () => { const r = normRef(ti.value); if (!r) { msg.textContent = t('trackNone'); return; } openStatus(r); };
+  row.append(ti, tb); tr.append(row, msg);
+  const mine = JSON.parse(store.get('kr-refs') || '[]');
+  if (mine.length) { const l = E('div', 'mine'); l.style.marginTop = '12px'; mine.slice(0, 5).forEach(x => { const b = E('button'); b.type = 'button'; b.append(document.createTextNode(prettyRef(x.ref)), E('small', '', t('cat_' + x.cat) + ' · ' + when(x.at))); b.onclick = () => openStatus(x.ref); l.append(b); }); tr.append(l); }
+  wrap.push(tr);
+  return wrap;
+}
+
+function steps(status) {
+  const order = ['received', 'reviewing', status === 'dismissed' ? 'dismissed' : 'resolved'];
+  const idx = Math.max(0, order.indexOf(status));
+  const ol = E('ol', 'steps');
+  const lab = { received: ['sRecv', 'sRecvD'], reviewing: ['sRev', 'sRevD'], resolved: ['sRes', 'sResD'], dismissed: ['sDis', 'sDisD'] };
+  order.forEach((k, i) => { const li = E('li', i < idx || (i === idx && (k === 'resolved' || k === 'dismissed')) ? 'done' : i === idx ? 'now' : ''); li.append(E('i', '', i < idx || (i === idx && (k === 'resolved' || k === 'dismissed')) ? '✓' : String(i + 1)));
+    const d = E('div'); d.append(document.createTextNode(t(lab[k][0])), E('small', '', t(lab[k][1]))); li.append(d); ol.append(li); });
+  return ol;
+}
+async function fetchStatus(ref) { try { const s = await getDoc(doc(db, 'reportStatus', ref)); return s.exists() ? s.data() : false; } catch (e) { return null; } }
+
+function statusViews(ref, st, opts = {}) {
+  const wrap = [];
+  if (opts.sent) wrap.push(rise(banner('ok', t('sentT'), opts.via === 'whatsapp' ? t('sentWa') : t('sentSub'))));
+  else wrap.push(rise(banner('hello', t('prog'), '')));
+  const rc = rise(E('div', 'card')); const rb = E('div', 'refbox'); const cb = E('button', 'tool', t('copy')); cb.type = 'button';
+  cb.onclick = async () => { try { await navigator.clipboard.writeText(ref); } catch (e) {} flash(cb, t('copied')); };
+  rb.append(E('small', '', t('refLbl')), E('code', '', prettyRef(ref)), cb); rc.append(rb, E('p', 'foot', t('saveRef'))); rc.lastChild.style.marginTop = '10px'; wrap.push(rc);
+  const pc = rise(card(t('prog'), st && st.updatedAt ? t('updated', { t: when(st.updatedAt, true) }) : ''));
+  if (st === false) pc.append(E('p', 'foot', t('trackNone'))); else if (st === null) pc.append(E('p', 'foot', t('errFail'))); else { pc.append(steps(st.status || 'received')); if (st.note) { const n = E('div', 'notebox'); n.append(E('b', '', t('noteT')), document.createTextNode(st.note)); pc.append(n); } }
+  const rf = E('button', 'tool', t('refresh')); rf.type = 'button'; rf.style.marginTop = '12px'; rf.onclick = () => openStatus(ref); pc.append(rf); wrap.push(pc);
+  const nb = rise(E('div', 'card')); const b = E('button', 'bsend', t('newRep')); b.type = 'button'; b.onclick = () => { view = { name: 'form' }; err = ''; draw(); }; nb.append(b); wrap.push(nb);
+  return wrap;
+}
+
+function draw() {
+  root.replaceChildren(); seq = 0;
+  const parts = view.name === 'form' ? formView() : view.name === 'loading' ? [E('div', 'loading', t('loading'))] : statusViews(view.ref, view.st, view);
+  parts.forEach(p => root.append(p));
+  const back = backLink(); root.prepend(back);
+  const h1 = $('h1'); if (h1 && view.name !== 'form') { try { h1.focus({ preventScroll: true }); } catch (e) {} }
+}
+async function openStatus(ref, extra) { view = { name: 'loading' }; draw(); const st = await fetchStatus(ref); view = Object.assign({ name: 'status', ref, st }, extra || {}); history.replaceState(null, '', '?v=report&ref=' + ref); draw(); window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' }); }
+
+/* ── submit ── */
+function validate() { if (!m.cat) return 'errCat'; if (m.msg.trim().length < 5) return 'errMsg'; return ''; }
+function remember(ref) { const l = JSON.parse(store.get('kr-refs') || '[]'); l.unshift({ ref, cat: m.cat, at: new Date().toISOString() }); store.set('kr-refs', JSON.stringify(l.slice(0, 10))); }
+async function save(via, ref) {
+  const data = { ref, serial: m.serial, receipt: m.receipt, category: m.cat, message: m.msg.trim().slice(0, 1000), name: m.name.trim().slice(0, 80), contact: m.contact.trim().slice(0, 80), lang, via, at: serverTimestamp() };
+  const b = writeBatch(db); b.set(doc(db, 'cardReports', ref), data); b.set(doc(db, 'reportStatus', ref), { status: 'received', note: '', updatedAt: serverTimestamp() }); await b.commit();
+}
+async function submit(via) {
+  if (busy) return; err = validate(); if (err) { draw(); return; }
+  if (m.hp) { view = { name: 'status', ref: genRef(), st: { status: 'received', note: '' }, sent: true, via }; draw(); return; }   // honeypot: pretend success
+  const last = Number(store.get('kr-last') || 0); if (Date.now() - last < 60000) { err = 'errWait'; draw(); return; }
+  const ref = genRef();
+  // WhatsApp must open synchronously inside the tap, or phones block it. We save the report right after.
+  if (via === 'whatsapp' && contact) {
+    const text = t('waMsg', { ref: prettyRef(ref), cat: t('cat_' + m.cat), s: m.serial ? pretty(m.serial) : '—', m: m.msg.trim(), n: m.name.trim() || '—' });
+    const url = 'https://wa.me/' + contact.whatsapp + '?text=' + encodeURIComponent(text);
+    const w = window.open(url, '_blank', 'noopener'); if (!w) location.href = url;
+  }
+  busy = true; draw();
+  try { await save(via, ref); store.set('kr-last', String(Date.now())); remember(ref); busy = false; view = { name: 'status', ref, st: { status: 'received', note: '', updatedAt: new Date() }, sent: true, via }; history.replaceState(null, '', '?v=report&ref=' + ref); draw(); window.scrollTo({ top: 0 }); }
+  catch (e) { busy = false; if (via === 'whatsapp') { remember(ref); view = { name: 'status', ref, st: { status: 'received', note: '', updatedAt: new Date() }, sent: true, via }; draw(); } else { err = 'errFail'; draw(); } }
+}
+
+/* ── entry ── */
+function applyStatic() { $('pane-report').querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); }); }
+async function enter(p) {
+  p = p || {};
+  const fresh = !m || ['s', 'k', 'rc', 'ref'].some(k => p[k]);
+  const ref = normRef(p.ref || '');
+  if (fresh) {
+    initM(p); cardRec = undefined; view = { name: 'form' }; err = ''; busy = false;
+    const u = new URLSearchParams({ v: 'report' }); if (m.serial) u.set('s', m.serial); if (m.cat) u.set('k', m.cat); if (m.receipt) u.set('rc', m.receipt);
+    if (!ref) history.replaceState(null, '', '?' + u.toString());
+  } else if (view.name === 'status' && view.ref) history.replaceState(null, '', '?v=report&ref=' + view.ref);
+  else history.replaceState(null, '', '?v=report');
+  applyStatic(); draw();
+  await Promise.all([loadContact(), fresh ? loadCard() : Promise.resolve()]);
+  if (ref) await openStatus(ref); else draw();
+}
+function relang() { applyStatic(); draw(); }
+return { enter, relang, t };
+
+})();
+
+/* ═════════════════════ INBOX — head teacher (Advanced Admin) ═════════════════════ */
+const Inbox = (() => {
+
+
+const main = $('main');
+const E = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const pretty = s => (s && s.length === 8) ? s.slice(0, 4) + '-' + s.slice(4) : (s || '—');
+const prettyRef = r => r.slice(0, 8) + '-' + r.slice(8);
+const toDate = x => x && x.toDate ? x.toDate() : (x ? new Date(x) : null);
+const fmt = (x, tm) => { const d = toDate(x); return !d || isNaN(d) ? '—' : d.toLocaleString('en-GB', Object.assign({ day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Nairobi' }, tm ? { hour: '2-digit', minute: '2-digit' } : {})); };
+const ago = x => { const d = toDate(x); if (!d) return ''; const s = (Date.now() - d) / 1000; return s < 90 ? 'just now' : s < 3600 ? Math.round(s / 60) + ' min ago' : s < 86400 ? Math.round(s / 3600) + ' h ago' : Math.round(s / 86400) + ' d ago'; };
+const CATS = { marks: ['📊', 'Marks don’t match'], photo: ['🖼️', 'Photo doesn’t match'], fake: ['🕵️', 'Card looks fake'], notfound: ['🔍', 'Code not found'], details: ['📛', 'Wrong name or details'], lost: ['📄', 'Lost or stolen card'], other: ['💬', 'Something else'] };
+const STATUS = { received: 'New', reviewing: 'Reviewing', resolved: 'Resolved', dismissed: 'Closed' };
+const toast = msg => { const t = E('div', 'toast', msg); t.setAttribute('role', 'status'); document.body.append(t); setTimeout(() => t.remove(), 2600); };
+const isMobile = () => matchMedia('(max-width:899px)').matches;
+
+let user = null, me = '', tab = 'reports', filter = 'all', reports = [], logs = [], selected = null, cardCache = {}, settings = { whatsapp: '', name: '' };
+
+
+/* ── gate ── */
+function gate(title, text, btn) {
+  main.replaceChildren(); const c = E('div', 'card gate'); c.append(E('h2', '', title), E('p', 'foot', text));
+  if (btn) { const a = E('a', 'b', btn[0]); a.href = btn[1]; a.style.marginTop = '14px'; c.append(a); } main.append(c);
+}
+let pending = true, isAdv = false, accessErr = false, loadedOnce = false;
+async function setUser(u) {
+  user = null; isAdv = false; accessErr = false; me = '';
+  if (u) {
+    try {
+      const s = await getDoc(doc(db, 'users', u.uid));
+      if (s.exists() && s.data().Advancedadmin === true) { isAdv = true; me = s.data().name || s.data().displayName || u.displayName || u.email || 'Head teacher'; }
+    } catch (e) { accessErr = true; }
+    user = u;
+  }
+  pending = false; $('whoname').textContent = me; $('who').hidden = !isAdv;
+}
+async function enter() {
+  if (pending) { gate('Checking your access…', 'One moment please.'); return; }
+  if (!user) { gate('Sign in required', 'This page is only for the head teacher (Advanced Admin). Please sign in first.', ['Go to sign in', './login.html']); return; }
+  if (accessErr) { gate('Couldn’t check your access', 'Check your connection and reload.'); return; }
+  if (!isAdv) { gate('No access', 'Your account isn’t an Advanced Admin account, so you can’t open the reports inbox.', ['Back to dashboard', './dashboard.html']); return; }
+  if (!loadedOnce) { main.replaceChildren(E('div', 'loading', 'Loading…')); }
+  await loadAll(); loadedOnce = true; render();
+}
+
+/* ── data ── */
+async function loadReports() { const s = await getDocs(query(collection(db, 'cardReports'), orderBy('at', 'desc'), limit(100))); reports = s.docs.map(d => Object.assign({ id: d.id }, d.data())); }
+async function loadLogs() { const s = await getDocs(query(collection(db, 'verifyLog'), orderBy('at', 'desc'), limit(300))); logs = s.docs.map(d => d.data()); }
+async function loadSettings() { try { const s = await getDoc(doc(db, 'publicConfig', 'reportContact')); if (s.exists()) settings = { whatsapp: s.data().whatsapp || '', name: s.data().name || '' }; } catch (e) {} }
+async function loadAll() { await Promise.all([loadReports().catch(() => {}), loadLogs().catch(() => {}), loadSettings()]); }
+async function cardOf(serial) { if (!serial) return null; if (serial in cardCache) return cardCache[serial]; try { const s = await getDoc(doc(db, 'cardVerifications', serial)); cardCache[serial] = s.exists() ? s.data() : false; } catch (e) { cardCache[serial] = null; } return cardCache[serial]; }
+const statusOf = r => r.status || 'received';
+
+/* ── shell ── */
+function tabs() {
+  const nNew = reports.filter(r => statusOf(r) === 'received').length;
+  const bar = E('div', 'tabs'); bar.setAttribute('role', 'tablist');
+  [['reports', '📥 Reports', nNew], ['log', '🛡️ Forgery log', 0], ['settings', '⚙️ Settings', 0]].forEach(([k, l, n]) => {
+    const b = E('button', '', l); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(tab === k)); if (n) b.append(E('span', 'n', String(n)));
+    b.onclick = () => { tab = k; render(); }; bar.append(b);
+  }); return bar;
+}
+function render() {
+  main.replaceChildren(); main.append(tabs());
+  if (tab === 'reports') main.append(reportsView()); else if (tab === 'log') main.append(logView()); else main.append(settingsView());
+}
+
+/* ── reports ── */
+function reportsView() {
+  const split = E('div', 'split');
+  const left = E('div', 'card'); const f = E('div', 'filters');
+  [['all', 'All'], ['received', 'New'], ['reviewing', 'Reviewing'], ['done', 'Closed']].forEach(([k, l]) => { const b = E('button', 'fchip', l); b.type = 'button'; b.setAttribute('aria-pressed', String(filter === k)); b.onclick = () => { filter = k; render(); }; f.append(b); });
+  const shown = reports.filter(r => filter === 'all' || (filter === 'done' ? ['resolved', 'dismissed'].includes(statusOf(r)) : statusOf(r) === filter));
+  left.append(E('h2', '', 'Reports'), f);
+  if (!shown.length) left.append(E('div', 'iempty', reports.length ? 'Nothing in this filter.' : 'No reports yet. 🎉'));
+  const list = E('div', 'list');
+  shown.forEach(r => { const [ic, lab] = CATS[r.category] || CATS.other; const b = E('button', 'item'); b.type = 'button'; b.setAttribute('aria-current', String(selected === r.id));
+    const mid = E('div'); mid.append(E('b', '', lab), E('small', '', (r.name || 'Anonymous') + ' · ' + (r.serial ? pretty(r.serial) : 'no code')), E('small', '', ago(r.at)));
+    b.append(E('div', 'ic', ic), mid, E('span', 'ist ' + statusOf(r), STATUS[statusOf(r)])); b.onclick = () => { selected = r.id; render(); }; list.append(b); });
+  left.append(list);
+  const right = E('div', 'detail'); const cur = reports.find(r => r.id === selected);
+  if (cur) right.append(detailCard(cur)); else if (!isMobile()) right.append(Object.assign(E('div', 'card iempty'), { textContent: 'Select a report to read it.' }));
+  if (isMobile() && cur) split.append(right); else split.append(left, right);
+  return split;
+}
+function detailCard(r) {
+  const c = E('div', 'card'); const [ic, lab] = CATS[r.category] || CATS.other; const stt = statusOf(r);
+  if (isMobile()) { const bk = E('button', 'b line mobback', '← All reports'); bk.type = 'button'; bk.onclick = () => { selected = null; render(); }; c.append(bk); }
+  const dh = E('div', 'dh'); const h = E('div'); h.append(E('h2', '', ic + ' ' + lab), E('small', '', prettyRef(r.id) + ' · ' + fmt(r.at, true) + ' · via ' + (r.via === 'whatsapp' ? 'WhatsApp' : 'page'))); dh.append(h, E('span', 'ist ' + stt, STATUS[stt])); c.append(dh);
+  c.append(E('div', 'msg', r.message || ''));
+  const kv = E('dl', 'kv'); [['Name', r.name || '—'], ['Contact', r.contact || '—'], ['Receipt', r.receipt || '—'], ['Language', r.lang === 'sw' ? 'Kiswahili' : 'English']].forEach(([k, v]) => kv.append(E('dt', '', k), E('dd', '', v))); c.append(kv);
+  const slot = E('div'); c.append(slot);
+  if (r.serial) cardOf(r.serial).then(card => { slot.replaceChildren(cardBox(r, card)); });
+  // status + note
+  const s1 = E('div', 'sec'); s1.append(E('h3', '', 'Reply to the reporter (shown on their tracker)'));
+  const note = E('textarea', 'note'); note.maxLength = 500; note.placeholder = 'e.g. We checked the mark sheet and corrected the Mathematics mark. Please collect a re-issued card.'; note.value = r.note || ''; s1.append(note);
+  const row = E('div', 'row2');
+  [['reviewing', 'Mark as reviewing', 'blue'], ['resolved', 'Resolved', 'green'], ['dismissed', 'Close, no problem found', 'gray']].forEach(([k, l, cl]) => { const b = E('button', 'b ' + cl, l); b.type = 'button';
+    b.onclick = async () => { b.disabled = true; try { const bt = writeBatch(db); const upd = { status: k, note: note.value.trim().slice(0, 500), handledBy: me }; bt.update(doc(db, 'cardReports', r.id), Object.assign({ handledAt: serverTimestamp() }, upd));
+      bt.update(doc(db, 'reportStatus', r.id), { status: k, note: upd.note, updatedAt: serverTimestamp() }); await bt.commit(); Object.assign(r, upd); toast('Saved. The reporter will see this.'); render(); } catch (e) { toast('Couldn’t save. Check your connection.'); b.disabled = false; } }; row.append(b); });
+  s1.append(row); c.append(s1);
+  // contact
+  const digits = (r.contact || '').replace(/\D/g, ''); const isMail = /\S+@\S+\.\S+/.test(r.contact || '');
+  if (digits.length >= 9 || isMail) {
+    const s2 = E('div', 'sec'); s2.append(E('h3', '', 'Contact the reporter')); const row2 = E('div', 'row2');
+    const text = 'Hello' + (r.name ? ' ' + r.name : '') + ', this is Kanyadet Primary & Junior School about your report ' + prettyRef(r.id) + '. ';
+    if (digits.length >= 9) { let n = digits; if (n.startsWith('0')) n = '254' + n.slice(1); const a = E('a', 'b green', '💬 WhatsApp'); a.href = 'https://wa.me/' + n + '?text=' + encodeURIComponent(text); a.target = '_blank'; a.rel = 'noopener'; row2.append(a); const t = E('a', 'b line', '📞 Call'); t.href = 'tel:+' + n; row2.append(t); }
+    if (isMail) { const a = E('a', 'b line', '✉️ Email'); a.href = 'mailto:' + r.contact + '?subject=' + encodeURIComponent('Your report ' + prettyRef(r.id)) + '&body=' + encodeURIComponent(text); row2.append(a); }
+    s2.append(row2); c.append(s2);
+  }
+  return c;
+}
+function cardBox(r, card) {
+  if (card === false || card === null) { const b = E('div', 'cbox bad'); b.append(E('div', 'ci', '❓'), (() => { const d = E('div'); d.append(E('b', '', card === false ? 'This code is not in the register' : 'Couldn’t load the card'), E('small', '', pretty(r.serial))); return d; })()); return b; }
+  const b = E('div', 'cbox' + (card.status === 'revoked' ? ' bad' : '')); const mid = E('div');
+  mid.append(E('b', '', card.name || '—'), E('small', '', [card.grade, [card.term, card.year].filter(Boolean).join(' '), Number(card.avg).toFixed(1) + '%', pretty(r.serial)].filter(Boolean).join(' · ')));
+  b.append(E('div', 'ci', '🎓'), mid, E('span', 'ist ' + (card.status || 'valid'), card.status === 'revoked' ? 'Withdrawn' : 'Valid'));
+  const wrap = E('div'); wrap.append(b); const row = E('div', 'row2'); row.style.marginTop = '8px';
+  const v = E('a', 'b line', '🔎 Open verify page'); v.href = './verify.html?c=' + r.serial; v.target = '_blank'; v.rel = 'noopener'; row.append(v);
+  const w = E('button', card.status === 'revoked' ? 'b green' : 'b red', card.status === 'revoked' ? '↩ Reinstate card' : '⛔ Withdraw card'); w.type = 'button';
+  w.onclick = async () => { const to = card.status === 'revoked' ? 'valid' : 'revoked'; if (!confirm(to === 'revoked' ? 'Withdraw this card? Anyone who checks it will see "Card withdrawn".' : 'Reinstate this card as valid?')) return; w.disabled = true;
+    try { await updateDoc(doc(db, 'cardVerifications', r.serial), { status: to, statusChangedAt: serverTimestamp(), statusChangedBy: me }); card.status = to; toast(to === 'revoked' ? 'Card withdrawn.' : 'Card reinstated.'); render(); } catch (e) { toast('Couldn’t change the card status.'); w.disabled = false; } };
+  row.append(w); wrap.append(row); return wrap;
+}
+
+/* ── forgery log ── */
+function logView() {
+  const c = E('div', 'card'); c.append(E('h2', '', 'Forgery & scan log'));
+  if (!logs.length) { c.append(E('div', 'iempty', 'No checks recorded yet.')); return c; }
+  const now = Date.now(), wk = logs.filter(l => { const d = toDate(l.at); return d && now - d < 7 * 864e5; });
+  const count = k => wk.filter(l => l.result === k).length;
+  const tiles = E('div', 'tiles'); [['Checks (7 days)', wk.length, ''], ['Genuine', count('ok'), 'ok'], ['Superseded', count('superseded'), 'warn'], ['Withdrawn scanned', count('revoked'), 'bad'], ['Unknown codes', count('notfound'), count('notfound') > 5 ? 'bad' : 'warn']].forEach(([l, n, cl]) => { const t = E('div', 'tl2 ' + cl); t.append(E('small', '', l), E('b', '', String(n))); tiles.append(t); }); c.append(tiles);
+  const by = {}; logs.filter(l => l.result === 'notfound').forEach(l => { by[l.serial] = (by[l.serial] || 0) + 1; });
+  const rep = Object.entries(by).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]);
+  if (rep.length) { c.append(E('h3', '', 'Codes tried repeatedly (possible forgery)')); c.lastChild.style.cssText = 'font:700 13px Poppins;color:#b03a2e;margin:10px 0 6px'; const t = E('table', 't'); t.innerHTML = '<thead><tr><th>Code</th><th>Attempts</th></tr></thead>'; const tb = E('tbody');
+    rep.slice(0, 8).forEach(([s, n]) => { const tr = E('tr'); const td = E('td'); td.append(E('code', '', pretty(s))); tr.append(td, E('td', '', String(n))); tb.append(tr); }); t.append(tb); c.append(t); }
+  c.append(E('h3', '', 'Recent checks')); c.lastChild.style.cssText = 'font:700 13px Poppins;margin:16px 0 6px'; const t = E('table', 't'); t.innerHTML = '<thead><tr><th>When</th><th>Code</th><th>Result</th></tr></thead>'; const tb = E('tbody');
+  const cls = { ok: 'resolved', superseded: 'received', revoked: 'revoked', notfound: 'revoked' }, lab = { ok: 'Genuine', superseded: 'Superseded', revoked: 'Withdrawn', notfound: 'Not found' };
+  logs.slice(0, 40).forEach(l => { const tr = E('tr'); const td = E('td'); td.append(E('code', '', pretty(l.serial))); const st = E('td'); st.append(E('span', 'ist ' + (cls[l.result] || ''), lab[l.result] || l.result)); tr.append(E('td', '', fmt(l.at, true)), td, st); tb.append(tr); }); t.append(tb); c.append(t);
+  return c;
+}
+
+/* ── settings ── */
+function settingsView() {
+  const c = E('div', 'card'); c.style.maxWidth = '640px'; c.append(E('h2', '', 'Report contact'));
+  c.append(E('p', 'foot', 'The WhatsApp number people reach when they tap “WhatsApp the head teacher” on the report page. It is public, so use a number you are happy to share.'));
+  c.lastChild.style.textAlign = 'left';
+  const l1 = E('label', 'lbl', 'WhatsApp number (country code, digits only)'); const n = E('input', 'in'); n.inputMode = 'numeric'; n.placeholder = '2547XXXXXXXX'; n.value = settings.whatsapp; n.maxLength = 15;
+  const l2 = E('label', 'lbl', 'Name shown on the button (optional)'); const nm = E('input', 'in'); nm.placeholder = 'e.g. Mrs. Achieng'; nm.value = settings.name; nm.maxLength = 40;
+  const row = E('div', 'row2'); row.style.marginTop = '14px'; const sv = E('button', 'b', 'Save'); sv.type = 'button';
+  sv.onclick = async () => { let d = n.value.replace(/\D/g, ''); if (d.startsWith('0')) d = '254' + d.slice(1); if (!/^\d{10,15}$/.test(d)) { toast('Enter a valid number, e.g. 2547XXXXXXXX'); return; } sv.disabled = true;
+    try { await setDoc(doc(db, 'publicConfig', 'reportContact'), { whatsapp: d, name: nm.value.trim().slice(0, 40), updatedAt: serverTimestamp() }); settings = { whatsapp: d, name: nm.value.trim() }; toast('Saved.'); render(); } catch (e) { toast('Couldn’t save.'); sv.disabled = false; } };
+  row.append(sv); if (settings.whatsapp) { const t = E('a', 'b green', '💬 Test'); t.href = 'https://wa.me/' + settings.whatsapp + '?text=' + encodeURIComponent('Test from the report page'); t.target = '_blank'; t.rel = 'noopener'; row.append(t); }
+  c.append(l1, n, l2, nm, row);
+  const s = E('div', 'sec'); s.append(E('h3', '', 'Links to share')); const base = location.href.replace(/[^/]*$/, '');
+  [['Verify a report card', base + 'verify.html'], ['Report a problem', base + 'verify.html?v=report']].forEach(([l, u]) => { const r = E('div', 'row2'); r.style.cssText = 'align-items:center;margin-bottom:8px'; const i = E('input', 'in'); i.readOnly = true; i.value = u; i.style.flex = '1'; i.setAttribute('aria-label', l); const b = E('button', 'b line', 'Copy'); b.type = 'button'; b.onclick = async () => { try { await navigator.clipboard.writeText(u); toast('Link copied'); } catch (e) { i.select(); } }; r.append(i, b); s.append(E('span', 'lbl', l), r); });
+  c.append(s); return c;
+}
+return { setUser, enter, isAdmin: () => isAdv };
+
+})();
+
+/* ═════════════════════ shell: tabs, language, theme, routing ═════════════════════ */
+const SH = {
+  en: { skip: 'Skip to content', nav_verify: '🔍 Verify a card', nav_report: '🚩 Report a problem', nav_inbox: '📥 Reports inbox', staff: 'Staff sign-in', toolLang: 'Language', toolTheme: 'Switch light/dark', navLabel: 'Sections' },
+  sw: { skip: 'Ruka hadi maudhui', nav_verify: '🔍 Thibitisha kadi', nav_report: '🚩 Ripoti tatizo', nav_inbox: '📥 Sanduku la ripoti', staff: 'Ingia (wafanyakazi)', toolLang: 'Lugha', toolTheme: 'Badilisha mwanga/giza', navLabel: 'Sehemu' }
+};
+const sh = k => SH[lang][k] || SH.en[k];
+const TITLE = { verify: () => Verify.t('sub'), report: () => Report.t('sub'), inbox: () => 'Reports inbox' };
+const SUB = { verify: () => Verify.t('sub'), report: () => Report.t('sub'), inbox: () => 'Head teacher · Advanced Admin' };
+let cur = '';
+
+function applyShell() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-sh]').forEach(el => { el.textContent = sh(el.dataset.sh); });
+  document.querySelectorAll('[data-shl]').forEach(el => { el.setAttribute('aria-label', sh(el.dataset.shl)); el.title = sh(el.dataset.shl); });
+  $('mainnav').setAttribute('aria-label', sh('navLabel'));
+  $('langbtn').textContent = lang === 'sw' ? 'EN' : 'SW';
+  if (cur) { $('hsub').textContent = SUB[cur](); document.title = TITLE[cur]() + ' · Kanyadet Primary & Junior School'; }
+}
+$('langbtn').addEventListener('click', () => { lang = lang === 'sw' ? 'en' : 'sw'; store.set('kv-lang', lang); applyShell(); Verify.relang(); Report.relang(); });
 function setTheme(th) { document.documentElement.dataset.theme = th; store.set('kv-theme', th); $('themebtn').textContent = th === 'dark' ? '☀️' : '🌙'; }
 $('themebtn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
 setTheme(store.get('kv-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-applyStatic(); drawShield();
 
-$('f').addEventListener('submit', e => { e.preventDefault(); const s = norm(inp.value); history.replaceState(null, '', '?c=' + encodeURIComponent(s)); lookup(s, null); });
-const q = new URLSearchParams(location.search);
-if (q.get('c')) { inp.value = q.get('c'); lookup(q.get('c'), (q.get('h') || '').toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 8) || null); }
-else setView({ kind: 'hello' });
+function go(v, p) {
+  p = p || {}; cur = v;
+  ['verify', 'report', 'inbox'].forEach(x => { $('pane-' + x).hidden = x !== v; $('nav-' + x).setAttribute('aria-selected', String(x === v)); });
+  $('wrap').classList.toggle('wide', v === 'inbox');
+  $('shield').hidden = v === 'inbox'; $('langbtn').hidden = v === 'inbox';
+  $('staffrow').hidden = v === 'inbox' || Inbox.isAdmin();
+  applyShell();
+  if (v === 'verify') Verify.enter(p);
+  else if (v === 'report') Report.enter(p);
+  else { history.replaceState(null, '', '?v=inbox'); Inbox.enter(); }
+  window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+}
+['verify', 'report', 'inbox'].forEach(x => $('nav-' + x).addEventListener('click', () => go(x)));
+$('staffbtn').addEventListener('click', () => go('inbox'));
+
+onAuthStateChanged(auth, async u => {
+  await Inbox.setUser(u);
+  const a = Inbox.isAdmin();
+  $('nav-inbox').hidden = !a && cur !== 'inbox';
+  $('staffrow').hidden = a || cur === 'inbox';
+  if (cur === 'inbox') Inbox.enter();
+});
+
+const q0 = Object.fromEntries(new URLSearchParams(location.search));
+go(q0.v === 'inbox' ? 'inbox' : (q0.v === 'report' || q0.ref) ? 'report' : 'verify', q0);
 
 </script>
 </body>
