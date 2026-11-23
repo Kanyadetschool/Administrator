@@ -427,6 +427,49 @@ main#app{display:grid;gap:14px;outline:none}
 html[data-theme=dark] .mainnav button{background:#12202e;color:#8cc4ee}
 html[data-theme=dark] .mainnav button[aria-selected=true]{background:#8cc4ee;color:#06202f}
 @media print{.mainnav,#staffrow,.tools{display:none!important}}
+
+/* ═════ v2 features ═════ */
+.go.alt{background:transparent;color:var(--navy);border:2px solid var(--navy);padding:.75rem .8rem}
+html[data-theme=dark] .go.alt{background:transparent;color:#8cc4ee;border-color:#8cc4ee}
+.acts .btn:last-child:nth-child(odd){grid-column:1/-1}
+.batchta{width:100%;border:2px solid #c9d6e0;border-radius:16px;background:var(--surface,#fff);color:var(--ink);font:600 14px 'DejaVu Sans Mono',ui-monospace,Menlo,Consolas,monospace;letter-spacing:.06em;padding:10px 14px;resize:vertical;text-transform:uppercase}
+.batchta:focus{outline:3px solid var(--blue);outline-offset:1px}
+html[data-theme=dark] .batchta{background:#0d1925;border-color:#34495c;color:#e6eef5}
+.leftp{text-align:left!important;margin:0 4px 10px!important}
+.sumline{margin:12px 4px 8px;font:600 12.5px 'Poppins';color:var(--navy)}
+.recitem.static{cursor:default}
+.fld select{width:100%;border:2px solid #c9d6e0;border-radius:16px;background:var(--surface,#fff);color:var(--ink);font:500 15px 'Poppins';padding:11px 14px}
+.fld select:focus{outline:3px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+html[data-theme=dark] .fld select{background:#0d1925;border-color:#34495c;color:#e6eef5}
+.guidebox{margin-top:14px;padding:4px 14px 14px;border-radius:18px;background:#f4f7f9}
+.gtitle{padding-top:10px;font:700 12.5px 'Poppins';color:var(--navy)}
+.ghint{margin-top:10px;padding:9px 12px;border-radius:12px;font-size:12.5px;font-weight:600}
+.ghint.same{background:#fff6dd;color:#7a5b0a}.ghint.diff{background:#e9f8ef;color:#1b7a45}
+.draftnote{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13px;color:#7a5b0a;background:#fff6dd;border:1.5px dashed var(--gold)}
+.rec-on{background:#e74c3c!important;color:#fff!important;border-color:#e74c3c!important}
+.printonly{display:none}.printonly dt{color:var(--muted)}.printonly dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+html[data-theme=dark] .guidebox{background:#0e1a26}html[data-theme=dark] .ghint.same{background:#33290f;color:#f0d68a}html[data-theme=dark] .ghint.diff{background:#12301f;color:#7fe0a8}
+html[data-theme=dark] .draftnote{background:#33290f;color:#f0d68a;border-color:#8a6d1c}
+@media print{.noprint,#view .tool,.bsend,.bwa{display:none!important}.printonly{display:block!important}}
+.toolbar{display:grid;gap:8px;margin-bottom:10px}.toolbar .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+select.in{appearance:auto}
+.b.sm{padding:6px 12px;font-size:12px}
+.count{margin:0 4px 8px;font:600 12px 'Poppins';color:var(--muted)}
+.bulk{margin:0 0 12px;padding:12px;border-radius:18px;background:#e3f0fa}
+html[data-theme=dark] .bulk{background:#142c40}
+.sla{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:#fdecd8;color:#a85a0c;font:600 12.5px 'Poppins'}
+.tabs .n.red{background:#c0392b}
+.alert{display:flex;gap:12px;padding:12px 14px;border-radius:18px;margin-bottom:8px}
+.alert .ai{font-size:22px;line-height:1.2}.alert b{display:block;font:700 13.5px/1.3 'Poppins'}.alert small{display:block;font-size:12.5px;line-height:1.4;margin-top:2px}
+.alert.bad{background:#fbe3e0;color:#8f2a20}.alert.warn{background:#fdecd8;color:#a85a0c}
+html[data-theme=dark] .alert.bad{background:#3a1816;color:#ff9a90}html[data-theme=dark] .alert.warn{background:#3a2814;color:#ffb866}
+.chart{display:block;width:100%;height:auto}.chart text{font:600 10px 'Poppins';fill:var(--muted)}
+.hrow{display:grid;grid-template-columns:minmax(120px,170px) 1fr 34px;gap:10px;align-items:center;font-size:12.5px;margin:8px 0}
+.hrow b{text-align:right}.hbar{height:10px;border-radius:99px;background:#eef2f5;overflow:hidden}.hbar i{display:block;height:100%;background:var(--blue);border-radius:99px}
+html[data-theme=dark] .hbar{background:#1d2d3c}
+.qrrow{display:grid;gap:6px;margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid #e6ecf0}
+.qrrow .b{justify-self:start}
+html[data-theme=dark] .qrrow{border-color:#24384a}
 </style>
 </head>
 <body>
@@ -445,10 +488,13 @@ html[data-theme=dark] .mainnav button[aria-selected=true]{background:#8cc4ee;col
       <div id="result" style="display:grid;gap:14px" aria-live="polite"></div>
       <form id="f" class="card" autocomplete="off">
         <label class="l" for="code" data-t="formLabel">Enter the card code (printed under the QR)</label>
-        <div class="row"><input id="code" maxlength="12" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX"><button class="go" type="submit" data-t="check">Check</button></div>
+        <div class="row"><input id="code" maxlength="12" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" aria-describedby="codehint"><button id="pastebtn" class="go alt" type="button">📋</button><button class="go" type="submit" data-t="check">Check</button></div>
+        <p id="codehint" class="hint" aria-live="polite"></p>
         <div class="scanrow"><button id="scanbtn" class="scanbtn" type="button" data-t="scan">📷 Scan QR or barcode</button><button id="photobtn" class="scanbtn" type="button" data-t="scanPhoto">🖼️ Use a photo</button></div>
         <input id="scanfile" type="file" accept="image/*" hidden>
+        <button id="batchbtn" class="scanbtn" type="button" data-t="batch">📋 Check several codes</button>
       </form>
+      <div id="batch" hidden style="display:grid;gap:14px"></div>
       <p class="foot" data-t="footer">Always compare what you see here with the printed card. If anything differs, the card has been altered.</p>
     </section>
     <section id="pane-report" class="pane" hidden>
@@ -530,6 +576,11 @@ const I18N = {
   recent:'Recent checks on this device', clear:'Clear', recentNote:'Saved only on this phone. Nothing is sent anywhere.', recentNF:'Not found',
   shieldOk:'Official school website', shieldOkSub:'Check that your address bar shows exactly this:', shieldBad:'This is not the school’s official website', shieldBadSub:'Do not trust results shown here. Open the real page at kanyadet-school-portal.web.app/verify.html',
   reportCode:'🚩 Report this code',
+  batch:'📋 Check several codes', batchT:'Check several codes', batchHint:'Paste up to 10 codes or links, one per line. Handy for admissions or transfers.', batchPh:'7F3K-92QA\n9XW2-41MD', batchGo:'Check all', batchCsv:'⬇️ Download CSV', batchNone:'No valid codes found. Codes have 8 characters, like 7F3K-92QA.', batchMax:'Only the first 10 codes were checked.', batchBusy:'Checking {n} of {m}…', batchSum:'{ok} genuine · {warn} superseded · {bad} withdrawn · {nf} not found', stOk:'Genuine', stWarn:'Superseded', stBad:'Withdrawn', stNf:'Not found', stErr:'Could not check', stSkip:'Skipped (too many unknown codes)', batchClose:'Close',
+  speak:'🔊 Read aloud', speakStop:'⏹ Stop reading', spk:'{v}. Learner {name}. {grade}, {term}. Average {avg} percent. Level {lvl}.',
+  bWa:'💬 Share on WhatsApp', bMail:'✉️ Share by email', shareMsg:'{icon} {v}: {name}, {grade}, {term}. Checked against {school} records. See it here: {url}', mailSub:'Report card check: {name}',
+  lvT:'Understanding the levels', lvEE:'EE · Exceeding expectations: goes beyond what is expected for the grade.', lvME:'ME · Meeting expectations: has the skills expected for the grade.', lvAE:'AE · Approaching expectations: close to the expected skills and still building up.', lvBE:'BE · Below expectations: needs extra support to reach the expected skills.', lvNote:'Levels describe how well a learner meets the expected skills in each learning area. They are not a pass or fail.', lvYour:'This learner’s results by learning area:',
+  paste:'Paste a code or link', pasteNone:'No code or link found on the clipboard.', codeHint:'{n} of 8 characters', codeDone:'✓ Complete, checking…', codeLink:'Code recognised, checking…',
  },
  sw: {
   skip:'Ruka hadi matokeo', toolLang:'Lugha', toolTheme:'Badilisha mwanga/giza', school:'Kanyadet Primary & Junior School', sub:'Uthibitishaji wa kadi ya matokeo',
@@ -569,6 +620,11 @@ const I18N = {
   recent:'Ukaguzi wa hivi karibuni kwenye kifaa hiki', clear:'Futa', recentNote:'Vinahifadhiwa kwenye simu hii tu. Hakuna kinachotumwa popote.', recentNF:'Haipatikani',
   shieldOk:'Tovuti rasmi ya shule', shieldOkSub:'Hakikisha upau wa anwani unaonyesha hasa hii:', shieldBad:'Hii si tovuti rasmi ya shule', shieldBadSub:'Usiamini matokeo yanayoonyeshwa hapa. Fungua ukurasa halisi kwenye kanyadet-school-portal.web.app/verify.html',
   reportCode:'🚩 Ripoti msimbo huu',
+  batch:'📋 Kagua misimbo mingi', batchT:'Kagua misimbo mingi', batchHint:'Bandika hadi misimbo au viungo 10, kimoja kwa kila mstari. Inafaa wakati wa kusajili au uhamisho.', batchPh:'7F3K-92QA\n9XW2-41MD', batchGo:'Kagua yote', batchCsv:'⬇️ Pakua CSV', batchNone:'Hakuna msimbo halali. Misimbo ina herufi au tarakimu 8, mfano 7F3K-92QA.', batchMax:'Misimbo 10 ya kwanza pekee ndiyo ilikaguliwa.', batchBusy:'Inakagua {n} kati ya {m}…', batchSum:'{ok} halisi · {warn} imebadilishwa · {bad} imebatilishwa · {nf} haipatikani', stOk:'Halisi', stWarn:'Imebadilishwa', stBad:'Imebatilishwa', stNf:'Haipatikani', stErr:'Haikuweza kukaguliwa', stSkip:'Imerukwa (misimbo mingi isiyojulikana)', batchClose:'Funga',
+  speak:'🔊 Soma kwa sauti', speakStop:'⏹ Acha kusoma', spk:'{v}. Mwanafunzi {name}. {grade}, {term}. Wastani asilimia {avg}. Kiwango {lvl}.',
+  bWa:'💬 Shiriki kwa WhatsApp', bMail:'✉️ Shiriki kwa barua pepe', shareMsg:'{icon} {v}: {name}, {grade}, {term}. Imekaguliwa kwenye rekodi za {school}. Iangalie hapa: {url}', mailSub:'Ukaguzi wa kadi ya matokeo: {name}',
+  lvT:'Kuelewa viwango', lvEE:'EE · Kuzidi matarajio: anazidi kinachotarajiwa kwa darasa.', lvME:'ME · Kufikia matarajio: ana ujuzi unaotarajiwa kwa darasa.', lvAE:'AE · Karibia matarajio: yuko karibu na ujuzi unaotarajiwa na anaendelea kujenga.', lvBE:'BE · Chini ya matarajio: anahitaji msaada zaidi kufikia ujuzi unaotarajiwa.', lvNote:'Viwango vinaeleza jinsi mwanafunzi anavyofikia ujuzi unaotarajiwa katika kila eneo la kujifunza. Si ufaulu wala kufeli.', lvYour:'Matokeo ya mwanafunzi huyu kwa kila eneo la kujifunza:',
+  paste:'Bandika msimbo au kiungo', pasteNone:'Hakuna msimbo au kiungo kwenye ubao wa kunakili.', codeHint:'herufi {n} kati ya 8', codeDone:'✓ Imekamilika, inakagua…', codeLink:'Msimbo umetambuliwa, inakagua…',
  }
 };
 const t = (k, a) => { let s = (I18N[lang][k] ?? I18N.en[k] ?? k); if (a) for (const x in a) s = s.split('{' + x + '}').join(a[x]); return s; };
@@ -666,6 +722,7 @@ const receiptFor = serial => {   // Nairobi time, same clock as the “checked�
 };
 
 function draw() {
+  try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
   out.replaceChildren(); seq = 0;
   const v = view;
   if (v.kind === 'loading') { out.append(E('div', 'loading', '…')); return; }
@@ -807,7 +864,10 @@ function draw() {
   for (let i = 0; i < rows.length; i += 2) dl.append(E('dt', '', rows[i]), E('dd', '', rows[i + 1]));
   d1.append(dl, E('p', 'small', t('howP')));
   const d2 = E('details', 'acc'); d2.append(E('summary', '', t('priv')), E('p', 'small', t('privP')));
-  dc.append(d1, d2); out.append(dc);
+  const d3 = E('details', 'acc'); d3.append(E('summary', '', t('lvT')));
+  ['lvEE', 'lvME', 'lvAE', 'lvBE', 'lvNote'].forEach(k => d3.append(E('p', 'small', t(k))));
+  if (subs.length) { const dl3 = E('dl'); subs.forEach(s => dl3.append(E('dt', '', nice(s.n)), E('dd', '', (s.l || '—') + (s.s != null ? ' · ' + (+s.s.toFixed(1)) + '%' : '')))); d3.append(E('p', 'small', t('lvYour')), dl3); }
+  dc.append(d1, d2, d3); out.append(dc);
 
   // actions
   const ac = rise(E('div', 'acts'));
@@ -826,7 +886,17 @@ function draw() {
   };
   const bR = E('button', 'btn alt warnb', t('bReport')); bR.type = 'button';
   bR.onclick = () => { go('report', { s: serial, rc: v.receipt, k: kind === 'warn' ? 'marks' : '' }); };
-  ac.append(bP, bS, bJ, bR); out.append(ac);
+  ac.append(bP, bS, bJ, bR);
+  const sumLine = () => t('spk', { v: t(v.tk), name: r.name || '', grade: [r.grade, r.cls].filter(Boolean).join(' '), term: [r.term, r.year].filter(Boolean).join(' '), avg: r2(Number(r.avg) || 0, 1), lvl: r.level || '—' });
+  const shareText = () => t('shareMsg', { icon: kind === 'ok' ? '✅' : kind === 'warn' ? '⚠️' : '⛔', v: t(v.tk), name: r.name || '—', grade: [r.grade, r.cls].filter(Boolean).join(' '), term: [r.term, r.year].filter(Boolean).join(' '), school: SCHOOL.name, url: location.href.split(/[?#]/)[0] + '?c=' + serial + (h ? '&h=' + h : '') });
+  if ('speechSynthesis' in window && window.SpeechSynthesisUtterance) {
+    const bV = E('button', 'btn alt', t('speak')); bV.type = 'button';
+    bV.onclick = () => { const ss = speechSynthesis; if (ss.speaking) { ss.cancel(); bV.textContent = t('speak'); return; } const u = new SpeechSynthesisUtterance(sumLine()); u.lang = lang === 'sw' ? 'sw-KE' : 'en-GB'; u.onend = u.onerror = () => { bV.textContent = t('speak'); }; bV.textContent = t('speakStop'); ss.speak(u); };
+    ac.append(bV);
+  }
+  const bW = E('button', 'btn alt', t('bWa')); bW.type = 'button'; bW.onclick = () => { window.open('https://wa.me/?text=' + encodeURIComponent(shareText()), '_blank', 'noopener'); };
+  const bM = E('button', 'btn alt', t('bMail')); bM.type = 'button'; bM.onclick = () => { location.href = 'mailto:?subject=' + encodeURIComponent(t('mailSub', { name: r.name || '' })) + '&body=' + encodeURIComponent(shareText()); };
+  ac.append(bW, bM); out.append(ac);
   out.append(rise(E('p', 'foot rc', t('rcpt', { x: v.receipt, t: checkedAt }))));
   focusVerdict();
 }
@@ -891,7 +961,7 @@ function parseScan(raw) {
   try { const u = new URL(raw); const c = u.searchParams.get('c'); if (c && /verify/i.test(u.pathname)) return { c, h: (u.searchParams.get('h') || '').toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 8) || null }; } catch (e) {}
   const n = norm(raw); return n.length === 8 ? { c: n, h: null } : null;
 }
-function goScanned(p) { inp.value = p.c; history.replaceState(null, '', '?c=' + encodeURIComponent(norm(p.c)) + (p.h ? '&h=' + p.h : '')); lookup(p.c, p.h); }
+function goScanned(p) { inp.value = pretty(norm(p.c)); history.replaceState(null, '', '?c=' + encodeURIComponent(norm(p.c)) + (p.h ? '&h=' + p.h : '')); lookup(p.c, p.h); }
 function closeScanner() { clearInterval(scanTimer); if (scanStream) { scanStream.getTracks().forEach(x => x.stop()); scanStream = null; } $('scanner').hidden = true; $('scanbtn').focus(); }
 async function openScanner() {
   const box = $('scanner'), v = $('scanvideo'), msg = $('scanmsg'); box.hidden = false; msg.textContent = t('scanLoading'); $('scanclose').focus();
@@ -928,10 +998,83 @@ function drawShield() {
 function applyStatic() {
   $('pane-verify').querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
   inp.placeholder = 'XXXX-XXXX';
-  $('scanclose').setAttribute('aria-label', t('close'));
+  $('scanclose').setAttribute('aria-label', t('close')); $('pastebtn').setAttribute('aria-label', t('paste')); $('pastebtn').title = t('paste');
 }
 applyStatic(); drawShield();
 $('f').addEventListener('submit', e => { e.preventDefault(); const s = norm(inp.value); history.replaceState(null, '', '?c=' + encodeURIComponent(s)); lookup(s, null); });
+/* ───────────────────────── smart code entry: auto-format, paste, auto-check ───────────────────────── */
+const setHint = x => { $('codehint').textContent = x || ''; };
+let lastAuto = '', autoT = null;
+inp.addEventListener('input', () => {
+  let n = norm(inp.value); if (n.length > 8) n = n.slice(0, 8);
+  const shown = n.length > 4 ? pretty(n) : n; if (inp.value !== shown) inp.value = shown;
+  setHint(n.length ? (n.length === 8 ? t('codeDone') : t('codeHint', { n: n.length })) : '');
+  clearTimeout(autoT);
+  if (n.length === 8 && n !== lastAuto) { lastAuto = n; autoT = setTimeout(() => { history.replaceState(null, '', '?c=' + n); lookup(n, null); }, 500); }
+  if (n.length < 8) lastAuto = '';
+});
+inp.addEventListener('paste', e => {   // a pasted link is longer than the box allows, so read it before the browser trims it
+  const txt = ((e.clipboardData || window.clipboardData).getData('text') || '').trim();
+  if (/[:\/]/.test(txt)) { const p = parseScan(txt); if (p) { e.preventDefault(); lastAuto = norm(p.c); setHint(t('codeLink')); goScanned(p); } }
+});
+if (!(navigator.clipboard && navigator.clipboard.readText)) $('pastebtn').hidden = true;
+$('pastebtn').addEventListener('click', async () => {
+  try {
+    const txt = ((await navigator.clipboard.readText()) || '').trim();
+    const m = txt.match(/[0-9A-Za-z]{4}[-\s]?[0-9A-Za-z]{4}/); const p = parseScan(txt) || (m ? parseScan(m[0]) : null);
+    if (p) { lastAuto = norm(p.c); setHint(t('codeLink')); goScanned(p); } else setHint(t('pasteNone'));
+  } catch (e) { setHint(t('pasteNone')); }
+});
+
+/* ───────────────────────── batch check (up to 10 codes) ───────────────────────── */
+const kindOf = (r, h) => r.status === 'revoked' ? 'bad' : (h && !String(r.contentHash || '').startsWith(h)) ? 'warn' : 'ok';
+const csvCell = c => { let x = String(c == null ? '' : c); if (/^[=+\-@\t\r]/.test(x)) x = "'" + x; return '"' + x.replace(/"/g, '""') + '"'; };
+let batchText = '', batchRows = [], batchCapped = false, batchBusy = false;
+const BST = { ok: ['ok', 'stOk', '✓'], warn: ['warn', 'stWarn', '!'], bad: ['bad', 'stBad', '✕'], nf: ['bad', 'stNf', '✕'], err: ['warn', 'stErr', '?'], skip: ['warn', 'stSkip', '–'] };
+function batchResults(res) {
+  res.replaceChildren(); if (!batchRows.length) return;
+  const n = k => batchRows.filter(x => x.k === k).length;
+  res.append(E('p', 'sumline', t('batchSum', { ok: n('ok'), warn: n('warn'), bad: n('bad'), nf: n('nf') })));
+  const list = E('div', 'rec');
+  batchRows.forEach(x => {
+    const [cls, key, ic] = BST[x.k]; const b = E('button', 'recitem'); b.type = 'button';
+    const mid = E('span', 'rm'); mid.append(E('b', '', x.r ? [x.r.name, x.r.grade, [x.r.term, x.r.year].filter(Boolean).join(' ')].filter(Boolean).join(' · ') : t(key)), E('small', '', pretty(x.s) + ' · ' + t(key)));
+    b.append(E('span', 'ri ' + cls, ic), mid); b.onclick = () => { goScanned({ c: x.s, h: x.h }); window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' }); }; list.append(b);
+  });
+  res.append(list);
+  if (batchCapped) res.append(E('p', 'foot', t('batchMax')));
+  const dl = E('button', 'btn alt', t('batchCsv')); dl.type = 'button'; dl.style.marginTop = '12px';
+  dl.onclick = () => {
+    const rows = [['Code', 'Result', 'Learner', 'Class', 'Term', 'Year', 'Average', 'Level', 'Checked']];
+    batchRows.forEach(x => rows.push([pretty(x.s), I18N.en[BST[x.k][1]], x.r ? x.r.name : '', x.r ? [x.r.grade, x.r.cls].filter(Boolean).join(' ') : '', x.r ? x.r.term : '', x.r ? x.r.year : '', x.r ? x.r.avg : '', x.r ? x.r.level : '', new Date().toISOString()]));
+    const a = E('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv' })); a.download = 'card-checks-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.append(a); a.click(); a.remove();
+  };
+  res.append(dl);
+}
+function drawBatch() {
+  const box = $('batch'); box.replaceChildren(); if (box.hidden) return;
+  const c = card(t('batchT')); c.append(E('p', 'foot leftp', t('batchHint')));
+  const ta = E('textarea', 'batchta'); ta.rows = 5; ta.spellcheck = false; ta.placeholder = t('batchPh'); ta.value = batchText; ta.setAttribute('aria-label', t('batchT')); ta.oninput = () => { batchText = ta.value; };
+  const row = E('div', 'row'); row.style.marginTop = '10px'; const bg = E('button', 'go', t('batchGo')); bg.type = 'button'; bg.disabled = batchBusy;
+  const cl = E('button', 'go alt', t('batchClose')); cl.type = 'button'; cl.onclick = () => { box.hidden = true; drawBatch(); $('batchbtn').focus(); };
+  row.append(bg, cl); const res = E('div'); res.setAttribute('aria-live', 'polite'); c.append(ta, row, res); box.append(c); batchResults(res);
+  bg.onclick = async () => {
+    const seen = new Set(), items = [];
+    (batchText.match(/[^\s,;]+/g) || []).forEach(tok => { const p = parseScan(tok); if (p) { const x = norm(p.c); if (x.length === 8 && !seen.has(x)) { seen.add(x); items.push({ s: x, h: p.h }); } } });
+    if (!items.length) { batchRows = []; res.replaceChildren(E('p', 'foot', t('batchNone'))); return; }
+    batchCapped = items.length > 10; items.length = Math.min(items.length, 10); batchRows = []; batchBusy = true; bg.disabled = true;
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i]; res.replaceChildren(E('p', 'foot', t('batchBusy', { n: i + 1, m: items.length })));
+      if (blockedFor()) { batchRows.push({ s: it.s, h: it.h, k: 'skip' }); continue; }
+      let snap; try { snap = await getDoc(doc(db, 'cardVerifications', it.s)); } catch (e) { batchRows.push({ s: it.s, h: it.h, k: 'err' }); continue; }
+      if (!snap.exists()) { noteFail(); logCheck(it.s, 'notfound'); batchRows.push({ s: it.s, h: it.h, k: 'nf' }); continue; }
+      const r = snap.data(), k = kindOf(r, it.h); logCheck(it.s, k === 'bad' ? 'revoked' : k === 'warn' ? 'superseded' : 'ok'); batchRows.push({ s: it.s, h: it.h, k, r });
+    }
+    batchBusy = false; bg.disabled = false; batchResults(res);
+  };
+}
+$('batchbtn').addEventListener('click', () => { const box = $('batch'); box.hidden = !box.hidden; drawBatch(); if (!box.hidden) box.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'nearest' }); });
+
 let started = false;
 const cleanH = h => (h || '').toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 8) || null;
 function enter(p) {
@@ -941,7 +1084,7 @@ function enter(p) {
   else history.replaceState(null, '', view.serial ? '?c=' + view.serial : location.pathname);
   started = true;
 }
-function relang() { applyStatic(); drawShield(); draw(); }
+function relang() { applyStatic(); drawShield(); draw(); drawBatch(); }
 return { enter, relang, t };
 
 })();
@@ -973,6 +1116,12 @@ const I18N = {
   track:'Check progress of a report', trackBtn:'Check', trackNone:'No report found with that reference.',
   mine:'Your reports on this device', footer:'For anything urgent, please contact the school office directly.', loading:'Loading…',
   waMsg:'Hello, I’m reporting a problem with a Kanyadet report card.\nReference: {ref}\nProblem: {cat}\nCard code: {s}\nDetails: {m}\nName: {n}',
+  draftBack:'We restored the draft you hadn’t sent.', draftDiscard:'Discard draft',
+  mic:'🎤 Dictate', micStop:'⏹ Stop dictating', micNo:'Dictation isn’t available on this device.',
+  hintSame:'This matches the school record ({v}). Please double-check the subject and the number.', hintDiff:'The school record shows {v}. Your card shows {p}.',
+  notify:'🔔 Notify me', notifyOn:'You’ll get a notification when it changes.', notifTitle:'Kanyadet report update', statusChanged:'Your report is now: {s}', autoUpd:'This page checks for updates every 30 seconds.',
+  printRcpt:'🖨️ Print receipt', copyLink:'🔗 Copy link', shareWa:'💬 Share on WhatsApp', linkCopied:'Link copied', shareTxt:'My report {ref} to Kanyadet Primary & Junior School. Track it here: {url}',
+  rcptTitle:'Report receipt', rcptCat:'Problem', rcptDate:'Sent', rcptStatus:'Status', rcptLink:'Track at',
  },
  sw: {
   skip:'Ruka hadi maudhui', school:'Kanyadet Primary & Junior School', sub:'Ripoti tatizo', toolLang:'Lugha', toolTheme:'Badilisha mwanga/giza',
@@ -991,6 +1140,12 @@ const I18N = {
   track:'Angalia maendeleo ya ripoti', trackBtn:'Angalia', trackNone:'Hakuna ripoti yenye namba hiyo.',
   mine:'Ripoti zako kwenye kifaa hiki', footer:'Kwa jambo la dharura, wasiliana na ofisi ya shule moja kwa moja.', loading:'Inapakia…',
   waMsg:'Habari, naripoti tatizo kuhusu kadi ya matokeo ya Kanyadet.\nNamba ya kumbukumbu: {ref}\nTatizo: {cat}\nMsimbo wa kadi: {s}\nMaelezo: {m}\nJina: {n}',
+  draftBack:'Tumerudisha rasimu uliyokuwa hujatuma.', draftDiscard:'Futa rasimu',
+  mic:'🎤 Sema uandikiwe', micStop:'⏹ Acha kusema', micNo:'Kuandikiwa kwa sauti hakupatikani kwenye kifaa hiki.',
+  hintSame:'Hii inalingana na rekodi ya shule ({v}). Tafadhali hakikisha somo na namba.', hintDiff:'Rekodi ya shule inaonyesha {v}. Kadi yako inaonyesha {p}.',
+  notify:'🔔 Nijulishe', notifyOn:'Utapata arifa hali ikibadilika.', notifTitle:'Taarifa ya ripoti ya Kanyadet', statusChanged:'Ripoti yako sasa ni: {s}', autoUpd:'Ukurasa huu hukagua mabadiliko kila sekunde 30.',
+  printRcpt:'🖨️ Chapisha risiti', copyLink:'🔗 Nakili kiungo', shareWa:'💬 Shiriki kwa WhatsApp', linkCopied:'Kiungo kimenakiliwa', shareTxt:'Ripoti yangu {ref} kwa Kanyadet Primary & Junior School. Ifuatilie hapa: {url}',
+  rcptTitle:'Risiti ya ripoti', rcptCat:'Tatizo', rcptDate:'Ilitumwa', rcptStatus:'Hali', rcptLink:'Fuatilia hapa',
  }
 };
 const t = (k, a) => { let s = I18N[lang][k] ?? I18N.en[k] ?? k; if (a) for (const x in a) s = s.split('{' + x + '}').join(a[x]); return s; };
@@ -1008,7 +1163,7 @@ const flash = (b, txt) => { const o = b.textContent; b.textContent = txt; setTim
 
 /* ── state ── */
 let m = null, contact = null, contactLoaded = false, cardRec = undefined, view = { name: 'form' }, busy = false, err = '';
-function initM(p) { m = { cat: CATS.some(c => c[0] === p.k) ? p.k : '', msg: '', name: '', contact: '', serial: norm(p.s || '').length === 8 ? norm(p.s) : '', receipt: (p.rc || '').slice(0, 40), hp: '' }; }
+function initM(p) { m = { g: {},  cat: CATS.some(c => c[0] === p.k) ? p.k : '', msg: '', name: '', contact: '', serial: norm(p.s || '').length === 8 ? norm(p.s) : '', receipt: (p.rc || '').slice(0, 40), hp: '' }; }
 
 async function loadContact() { if (contactLoaded) return; contactLoaded = true; try { const s = await getDoc(doc(db, 'publicConfig', 'reportContact')); if (s.exists() && /^\d{10,15}$/.test(s.data().whatsapp || '')) contact = s.data(); } catch (e) {} if (!contact && FALLBACK_WHATSAPP) contact = { whatsapp: FALLBACK_WHATSAPP, name: '' }; }
 async function loadCard() { if (m.serial.length !== 8) { cardRec = null; return; } try { const s = await getDoc(doc(db, 'cardVerifications', m.serial)); cardRec = s.exists() ? s.data() : false; } catch (e) { cardRec = null; } }
@@ -1037,17 +1192,18 @@ function formView() {
   const wrap = [];
   wrap.push(rise(banner('hello', t('hello'), t('helloSub'))));
   const cs = cardSummary(); if (cs) wrap.push(rise(cs));
+  if (restored) { const dn = rise(E('div', 'card draftnote')); dn.append(E('span', '', '📝 ' + t('draftBack'))); const db2 = E('button', 'tool', t('draftDiscard')); db2.type = 'button'; db2.onclick = () => { clearDraft(); initM({}); restored = false; draw(); }; dn.append(db2); wrap.push(dn); }
 
   const f = rise(E('form', 'card')); f.noValidate = true; f.autocomplete = 'off';
   const h = E('h2', '', t('q1')); f.append(h);
-  const g = E('div', 'cats'); g.setAttribute('role', 'radiogroup'); g.setAttribute('aria-label', t('q1'));
+  const gbox = E('div', 'guide'); const g = E('div', 'cats'); g.setAttribute('role', 'radiogroup'); g.setAttribute('aria-label', t('q1'));
   CATS.forEach(([k, ic]) => { const b = E('button', 'cat'); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(m.cat === k)); b.append(E('span', 'e', ic), E('span', '', t('cat_' + k)));
-    b.onclick = () => { m.cat = k; g.querySelectorAll('.cat').forEach((x, i) => x.setAttribute('aria-checked', String(CATS[i][0] === k))); }; g.append(b); });
-  f.append(g);
+    b.onclick = () => { m.cat = k; g.querySelectorAll('.cat').forEach((x, i) => x.setAttribute('aria-checked', String(CATS[i][0] === k))); m.g = {}; renderGuide(gbox); saveDraft(); }; g.append(b); });
+  f.append(g); f.append(gbox); renderGuide(gbox);
   const field = (label, el, extra) => { const l = E('label', 'fld'); const sp = E('span', '', label); if (extra) sp.append(extra); l.append(sp, el); return l; };
   const ta = E('textarea'); ta.maxLength = 1000; ta.placeholder = t('q2ph'); ta.value = m.msg; const cnt = E('span', 'cnt', m.msg.length + '/1000');
-  ta.oninput = () => { m.msg = ta.value; cnt.textContent = ta.value.length + '/1000'; }; f.append(field(t('q2'), ta, cnt));
-  if (m.serial.length !== 8) { const si = E('input'); si.maxLength = 12; si.placeholder = 'XXXX-XXXX'; si.style.textTransform = 'uppercase'; si.style.fontFamily = "'DejaVu Sans Mono',monospace"; si.value = m.serialRaw || ''; si.oninput = () => { m.serialRaw = si.value; const n = norm(si.value); m.serial = n.length === 8 ? n : ''; }; f.append(field(t('qs'), si)); }
+  ta.oninput = () => { m.msg = ta.value; cnt.textContent = ta.value.length + '/1000'; saveDraft(); }; f.append(field(t('q2'), ta, cnt)); if (SR) { const mb = micButton(ta); mb.style.marginTop = '8px'; f.append(mb); }
+  if (m.serial.length !== 8) { const si = E('input'); si.maxLength = 12; si.placeholder = 'XXXX-XXXX'; si.style.textTransform = 'uppercase'; si.style.fontFamily = "'DejaVu Sans Mono',monospace"; si.value = m.serialRaw || ''; si.oninput = () => { m.serialRaw = si.value; const n = norm(si.value); m.serial = n.length === 8 ? n : ''; saveDraft(); }; f.append(field(t('qs'), si)); }
   const ni = E('input'); ni.maxLength = 80; ni.autocomplete = 'name'; ni.value = m.name; ni.oninput = () => { m.name = ni.value; }; f.append(field(t('q3'), ni));
   const ci = E('input'); ci.maxLength = 80; ci.placeholder = t('q4ph'); ci.autocomplete = 'tel'; ci.value = m.contact; ci.oninput = () => { m.contact = ci.value; }; f.append(field(t('q4'), ci));
   const hp = E('input', 'hp'); hp.tabIndex = -1; hp.autocomplete = 'off'; hp.setAttribute('aria-hidden', 'true'); hp.name = 'website'; hp.oninput = () => { m.hp = hp.value; }; f.append(hp);
@@ -1065,7 +1221,7 @@ function formView() {
   tb.onclick = () => { const r = normRef(ti.value); if (!r) { msg.textContent = t('trackNone'); return; } openStatus(r); };
   row.append(ti, tb); tr.append(row, msg);
   const mine = JSON.parse(store.get('kr-refs') || '[]');
-  if (mine.length) { const l = E('div', 'mine'); l.style.marginTop = '12px'; mine.slice(0, 5).forEach(x => { const b = E('button'); b.type = 'button'; b.append(document.createTextNode(prettyRef(x.ref)), E('small', '', t('cat_' + x.cat) + ' · ' + when(x.at))); b.onclick = () => openStatus(x.ref); l.append(b); }); tr.append(l); }
+  if (mine.length) { const l = E('div', 'mine'); l.style.marginTop = '12px'; mine.slice(0, 5).forEach(x => { const b = E('button'); b.type = 'button'; b.append(document.createTextNode(prettyRef(x.ref)), E('small', '', t('cat_' + x.cat) + ' · ' + when(x.at))); const bd = E('span', 'ist'); b.append(bd); fetchStatus(x.ref).then(st => { if (st) { bd.className = 'ist ' + st.status; bd.textContent = t(STL[st.status] || 'sRecv'); } }); b.onclick = () => openStatus(x.ref); l.append(b); }); tr.append(l); }
   wrap.push(tr);
   return wrap;
 }
@@ -1087,28 +1243,29 @@ function statusViews(ref, st, opts = {}) {
   else wrap.push(rise(banner('hello', t('prog'), '')));
   const rc = rise(E('div', 'card')); const rb = E('div', 'refbox'); const cb = E('button', 'tool', t('copy')); cb.type = 'button';
   cb.onclick = async () => { try { await navigator.clipboard.writeText(ref); } catch (e) {} flash(cb, t('copied')); };
-  rb.append(E('small', '', t('refLbl')), E('code', '', prettyRef(ref)), cb); rc.append(rb, E('p', 'foot', t('saveRef'))); rc.lastChild.style.marginTop = '10px'; wrap.push(rc);
+  rb.append(E('small', '', t('refLbl')), E('code', '', prettyRef(ref)), cb); rc.append(rb, E('p', 'foot', t('saveRef'))); rc.lastChild.style.marginTop = '10px'; rc.classList.add('keep'); wrap.push(rc); wrap.push(rise(shareCard(ref)));
   const pc = rise(card(t('prog'), st && st.updatedAt ? t('updated', { t: when(st.updatedAt, true) }) : ''));
   if (st === false) pc.append(E('p', 'foot', t('trackNone'))); else if (st === null) pc.append(E('p', 'foot', t('errFail'))); else { pc.append(steps(st.status || 'received')); if (st.note) { const n = E('div', 'notebox'); n.append(E('b', '', t('noteT')), document.createTextNode(st.note)); pc.append(n); } }
-  const rf = E('button', 'tool', t('refresh')); rf.type = 'button'; rf.style.marginTop = '12px'; rf.onclick = () => openStatus(ref); pc.append(rf); wrap.push(pc);
-  const nb = rise(E('div', 'card')); const b = E('button', 'bsend', t('newRep')); b.type = 'button'; b.onclick = () => { view = { name: 'form' }; err = ''; draw(); }; nb.append(b); wrap.push(nb);
+  const rf = E('button', 'tool', t('refresh')); rf.type = 'button'; rf.style.marginTop = '12px'; rf.onclick = () => openStatus(ref); pc.append(rf); const bell = bellButton(); if (bell) { bell.style.marginLeft = '8px'; pc.append(bell); } if (st && !['resolved', 'dismissed'].includes(st.status)) { const au = E('p', 'foot', t('autoUpd')); au.style.marginTop = '10px'; pc.append(au); } pc.classList.add('keep'); wrap.push(pc);
+  const nb = rise(E('div', 'card')); const b = E('button', 'bsend', t('newRep')); b.type = 'button'; b.onclick = () => { view = { name: 'form' }; err = ''; draw(); }; nb.append(b); wrap.push(nb); wrap.push(printBlock(ref, st)); wrap.forEach(el => { if (!el.classList.contains('keep')) el.classList.add('noprint'); });
   return wrap;
 }
 
 function draw() {
+  if (view.name !== 'status') stopPoll();
   root.replaceChildren(); seq = 0;
   const parts = view.name === 'form' ? formView() : view.name === 'loading' ? [E('div', 'loading', t('loading'))] : statusViews(view.ref, view.st, view);
   parts.forEach(p => root.append(p));
-  const back = backLink(); root.prepend(back);
+  const back = backLink(); back.classList.add('noprint'); root.prepend(back);
   const h1 = $('h1'); if (h1 && view.name !== 'form') { try { h1.focus({ preventScroll: true }); } catch (e) {} }
 }
-async function openStatus(ref, extra) { view = { name: 'loading' }; draw(); const st = await fetchStatus(ref); view = Object.assign({ name: 'status', ref, st }, extra || {}); history.replaceState(null, '', '?v=report&ref=' + ref); draw(); window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' }); }
+async function openStatus(ref, extra) { view = { name: 'loading' }; draw(); const st = await fetchStatus(ref); view = Object.assign({ name: 'status', ref, st }, extra || {}); history.replaceState(null, '', '?v=report&ref=' + ref); draw(); startPoll(ref); window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' }); }
 
 /* ── submit ── */
-function validate() { if (!m.cat) return 'errCat'; if (m.msg.trim().length < 5) return 'errMsg'; return ''; }
+function validate() { if (!m.cat) return 'errCat'; if (m.msg.trim().length < 5 && !guideLine()) return 'errMsg'; return ''; }
 function remember(ref) { const l = JSON.parse(store.get('kr-refs') || '[]'); l.unshift({ ref, cat: m.cat, at: new Date().toISOString() }); store.set('kr-refs', JSON.stringify(l.slice(0, 10))); }
 async function save(via, ref) {
-  const data = { ref, serial: m.serial, receipt: m.receipt, category: m.cat, message: m.msg.trim().slice(0, 1000), name: m.name.trim().slice(0, 80), contact: m.contact.trim().slice(0, 80), lang, via, at: serverTimestamp() };
+  const data = { ref, serial: m.serial, receipt: m.receipt, category: m.cat, message: fullMessage(), name: m.name.trim().slice(0, 80), contact: m.contact.trim().slice(0, 80), lang, via, at: serverTimestamp() };
   const b = writeBatch(db); b.set(doc(db, 'cardReports', ref), data); b.set(doc(db, 'reportStatus', ref), { status: 'received', note: '', updatedAt: serverTimestamp() }); await b.commit();
 }
 async function submit(via) {
@@ -1118,13 +1275,128 @@ async function submit(via) {
   const ref = genRef();
   // WhatsApp must open synchronously inside the tap, or phones block it. We save the report right after.
   if (via === 'whatsapp' && contact) {
-    const text = t('waMsg', { ref: prettyRef(ref), cat: t('cat_' + m.cat), s: m.serial ? pretty(m.serial) : '—', m: m.msg.trim(), n: m.name.trim() || '—' });
+    const text = t('waMsg', { ref: prettyRef(ref), cat: t('cat_' + m.cat), s: m.serial ? pretty(m.serial) : '—', m: fullMessage(), n: m.name.trim() || '—' });
     const url = 'https://wa.me/' + contact.whatsapp + '?text=' + encodeURIComponent(text);
     const w = window.open(url, '_blank', 'noopener'); if (!w) location.href = url;
   }
   busy = true; draw();
-  try { await save(via, ref); store.set('kr-last', String(Date.now())); remember(ref); busy = false; view = { name: 'status', ref, st: { status: 'received', note: '', updatedAt: new Date() }, sent: true, via }; history.replaceState(null, '', '?v=report&ref=' + ref); draw(); window.scrollTo({ top: 0 }); }
-  catch (e) { busy = false; if (via === 'whatsapp') { remember(ref); view = { name: 'status', ref, st: { status: 'received', note: '', updatedAt: new Date() }, sent: true, via }; draw(); } else { err = 'errFail'; draw(); } }
+  try { await save(via, ref); store.set('kr-last', String(Date.now())); clearDraft(); remember(ref); busy = false; view = { name: 'status', ref, st: { status: 'received', note: '', updatedAt: new Date() }, sent: true, via }; history.replaceState(null, '', '?v=report&ref=' + ref); draw(); startPoll(ref); window.scrollTo({ top: 0 }); }
+  catch (e) { busy = false; if (via === 'whatsapp') { clearDraft(); remember(ref); view = { name: 'status', ref, st: { status: 'received', note: '', updatedAt: new Date() }, sent: true, via }; draw(); } else { err = 'errFail'; draw(); } }
+}
+
+/* ── advanced features: drafts, guided details, dictation, live tracking, receipt ── */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const STL = { received: 'sRecv', reviewing: 'sRev', resolved: 'sRes', dismissed: 'sDis' };
+let restored = false, dtimer = null, pollT = null;
+const toast = msg => { const x = E('div', 'toast', msg); x.setAttribute('role', 'status'); document.body.append(x); setTimeout(() => x.remove(), 3200); };
+const nice = n => (n && n === n.toUpperCase() && /[A-Z]/.test(n)) ? n.split(/(\s+)/).map(w => /^[A-Z.&]{1,4}$/.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('') : n;
+const GL = (en, sw) => lang === 'sw' ? sw : en;
+const O = (en, sw) => [en, GL(en, sw)];
+
+// 1 · draft autosave (never stores your name or phone)
+const DRAFT = 'kr-draft';
+function saveDraft() {
+  if (view.name !== 'form') return; clearTimeout(dtimer);
+  dtimer = setTimeout(() => { if (!m.msg && !m.cat && !Object.keys(m.g).length) { store.set(DRAFT, ''); return; } store.set(DRAFT, JSON.stringify({ cat: m.cat, msg: m.msg, serial: m.serial, g: m.g, at: Date.now() })); }, 400);
+}
+function loadDraft() { try { const d = JSON.parse(store.get(DRAFT) || 'null'); if (d && Date.now() - d.at < 7 * 864e5) return d; } catch (e) {} return null; }
+function clearDraft() { clearTimeout(dtimer); store.set(DRAFT, ''); }
+
+// 2 · guided details per problem type, with a live check against the school record
+const GUIDE = {
+  marks: () => { const subs = (cardRec && cardRec.subjects || []).map(x => x.n);
+    return [ subs.length ? { id: 'subject', key: 'Subject', label: GL('Subject', 'Somo'), type: 'select', options: subs.map(n => [n, nice(n)]) } : { id: 'subject', key: 'Subject', label: GL('Subject', 'Somo'), type: 'text' },
+             { id: 'printed', key: 'Printed on card', label: GL('Mark printed on your card', 'Alama iliyo kwenye kadi yako'), type: 'text', im: 'decimal' } ]; },
+  photo: () => [ { id: 'issue', key: 'Photo issue', label: GL('What is wrong with the photo?', 'Picha ina tatizo gani?'), type: 'select', options: [O('Shows a different person', 'Ni mtu mwingine'), O('No photo on the page', 'Hakuna picha kwenye ukurasa'), O('Old or blurry photo', 'Picha ya zamani au isiyo wazi'), O('Looks pasted or edited', 'Inaonekana kubandikwa au kubadilishwa')] } ],
+  fake: () => [ { id: 'source', key: 'Card came from', label: GL('Where did you get the card?', 'Ulipata wapi kadi hii?'), type: 'select', options: [O('The school', 'Shuleni'), O('The pupil or parent', 'Kwa mwanafunzi au mzazi'), O('A shop or stranger', 'Duka au mtu nisiyemjua'), O('Not sure', 'Sina uhakika')] },
+                { id: 'sign', key: 'Looks wrong', label: GL('What looks wrong?', 'Nini kinaonekana si sawa?'), type: 'select', options: [O('Print quality', 'Ubora wa uchapishaji'), O('QR code will not scan', 'QR haisomeki'), O('Signatures or stamp', 'Sahihi au muhuri'), O('Logo or layout', 'Nembo au muundo')] } ],
+  notfound: () => [ { id: 'how', key: 'How I checked', label: GL('How did you check?', 'Uliangaliaje?'), type: 'select', options: [O('Typed the code', 'Niliandika msimbo'), O('Scanned the QR', 'Nilichanganua QR'), O('Scanned the barcode', 'Nilichanganua msimbopau')] } ],
+  details: () => [ { id: 'which', key: 'Wrong detail', label: GL('Which detail is wrong?', 'Maelezo gani si sahihi?'), type: 'select', options: [O('Name', 'Jina'), O('Class or grade', 'Darasa'), O('Term or year', 'Muhula au mwaka'), O('Position', 'Nafasi'), O('Something else', 'Jingine')] },
+                   { id: 'correct', key: 'Should say', label: GL('What it should say', 'Inapaswa kusema nini'), type: 'text' } ],
+  lost: () => [ { id: 'what', key: 'Situation', label: GL('What happened?', 'Nini kilitokea?'), type: 'select', options: [O('Lost', 'Imepotea'), O('Stolen', 'Imeibwa'), O('Damaged', 'Imeharibika')] },
+                { id: 'learner', key: 'Learner', label: GL('Learner’s name', 'Jina la mwanafunzi'), type: 'text' },
+                { id: 'cls', key: 'Class', label: GL('Class or grade', 'Darasa'), type: 'text' } ]
+};
+const guideFields = () => (GUIDE[m.cat] ? GUIDE[m.cat]() : []);
+const recSubject = () => (cardRec && cardRec.subjects || []).find(x => x.n === m.g.subject);
+function guideLine() {
+  const parts = guideFields().filter(x => m.g[x.id]).map(x => x.key + ': ' + m.g[x.id]);
+  const rs = m.cat === 'marks' ? recSubject() : null; if (rs && rs.s != null && m.g.printed) parts.push('School record: ' + rs.s);
+  return parts.length ? '[' + parts.join(' · ') + ']' : '';
+}
+const fullMessage = () => [guideLine(), m.msg.trim()].filter(Boolean).join('\n').slice(0, 1000);
+function renderGuide(box) {
+  box.replaceChildren(); const fields = guideFields(); if (!fields.length) return;
+  const wrap = E('div', 'guidebox'); wrap.append(E('div', 'gtitle', GL('A few quick details (optional)', 'Maelezo machache ya haraka (si lazima)')));
+  const hint = E('div', 'ghint'); hint.hidden = true;
+  const upd = () => {
+    hint.hidden = true; if (m.cat !== 'marks') return;
+    const rs = recSubject(), pr = parseFloat(String(m.g.printed || '').replace(',', '.')); if (!rs || rs.s == null || isNaN(pr)) return;
+    const same = Math.abs(rs.s - pr) < 0.01; hint.className = 'ghint ' + (same ? 'same' : 'diff'); hint.textContent = same ? t('hintSame', { v: rs.s }) : t('hintDiff', { v: rs.s, p: pr }); hint.hidden = false;
+  };
+  fields.forEach(fd => {
+    const l = E('label', 'fld'); l.append(E('span', '', fd.label)); let el;
+    if (fd.type === 'select') { el = E('select'); el.append(new Option('—', '')); fd.options.forEach(([v, lab]) => el.append(new Option(lab, v))); }
+    else { el = E('input'); el.maxLength = 60; if (fd.im) el.inputMode = fd.im; }
+    el.value = m.g[fd.id] || ''; el.oninput = el.onchange = () => { m.g[fd.id] = el.value; upd(); saveDraft(); };
+    l.append(el); wrap.append(l);
+  });
+  wrap.append(hint); box.append(wrap); upd();
+}
+
+// 3 · voice dictation
+function micButton(ta) {
+  const b = E('button', 'tool', t('mic')); b.type = 'button'; let rec = null;
+  b.onclick = () => {
+    if (rec) { rec.stop(); return; }
+    try { rec = new SR(); } catch (e) { toast(t('micNo')); return; }
+    rec.lang = lang === 'sw' ? 'sw-KE' : 'en-GB'; rec.interimResults = false; rec.continuous = true;
+    rec.onresult = ev => { let s2 = ''; for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) s2 += ev.results[i][0].transcript; if (s2) { ta.value = ((ta.value ? ta.value.trim() + ' ' : '') + s2.trim()).slice(0, 1000); ta.dispatchEvent(new Event('input')); } };
+    rec.onend = () => { rec = null; b.textContent = t('mic'); b.classList.remove('rec-on'); };
+    rec.onerror = () => { toast(t('micNo')); };
+    b.textContent = t('micStop'); b.classList.add('rec-on'); try { rec.start(); } catch (e) { rec = null; b.textContent = t('mic'); b.classList.remove('rec-on'); }
+  };
+  return b;
+}
+
+// 4 · live tracking with notifications
+function stopPoll() { clearInterval(pollT); pollT = null; }
+function startPoll(ref) {
+  stopPoll(); if (view.st && ['resolved', 'dismissed'].includes(view.st.status)) return;
+  pollT = setInterval(async () => {
+    if (document.hidden || view.name !== 'status' || view.ref !== ref || $('pane-report').hidden) return;
+    const st = await fetchStatus(ref); if (!st) return; const old = view.st || {};
+    if (old.status !== st.status || (old.note || '') !== (st.note || '')) {
+      view.st = st; draw(); const msg = t('statusChanged', { s: t(STL[st.status] || 'sRecv') }); toast(msg);
+      try { if ('Notification' in window && Notification.permission === 'granted') new Notification(t('notifTitle'), { body: msg }); } catch (e) {}
+      if (['resolved', 'dismissed'].includes(st.status)) stopPoll();
+    }
+  }, 30000);
+}
+function bellButton() {
+  if (!('Notification' in window) || Notification.permission !== 'default') return null;
+  const b = E('button', 'tool', t('notify')); b.type = 'button';
+  b.onclick = async () => { try { const p = await Notification.requestPermission(); if (p === 'granted') { toast(t('notifyOn')); b.remove(); } } catch (e) {} };
+  return b;
+}
+
+// 5 · receipt, tracking link and sharing
+const trackURL = ref => location.href.split(/[?#]/)[0] + '?v=report&ref=' + ref;
+function shareCard(ref) {
+  const c = E('div', 'card'); const row = E('div', 'acts');
+  const mk = (cls, txt, fn) => { const b = E('button', cls, txt); b.type = 'button'; b.onclick = () => fn(b); return b; };
+  row.append(
+    mk('btn', t('printRcpt'), () => window.print()),
+    mk('btn alt', t('copyLink'), async b => { try { await navigator.clipboard.writeText(trackURL(ref)); } catch (e) {} flash(b, t('linkCopied')); }),
+    mk('btn alt', t('shareWa'), () => { window.open('https://wa.me/?text=' + encodeURIComponent(t('shareTxt', { ref: prettyRef(ref), url: trackURL(ref) })), '_blank', 'noopener'); })
+  );
+  c.append(row); return c;
+}
+function printBlock(ref, st) {
+  const d = E('div', 'card printonly keep'); let loc = null; try { loc = JSON.parse(store.get('kr-refs') || '[]').find(x => x.ref === ref); } catch (e) {}
+  d.append(E('h2', '', t('rcptTitle'))); const dl = E('dl'); dl.style.cssText = 'display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px';
+  [[t('refLbl'), prettyRef(ref)], loc ? [t('rcptCat'), t('cat_' + loc.cat)] : null, loc ? [t('rcptDate'), when(loc.at, true)] : null, [t('rcptStatus'), st && st.status ? t(STL[st.status]) : '—'], st && st.note ? [t('noteT'), st.note] : null, [t('rcptLink'), trackURL(ref)]].filter(Boolean).forEach(([k, v2]) => dl.append(E('dt', '', k), E('dd', '', v2)));
+  d.append(dl, E('p', 'foot', t('school'))); return d;
 }
 
 /* ── entry ── */
@@ -1134,7 +1406,8 @@ async function enter(p) {
   const fresh = !m || ['s', 'k', 'rc', 'ref'].some(k => p[k]);
   const ref = normRef(p.ref || '');
   if (fresh) {
-    initM(p); cardRec = undefined; view = { name: 'form' }; err = ''; busy = false;
+    initM(p); cardRec = undefined; view = { name: 'form' }; err = ''; busy = false; restored = false;
+    const dr = loadDraft(); if (dr && !p.s && !p.k && !p.rc && !p.ref) { m.cat = dr.cat || ''; m.msg = dr.msg || ''; m.g = dr.g || {}; if (dr.serial) m.serial = dr.serial; restored = true; }
     const u = new URLSearchParams({ v: 'report' }); if (m.serial) u.set('s', m.serial); if (m.cat) u.set('k', m.cat); if (m.receipt) u.set('rc', m.receipt);
     if (!ref) history.replaceState(null, '', '?' + u.toString());
   } else if (view.name === 'status' && view.ref) history.replaceState(null, '', '?v=report&ref=' + view.ref);
@@ -1150,10 +1423,11 @@ return { enter, relang, t };
 
 /* ═════════════════════ INBOX — head teacher (Advanced Admin) ═════════════════════ */
 const Inbox = (() => {
-
-
 const main = $('main');
 const E = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const NS = 'http://www.w3.org/2000/svg';
+const S = (tag, at) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); return e; };
+const norm = s => (s || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
 const pretty = s => (s && s.length === 8) ? s.slice(0, 4) + '-' + s.slice(4) : (s || '—');
 const prettyRef = r => r.slice(0, 8) + '-' + r.slice(8);
 const toDate = x => x && x.toDate ? x.toDate() : (x ? new Date(x) : null);
@@ -1161,13 +1435,37 @@ const fmt = (x, tm) => { const d = toDate(x); return !d || isNaN(d) ? '—' : d.
 const ago = x => { const d = toDate(x); if (!d) return ''; const s = (Date.now() - d) / 1000; return s < 90 ? 'just now' : s < 3600 ? Math.round(s / 60) + ' min ago' : s < 86400 ? Math.round(s / 3600) + ' h ago' : Math.round(s / 86400) + ' d ago'; };
 const CATS = { marks: ['📊', 'Marks don’t match'], photo: ['🖼️', 'Photo doesn’t match'], fake: ['🕵️', 'Card looks fake'], notfound: ['🔍', 'Code not found'], details: ['📛', 'Wrong name or details'], lost: ['📄', 'Lost or stolen card'], other: ['💬', 'Something else'] };
 const STATUS = { received: 'New', reviewing: 'Reviewing', resolved: 'Resolved', dismissed: 'Closed' };
+const ORDER = { received: 0, reviewing: 1, resolved: 2, dismissed: 3 };
 const toast = msg => { const t = E('div', 'toast', msg); t.setAttribute('role', 'status'); document.body.append(t); setTimeout(() => t.remove(), 2600); };
 const isMobile = () => matchMedia('(max-width:899px)').matches;
 
 let user = null, me = '', tab = 'reports', filter = 'all', reports = [], logs = [], selected = null, cardCache = {}, settings = { whatsapp: '', name: '' };
+let q = '', catF = '', sortBy = 'new', overdueOnly = false, selMode = false, sel = new Set(), bulkNote = '', lk = { serial: '', card: undefined }, pollT = null, knownIds = null;
 
+/* ── quick-reply templates (kept on this device) ── */
+const DEFAULT_REPLIES = [
+  { title: 'Marks corrected', text: 'Hello {name}, thank you for reporting. We checked the mark sheet and corrected the record. Please collect a re-issued report card from the school office. Ref {ref}.' },
+  { title: 'Marks are correct', text: 'Hello {name}, thank you for reporting. We checked the mark sheet and the marks on the school record are correct. Please bring your printed card to the office so we can compare it with you. Ref {ref}.' },
+  { title: 'Please visit the office', text: 'Hello {name}, thank you for letting us know. Please visit the school office with the report card so we can look into this together. Ref {ref}.' },
+  { title: 'Card withdrawn', text: 'Hello {name}, we have withdrawn card {serial}. Please do not rely on it. Contact the school office for a genuine copy. Ref {ref}.' },
+  { title: 'Replacement card', text: 'Hello {name}, we have noted your report. A replacement report card can be printed at the school office on request. Ref {ref}.' },
+  { title: 'No problem found', text: 'Hello {name}, we checked {serial} against the school records and found no problem. If you still see a difference, please reply with details. Ref {ref}.' }
+];
+const loadReplies = () => { try { const l = JSON.parse(localStorage.getItem('ki-replies') || 'null'); if (Array.isArray(l) && l.length) return l; } catch (e) {} return DEFAULT_REPLIES.map(x => Object.assign({}, x)); };
+let replies = loadReplies();
+const saveReplies = () => { try { localStorage.setItem('ki-replies', JSON.stringify(replies)); } catch (e) {} };
+const fill = (tpl, r) => tpl.replace(/\{name\}/g, r.name || 'there').replace(/\{ref\}/g, prettyRef(r.id)).replace(/\{serial\}/g, r.serial ? pretty(r.serial) : 'your card');
 
-/* ── gate ── */
+/* ── helpers ── */
+const statusOf = r => r.status || 'received';
+const ageH = r => { const d = toDate(r.at); return d ? (Date.now() - d) / 36e5 : 0; };
+const overdue = r => { const s = statusOf(r); return (s === 'received' && ageH(r) > 48) || (s === 'reviewing' && ageH(r) > 120); };   // SLA: 48 h to look, 5 days to finish
+const csvCell = c => { let s = String(c == null ? '' : c); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+function download(name, rows) { const a = E('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv' })); a.download = name; document.body.append(a); a.click(); a.remove(); }
+const stamp = () => new Date().toISOString().slice(0, 10);
+function parseCode(txt) { txt = (txt || '').trim(); try { const u = new URL(txt); const c = u.searchParams.get('c'); if (c) return norm(c).length === 8 ? norm(c) : ''; } catch (e) {} const n = norm(txt); return n.length === 8 ? n : ''; }
+
+/* ── gate / access ── */
 function gate(title, text, btn) {
   main.replaceChildren(); const c = E('div', 'card gate'); c.append(E('h2', '', title), E('p', 'foot', text));
   if (btn) { const a = E('a', 'b', btn[0]); a.href = btn[1]; a.style.marginTop = '14px'; c.append(a); } main.append(c);
@@ -1183,6 +1481,7 @@ async function setUser(u) {
     user = u;
   }
   pending = false; $('whoname').textContent = me; $('who').hidden = !isAdv;
+  if (!isAdv) stopPoll();
 }
 async function enter() {
   if (pending) { gate('Checking your access…', 'One moment please.'); return; }
@@ -1190,46 +1489,140 @@ async function enter() {
   if (accessErr) { gate('Couldn’t check your access', 'Check your connection and reload.'); return; }
   if (!isAdv) { gate('No access', 'Your account isn’t an Advanced Admin account, so you can’t open the reports inbox.', ['Back to dashboard', './dashboard.html']); return; }
   if (!loadedOnce) { main.replaceChildren(E('div', 'loading', 'Loading…')); }
-  await loadAll(); loadedOnce = true; render();
+  await loadAll(); loadedOnce = true; knownIds = new Set(reports.map(r => r.id)); render(); startPoll();
 }
 
 /* ── data ── */
-async function loadReports() { const s = await getDocs(query(collection(db, 'cardReports'), orderBy('at', 'desc'), limit(100))); reports = s.docs.map(d => Object.assign({ id: d.id }, d.data())); }
+async function loadReports() { const s = await getDocs(query(collection(db, 'cardReports'), orderBy('at', 'desc'), limit(300))); reports = s.docs.map(d => Object.assign({ id: d.id }, d.data())); }
 async function loadLogs() { const s = await getDocs(query(collection(db, 'verifyLog'), orderBy('at', 'desc'), limit(300))); logs = s.docs.map(d => d.data()); }
 async function loadSettings() { try { const s = await getDoc(doc(db, 'publicConfig', 'reportContact')); if (s.exists()) settings = { whatsapp: s.data().whatsapp || '', name: s.data().name || '' }; } catch (e) {} }
 async function loadAll() { await Promise.all([loadReports().catch(() => {}), loadLogs().catch(() => {}), loadSettings()]); }
 async function cardOf(serial) { if (!serial) return null; if (serial in cardCache) return cardCache[serial]; try { const s = await getDoc(doc(db, 'cardVerifications', serial)); cardCache[serial] = s.exists() ? s.data() : false; } catch (e) { cardCache[serial] = null; } return cardCache[serial]; }
-const statusOf = r => r.status || 'received';
+
+/* ── live refresh: new-report toast + tab-title badge ── */
+const nNewOf = () => reports.filter(r => statusOf(r) === 'received').length;
+function updateTitle() { if (!$('pane-inbox').hidden) { const n = nNewOf(); document.title = (n ? '(' + n + ') ' : '') + 'Reports inbox · Kanyadet Primary & Junior School'; } }
+function stopPoll() { clearInterval(pollT); pollT = null; }
+function startPoll() {
+  stopPoll();
+  pollT = setInterval(async () => {
+    if (document.hidden || $('pane-inbox').hidden || !isAdv) return;
+    await loadReports().catch(() => {});
+    const fresh = reports.filter(r => knownIds && !knownIds.has(r.id)); reports.forEach(r => knownIds && knownIds.add(r.id));
+    if (fresh.length) { toast(fresh.length + ' new report' + (fresh.length > 1 ? 's' : '') + ' 📥'); try { navigator.vibrate && navigator.vibrate(120); } catch (e) {} }
+    const ae = document.activeElement; const typing = ae && main.contains(ae) && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+    if (!typing && !selMode) render(); else updateTitle();
+  }, 60000);
+}
 
 /* ── shell ── */
+function alerts() {
+  const out = [], now = Date.now(); const wk = logs.filter(l => { const d = toDate(l.at); return d && now - d < 7 * 864e5; });
+  const count = (arr, f) => { const o = {}; arr.filter(f).forEach(l => { o[l.serial] = (o[l.serial] || 0) + 1; }); return Object.entries(o).sort((a, b) => b[1] - a[1]); };
+  count(wk, l => l.result === 'notfound').filter(([, n]) => n >= 3).slice(0, 4).forEach(([s, n]) => out.push({ lvl: 'bad', ic: '🕵️', title: 'Code ' + pretty(s) + ' tried ' + n + ' times, not in the register', text: 'This may be a forged card. Nobody can list the register, so repeated tries usually mean someone is guessing or holds a fake.', act: ['Open in Cards', () => { tab = 'cards'; lookupCard(s); }] }));
+  count(wk, l => l.result === 'revoked').slice(0, 3).forEach(([s, n]) => out.push({ lvl: 'warn', ic: '⛔', title: 'Withdrawn card ' + pretty(s) + ' checked ' + n + '×', text: 'Someone is still presenting a card you withdrew.', act: ['Open in Cards', () => { tab = 'cards'; lookupCard(s); }] }));
+  const multi = {}; reports.filter(r => r.serial && !['resolved', 'dismissed'].includes(statusOf(r))).forEach(r => { multi[r.serial] = (multi[r.serial] || 0) + 1; });
+  Object.entries(multi).filter(([, n]) => n >= 2).slice(0, 3).forEach(([s, n]) => out.push({ lvl: 'warn', ic: '📑', title: n + ' open reports about card ' + pretty(s), text: 'Several people flagged the same card. Worth checking it first.', act: ['Show reports', () => { tab = 'reports'; q = s; filter = 'all'; catF = ''; overdueOnly = false; render(); }] }));
+  const od = reports.filter(overdue).length; if (od) out.push({ lvl: od >= 3 ? 'bad' : 'warn', ic: '⏰', title: od + ' report' + (od > 1 ? 's' : '') + ' waiting too long', text: 'New reports older than 48 h, or reviews older than 5 days.', act: ['Show overdue', () => { tab = 'reports'; overdueOnly = true; filter = 'all'; q = ''; catF = ''; render(); }] });
+  const fk = reports.filter(r => r.category === 'fake' && ageH(r) < 168).length; if (fk >= 2) out.push({ lvl: 'bad', ic: '🚨', title: fk + ' “looks fake” reports this week', text: 'A spike can mean forged cards are circulating.', act: ['Show them', () => { tab = 'reports'; catF = 'fake'; filter = 'all'; q = ''; overdueOnly = false; render(); }] });
+  return out;
+}
 function tabs() {
-  const nNew = reports.filter(r => statusOf(r) === 'received').length;
   const bar = E('div', 'tabs'); bar.setAttribute('role', 'tablist');
-  [['reports', '📥 Reports', nNew], ['log', '🛡️ Forgery log', 0], ['settings', '⚙️ Settings', 0]].forEach(([k, l, n]) => {
-    const b = E('button', '', l); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(tab === k)); if (n) b.append(E('span', 'n', String(n)));
+  [['reports', '📥 Reports', nNewOf(), ''], ['insights', '📊 Insights', alerts().length, 'red'], ['cards', '🗂️ Cards', 0, ''], ['log', '🛡️ Forgery log', 0, ''], ['settings', '⚙️ Settings', 0, '']].forEach(([k, l, n, cl]) => {
+    const b = E('button', '', l); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(tab === k)); if (n) b.append(E('span', 'n ' + cl, String(n)));
     b.onclick = () => { tab = k; render(); }; bar.append(b);
   }); return bar;
 }
 function render() {
   main.replaceChildren(); main.append(tabs());
-  if (tab === 'reports') main.append(reportsView()); else if (tab === 'log') main.append(logView()); else main.append(settingsView());
+  main.append({ reports: reportsView, insights: insightsView, cards: cardsView, log: logView, settings: settingsView }[tab]());
+  updateTitle();
 }
 
-/* ── reports ── */
+/* ── reports: search, filters, sort, SLA, bulk, CSV ── */
+function shownReports() {
+  const s = q.trim().toLowerCase();
+  const l = reports.filter(r => {
+    if (filter !== 'all' && !(filter === 'done' ? ['resolved', 'dismissed'].includes(statusOf(r)) : statusOf(r) === filter)) return false;
+    if (catF && r.category !== catF) return false;
+    if (overdueOnly && !overdue(r)) return false;
+    if (s) { const hay = [r.id, prettyRef(r.id), r.name, r.contact, r.message, r.serial, pretty(r.serial), (CATS[r.category] || [])[1]].join(' ').toLowerCase(); if (!hay.includes(s)) return false; }
+    return true;
+  });
+  const ts = r => +toDate(r.at) || 0;
+  const cmp = { new: (a, b) => ts(b) - ts(a), old: (a, b) => ts(a) - ts(b), status: (a, b) => (ORDER[statusOf(a)] - ORDER[statusOf(b)]) || ts(b) - ts(a) }[sortBy];
+  return l.sort(cmp);
+}
+function exportReports() {
+  const rows = [['Reference', 'Received', 'Status', 'Problem', 'Card code', 'Name', 'Contact', 'Language', 'Via', 'Message', 'Private note']];
+  shownReports().forEach(r => rows.push([prettyRef(r.id), fmt(r.at, true), STATUS[statusOf(r)], (CATS[r.category] || CATS.other)[1], r.serial ? pretty(r.serial) : '', r.name || '', r.contact || '', r.lang || '', r.via || '', r.message || '', r.internalNote || '']));
+  download('reports-' + stamp() + '.csv', rows); toast('Exported ' + (rows.length - 1) + ' report(s).');
+}
+async function bulk(kind) {
+  const ids = [...sel]; if (!ids.length) return; if (ids.length > 200) { toast('Select at most 200 at a time.'); return; }
+  if (kind === 'delete' && !confirm('Delete ' + ids.length + ' report(s) permanently? This cannot be undone.')) return;
+  try {
+    const bt = writeBatch(db);
+    ids.forEach(id => {
+      if (kind === 'delete') { bt.delete(doc(db, 'cardReports', id)); bt.delete(doc(db, 'reportStatus', id)); return; }
+      const upd = { status: kind }; if (bulkNote) upd.note = bulkNote.slice(0, 500);
+      bt.update(doc(db, 'cardReports', id), Object.assign({ handledBy: me, handledAt: serverTimestamp() }, upd));
+      bt.update(doc(db, 'reportStatus', id), Object.assign({ updatedAt: serverTimestamp() }, upd));
+    });
+    await bt.commit();
+    if (kind === 'delete') { reports = reports.filter(r => !sel.has(r.id)); if (sel.has(selected)) selected = null; }
+    else reports.forEach(r => { if (sel.has(r.id)) { r.status = kind; if (bulkNote) r.note = bulkNote; } });
+    toast(ids.length + ' report(s) ' + (kind === 'delete' ? 'deleted.' : 'updated. Reporters will see it.')); sel.clear(); render();
+  } catch (e) { toast('Couldn’t apply that to every report. Nothing was changed.'); }
+}
 function reportsView() {
-  const split = E('div', 'split');
-  const left = E('div', 'card'); const f = E('div', 'filters');
+  const split = E('div', 'split'); const left = E('div', 'card');
+  const head = E('div', 'dh'); head.append(E('h2', '', 'Reports'));
+  const hb = E('div', 'row2');
+  const bSel = E('button', 'b line sm', selMode ? '✓ Done' : '☑️ Select'); bSel.type = 'button'; bSel.onclick = () => { selMode = !selMode; sel.clear(); render(); };
+  const bExp = E('button', 'b line sm', '⬇️ CSV'); bExp.type = 'button'; bExp.onclick = exportReports; bExp.title = 'Download the reports currently shown';
+  hb.append(bSel, bExp); head.append(hb); left.append(head);
+  const tb = E('div', 'toolbar');
+  const si = E('input', 'in'); si.type = 'search'; si.placeholder = 'Search name, code, message…'; si.value = q; si.setAttribute('aria-label', 'Search reports'); si.oninput = () => { q = si.value; drawList(); };
+  const two = E('div', 'two');
+  const cs = E('select', 'in'); cs.setAttribute('aria-label', 'Problem type'); cs.append(new Option('All problems', '')); Object.entries(CATS).forEach(([k, [ic, l]]) => cs.append(new Option(ic + ' ' + l, k))); cs.value = catF; cs.onchange = () => { catF = cs.value; drawList(); };
+  const so = E('select', 'in'); so.setAttribute('aria-label', 'Sort'); [['new', 'Newest first'], ['old', 'Oldest first'], ['status', 'By status']].forEach(([k, l]) => so.append(new Option(l, k))); so.value = sortBy; so.onchange = () => { sortBy = so.value; drawList(); };
+  two.append(cs, so); tb.append(si, two); left.append(tb);
+  const f = E('div', 'filters');
   [['all', 'All'], ['received', 'New'], ['reviewing', 'Reviewing'], ['done', 'Closed']].forEach(([k, l]) => { const b = E('button', 'fchip', l); b.type = 'button'; b.setAttribute('aria-pressed', String(filter === k)); b.onclick = () => { filter = k; render(); }; f.append(b); });
-  const shown = reports.filter(r => filter === 'all' || (filter === 'done' ? ['resolved', 'dismissed'].includes(statusOf(r)) : statusOf(r) === filter));
-  left.append(E('h2', '', 'Reports'), f);
-  if (!shown.length) left.append(E('div', 'iempty', reports.length ? 'Nothing in this filter.' : 'No reports yet. 🎉'));
-  const list = E('div', 'list');
-  shown.forEach(r => { const [ic, lab] = CATS[r.category] || CATS.other; const b = E('button', 'item'); b.type = 'button'; b.setAttribute('aria-current', String(selected === r.id));
-    const mid = E('div'); mid.append(E('b', '', lab), E('small', '', (r.name || 'Anonymous') + ' · ' + (r.serial ? pretty(r.serial) : 'no code')), E('small', '', ago(r.at)));
-    b.append(E('div', 'ic', ic), mid, E('span', 'ist ' + statusOf(r), STATUS[statusOf(r)])); b.onclick = () => { selected = r.id; render(); }; list.append(b); });
-  left.append(list);
-  const right = E('div', 'detail'); const cur = reports.find(r => r.id === selected);
-  if (cur) right.append(detailCard(cur)); else if (!isMobile()) right.append(Object.assign(E('div', 'card iempty'), { textContent: 'Select a report to read it.' }));
+  const od = E('button', 'fchip', '⏰ Overdue'); od.type = 'button'; od.setAttribute('aria-pressed', String(overdueOnly)); od.onclick = () => { overdueOnly = !overdueOnly; render(); }; f.append(od);
+  left.append(f);
+  const bulkBox = E('div'), listBox = E('div'); left.append(bulkBox, listBox);
+
+  function drawBulk() {
+    bulkBox.replaceChildren(); if (!selMode) return;
+    const bar = E('div', 'bulk'); const top = E('div', 'row2'); top.style.alignItems = 'center';
+    const all = E('button', 'b line sm', 'Select all shown'); all.type = 'button'; all.onclick = () => { shownReports().slice(0, 200).forEach(r => sel.add(r.id)); drawList(); };
+    const none = E('button', 'b line sm', 'Clear'); none.type = 'button'; none.onclick = () => { sel.clear(); drawList(); };
+    top.append(E('b', '', sel.size + ' selected'), all, none);
+    const note = E('input', 'in'); note.placeholder = 'Optional note sent to every selected reporter'; note.maxLength = 500; note.value = bulkNote; note.oninput = () => { bulkNote = note.value.trim(); }; note.style.margin = '8px 0';
+    const row = E('div', 'row2');
+    [['reviewing', 'Reviewing', 'blue'], ['resolved', 'Resolved', 'green'], ['dismissed', 'Close', 'gray'], ['delete', 'Delete', 'red']].forEach(([k, l, cl]) => { const b = E('button', 'b sm ' + cl, l); b.type = 'button'; b.disabled = !sel.size; b.onclick = () => bulk(k); row.append(b); });
+    bar.append(top, note, row); bulkBox.append(bar);
+  }
+  function drawList() {
+    const shown = shownReports(); listBox.replaceChildren(); drawBulk();
+    listBox.append(E('p', 'count', shown.length + (shown.length === 1 ? ' report' : ' reports') + (shown.length !== reports.length ? ' of ' + reports.length : '')));
+    if (!shown.length) listBox.append(E('div', 'iempty', reports.length ? 'Nothing matches these filters.' : 'No reports yet. 🎉'));
+    const list = E('div', 'list');
+    shown.forEach(r => {
+      const [ic, lab] = CATS[r.category] || CATS.other; const b = E('button', 'item'); b.type = 'button'; b.setAttribute('aria-current', String(!selMode && selected === r.id));
+      const mid = E('div'); mid.append(E('b', '', lab), E('small', '', (r.name || 'Anonymous') + ' · ' + (r.serial ? pretty(r.serial) : 'no code')), E('small', '', ago(r.at) + (overdue(r) ? ' · ⏰ overdue' : '')));
+      b.append(E('div', 'ic', selMode ? (sel.has(r.id) ? '☑️' : '⬜') : ic), mid, E('span', 'ist ' + statusOf(r), STATUS[statusOf(r)]));
+      b.onclick = () => { if (selMode) { sel.has(r.id) ? sel.delete(r.id) : sel.add(r.id); drawList(); } else { selected = r.id; render(); } };
+      list.append(b);
+    });
+    listBox.append(list);
+  }
+  drawList();
+  const right = E('div', 'detail'); const cur = selMode ? null : reports.find(r => r.id === selected);
+  if (cur) right.append(detailCard(cur)); else if (!isMobile()) right.append(Object.assign(E('div', 'card iempty'), { textContent: selMode ? 'Tick the reports you want to update, then choose an action.' : 'Select a report to read it.' }));
   if (isMobile() && cur) split.append(right); else split.append(left, right);
   return split;
 }
@@ -1237,18 +1630,32 @@ function detailCard(r) {
   const c = E('div', 'card'); const [ic, lab] = CATS[r.category] || CATS.other; const stt = statusOf(r);
   if (isMobile()) { const bk = E('button', 'b line mobback', '← All reports'); bk.type = 'button'; bk.onclick = () => { selected = null; render(); }; c.append(bk); }
   const dh = E('div', 'dh'); const h = E('div'); h.append(E('h2', '', ic + ' ' + lab), E('small', '', prettyRef(r.id) + ' · ' + fmt(r.at, true) + ' · via ' + (r.via === 'whatsapp' ? 'WhatsApp' : 'page'))); dh.append(h, E('span', 'ist ' + stt, STATUS[stt])); c.append(dh);
+  if (overdue(r)) { const o = E('p', 'sla', '⏰ Waiting ' + (ageH(r) >= 48 ? Math.round(ageH(r) / 24) + ' days' : Math.round(ageH(r)) + ' hours') + ' without an answer.'); c.append(o); }
   c.append(E('div', 'msg', r.message || ''));
   const kv = E('dl', 'kv'); [['Name', r.name || '—'], ['Contact', r.contact || '—'], ['Receipt', r.receipt || '—'], ['Language', r.lang === 'sw' ? 'Kiswahili' : 'English']].forEach(([k, v]) => kv.append(E('dt', '', k), E('dd', '', v))); c.append(kv);
   const slot = E('div'); c.append(slot);
-  if (r.serial) cardOf(r.serial).then(card => { slot.replaceChildren(cardBox(r, card)); });
-  // status + note
+  if (r.serial) {
+    cardOf(r.serial).then(card => { slot.replaceChildren(cardBox(r, card)); });
+    const n = reports.filter(x => x.serial === r.serial).length;
+    if (n > 1) { const row = E('div', 'row2'); row.style.marginTop = '8px'; const b = E('button', 'b line sm', '📑 ' + n + ' reports about this card · show all'); b.type = 'button'; b.onclick = () => { q = r.serial; filter = 'all'; catF = ''; overdueOnly = false; selected = null; render(); }; row.append(b); c.append(row); }
+  }
+  // reply + quick replies
   const s1 = E('div', 'sec'); s1.append(E('h3', '', 'Reply to the reporter (shown on their tracker)'));
-  const note = E('textarea', 'note'); note.maxLength = 500; note.placeholder = 'e.g. We checked the mark sheet and corrected the Mathematics mark. Please collect a re-issued card.'; note.value = r.note || ''; s1.append(note);
+  const qr = E('select', 'in'); qr.setAttribute('aria-label', 'Insert a quick reply'); qr.append(new Option('⚡ Insert a quick reply…', '')); replies.forEach((x, i) => qr.append(new Option(x.title, String(i)))); qr.style.marginBottom = '8px';
+  const note = E('textarea', 'note'); note.maxLength = 500; note.placeholder = 'e.g. We checked the mark sheet and corrected the Mathematics mark. Please collect a re-issued card.'; note.value = r.note || '';
+  qr.onchange = () => { if (qr.value === '') return; note.value = fill(replies[+qr.value].text, r).slice(0, 500); qr.value = ''; note.focus(); };
+  s1.append(qr, note);
   const row = E('div', 'row2');
   [['reviewing', 'Mark as reviewing', 'blue'], ['resolved', 'Resolved', 'green'], ['dismissed', 'Close, no problem found', 'gray']].forEach(([k, l, cl]) => { const b = E('button', 'b ' + cl, l); b.type = 'button';
     b.onclick = async () => { b.disabled = true; try { const bt = writeBatch(db); const upd = { status: k, note: note.value.trim().slice(0, 500), handledBy: me }; bt.update(doc(db, 'cardReports', r.id), Object.assign({ handledAt: serverTimestamp() }, upd));
-      bt.update(doc(db, 'reportStatus', r.id), { status: k, note: upd.note, updatedAt: serverTimestamp() }); await bt.commit(); Object.assign(r, upd); toast('Saved. The reporter will see this.'); render(); } catch (e) { toast('Couldn’t save. Check your connection.'); b.disabled = false; } }; row.append(b); });
+      bt.update(doc(db, 'reportStatus', r.id), { status: k, note: upd.note, updatedAt: serverTimestamp() }); await bt.commit(); Object.assign(r, upd, { handledAt: new Date() }); toast('Saved. The reporter will see this.'); render(); } catch (e) { toast('Couldn’t save. Check your connection.'); b.disabled = false; } }; row.append(b); });
   s1.append(row); c.append(s1);
+  // private note (never shown to the reporter)
+  const sp = E('div', 'sec'); sp.append(E('h3', '', '🔒 Private note (only you can see this)'));
+  const pn = E('textarea', 'note'); pn.maxLength = 1000; pn.placeholder = 'e.g. Spoke to the class teacher, mark sheet is in the staffroom.'; pn.value = r.internalNote || '';
+  const psb = E('button', 'b line', 'Save private note'); psb.type = 'button';
+  psb.onclick = async () => { psb.disabled = true; try { const v = pn.value.trim().slice(0, 1000); await updateDoc(doc(db, 'cardReports', r.id), { internalNote: v, internalBy: me }); r.internalNote = v; toast('Private note saved.'); } catch (e) { toast('Couldn’t save the note.'); } psb.disabled = false; };
+  sp.append(pn, psb); c.append(sp);
   // contact
   const digits = (r.contact || '').replace(/\D/g, ''); const isMail = /\S+@\S+\.\S+/.test(r.contact || '');
   if (digits.length >= 9 || isMail) {
@@ -1265,17 +1672,102 @@ function cardBox(r, card) {
   const b = E('div', 'cbox' + (card.status === 'revoked' ? ' bad' : '')); const mid = E('div');
   mid.append(E('b', '', card.name || '—'), E('small', '', [card.grade, [card.term, card.year].filter(Boolean).join(' '), Number(card.avg).toFixed(1) + '%', pretty(r.serial)].filter(Boolean).join(' · ')));
   b.append(E('div', 'ci', '🎓'), mid, E('span', 'ist ' + (card.status || 'valid'), card.status === 'revoked' ? 'Withdrawn' : 'Valid'));
-  const wrap = E('div'); wrap.append(b); const row = E('div', 'row2'); row.style.marginTop = '8px';
+  const wrap = E('div'); wrap.append(b); if (card.status === 'revoked' && card.statusReason) { const p = E('p', 'foot', 'Reason: ' + card.statusReason); p.style.cssText = 'text-align:left;margin-top:6px'; wrap.append(p); }
+  const row = E('div', 'row2'); row.style.marginTop = '8px';
   const v = E('a', 'b line', '🔎 Open verify page'); v.href = './verify.html?c=' + r.serial; v.target = '_blank'; v.rel = 'noopener'; row.append(v);
   const w = E('button', card.status === 'revoked' ? 'b green' : 'b red', card.status === 'revoked' ? '↩ Reinstate card' : '⛔ Withdraw card'); w.type = 'button';
-  w.onclick = async () => { const to = card.status === 'revoked' ? 'valid' : 'revoked'; if (!confirm(to === 'revoked' ? 'Withdraw this card? Anyone who checks it will see "Card withdrawn".' : 'Reinstate this card as valid?')) return; w.disabled = true;
-    try { await updateDoc(doc(db, 'cardVerifications', r.serial), { status: to, statusChangedAt: serverTimestamp(), statusChangedBy: me }); card.status = to; toast(to === 'revoked' ? 'Card withdrawn.' : 'Card reinstated.'); render(); } catch (e) { toast('Couldn’t change the card status.'); w.disabled = false; } };
+  w.onclick = async () => { const to = card.status === 'revoked' ? 'valid' : 'revoked'; if (!confirm(to === 'revoked' ? 'Withdraw this card? Anyone who checks it will see "Card withdrawn".' : 'Reinstate this card as valid?')) return;
+    let reason = ''; if (to === 'revoked') { reason = prompt('Reason for withdrawing (optional, kept in the record):', ''); if (reason === null) return; }
+    w.disabled = true;
+    try { await updateDoc(doc(db, 'cardVerifications', r.serial), { status: to, statusChangedAt: serverTimestamp(), statusChangedBy: me, statusReason: reason.trim().slice(0, 200) }); card.status = to; card.statusReason = reason.trim(); cardCache[r.serial] = card; toast(to === 'revoked' ? 'Card withdrawn.' : 'Card reinstated.'); render(); } catch (e) { toast('Couldn’t change the card status.'); w.disabled = false; } };
   row.append(w); wrap.append(row); return wrap;
 }
 
+/* ── insights: numbers, charts, alerts ── */
+const dayKey = d => d.toLocaleDateString('en-CA', { timeZone: 'Africa/Nairobi' });
+function barChart(days) {
+  const W = 560, H = 150, top = 10, bot = 22, n = days.length, bw = W / n, max = Math.max(1, ...days.map(d => d.a + d.b));
+  const sv = S('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'chart', role: 'img', 'aria-label': days.map(d => d.label + ': ' + (d.a + d.b)).join(', ') });
+  sv.append(S('line', { x1: 0, x2: W, y1: H - bot, y2: H - bot, stroke: '#c9d6e0' }));
+  days.forEach((d, i) => {
+    const x = i * bw + bw * .18, w = bw * .64, ha = (d.a / max) * (H - top - bot), hb = (d.b / max) * (H - top - bot);
+    if (d.a) sv.append(S('rect', { x, y: H - bot - ha, width: w, height: ha, rx: 3, fill: '#2980b9' }));
+    if (d.b) sv.append(S('rect', { x, y: H - bot - ha - hb, width: w, height: hb, rx: 3, fill: '#e74c3c' }));
+    if (d.a + d.b) { const tx = S('text', { x: x + w / 2, y: H - bot - ha - hb - 3, 'text-anchor': 'middle' }); tx.textContent = d.a + d.b; sv.append(tx); }
+    if (i % 2 === 0) { const tx = S('text', { x: x + w / 2, y: H - 6, 'text-anchor': 'middle' }); tx.textContent = d.label; sv.append(tx); }
+  });
+  return sv;
+}
+function insightsView() {
+  const wrap = E('div'); wrap.style.cssText = 'display:grid;gap:14px';
+  const al = alerts(); const c0 = E('div', 'card'); c0.append(E('h2', '', al.length ? '🚨 Needs your attention' : '✅ Nothing needs attention'));
+  if (!al.length) c0.append(E('p', 'foot', 'No repeated unknown codes, spikes, or overdue reports right now.'));
+  al.forEach(a => { const d = E('div', 'alert ' + a.lvl); d.append(E('div', 'ai', a.ic)); const m = E('div'); m.append(E('b', '', a.title), E('small', '', a.text)); if (a.act) { const b = E('button', 'b line sm', a.act[0]); b.type = 'button'; b.style.marginTop = '8px'; b.onclick = a.act[1]; m.append(b); } d.append(m); c0.append(d); });
+  wrap.append(c0);
+  // numbers
+  const open = reports.filter(r => !['resolved', 'dismissed'].includes(statusOf(r))).length, done = reports.length - open;
+  const handled = reports.filter(r => r.handledAt && toDate(r.handledAt) && toDate(r.at)).map(r => (toDate(r.handledAt) - toDate(r.at)) / 36e5);
+  const avg = handled.length ? handled.reduce((a, b) => a + b, 0) / handled.length : null;
+  const c1 = E('div', 'card'); c1.append(E('h2', '', 'At a glance')); const tiles = E('div', 'tiles');
+  [['Reports', reports.length, ''], ['Open', open, open ? 'warn' : 'ok'], ['Finished', done, 'ok'], ['Overdue', reports.filter(overdue).length, reports.filter(overdue).length ? 'bad' : 'ok'], ['Avg. time to handle', avg == null ? '—' : avg < 48 ? avg.toFixed(1) + ' h' : (avg / 24).toFixed(1) + ' d', '']].forEach(([l, n, cl]) => { const t = E('div', 'tl2 ' + cl); t.append(E('small', '', l), E('b', '', String(n))); tiles.append(t); });
+  c1.append(tiles); wrap.append(c1);
+  // charts
+  const days = []; for (let i = 13; i >= 0; i--) { const k = dayKey(new Date(Date.now() - i * 864e5)); days.push({ k, label: k.slice(8) + '/' + k.slice(5, 7), a: 0, b: 0, ra: 0 }); }
+  const idx = {}; days.forEach((d, i) => { idx[d.k] = i; });
+  reports.forEach(r => { const d = toDate(r.at); if (d) { const i = idx[dayKey(d)]; if (i != null) days[i].ra++; } });
+  const c2 = E('div', 'card'); c2.append(E('h2', '', 'Reports per day', ), E('p', 'foot', 'Last 14 days')); c2.lastChild.style.textAlign = 'left';
+  c2.append(barChart(days.map(d => ({ label: d.label, a: d.ra, b: 0 })))); wrap.append(c2);
+  const dl = days.map(d => ({ label: d.label, a: 0, b: 0 }));
+  logs.forEach(l => { const d = toDate(l.at); if (d) { const i = idx[dayKey(d)]; if (i != null) { l.result === 'ok' ? dl[i].a++ : dl[i].b++; } } });
+  const c3 = E('div', 'card'); c3.append(E('h2', '', 'Card checks per day')); const lg = E('p', 'foot', '🟦 genuine   🟥 superseded, withdrawn or not found · from the latest ' + logs.length + ' checks'); lg.style.textAlign = 'left'; c3.append(lg, barChart(dl)); wrap.append(c3);
+  // categories
+  const c4 = E('div', 'card'); c4.append(E('h2', '', 'What people report')); const by = {}; reports.forEach(r => { by[r.category] = (by[r.category] || 0) + 1; });
+  const mx = Math.max(1, ...Object.values(by)); Object.entries(CATS).forEach(([k, [ic, l]]) => { const n = by[k] || 0; const row = E('div', 'hrow'); const bar = E('div', 'hbar'); const i = E('i'); i.style.width = (n / mx * 100) + '%'; bar.append(i); row.append(E('span', '', ic + ' ' + l), bar, E('b', '', String(n))); c4.append(row); });
+  wrap.append(c4);
+  const ex = E('div', 'row2'); const b1 = E('button', 'b line', '⬇️ Export all reports (CSV)'); b1.type = 'button'; b1.onclick = () => { const keep = [filter, catF, q, overdueOnly]; filter = 'all'; catF = ''; q = ''; overdueOnly = false; exportReports(); [filter, catF, q, overdueOnly] = keep; };
+  const b2 = E('button', 'b line', '⬇️ Export card checks (CSV)'); b2.type = 'button'; b2.onclick = exportLog; ex.append(b1, b2); wrap.append(ex);
+  return wrap;
+}
+
+/* ── card registry: look up, withdraw, reinstate ── */
+async function lookupCard(s) {
+  tab = 'cards'; lk = { serial: s, card: undefined }; render();
+  try { const sn = await getDoc(doc(db, 'cardVerifications', s)); lk.card = sn.exists() ? sn.data() : false; if (lk.card) cardCache[s] = lk.card; } catch (e) { lk.card = null; }
+  if (tab === 'cards' && lk.serial === s) render();
+}
+function cardsView() {
+  const c = E('div', 'card'); c.style.maxWidth = '760px'; c.append(E('h2', '', 'Card registry'));
+  const p = E('p', 'foot', 'Look up any report card by its code or verify link. You can withdraw a card (anyone checking it will see “Card withdrawn”) or reinstate it.'); p.style.textAlign = 'left'; c.append(p);
+  const row = E('div', 'row2'); row.style.marginTop = '10px'; const i = E('input', 'in'); i.placeholder = 'Code or verify link, e.g. 7F3K-92QA'; i.value = lk.serial ? pretty(lk.serial) : ''; i.style.cssText = 'flex:1;min-width:200px'; i.setAttribute('aria-label', 'Card code');
+  const goB = E('button', 'b', '🔎 Look up'); goB.type = 'button'; const run = () => { const s = parseCode(i.value); if (!s) { toast('Enter a valid 8-character code or verify link.'); return; } lookupCard(s); };
+  goB.onclick = run; i.onkeydown = e => { if (e.key === 'Enter') run(); }; row.append(i, goB); c.append(row);
+  if (lk.serial) {
+    const res = E('div'); res.style.marginTop = '14px';
+    if (lk.card === undefined) res.append(E('div', 'loading', 'Looking up…'));
+    else {
+      res.append(cardBox({ serial: lk.serial }, lk.card));
+      if (lk.card) {
+        const k = lk.card, kv = E('dl', 'kv');
+        [['Learner', k.name || '—'], ['Class', [k.grade, k.cls].filter(Boolean).join(' · ') || '—'], ['Term', [k.term, k.year].filter(Boolean).join(' ') || '—'], ['Average / level', (Number(k.avg) || 0).toFixed(1) + '% · ' + (k.level || '—')], ['Position', k.position || '—'], ['Revision', String(k.rev || 1)], ['First registered', fmt(k.issuedAt, true)], ['Last corrected', fmt(k.updatedAt, true)], ['Printed by', k.issuedBy || '—'], ['Fingerprint', String(k.contentHash || '').slice(0, 16).toUpperCase() || '—']].forEach(([a, b]) => kv.append(E('dt', '', a), E('dd', '', b)));
+        res.append(kv);
+      }
+      const rel = reports.filter(r => r.serial === lk.serial);
+      const hits = logs.filter(l => l.serial === lk.serial); const cnt = x => hits.filter(l => l.result === x).length;
+      const s = E('div', 'sec'); s.append(E('h3', '', 'Activity on this card'));
+      s.append(E('p', 'foot', 'Checks (latest 300): ' + cnt('ok') + ' genuine · ' + cnt('superseded') + ' superseded · ' + cnt('revoked') + ' withdrawn · ' + cnt('notfound') + ' not found')); s.lastChild.style.textAlign = 'left';
+      if (rel.length) { const l = E('div', 'list'); l.style.marginTop = '8px'; rel.forEach(r => { const [ic, lab] = CATS[r.category] || CATS.other; const b = E('button', 'item'); b.type = 'button'; const mid = E('div'); mid.append(E('b', '', lab), E('small', '', (r.name || 'Anonymous') + ' · ' + ago(r.at))); b.append(E('div', 'ic', ic), mid, E('span', 'ist ' + statusOf(r), STATUS[statusOf(r)])); b.onclick = () => { tab = 'reports'; selected = r.id; q = ''; filter = 'all'; catF = ''; overdueOnly = false; render(); }; l.append(b); }); s.append(l); }
+      else s.append(E('p', 'foot', 'No reports about this card.')); s.lastChild.style.textAlign = 'left';
+      res.append(s);
+    }
+    c.append(res);
+  }
+  return c;
+}
+
 /* ── forgery log ── */
+function exportLog() { const rows = [['When', 'Code', 'Result', 'Language']]; logs.forEach(l => rows.push([fmt(l.at, true), pretty(l.serial), l.result, l.lang || ''])); download('card-checks-' + stamp() + '.csv', rows); toast('Exported ' + logs.length + ' check(s).'); }
 function logView() {
-  const c = E('div', 'card'); c.append(E('h2', '', 'Forgery & scan log'));
+  const c = E('div', 'card'); const hd = E('div', 'dh'); hd.append(E('h2', '', 'Forgery & scan log')); const be = E('button', 'b line sm', '⬇️ CSV'); be.type = 'button'; be.onclick = exportLog; hd.append(be); c.append(hd);
   if (!logs.length) { c.append(E('div', 'iempty', 'No checks recorded yet.')); return c; }
   const now = Date.now(), wk = logs.filter(l => { const d = toDate(l.at); return d && now - d < 7 * 864e5; });
   const count = k => wk.filter(l => l.result === k).length;
@@ -1302,10 +1794,25 @@ function settingsView() {
     try { await setDoc(doc(db, 'publicConfig', 'reportContact'), { whatsapp: d, name: nm.value.trim().slice(0, 40), updatedAt: serverTimestamp() }); settings = { whatsapp: d, name: nm.value.trim() }; toast('Saved.'); render(); } catch (e) { toast('Couldn’t save.'); sv.disabled = false; } };
   row.append(sv); if (settings.whatsapp) { const t = E('a', 'b green', '💬 Test'); t.href = 'https://wa.me/' + settings.whatsapp + '?text=' + encodeURIComponent('Test from the report page'); t.target = '_blank'; t.rel = 'noopener'; row.append(t); }
   c.append(l1, n, l2, nm, row);
-  const s = E('div', 'sec'); s.append(E('h3', '', 'Links to share')); const base = location.href.replace(/[^/]*$/, '');
+  // quick replies editor
+  const rs = E('div', 'sec'); rs.append(E('h3', '', '⚡ Quick replies'));
+  const hp = E('p', 'foot', 'Templates you can insert when answering a report. Use {name}, {ref} and {serial}. Saved on this device only.'); hp.style.textAlign = 'left'; rs.append(hp);
+  replies.forEach((x, i) => {
+    const box = E('div', 'qrrow'); const ti = E('input', 'in'); ti.value = x.title; ti.maxLength = 40; ti.setAttribute('aria-label', 'Reply title'); ti.oninput = () => { x.title = ti.value; };
+    const tx = E('textarea', 'note'); tx.value = x.text; tx.maxLength = 500; tx.setAttribute('aria-label', 'Reply text'); tx.oninput = () => { x.text = tx.value; };
+    const del = E('button', 'b line sm', 'Delete'); del.type = 'button'; del.onclick = () => { replies.splice(i, 1); saveReplies(); render(); };
+    box.append(ti, tx, del); rs.append(box);
+  });
+  const rr = E('div', 'row2'); rr.style.marginTop = '10px';
+  const add = E('button', 'b line', '＋ Add reply'); add.type = 'button'; add.onclick = () => { replies.push({ title: 'New reply', text: 'Hello {name}, ' }); saveReplies(); render(); };
+  const sa = E('button', 'b', 'Save replies'); sa.type = 'button'; sa.onclick = () => { replies = replies.filter(x => x.title.trim() && x.text.trim()); saveReplies(); toast('Quick replies saved.'); render(); };
+  const rst = E('button', 'b line', 'Reset to defaults'); rst.type = 'button'; rst.onclick = () => { if (!confirm('Replace your quick replies with the defaults?')) return; replies = DEFAULT_REPLIES.map(x => Object.assign({}, x)); saveReplies(); render(); };
+  rr.append(add, sa, rst); rs.append(rr); c.append(rs);
+  const s = E('div', 'sec'); s.append(E('h3', '', 'Links to share')); const base = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
   [['Verify a report card', base + 'verify.html'], ['Report a problem', base + 'verify.html?v=report']].forEach(([l, u]) => { const r = E('div', 'row2'); r.style.cssText = 'align-items:center;margin-bottom:8px'; const i = E('input', 'in'); i.readOnly = true; i.value = u; i.style.flex = '1'; i.setAttribute('aria-label', l); const b = E('button', 'b line', 'Copy'); b.type = 'button'; b.onclick = async () => { try { await navigator.clipboard.writeText(u); toast('Link copied'); } catch (e) { i.select(); } }; r.append(i, b); s.append(E('span', 'lbl', l), r); });
   c.append(s); return c;
 }
+
 return { setUser, enter, isAdmin: () => isAdv };
 
 })();
