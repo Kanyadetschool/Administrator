@@ -41,6 +41,38 @@ service cloud.firestore {
       return isAdminByUID() || isAdmin() || isAdvancedAdmin();
     }
 
+    function isAssignedClaimTeacher(reportId) {
+      return request.auth != null &&
+        isTeacher() &&
+        exists(/databases/$(database)/documents/cardReports/$(reportId)) &&
+        get(/databases/$(database)/documents/cardReports/$(reportId)).data.assignment.uid == request.auth.uid;
+    }
+
+    function isValidClaimNotification() {
+      return request.auth != null &&
+        isAdvancedAdmin() &&
+        request.resource.data.type == 'report_card_claim' &&
+        request.resource.data.keys().hasOnly(['type', 'recipientId', 'recipientEmail', 'title', 'body', 'reportId', 'cardCode', 'dueDate', 'read', 'createdAt', 'createdBy']) &&
+        request.resource.data.recipientId is string &&
+        request.resource.data.recipientEmail is string &&
+        request.resource.data.recipientEmail.size() <= 254 &&
+        request.resource.data.title is string &&
+        request.resource.data.title.size() <= 120 &&
+        request.resource.data.body is string &&
+        request.resource.data.body.size() <= 500 &&
+        request.resource.data.reportId is string &&
+        request.resource.data.cardCode is string &&
+        request.resource.data.cardCode.size() <= 32 &&
+        request.resource.data.createdBy is string &&
+        request.resource.data.createdBy.size() <= 100 &&
+        request.resource.data.dueDate is string &&
+        request.resource.data.dueDate.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+        request.resource.data.read == false &&
+        request.resource.data.createdAt == request.time &&
+        exists(/databases/$(database)/documents/cardReports/$(request.resource.data.reportId)) &&
+        getAfter(/databases/$(database)/documents/cardReports/$(request.resource.data.reportId)).data.assignment.uid == request.resource.data.recipientId;
+    }
+
     // Fields only an Advanced Admin may set or change on a users/{userId} doc.
     function touchesAdvancedOnlyFields() {
       return request.resource.data.diff(resource.data).affectedKeys()
@@ -151,6 +183,108 @@ service cloud.firestore {
       allow write: if request.auth != null
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.Advancedadmin == true
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('disabled', false) != true;
+    }
+
+    // Card verification records used by the public verification page.
+    match /cardVerifications/{serial} {
+      allow get: if true;
+      allow list: if request.auth != null && isAdvancedAdmin();
+      allow create: if request.auth != null && (isAnyAdmin() || isTeacher()) &&
+                       request.resource.data.issuedByUid == request.auth.uid &&
+                       request.resource.data.status == 'valid';
+      allow update: if request.auth != null && (isAnyAdmin() || isTeacher()) &&
+                       request.resource.data.issuedByUid == request.auth.uid &&
+                       (request.resource.data.status == resource.data.status || isAdvancedAdmin());
+      // Advanced Admin (head teacher) may withdraw or reinstate any card, e.g. from a report.
+      allow update: if request.auth != null && isAdvancedAdmin();
+      allow delete: if request.auth != null && isAdvancedAdmin();
+    }
+
+    // Forgery-attempt log written by verify.html (best effort). Public may only ADD a tiny, strictly
+    // shaped entry; nobody can edit or delete; only Advanced Admins can read. No names, no IPs.
+    match /verifyLog/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['serial', 'result', 'at', 'lang']) &&
+                       request.resource.data.serial is string && request.resource.data.serial.size() == 8 &&
+                       request.resource.data.result in ['ok', 'superseded', 'revoked', 'notfound'] &&
+                       request.resource.data.lang in ['en', 'sw'] &&
+                       request.resource.data.at == request.time;
+      allow read: if request.auth != null && isAdvancedAdmin();
+      allow update, delete: if false;
+    }
+
+    // Report-a-problem. Public can submit; admins manage all reports; only the assigned teacher
+    // can read/update their own claim, and only its assignment result/status fields.
+    match /cardReports/{ref} {
+      allow create: if ref.matches('^REP-[0-9A-Z]{8}$') &&
+                       request.resource.data.keys().hasOnly(['ref', 'serial', 'receipt', 'category', 'message', 'name', 'contact', 'lang', 'via', 'at']) &&
+                       request.resource.data.ref == ref &&
+                       request.resource.data.serial is string && request.resource.data.serial.size() in [0, 8] &&
+                       request.resource.data.receipt is string && request.resource.data.receipt.size() <= 40 &&
+                       request.resource.data.category in ['marks', 'photo', 'fake', 'notfound', 'details', 'lost', 'other'] &&
+                       request.resource.data.message is string && request.resource.data.message.size() >= 5 && request.resource.data.message.size() <= 1000 &&
+                       request.resource.data.name is string && request.resource.data.name.size() <= 80 &&
+                       request.resource.data.contact is string && request.resource.data.contact.size() <= 80 &&
+                       request.resource.data.lang in ['en', 'sw'] &&
+                       request.resource.data.via in ['page', 'whatsapp'] &&
+                       request.resource.data.at == request.time;
+      allow get, list: if request.auth != null &&
+                         (isAdvancedAdmin() ||
+                          (isTeacher() && resource.data.assignment.uid == request.auth.uid));
+      allow update: if request.auth != null && isAdvancedAdmin();
+      allow update: if request.auth != null &&
+                       isTeacher() &&
+                       resource.data.assignment.uid == request.auth.uid &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignment', 'status']) &&
+                       request.resource.data.assignment.keys().hasOnly(['uid', 'name', 'email', 'phone', 'dueDate', 'checkedBy', 'assignedAt', 'assignedBy', 'status', 'teacherFinding', 'updatedAt']) &&
+                       request.resource.data.assignment.uid == request.auth.uid &&
+                       request.resource.data.assignment.name == resource.data.assignment.name &&
+                       request.resource.data.assignment.email == resource.data.assignment.email &&
+                       request.resource.data.assignment.phone == resource.data.assignment.phone &&
+                       request.resource.data.assignment.dueDate == resource.data.assignment.dueDate &&
+                       request.resource.data.assignment.assignedAt == resource.data.assignment.assignedAt &&
+                       request.resource.data.assignment.assignedBy == resource.data.assignment.assignedBy &&
+                       request.resource.data.assignment.status in ['checking', 'checked'] &&
+                       request.resource.data.assignment.checkedBy is string &&
+                       request.resource.data.assignment.checkedBy.size() <= 60 &&
+                       request.resource.data.assignment.teacherFinding is string &&
+                       request.resource.data.assignment.teacherFinding.size() <= 500 &&
+                       request.resource.data.assignment.updatedAt == request.time &&
+                       request.resource.data.status in ['received', 'reviewing'];
+      allow delete: if request.auth != null && isAdvancedAdmin();
+    }
+
+    // Public progress tracker for a report: whoever holds the (unguessable) reference can see its status + note.
+    match /reportStatus/{ref} {
+      allow get: if true;
+      allow list: if request.auth != null && isAdvancedAdmin();
+      allow create: if ref.matches('^REP-[0-9A-Z]{8}$') &&
+                       request.resource.data.keys().hasOnly(['status', 'note', 'updatedAt']) &&
+                       request.resource.data.status == 'received' && request.resource.data.note == '' &&
+                       request.resource.data.updatedAt == request.time;
+      allow update: if request.auth != null && isAdvancedAdmin() &&
+                      request.resource.data.keys().hasOnly(['status', 'note', 'updatedAt', 'assignment']) &&
+                      request.resource.data.keys().hasAll(['status', 'note', 'updatedAt']);
+      allow update: if isAssignedClaimTeacher(ref) &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'note', 'updatedAt']) &&
+                       request.resource.data.status in ['received', 'reviewing'] &&
+                       request.resource.data.note is string &&
+                       request.resource.data.note.size() <= 500 &&
+                       request.resource.data.updatedAt == request.time;
+      allow delete: if request.auth != null && isAdvancedAdmin();
+    }
+
+    // Who to WhatsApp for problems (set by the Advanced Admin in report-inbox.html). One public document.
+    match /publicConfig/{docId} {
+      allow get: if docId == 'reportContact';
+      allow list: if false;
+      allow write: if request.auth != null && isAdvancedAdmin() && docId == 'reportContact' &&
+                      request.resource.data.keys().hasOnly(['whatsapp', 'name', 'updatedAt']) &&
+                      request.resource.data.whatsapp.matches('^[0-9]{10,15}$');
+    }
+
+    // learner+term -> serial, so reprints reuse the same serial. Staff only.
+    match /cardSerialIndex/{key} {
+      allow read, write: if request.auth != null && (isAnyAdmin() || isTeacher());
     }
 
     // ============================================
@@ -422,7 +556,7 @@ service cloud.firestore {
                      (resource.data.recipientEmail == request.auth.token.email ||
                       resource.data.recipientId == request.auth.uid ||
                       isAdminByUID());
-      allow create: if isAdminByUID();
+      allow create: if isAdminByUID() || isValidClaimNotification();
       allow update: if request.auth != null &&
                        (resource.data.recipientEmail == request.auth.token.email ||
                         resource.data.recipientId == request.auth.uid);

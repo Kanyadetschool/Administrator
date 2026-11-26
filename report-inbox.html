@@ -352,7 +352,7 @@ html[data-theme=dark] .tl2 b{color:#e6eef5}html[data-theme=dark] .tl2.warn{backg
 import { FIREBASE_CONFIG } from './js/config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Default app, so the sign-in from login.html / the admin portal is reused automatically.
 const app = initializeApp(FIREBASE_CONFIG);
@@ -438,6 +438,15 @@ function detailCard(r) {
   const dh = E('div', 'dh'); const h = E('div'); h.append(E('h2', '', ic + ' ' + lab), E('small', '', prettyRef(r.id) + ' · ' + fmt(r.at, true) + ' · via ' + (r.via === 'whatsapp' ? 'WhatsApp' : 'page'))); dh.append(h, E('span', 'st ' + stt, STATUS[stt])); c.append(dh);
   c.append(E('div', 'msg', r.message || ''));
   const kv = E('dl', 'kv'); [['Name', r.name || '—'], ['Contact', r.contact || '—'], ['Receipt', r.receipt || '—'], ['Language', r.lang === 'sw' ? 'Kiswahili' : 'English']].forEach(([k, v]) => kv.append(E('dt', '', k), E('dd', '', v))); c.append(kv);
+  if (r.serial) {
+    const verify = E('a', 'b blue', '🔎 Open verification record');
+    verify.href = './verify.html?c=' + encodeURIComponent(r.serial);
+    verify.target = '_blank';
+    verify.rel = 'noopener';
+    c.append(verify);
+  } else {
+    c.append(E('small', 'hint', 'No card code is attached to this claim, so there is no verification record to open.'));
+  }
   const slot = E('div'); c.append(slot);
   if (r.serial) cardOf(r.serial).then(card => { slot.replaceChildren(cardBox(r, card)); });
   // status + note
@@ -445,8 +454,9 @@ function detailCard(r) {
   const note = E('textarea', 'note'); note.maxLength = 500; note.placeholder = 'e.g. We checked the mark sheet and corrected the Mathematics mark. Please collect a re-issued card.'; note.value = r.note || ''; s1.append(note);
   const row = E('div', 'row2');
   [['reviewing', 'Mark as reviewing', 'blue'], ['resolved', 'Resolved', 'green'], ['dismissed', 'Close, no problem found', 'gray']].forEach(([k, l, cl]) => { const b = E('button', 'b ' + cl, l); b.type = 'button';
-    b.onclick = async () => { b.disabled = true; try { const bt = writeBatch(db); const upd = { status: k, note: note.value.trim().slice(0, 500), handledBy: me }; bt.update(doc(db, 'cardReports', r.id), Object.assign({ handledAt: serverTimestamp() }, upd));
-      bt.update(doc(db, 'reportStatus', r.id), { status: k, note: upd.note, updatedAt: serverTimestamp() }); await bt.commit(); Object.assign(r, upd); toast('Saved. The reporter will see this.'); render(); } catch (e) { toast('Couldn’t save. Check your connection.'); b.disabled = false; } }; row.append(b); });
+    b.onclick = async () => { b.disabled = true; try { const upd = { status: k, note: note.value.trim().slice(0, 500), handledBy: me }; await updateDoc(doc(db, 'cardReports', r.id), Object.assign({ handledAt: serverTimestamp() }, upd));
+      await updateDoc(doc(db, 'reportStatus', r.id), { status: k, note: upd.note, updatedAt: serverTimestamp() });
+      Object.assign(r, upd); toast('Saved. The reporter will see this.'); render(); } catch (e) { toast('Couldn’t save. Check your connection.'); b.disabled = false; } }; row.append(b); });
   s1.append(row); c.append(s1);
   // contact
   const digits = (r.contact || '').replace(/\D/g, ''); const isMail = /\S+@\S+\.\S+/.test(r.contact || '');
@@ -465,10 +475,12 @@ function cardBox(r, card) {
   mid.append(E('b', '', card.name || '—'), E('small', '', [card.grade, [card.term, card.year].filter(Boolean).join(' '), Number(card.avg).toFixed(1) + '%', pretty(r.serial)].filter(Boolean).join(' · ')));
   b.append(E('div', 'ci', '🎓'), mid, E('span', 'st ' + (card.status || 'valid'), card.status === 'revoked' ? 'Withdrawn' : 'Valid'));
   const wrap = E('div'); wrap.append(b); const row = E('div', 'row2'); row.style.marginTop = '8px';
-  const v = E('a', 'b line', '🔎 Open verify page'); v.href = './verify.html?c=' + r.serial; v.target = '_blank'; v.rel = 'noopener'; row.append(v);
   const w = E('button', card.status === 'revoked' ? 'b green' : 'b red', card.status === 'revoked' ? '↩ Reinstate card' : '⛔ Withdraw card'); w.type = 'button';
   w.onclick = async () => { const to = card.status === 'revoked' ? 'valid' : 'revoked'; if (!confirm(to === 'revoked' ? 'Withdraw this card? Anyone who checks it will see "Card withdrawn".' : 'Reinstate this card as valid?')) return; w.disabled = true;
-    try { await updateDoc(doc(db, 'cardVerifications', r.serial), { status: to, statusChangedAt: serverTimestamp(), statusChangedBy: me }); card.status = to; toast(to === 'revoked' ? 'Card withdrawn.' : 'Card reinstated.'); render(); } catch (e) { toast('Couldn’t change the card status.'); w.disabled = false; } };
+    try {
+      await updateDoc(doc(db, 'cardVerifications', r.serial), { status: to, statusChangedAt: serverTimestamp(), statusChangedBy: me, updatedAt: serverTimestamp() });
+      card.status = to; toast(to === 'revoked' ? 'Card withdrawn.' : 'Card reinstated.'); render();
+    } catch (e) { toast('Couldn’t change the card status.'); w.disabled = false; } };
   row.append(w); wrap.append(row); return wrap;
 }
 

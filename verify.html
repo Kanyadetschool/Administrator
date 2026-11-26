@@ -117,7 +117,6 @@ h2 small{font:500 12px 'Poppins';color:#6a7a88}
 .radar text{font:600 10.5px 'Poppins';fill:#33414f}
 .radar .poly{fill:rgba(41,128,185,.22);stroke:#2980b9;stroke-width:2.2;stroke-linejoin:round}
 @media (prefers-reduced-motion:no-preference){.radar .poly{transform-origin:150px 150px;animation:grow .9s cubic-bezier(.2,.8,.2,1) .2s both}@keyframes grow{from{transform:scale(.05);opacity:0}to{transform:none;opacity:1}}}
-
 /* ── subjects ── */
 .g{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sj{border-radius:22px;padding:12px;position:relative;overflow:hidden}.sj.wide{grid-column:1/-1}
@@ -139,7 +138,6 @@ h2 small{font:500 12px 'Poppins';color:#6a7a88}
 .match .stars{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}.match .stars i{font-style:normal;font-size:17px;filter:grayscale(1);opacity:.35;transition:.25s}.match .stars i.on{filter:none;opacity:1;transform:scale(1.1)}.match .stars i.x{filter:none;opacity:1}
 .match.ok{background:#e9f8ef;border-color:var(--green);color:#1b7a45}.match.no{background:#fdeceb;border-color:var(--red);color:#b03a2e;font-weight:600}
 .legacy{padding:12px 14px;border-radius:16px;background:#f4f7f9;font-size:13px;color:var(--muted)}
-
 /* ── note ── */
 .bub{background:#f1ebfa;border-radius:22px 22px 22px 6px;padding:14px 16px;font:italic 15px/1.5 'Lora',serif;color:#4b2a63}
 .sigs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
@@ -366,6 +364,12 @@ html[data-theme=dark] .or:before,html[data-theme=dark] .or:after{background:#243
 .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .fchip{border:0;border-radius:99px;padding:6px 12px;background:#eef2f5;color:var(--ink);font:600 12px 'Poppins';cursor:pointer}
 .fchip[aria-pressed=true]{background:var(--navy);color:#fff}
+.waiting{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:99px;background:#fff1d8;color:#a85a0c;font:700 11px 'Poppins'}
+.assignment{margin:12px 0;padding:12px;border:1.5px solid #dde6ee;border-radius:16px;background:#f8fafc}
+.assignment h3{margin:0 0 8px;color:var(--navy);font:700 13px 'Poppins';text-transform:uppercase;letter-spacing:.06em}
+.assignment-grid{display:grid;grid-template-columns:1fr 160px;gap:8px}
+.assignment-grid .in{min-width:0}
+@media (max-width:520px){.assignment-grid{grid-template-columns:1fr}}
 .list{display:grid;gap:8px}
 .item{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;text-align:left;width:100%;padding:10px 12px;border:2px solid transparent;border-radius:18px;background:#f6f8fa;cursor:pointer;color:var(--ink);font-family:'Poppins'}
 .item[aria-current=true]{border-color:var(--orange);background:#fff7ec}
@@ -710,6 +714,40 @@ const PDFX = (() => {
       const qs = 29, qx = W - M - qs - 7, qy = y0 + 4.5; rr(qx - 2.5, qy - 2.5, qs + 5, qs + 5, 3, '#ffffff', COL.line, 0.25); qrDraw(url, qx, qy, qs); font(6.2, true); tc(COL.muted); T(caption || 'SCAN TO OPEN', qx + qs / 2, y0 + h - 1.8, { align: 'center' });
       S.y = y0 + h + 4;
     };
+    S.poster = ({ verifyUrl, reportUrl, whatsapp }) => {
+      // A self-contained, printable bilingual A4 notice.
+      d.setFillColor(...rgb('#ffffff')); d.rect(M, S.y - 2, CW, S.limit - S.y + 5, 'F');
+      const y0 = S.y + 3;
+      rr(M, y0, CW, 46, 5, '#edf5fa', COL.blue, 0.5);
+      font(20, true); tc(COL.navy); T('VERIFY YOUR CHILD’S REPORT CARD', M + 7, y0 + 12);
+      font(16, true); tc(COL.orange); T('THIBITISHA RIPOTI YA MTOTO WAKO', M + 7, y0 + 23);
+      font(8.5); tc(COL.muted); T('English / Kiswahili', M + 7, y0 + 32);
+      const qrSize = 52, qx = W - M - qrSize - 8, qy = y0 + 5;
+      rr(qx - 3, qy - 3, qrSize + 6, qrSize + 6, 3, '#ffffff', COL.navy, 0.5); qrDraw(verifyUrl, qx, qy, qrSize, COL.navy);
+      font(7.5, true); tc(COL.navy); T('SCAN TO VERIFY', qx + qrSize / 2, qy + qrSize + 5, { align: 'center' });
+
+      const stepsY = y0 + 54;
+      rr(M, stepsY, CW, 88, 5, '#ffffff', COL.line, 0.4);
+      font(12, true); tc(COL.navy); T('Three simple steps / Hatua tatu rahisi', M + 7, stepsY + 10);
+      const cols = [
+        ['1', 'Open the camera and scan the QR', 'Fungua kamera na skani QR'],
+        ['2', 'Enter the code printed on the card', 'Weka msimbo ulioandikwa kwenye kadi'],
+        ['3', 'Compare with the card at home', 'Linganisha na kadi uliyo nayo']
+      ];
+      cols.forEach((x, i) => {
+        const cx = M + 7 + i * ((CW - 14) / 3);
+        fc(i === 0 ? COL.blue : i === 1 ? COL.orange : COL.green); d.circle(cx + 8, stepsY + 29, 8, 'F');
+        font(12, true); tc('#ffffff'); T(x[0], cx + 8, stepsY + 33, { align: 'center' });
+        font(8.5, true); tc(COL.ink); const a = wrap(x[1], (CW - 20) / 3 - 4); a.forEach((l, k) => T(l, cx + 20, stepsY + 24 + k * 4.5));
+        font(8); tc(COL.muted); const b = wrap(x[2], (CW - 20) / 3 - 4); b.forEach((l, k) => T(l, cx + 20, stepsY + 45 + k * 4.5));
+      });
+      const linkY = stepsY + 98;
+      rr(M, linkY, CW, 35, 5, '#fff7ec', COL.orange, 0.5);
+      font(11, true); tc(COL.navy); T('Something wrong? / Kuna tatizo?', M + 7, linkY + 10);
+      font(8.5); tc(COL.ink); T('Report a problem: ' + reportUrl, M + 7, linkY + 18);
+      font(8.5); tc(COL.ink); T('WhatsApp: +' + (whatsapp || 'not configured'), M + 7, linkY + 27);
+      S.y = linkY + 42;
+    };
     S.bars = ({ title, sub, data, colors, legend }) => {
       const h = 58; need(h + 6); const y0 = S.y; rr(M, y0, CW, h, 4, '#ffffff', COL.line, 0.3); font(9.6, true); tc(COL.navy); T(title, M + 6, y0 + 8); if (sub) { font(7.2); tc(COL.muted); T(sub, W - M - 6, y0 + 8, { align: 'right' }); }
       const gx = M + 8, gw = CW - 16, base = y0 + h - 11, top = y0 + 16, n = data.length, bw = gw / n, mx = Math.max(1, ...data.map(x => x.a + (x.b || 0)));
@@ -923,7 +961,7 @@ function identicon(hash) {
   return sv;
 }
 function radar(subs) {
-  const n = subs.length, R = 100, C = 150, sv = S('svg', { viewBox: '-26 -4 352 308', class: 'radar', role: 'img', 'aria-label': t('glance') });
+  const n = subs.length, R = 100, C = 150, sv = S('svg', { viewBox: '-26 -4 352 308', class: 'radar', role: 'img', 'aria-label': `${t('glance')}: ${subs.map(s => `${nice(s.n)} ${Number(s.s).toFixed(1)}`).join(', ')}` });
   const pt = (i, f) => { const a = -Math.PI / 2 + i * 2 * Math.PI / n; return [C + R * f * Math.cos(a), C + R * f * Math.sin(a)]; };
   [.25, .5, .75, 1].forEach(f => sv.append(S('polygon', { points: subs.map((_, i) => pt(i, f).join(',')).join(' '), class: 'rg' + (f === 1 ? ' rgo' : '') })));
   subs.forEach((_, i) => { const [x, y] = pt(i, 1); sv.append(S('line', { x1: C, y1: C, x2: x, y2: y, class: 'ra' })); });
@@ -935,7 +973,6 @@ function radar(subs) {
   });
   return sv;
 }
-
 /* ───────────────────────── view state ───────────────────────── */
 let view = { kind: 'hello' };
 function setView(v) { view = v; draw(); }
@@ -1237,8 +1274,8 @@ function pdfReceipt(btn) {
   const v = view; if (!v || !v.r) return Promise.resolve();
   return pdfBusy(btn, async () => {
     const { kind, r, serial, h } = v, subs = r.subjects || [], wd = r.status === 'revoked', hashOk = h ? String(r.contentHash || '').startsWith(h) : null, now = new Date().toISOString();
-    const pu = await findPhoto(r).catch(() => null); const photo = pu ? await PDFX.image(pu, 'jpeg') : null;
     const S = await PDFX.begin({ kind: t('pdfKind'), no: v.receipt, noLabel: t('pdfNo'), title: t('pdfKind') + ' ' + pretty(serial), sub: t('pdfChecked') + ' ' + when(now, true) + ' EAT' });
+    const pu = await findPhoto(r).catch(() => null); const photo = pu ? await PDFX.image(pu, 'jpeg') : null;
     S.banner(kind, t(v.tk), t(v.sk), [[wd ? '✕' : '✓', t('chipReg')], [wd ? '✕' : '✓', wd ? t('chipWd') : t('chipNotWd')], hashOk === null ? ['–', t('chipQrNone')] : hashOk ? ['✓', t('chipQrOk')] : ['!', t('chipQrNo')]]);
     const pm = String(r.position || '').trim().match(/^(\d+)\s*(?:\/|of|out of)?\s*(\d+)?/i);
     S.profile({ name: r.name, initials: initials(r.name), photo, tone: kind, tags: [[r.grade, r.cls].filter(Boolean).join(' · '), [r.term, r.year].filter(Boolean).join(' · '), r.uliTail ? 'ULI **** ' + r.uliTail : ''], code: pretty(serial), codeLabel: t('serial'), meta: t('issued') + ' ' + when(r.issuedAt), medal: pm ? { main: lang === 'sw' ? pm[1] : ordinal(+pm[1]), sub: pm[2] ? t('of') + ' ' + pm[2] : t('inClass') } : null });
@@ -1316,8 +1353,8 @@ function batchResults(res) {
   if (batchCapped) res.append(E('p', 'foot', t('batchMax')));
   const dl = E('button', 'btn alt', t('batchCsv')); dl.type = 'button'; dl.style.marginTop = '12px';
   dl.onclick = () => {
-    const rows = [['Code', 'Result', 'Learner', 'Class', 'Term', 'Year', 'Average', 'Level', 'Checked']];
-    batchRows.forEach(x => rows.push([pretty(x.s), I18N.en[BST[x.k][1]], x.r ? x.r.name : '', x.r ? [x.r.grade, x.r.cls].filter(Boolean).join(' ') : '', x.r ? x.r.term : '', x.r ? x.r.year : '', x.r ? x.r.avg : '', x.r ? x.r.level : '', new Date().toISOString()]));
+    const rows = [['Code', 'Result', 'Learner', 'Grade', 'Term', 'Year', 'Checked']];
+    batchRows.forEach(x => rows.push([pretty(x.s), I18N.en[BST[x.k][1]], x.r ? x.r.name : '', x.r ? x.r.grade : '', x.r ? x.r.term : '', x.r ? x.r.year : '', new Date().toISOString()]));
     const a = E('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv' })); a.download = 'card-checks-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.append(a); a.click(); a.remove();
   };
   const pdb = E('button', 'btn', t('pdfBtn')); pdb.type = 'button'; pdb.style.marginTop = '8px'; pdb.onclick = () => pdfBatch(pdb);
@@ -1735,7 +1772,7 @@ const ORDER = { received: 0, reviewing: 1, resolved: 2, dismissed: 3 };
 const toast = msg => { const t = E('div', 'toast', msg); t.setAttribute('role', 'status'); document.body.append(t); setTimeout(() => t.remove(), 2600); };
 const isMobile = () => matchMedia('(max-width:899px)').matches;
 
-let user = null, me = '', tab = 'reports', filter = 'all', reports = [], logs = [], selected = null, cardCache = {}, settings = { whatsapp: '', name: '' };
+let user = null, me = '', tab = 'reports', filter = 'all', reports = [], logs = [], selected = null, cardCache = {}, teachers = [], settings = { whatsapp: '', name: '' };
 let q = '', catF = '', sortBy = 'new', overdueOnly = false, selMode = false, sel = new Set(), bulkNote = '', lk = { serial: '', card: undefined }, pollT = null, knownIds = null;
 
 /* ── quick-reply templates (kept on this device) ── */
@@ -1755,7 +1792,12 @@ const fill = (tpl, r) => tpl.replace(/\{name\}/g, r.name || 'there').replace(/\{
 /* ── helpers ── */
 const statusOf = r => r.status || 'received';
 const ageH = r => { const d = toDate(r.at); return d ? (Date.now() - d) / 36e5 : 0; };
-const overdue = r => { const s = statusOf(r); return (s === 'received' && ageH(r) > 48) || (s === 'reviewing' && ageH(r) > 120); };   // SLA: 48 h to look, 5 days to finish
+const assignmentOverdue = r => {
+  if (!r.assignment || !r.assignment.dueDate || ['resolved', 'dismissed'].includes(statusOf(r))) return false;
+  const d = new Date(r.assignment.dueDate + 'T23:59:59+03:00');
+  return !isNaN(d) && Date.now() > d.getTime();
+};
+const overdue = r => { const s = statusOf(r); return assignmentOverdue(r) || (s === 'received' && ageH(r) > 48) || (s === 'reviewing' && ageH(r) > 120); };
 const csvCell = c => { let s = String(c == null ? '' : c); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
 function download(name, rows) { const a = E('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv' })); a.download = name; document.body.append(a); a.click(); a.remove(); }
 const stamp = () => new Date().toISOString().slice(0, 10);
@@ -1792,7 +1834,8 @@ async function enter() {
 async function loadReports() { const s = await getDocs(query(collection(db, 'cardReports'), orderBy('at', 'desc'), limit(300))); reports = s.docs.map(d => Object.assign({ id: d.id }, d.data())); }
 async function loadLogs() { const s = await getDocs(query(collection(db, 'verifyLog'), orderBy('at', 'desc'), limit(300))); logs = s.docs.map(d => d.data()); }
 async function loadSettings() { try { const s = await getDoc(doc(db, 'publicConfig', 'reportContact')); if (s.exists()) settings = { whatsapp: s.data().whatsapp || '', name: s.data().name || '' }; } catch (e) {} }
-async function loadAll() { await Promise.all([loadReports().catch(() => {}), loadLogs().catch(() => {}), loadSettings()]); }
+async function loadTeachers() { const s = await getDocs(collection(db, 'users')); teachers = s.docs.map(d => Object.assign({ uid: d.id }, d.data())).filter(t => !t.disabled); }
+async function loadAll() { await Promise.all([loadReports().catch(() => {}), loadLogs().catch(() => {}), loadSettings(), loadTeachers().catch(() => {})]); }
 async function cardOf(serial) { if (!serial) return null; if (serial in cardCache) return cardCache[serial]; try { const s = await getDoc(doc(db, 'cardVerifications', serial)); cardCache[serial] = s.exists() ? s.data() : false; } catch (e) { cardCache[serial] = null; } return cardCache[serial]; }
 
 /* ── learner photos: the same student_images folders the Verify tab reads ── */
@@ -1823,6 +1866,8 @@ const PRIORITY = { fake: ['P1', 'Critical'], notfound: ['P2', 'High'], marks: ['
 const isoNairobi = x => { const d = toDate(x); if (!d || isNaN(d)) return '—'; const p = {}; new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Nairobi', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(d).forEach(q => { p[q.type] = q.value; }); return p.year + '-' + p.month + '-' + p.day + 'T' + p.hour + ':' + p.minute + ':' + p.second + '+03:00'; };   // Kenya has no daylight saving: always UTC+03:00
 const isoUtc = x => { const d = toDate(x); return d && !isNaN(d) ? d.toISOString().replace(/\.\d{3}Z$/, 'Z') : '—'; };
 const e164 = v => { if (!v || /@/.test(v)) return ''; let d = String(v).replace(/[^\d+]/g, '').replace(/^\+/, ''); if (d.startsWith('00')) d = d.slice(2); if (/^0[17]\d{8}$/.test(d)) d = '254' + d.slice(1); else if (/^[17]\d{8}$/.test(d)) d = '254' + d; return /^\d{10,15}$/.test(d) ? '+' + d : ''; };
+const teacherPhone = t => t ? (t.phone || t.phoneNumber || t.mobile || t.whatsapp || t.tel || '') : '';
+const teacherPhoneDigits = t => { let d = String(teacherPhone(t)).replace(/\D/g, ''); if (d.startsWith('0')) d = '254' + d.slice(1); else if (/^[17]\d{8}$/.test(d)) d = '254' + d; return /^\d{10,15}$/.test(d) ? d : ''; };
 const isced = g => { const m = String(g || '').match(/(\d+)/), n = m ? +m[1] : null; if (/^\s*PP/i.test(g || '')) return 'ISCED 02 · Pre-primary education'; if (n == null) return '—'; return n <= 6 ? 'ISCED 1 · Primary education' : n <= 9 ? 'ISCED 2 · Lower secondary education' : 'ISCED 3 · Upper secondary education'; };
 function intlRows(r, card) {
   const [pc, pl] = PRIORITY[r.category] || PRIORITY.other, ph = e164(r.contact);
@@ -1941,7 +1986,9 @@ function render() {
 function shownReports() {
   const s = q.trim().toLowerCase();
   const l = reports.filter(r => {
-    if (filter !== 'all' && !(filter === 'done' ? ['resolved', 'dismissed'].includes(statusOf(r)) : statusOf(r) === filter)) return false;
+    if (filter === 'waiting') {
+      if (!r.assignment) return false;
+    } else if (filter !== 'all' && !(filter === 'done' ? ['resolved', 'dismissed'].includes(statusOf(r)) : statusOf(r) === filter)) return false;
     if (catF && r.category !== catF) return false;
     if (overdueOnly && !overdue(r)) return false;
     if (s) { const hay = [r.id, prettyRef(r.id), r.name, r.contact, r.message, r.serial, pretty(r.serial), (CATS[r.category] || [])[1], (cardCache[r.serial] || {}).name, (PRIORITY[r.category] || [])[0]].join(' ').toLowerCase(); if (!hay.includes(s)) return false; }
@@ -1959,7 +2006,7 @@ async function exportReports() {
   download('reports-' + stamp() + '.csv', rows); toast('Exported ' + (rows.length - 1) + ' report(s).');
 }
 async function bulk(kind) {
-  const ids = [...sel]; if (!ids.length) return; if (ids.length > 200) { toast('Select at most 200 at a time.'); return; }
+  const ids = [...sel]; if (!ids.length) return; if (ids.length > 150) { toast('Select at most 150 at a time.'); return; }
   if (kind === 'delete' && !confirm('Delete ' + ids.length + ' report(s) permanently? This cannot be undone.')) return;
   try {
     const bt = writeBatch(db);
@@ -1973,7 +2020,11 @@ async function bulk(kind) {
     if (kind === 'delete') { reports = reports.filter(r => !sel.has(r.id)); if (sel.has(selected)) selected = null; }
     else reports.forEach(r => { if (sel.has(r.id)) { r.status = kind; if (bulkNote) r.note = bulkNote; } });
     toast(ids.length + ' report(s) ' + (kind === 'delete' ? 'deleted.' : 'updated. Reporters will see it.')); sel.clear(); render();
-  } catch (e) { toast('Couldn’t apply that to every report. Nothing was changed.'); }
+  } catch (e) {
+    console.error('Bulk report update failed:', e);
+    toast('Couldn’t apply the selected changes.');
+    sel.clear(); render();
+  }
 }
 function reportsView() {
   const split = E('div', 'split'); const left = E('div', 'card');
@@ -1990,6 +2041,7 @@ function reportsView() {
   two.append(cs, so); tb.append(si, two); left.append(tb);
   const f = E('div', 'filters');
   [['all', 'All'], ['received', 'New'], ['reviewing', 'Reviewing'], ['done', 'Closed']].forEach(([k, l]) => { const b = E('button', 'fchip', l); b.type = 'button'; b.setAttribute('aria-pressed', String(filter === k)); b.onclick = () => { filter = k; render(); }; f.append(b); });
+  const wt = E('button', 'fchip', '⏳ Waiting on teacher'); wt.type = 'button'; wt.setAttribute('aria-pressed', String(filter === 'waiting')); wt.onclick = () => { filter = 'waiting'; render(); }; f.append(wt);
   const od = E('button', 'fchip', '⏰ Overdue'); od.type = 'button'; od.setAttribute('aria-pressed', String(overdueOnly)); od.onclick = () => { overdueOnly = !overdueOnly; render(); }; f.append(od);
   left.append(f);
   const bulkBox = E('div'), listBox = E('div'); left.append(bulkBox, listBox);
@@ -1997,7 +2049,7 @@ function reportsView() {
   function drawBulk() {
     bulkBox.replaceChildren(); if (!selMode) return;
     const bar = E('div', 'bulk'); const top = E('div', 'row2'); top.style.alignItems = 'center';
-    const all = E('button', 'b line sm', 'Select all shown'); all.type = 'button'; all.onclick = () => { shownReports().slice(0, 200).forEach(r => sel.add(r.id)); drawList(); };
+    const all = E('button', 'b line sm', 'Select first 150 shown'); all.type = 'button'; all.onclick = () => { shownReports().slice(0, 150).forEach(r => sel.add(r.id)); drawList(); };
     const none = E('button', 'b line sm', 'Clear'); none.type = 'button'; none.onclick = () => { sel.clear(); drawList(); };
     top.append(E('b', '', sel.size + ' selected'), all, none);
     const note = E('input', 'in'); note.placeholder = 'Optional note sent to every selected reporter'; note.maxLength = 500; note.value = bulkNote; note.oninput = () => { bulkNote = note.value.trim(); }; note.style.margin = '8px 0';
@@ -2012,7 +2064,7 @@ function reportsView() {
     const list = E('div', 'list'), avs = {};
     shown.forEach(r => {
       const [ic, lab] = CATS[r.category] || CATS.other; const b = E('button', 'item'); b.type = 'button'; b.setAttribute('aria-current', String(!selMode && selected === r.id));
-      const mid = E('div'); mid.append(E('b', '', lab), E('small', '', (r.name || 'Anonymous') + ' · ' + (r.serial ? pretty(r.serial) : 'no code')), E('small', '', ago(r.at) + ' · ' + (PRIORITY[r.category] || PRIORITY.other)[0] + (overdue(r) ? ' · ⏰ overdue' : '')));
+      const mid = E('div'); mid.append(E('b', '', lab), E('small', '', (r.name || 'Anonymous') + ' · ' + (r.serial ? pretty(r.serial) : 'no code')), E('small', '', ago(r.at) + ' · ' + (PRIORITY[r.category] || PRIORITY.other)[0] + (r.assignment ? ' · ⏳ waiting on teacher' : '') + (overdue(r) ? ' · ⏰ overdue' : '')));
       const av = selMode ? E('div', 'ic', sel.has(r.id) ? '☑️' : '⬜') : reportAvatar(r, 40); avs[r.id] = av;
       b.append(av, mid, E('span', 'ist ' + statusOf(r), STATUS[statusOf(r)]));
       b.onclick = () => { if (selMode) { sel.has(r.id) ? sel.delete(r.id) : sel.add(r.id); drawList(); } else { selected = r.id; render(); } };
@@ -2034,6 +2086,66 @@ function detailCard(r) {
   if (isMobile()) { const bk = E('button', 'b line mobback', '← All reports'); bk.type = 'button'; bk.onclick = () => { selected = null; render(); }; c.append(bk); }
   const dh = E('div', 'dh'); const h = E('div'); h.append(E('h2', '', ic + ' ' + lab), E('small', '', prettyRef(r.id) + ' · ' + fmt(r.at, true) + ' · via ' + (r.via === 'whatsapp' ? 'WhatsApp' : 'page'))); dh.append(h, E('span', 'ist ' + stt, STATUS[stt])); c.append(dh);
   if (overdue(r)) { const o = E('p', 'sla', '⏰ Waiting ' + (ageH(r) >= 48 ? Math.round(ageH(r) / 24) + ' days' : Math.round(ageH(r)) + ' hours') + ' without an answer.'); c.append(o); }
+  const sa = E('div', 'assignment'); sa.append(E('h3', '', 'Assign to class teacher / mark-sheet holder'));
+  const teacherSelect = E('select', 'in'); teacherSelect.append(new Option('Choose a teacher…', ''));
+  teachers.forEach(t => {
+    const name = t.displayName || t.name || [t.firstName, t.lastName].filter(Boolean).join(' ') || t.email || 'Teacher';
+    const digits = teacherPhoneDigits(t);
+    teacherSelect.append(new Option(name + (digits ? ' · ' + digits : ''), t.uid));
+  });
+  if (r.assignment && r.assignment.uid) teacherSelect.value = r.assignment.uid;
+  const due = E('input', 'in'); due.type = 'date'; due.value = r.assignment && r.assignment.dueDate ? r.assignment.dueDate : '';
+  const grid = E('div', 'assignment-grid'); grid.append(teacherSelect, due); sa.append(grid);
+  const checkedBy = E('input', 'in'); checkedBy.placeholder = 'Mark sheet checked by (name)'; checkedBy.maxLength = 60; checkedBy.value = r.assignment && r.assignment.checkedBy ? r.assignment.checkedBy : ''; checkedBy.style.marginTop = '8px'; sa.append(checkedBy);
+  const assignmentRow = E('div', 'row2'); assignmentRow.style.marginTop = '8px';
+  const saveAssignment = E('button', 'b blue', r.assignment ? 'Update assignment' : 'Assign & set waiting'); saveAssignment.type = 'button';
+  saveAssignment.onclick = async () => {
+    const t = teachers.find(x => x.uid === teacherSelect.value);
+    if (!t) { toast('Choose a teacher first.'); return; }
+    if (!due.value) { toast('Set a due date.'); return; }
+    const name = t.displayName || t.name || [t.firstName, t.lastName].filter(Boolean).join(' ') || t.email || 'Teacher';
+    const phone = teacherPhone(t);
+    const email = t.email || '';
+    const assignment = { uid: t.uid, name, email, phone, dueDate: due.value, checkedBy: checkedBy.value.trim().slice(0, 60), assignedAt: new Date(), assignedBy: me };
+    saveAssignment.disabled = true;
+    try {
+      await updateDoc(doc(db, 'cardReports', r.id), { assignment });
+      await setDoc(doc(db, 'reportStatus', r.id), { assignment }, { merge: true });
+      await setDoc(doc(db, 'notifications', 'claim-' + r.id + '-' + t.uid), {
+        type: 'report_card_claim',
+        recipientId: t.uid,
+        recipientEmail: email || '',
+        title: 'Report-card claim assigned',
+        body: ((CATS[r.category] || CATS.other)[1] || 'Marks problem') + ' · Due ' + due.value,
+        reportId: r.id,
+        cardCode: r.serial || '',
+        dueDate: due.value,
+        read: false,
+        createdAt: serverTimestamp(),
+        createdBy: me
+      });
+      r.assignment = assignment;
+      toast('Assigned. Waiting on teacher.'); render();
+    } catch (e) { toast('Couldn’t save the assignment.'); saveAssignment.disabled = false; }
+  };
+  assignmentRow.append(saveAssignment);
+  if (r.assignment) {
+    const wa = E('a', 'b green', '💬 Send teacher WhatsApp'); wa.target = '_blank'; wa.rel = 'noopener';
+    const assignedTeacher = teachers.find(t => t.uid === r.assignment.uid);
+    let digits = teacherPhoneDigits(assignedTeacher);
+    if (!digits) {
+      digits = String(r.assignment.phone || '').replace(/\D/g, '');
+      if (digits.startsWith('0')) digits = '254' + digits.slice(1);
+      else if (/^[17]\d{8}$/.test(digits)) digits = '254' + digits;
+    }
+    const cardCode = r.serial ? pretty(r.serial) : 'not given';
+    const text = 'Hello ' + r.assignment.name + ', please check the mark sheet for report-card claim ' + prettyRef(r.id) + '. Learner: ' + (r.name || 'parent report') + '. Card code: ' + cardCode + '. Problem: ' + lab + '. Due: ' + r.assignment.dueDate + '. Please reply with the correct mark or confirmation.';
+    if (/^\d{10,15}$/.test(digits)) { wa.href = 'https://wa.me/' + digits + '?text=' + encodeURIComponent(text); assignmentRow.append(wa); }
+    else { wa.href = 'https://wa.me/?text=' + encodeURIComponent(text); assignmentRow.append(wa); }
+  }
+  sa.append(assignmentRow);
+  if (r.assignment) sa.append(E('p', 'foot', 'Due ' + fmt(r.assignment.dueDate, false) + (r.assignment.checkedBy ? ' · Marks checked by ' + r.assignment.checkedBy : '') + (assignmentOverdue(r) ? ' · OVERDUE' : '')));
+  c.append(sa);
   c.append(E('div', 'msg', r.message || ''));
   const kv = E('dl', 'kv'); [['Name', r.name || '—'], ['Contact', r.contact || '—'], ['Receipt', r.receipt || '—'], ['Language', r.lang === 'sw' ? 'Kiswahili' : 'English']].forEach(([k, v]) => kv.append(E('dt', '', k), E('dd', '', v))); c.append(kv);
   const slot = E('div'); c.append(slot);
@@ -2053,8 +2165,9 @@ function detailCard(r) {
   s1.append(qr, note);
   const row = E('div', 'row2');
   [['reviewing', 'Mark as reviewing', 'blue'], ['resolved', 'Resolved', 'green'], ['dismissed', 'Close, no problem found', 'gray']].forEach(([k, l, cl]) => { const b = E('button', 'b ' + cl, l); b.type = 'button';
-    b.onclick = async () => { b.disabled = true; try { const bt = writeBatch(db); const upd = { status: k, note: note.value.trim().slice(0, 500), handledBy: me }; bt.update(doc(db, 'cardReports', r.id), Object.assign({ handledAt: serverTimestamp() }, upd));
-      bt.update(doc(db, 'reportStatus', r.id), { status: k, note: upd.note, updatedAt: serverTimestamp() }); await bt.commit(); Object.assign(r, upd, { handledAt: new Date() }); toast('Saved. The reporter will see this.'); render(); } catch (e) { toast('Couldn’t save. Check your connection.'); b.disabled = false; } }; row.append(b); });
+    b.onclick = async () => { b.disabled = true; try { const upd = { status: k, note: note.value.trim().slice(0, 500), handledBy: me }; await updateDoc(doc(db, 'cardReports', r.id), Object.assign({ handledAt: serverTimestamp() }, upd));
+    await updateDoc(doc(db, 'reportStatus', r.id), { status: k, note: upd.note, updatedAt: serverTimestamp() });
+    Object.assign(r, upd, { handledAt: new Date() }); toast('Saved. The reporter will see this.'); render(); } catch (e) { toast('Couldn’t save. Check your connection.'); b.disabled = false; } }; row.append(b); });
   s1.append(row); c.append(s1);
   // private note (never shown to the reporter)
   const sp = E('div', 'sec'); sp.append(E('h3', '', '🔒 Private note (only you can see this)'));
@@ -2085,7 +2198,10 @@ function cardBox(r, card, url) {
   w.onclick = async () => { const to = card.status === 'revoked' ? 'valid' : 'revoked'; if (!confirm(to === 'revoked' ? 'Withdraw this card? Anyone who checks it will see "Card withdrawn".' : 'Reinstate this card as valid?')) return;
     let reason = ''; if (to === 'revoked') { reason = prompt('Reason for withdrawing (optional, kept in the record):', ''); if (reason === null) return; }
     w.disabled = true;
-    try { await updateDoc(doc(db, 'cardVerifications', r.serial), { status: to, statusChangedAt: serverTimestamp(), statusChangedBy: me, statusReason: reason.trim().slice(0, 200) }); card.status = to; card.statusReason = reason.trim(); cardCache[r.serial] = card; toast(to === 'revoked' ? 'Card withdrawn.' : 'Card reinstated.'); render(); } catch (e) { toast('Couldn’t change the card status.'); w.disabled = false; } };
+    try {
+      await updateDoc(doc(db, 'cardVerifications', r.serial), { status: to, statusChangedAt: serverTimestamp(), statusChangedBy: me, statusReason: reason.trim().slice(0, 200), updatedAt: serverTimestamp() });
+      card.status = to; card.statusReason = reason.trim(); cardCache[r.serial] = card; toast(to === 'revoked' ? 'Card withdrawn.' : 'Card reinstated.'); render();
+    } catch (e) { toast('Couldn’t change the card status.'); w.disabled = false; } };
   row.append(w); wrap.append(row); return wrap;
 }
 
@@ -2217,6 +2333,19 @@ function settingsView() {
   rr.append(add, sa, rst); rs.append(rr); c.append(rs);
   const s = E('div', 'sec'); s.append(E('h3', '', 'Links to share')); const base = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
   [['Verify a report card', base + 'verify.html'], ['Report a problem', base + 'verify.html?v=report']].forEach(([l, u]) => { const r = E('div', 'row2'); r.style.cssText = 'align-items:center;margin-bottom:8px'; const i = E('input', 'in'); i.readOnly = true; i.value = u; i.style.flex = '1'; i.setAttribute('aria-label', l); const b = E('button', 'b line', 'Copy'); b.type = 'button'; b.onclick = async () => { try { await navigator.clipboard.writeText(u); toast('Link copied'); } catch (e) { i.select(); } }; r.append(i, b); s.append(E('span', 'lbl', l), r); });
+  const posterSec = E('div', 'sec'); posterSec.append(E('h3', '', 'Printable verification notice'));
+  posterSec.append(E('p', 'foot', 'Creates a one-page A4 poster in English and Kiswahili, with a large QR, the problem-report link and the school WhatsApp number.'));
+  const posterRow = E('div', 'row2');
+  const poster = E('button', 'b', '🖨️ Make A4 poster PDF'); poster.type = 'button';
+  poster.onclick = () => pdfBusy(poster, async () => {
+    const base = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
+    const verifyUrl = base + 'verify.html';
+    const reportUrl = base + 'verify.html?v=report';
+    const S = await PDFX.begin({ kind: 'Verification Notice', no: 'A4', noLabel: 'Format', title: 'Verify your child’s report card', sub: 'English / Kiswahili · Print for noticeboards or send home', confidential: false });
+    S.poster({ verifyUrl, reportUrl, whatsapp: settings.whatsapp });
+    S.finish('Kanyadet-Verify-Report-Card-Notice-A4.pdf');
+  });
+  posterRow.append(poster); posterSec.append(posterRow); c.append(posterSec);
   c.append(s); return c;
 }
 

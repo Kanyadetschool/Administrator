@@ -999,6 +999,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--blue-lt);outline
       <div class="nav-item" data-view="classes" data-title="My Classes" data-crumb="Rosters for your assigned grades"><span class="nav-icon">🏷️</span>My Classes</div>
       <div class="nav-item" data-view="attendance" data-title="Attendance" data-crumb="Mark and review daily attendance"><span class="nav-icon">✅</span>Attendance</div>
       <div class="nav-item" data-view="gradebook" data-title="Gradebook" data-crumb="Recent scores for your classes"><span class="nav-icon">📝</span>Gradebook</div>
+      <div class="nav-item" data-view="claims" data-title="Report Card Claims" data-crumb="Assigned mark-sheet checks"><span class="nav-icon">📋</span>Report Card Claims<span class="nav-badge red" id="badge-claims" style="display:none;">0</span></div>
       <div class="nav-item" data-view="insights" data-title="At-Risk Insights" data-crumb="Students falling behind on scores or attendance"><span class="nav-icon">🚨</span>At-Risk Insights</div>
       <div class="nav-item" data-view="timetable" data-title="Timetable" data-crumb="Weekly lesson schedule"><span class="nav-icon">🗓️</span>Timetable</div>
       <div class="nav-item" data-view="exam-timetable" data-title="Exam Timetable" data-crumb="Examination schedules &amp; invigilation duties"><span class="nav-icon">⏱️</span>Exam Timetable<span class="nav-badge" style="background:#7b5cd1;color:#fff;">Planner</span></div>
@@ -1773,6 +1774,7 @@ function enterApp(){
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').classList.add('active');
   window.dispatchEvent(new CustomEvent('ktp:ready'));
+  startClaimAssignmentListener();
   // Load real staff photos in the background (initials render instantly
   // above), then refresh the topbar avatar and re-render the current view
   // if it's one that shows teacher/colleague avatars.
@@ -1880,6 +1882,138 @@ function timeAgo(ts){
   if(s<3600) return Math.floor(s/60)+'m ago';
   if(s<86400) return Math.floor(s/3600)+'h ago';
   return Math.floor(s/86400)+'d ago';
+}
+
+let claimAssignments = [];
+let claimListenerStarted = false;
+let claimListenerFirstSnapshot = true;
+const claimTeacherPhones = {};
+let claimFilter = 'all';
+let claimSearch = '';
+let claimSelectedId = null;
+const claimLearnerCache = new Map();
+
+async function claimLearner(serial){
+  if(!serial) return null;
+  if(claimLearnerCache.has(serial)) return claimLearnerCache.get(serial);
+  const pending=(async()=>{
+    try{
+      const snap=await getDoc(doc(fs,'cardVerifications',serial));
+      if(!snap.exists()) return null;
+      const card=snap.data()||{};
+      const name=card.photoName||card.name||'';
+      const grade=card.photoGrade||card.grade||'';
+      const photo=name ? await loadStudentPhoto(name,grade) : null;
+      return {name,grade,cls:card.cls||'',photo};
+    }catch(e){
+      console.error('Could not load learner photo details for claim card:',serial,e);
+      return null;
+    }
+  })();
+  claimLearnerCache.set(serial,pending);
+  return pending;
+}
+
+function hydrateClaimAvatars(root){
+  root.querySelectorAll('[data-claim-avatar]').forEach(async el=>{
+    const serial=el.dataset.claimAvatar;
+    const learner=await claimLearner(serial);
+    if(!el.isConnected) return;
+    if(learner&&learner.photo){
+      el.innerHTML=`<img src="${esc(learner.photo)}" alt="${esc(learner.name||'Learner')}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+    }else if(learner&&learner.name){
+      el.textContent=initials(learner.name);
+      el.title=[learner.name,learner.grade,learner.cls].filter(Boolean).join(' · ');
+    }else{
+      el.textContent='🎓';
+      el.title='Learner photo unavailable';
+    }
+    const meta=[...root.querySelectorAll('[data-claim-learner-meta]')].find(node=>node.dataset.claimLearnerMeta===serial);
+    if(meta) meta.textContent=learner
+      ? ([learner.name,learner.grade,learner.cls].filter(Boolean).join(' · ')||'Learner photo unavailable')
+      : 'Learner record unavailable';
+  });
+}
+
+function playClaimNotificationSound(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    [0, .18, .36].forEach((offset, i)=>{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = i === 1 ? 880 : 660;
+      gain.gain.setValueAtTime(.0001, now + offset);
+      gain.gain.exponentialRampToValueAtTime(.12, now + offset + .02);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + offset + .14);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now + offset); osc.stop(now + offset + .16);
+    });
+  }catch(e){ console.debug('Claim sound unavailable:', e); }
+}
+
+function startClaimAssignmentListener(){
+  if(claimListenerStarted || !myUid()) return;
+  claimListenerStarted = true;
+  claimListenerFirstSnapshot = true;
+  const notifiedClaimIds = new Set();
+  onSnapshot(collection(fs, 'users'), snap=>{
+    snap.forEach(d=>{
+      const u=d.data()||{};
+      const raw=String(u.phone || u.phoneNumber || u.mobile || u.whatsapp || u.tel || '').replace(/\D/g,'');
+      let digits=raw;
+      if(digits.startsWith('0')) digits='254'+digits.slice(1);
+      else if(/^[17]\d{8}$/.test(digits)) digits='254'+digits;
+      claimTeacherPhones[d.id]=/^\d{10,15}$/.test(digits)?digits:'';
+    });
+    if(isAdmin() && currentView==='claims') navTo('claims');
+  }, err=>console.error('Teacher phone listener failed:', err));
+  const reportsQuery = isAdmin()
+    ? query(collection(fs, 'cardReports'), orderBy('at', 'desc'), fsLimit(300))
+    : query(collection(fs, 'cardReports'), where('assignment.uid', '==', myUid()));
+  onSnapshot(reportsQuery, snap=>{
+    const uid = myUid();
+    claimAssignments = [];
+    snap.forEach(d=>{
+      const r = { id:d.id, ...d.data() };
+      if(isAdmin() || (r.assignment && r.assignment.uid === uid)) claimAssignments.push(r);
+    });
+    claimAssignments.sort((a,b)=>{
+      const ad = a.assignment?.dueDate || '9999-12-31';
+      const bd = b.assignment?.dueDate || '9999-12-31';
+      return ad.localeCompare(bd);
+    });
+    const badge = document.getElementById('badge-claims');
+    if(badge){
+      const count = isAdmin()
+        ? claimAssignments.filter(r=>!['resolved','dismissed'].includes(r.status || 'received')).length
+        : claimAssignments.length;
+      badge.textContent = String(count);
+      badge.style.display = count ? '' : 'none';
+    }
+    const dot = document.getElementById('ann-dot');
+    if(dot && claimAssignments.length) dot.style.display = '';
+    const newAssignments = snap.docChanges().filter(c=>c.type === 'added' && !notifiedClaimIds.has(c.doc.id) &&
+      (!isAdmin() || (c.doc.data().assignment && c.doc.data().assignment.uid === uid)));
+    snap.docs.forEach(d=>notifiedClaimIds.add(d.id));
+    if(!claimListenerFirstSnapshot && newAssignments.length){
+      playClaimNotificationSound();
+      toast('A report-card claim needs your mark-sheet check.', 'info');
+      if('Notification' in window && Notification.permission === 'granted'){
+        try{
+          new Notification('Report-card claim assigned', {
+            body:'Open Report Card Claims to check the mark sheet.',
+            icon:'./icons/icon-192.png',
+            tag:'report-card-claim'
+          });
+        }catch(e){}
+      }
+      renderNotifPop().catch(()=>{});
+    }
+    claimListenerFirstSnapshot = false;
+    if(currentView === 'claims') navTo('claims');
+  }, err=>console.error('Claim assignment listener failed:', err));
 }
 
 /* ══════════════════════════════════════════
@@ -4945,6 +5079,237 @@ VR3['announcements'] = async function(area){
   return function cleanup(){ unsub && unsub(); pannUnsub && pannUnsub(); };
 };
 const VR4 = window._VIEW_RENDERERS = window._VIEW_RENDERERS || {};
+
+async function renderAdminClaimInbox(area){
+  const catNames = {
+    marks:'Marks don’t match', photo:'Photo doesn’t match', fake:'Card looks fake',
+    notfound:'Code not found', details:'Wrong name or details', lost:'Lost or stolen card', other:'Something else'
+  };
+  const statusNames = { received:'New', reviewing:'Reviewing', resolved:'Resolved', dismissed:'Closed' };
+  const fmtClaimDate = value=>{
+    if(!value) return '—';
+    const d=value && typeof value.toDate==='function' ? value.toDate() : new Date(value);
+    return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'});
+  };
+  let staff=[];
+  try{
+    const snap=await getDocs(collection(fs,'users'));
+    staff=snap.docs.map(d=>({uid:d.id,...d.data()}))
+      .filter(t=>!t.disabled && t.Advancedadmin!==true && t.role==='Teacher')
+      .sort((a,b)=>(a.name||a.displayName||'').localeCompare(b.name||b.displayName||''));
+  }catch(e){
+    console.error('Could not load teachers for claim assignment:',e);
+    area.innerHTML=`<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-title">Could not load teachers</div><div class="es-sub">${esc(e.message||e)}</div></div>`;
+    return;
+  }
+  const active = claimAssignments.filter(r=>!['resolved','dismissed'].includes(r.status||'received')).length;
+  const displayed = ()=>{
+    const term=claimSearch.trim().toLowerCase();
+    return claimAssignments.filter(r=>{
+      const st=r.status||'received';
+      if(claimFilter==='unassigned' && r.assignment) return false;
+      if(claimFilter==='waiting' && (!r.assignment || ['resolved','dismissed'].includes(st))) return false;
+      if(claimFilter==='reviewing' && st!=='reviewing') return false;
+      if(claimFilter==='closed' && !['resolved','dismissed'].includes(st)) return false;
+      if(term && ![r.id,r.name,r.contact,r.serial,r.message,catNames[r.category],r.assignment?.name].join(' ').toLowerCase().includes(term)) return false;
+      return true;
+    });
+  };
+  const render=()=>{
+    const shown=displayed();
+    if(!shown.some(r=>r.id===claimSelectedId)) claimSelectedId=shown.length?shown[0].id:null;
+    const selected=claimAssignments.find(r=>r.id===claimSelectedId);
+    area.innerHTML=`
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Report-card claims inbox</div>
+          <span class="badge ${active?'badge-orange':'badge-green'}">${active} open · ${claimAssignments.length} total</span>
+        </div>
+        <div class="f-group"><label class="f-label" for="claim-admin-search">Search claims</label>
+          <input class="f-input" id="claim-admin-search" type="search" value="${esc(claimSearch)}" placeholder="Reference, learner, phone, card code, problem"></div>
+        <div class="f-row" id="claim-admin-filters">
+          ${[['all','All'],['unassigned','Unassigned'],['waiting','Waiting on teacher'],['reviewing','Reviewing'],['closed','Closed']].map(([key,label])=>`<button type="button" class="chip ${claimFilter===key?'active':''}" data-filter="${key}">${label}</button>`).join('')}
+        </div>
+      </div>
+      <div class="grid-2" style="align-items:start;">
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Claims (${shown.length})</div></div>
+          ${shown.length?shown.map(r=>{
+            const st=r.status||'received';
+            const overdue=r.assignment?.dueDate && !['resolved','dismissed'].includes(st) &&
+              Date.now()>new Date(r.assignment.dueDate+'T23:59:59+03:00').getTime();
+            return `<button type="button" class="claim-admin-item" data-id="${esc(r.id)}" style="display:flex;width:100%;text-align:left;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;background:${r.id===claimSelectedId?'var(--surface2)':'transparent'};color:var(--text);margin-bottom:8px;cursor:pointer;">
+              <span style="display:flex;align-items:center;gap:10px;min-width:0;"><span data-claim-avatar="${esc(r.serial||'')}" style="display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:50%;background:var(--surface2);overflow:hidden;">🎓</span><span style="min-width:0;"><strong>${esc(catNames[r.category]||'Report-card problem')}</strong>
+                <small style="display:block;color:var(--text3);margin-top:3px;">${esc(r.name||'Anonymous')} · ${esc(r.serial||'No card code')}</small>
+                <small style="display:block;color:var(--text3);">${esc(r.assignment?.name ? 'Assigned: '+r.assignment.name : 'Unassigned')} · ${esc(fmtClaimDate(r.at))}</small></span>
+              </span><span class="badge ${overdue?'badge-red':st==='resolved'?'badge-green':st==='dismissed'?'badge-gray':'badge-orange'}">${overdue?'Overdue':esc(statusNames[st]||st)}</span>
+            </button>`;
+          }).join(''):'<div class="empty-state"><div class="es-sub">No claims match this filter.</div></div>'}
+        </div>
+        <div class="card">
+          ${selected?`
+            <div class="card-hdr"><div class="card-title">${esc(catNames[selected.category]||'Report-card problem')}</div><span class="badge badge-blue">${esc(statusNames[selected.status||'received']||'New')}</span></div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">${esc(selected.id)} · Received ${esc(fmtClaimDate(selected.at))}</div>
+            ${selected.serial?`<div style="display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px;border:1px solid var(--border);border-radius:12px;"><span data-claim-avatar="${esc(selected.serial)}" style="display:grid;place-items:center;flex:0 0 64px;width:64px;height:64px;border-radius:50%;background:var(--surface2);overflow:hidden;">🎓</span><span><strong>Learner</strong><small data-claim-learner-meta="${esc(selected.serial)}" style="display:block;color:var(--text3);margin-top:4px;">Loading learner details…</small></span></div>`:''}
+            <div style="white-space:pre-wrap;line-height:1.55;margin-bottom:12px;">${esc(selected.message||'No message provided.')}</div>
+            <div class="grid-2" style="gap:8px;margin-bottom:14px;">
+              <div><small class="f-label">Reporter</small><div>${esc(selected.name||'Anonymous')}</div></div>
+              <div><small class="f-label">Contact</small><div>${esc(selected.contact||'—')}</div></div>
+              <div><small class="f-label">Card code</small><div>${esc(selected.serial||'—')}</div></div>
+              <div><small class="f-label">Receipt</small><div>${esc(selected.receipt||'—')}</div></div>
+            </div>
+            ${selected.serial?`<a class="btn btn-blue btn-sm" href="./verify.html?c=${encodeURIComponent(selected.serial)}" target="_blank" rel="noopener">🔎 Open verification record</a>`:''}
+            <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
+            <div class="card-title" style="margin-bottom:10px;">Assign mark-sheet check</div>
+            <div class="f-group"><label class="f-label" for="claim-admin-teacher">Class teacher / mark-sheet holder</label>
+              <select class="f-select" id="claim-admin-teacher"><option value="">Choose a teacher…</option>
+                ${staff.map(t=>{const nm=t.name||t.displayName||[t.firstName,t.lastName].filter(Boolean).join(' ')||t.email||'Teacher';let ph=claimTeacherPhones[t.uid]||String(t.phone||t.phoneNumber||t.mobile||t.whatsapp||'').replace(/\D/g,'');if(ph.startsWith('0'))ph='254'+ph.slice(1);else if(/^[17]\d{8}$/.test(ph))ph='254'+ph;return `<option value="${esc(t.uid)}" ${selected.assignment?.uid===t.uid?'selected':''}>${esc(nm)}${ph?' · +'+esc(ph):''}</option>`;}).join('')}
+              </select>
+            </div>
+            <div class="f-row">
+              <div class="f-group"><label class="f-label" for="claim-admin-due">Due date</label><input class="f-input" id="claim-admin-due" type="date" value="${esc(selected.assignment?.dueDate||'')}"></div>
+              <div class="f-group"><label class="f-label" for="claim-admin-checker">Mark sheet holder (optional)</label><input class="f-input" id="claim-admin-checker" maxlength="60" value="${esc(selected.assignment?.checkedBy||'')}"></div>
+            </div>
+            <div class="f-row">
+              <button type="button" class="btn btn-blue btn-sm" id="claim-admin-assign">📨 Assign / update</button>
+              ${selected.assignment?`<a class="btn btn-green btn-sm" href="${(()=>{const p=claimTeacherPhones[selected.assignment.uid]||String(selected.assignment.phone||'').replace(/\D/g,'');const normalized=p.startsWith('0')?'254'+p.slice(1):p;const msg=`Hello ${selected.assignment.name||'Teacher'}, please check the mark sheet for report-card claim ${selected.id}. Learner: ${selected.name||'parent report'}. Card code: ${selected.serial||'not given'}. Problem: ${catNames[selected.category]||'Report-card problem'}. Due: ${selected.assignment.dueDate||'as soon as possible'}.`;return 'https://wa.me/'+normalized+'?text='+encodeURIComponent(msg);})()}" target="_blank" rel="noopener">💬 WhatsApp teacher</a>`:''}
+              ${selected.contact&&/^\+?[\d ()-]{9,}$/.test(selected.contact)?`<a class="btn btn-outline btn-sm" href="${(()=>{let p=selected.contact.replace(/\D/g,'');if(p.startsWith('0'))p='254'+p.slice(1);const msg=`Hello ${selected.name||'there'}, this is Kanyadet School following up on your report ${selected.id}.`;return 'https://wa.me/'+p+'?text='+encodeURIComponent(msg);})()}" target="_blank" rel="noopener">💬 WhatsApp reporter</a>`:''}
+            </div>
+            ${selected.assignment?`<p style="font-size:11px;color:var(--text3);margin-top:8px;">Assigned to ${esc(selected.assignment.name||'Teacher')} · Due ${esc(selected.assignment.dueDate||'—')} · Mark-sheet status: ${esc(selected.assignment.status||'waiting')}${selected.assignment.teacherFinding?' · Finding: '+esc(selected.assignment.teacherFinding):''}</p>`:''}
+            <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
+            <div class="f-group"><label class="f-label" for="claim-admin-reply">Reply / update shown to reporter</label>
+              <textarea class="f-textarea" id="claim-admin-reply" maxlength="500">${esc(selected.note||'')}</textarea>
+            </div>
+            <div class="f-row" id="claim-admin-status-actions">
+              <button type="button" class="btn btn-outline btn-sm" data-status="reviewing">🔎 Reviewing</button>
+              <button type="button" class="btn btn-green btn-sm" data-status="resolved">✅ Resolve</button>
+              <button type="button" class="btn btn-outline btn-sm" data-status="dismissed">Close</button>
+            </div>
+          `:'<div class="empty-state"><div class="es-icon">📥</div><div class="es-sub">Select a claim to manage it.</div></div>'}
+        </div>
+      </div>`;
+    hydrateClaimAvatars(area);
+    area.querySelector('#claim-admin-search')?.addEventListener('change',e=>{claimSearch=e.target.value;render();});
+    area.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{claimFilter=btn.dataset.filter;render();}));
+    area.querySelectorAll('.claim-admin-item').forEach(btn=>btn.addEventListener('click',()=>{claimSelectedId=btn.dataset.id;render();}));
+    const assignBtn=area.querySelector('#claim-admin-assign');
+    assignBtn?.addEventListener('click',async()=>{
+      const report=claimAssignments.find(r=>r.id===claimSelectedId);
+      const uid=area.querySelector('#claim-admin-teacher').value;
+      const teacher=staff.find(t=>t.uid===uid);
+      const dueDate=area.querySelector('#claim-admin-due').value;
+      const checkedBy=area.querySelector('#claim-admin-checker').value.trim().slice(0,60);
+      if(!report||!teacher){toast('Choose a teacher before assigning.','warning');return;}
+      if(!dueDate){toast('Set a due date before assigning.','warning');return;}
+      const name=teacher.name||teacher.displayName||[teacher.firstName,teacher.lastName].filter(Boolean).join(' ')||teacher.email||'Teacher';
+      const email=teacher.email||'';
+      const phone=teacher.phone||teacher.phoneNumber||teacher.mobile||teacher.whatsapp||'';
+      const assignment={uid,name,email,phone,dueDate,checkedBy,assignedAt:new Date(),assignedBy:String(me().name||window._currentUser?.email||'Advanced Admin').slice(0,100)};
+      assignBtn.disabled=true;assignBtn.textContent='Saving…';
+      try{
+        await updateDoc(doc(fs,'cardReports',report.id),{assignment});
+        await setDoc(doc(fs,'reportStatus',report.id),{assignment},{merge:true});
+        await setDoc(doc(fs,'notifications','claim-'+report.id+'-'+uid),{
+          type:'report_card_claim',recipientId:uid,recipientEmail:email,
+          title:'Report-card claim assigned',
+          body:(catNames[report.category]||'Report-card problem')+' · Due '+dueDate,
+          reportId:report.id,cardCode:report.serial||'',dueDate,read:false,
+          createdAt:fsServerTimestamp(),createdBy:assignment.assignedBy
+        });
+        report.assignment=assignment;
+        toast('Claim assigned to '+name+'.','success');render();
+      }catch(e){console.error('Could not assign report-card claim:',e);toast('Could not assign claim: '+(e.message||e.code),'error');assignBtn.disabled=false;assignBtn.textContent='📨 Assign / update';}
+    });
+    area.querySelectorAll('#claim-admin-status-actions [data-status]').forEach(btn=>btn.addEventListener('click',async()=>{
+      const report=claimAssignments.find(r=>r.id===claimSelectedId);
+      if(!report)return;
+      const status=btn.dataset.status;
+      const note=area.querySelector('#claim-admin-reply').value.trim().slice(0,500);
+      btn.disabled=true;
+      try{
+        const actorName=me().name||window._currentUser?.email||'Advanced Admin';
+        await updateDoc(doc(fs,'cardReports',report.id),{status,note,handledBy:actorName,handledAt:fsServerTimestamp()});
+        await updateDoc(doc(fs,'reportStatus',report.id),{status,note,updatedAt:fsServerTimestamp()});
+        report.status=status;report.note=note;
+        toast('Claim status updated.','success');render();
+      }catch(e){console.error('Could not update claim status:',e);toast('Could not update claim: '+(e.message||e.code),'error');btn.disabled=false;}
+    }));
+  };
+  render();
+}
+
+VR4['claims'] = async function(area){
+  if(isAdmin()) return renderAdminClaimInbox(area);
+  const statusLabel = s => s === 'checking' ? 'Checking mark sheet' : s === 'checked' ? 'Checked' : 'Waiting';
+  const render = ()=>{
+    const open = claimAssignments.filter(r=>!['resolved','dismissed'].includes(r.status || 'received'));
+    const overdue = r=>{
+      if(!r.assignment?.dueDate) return false;
+      const d = new Date(r.assignment.dueDate+'T23:59:59+03:00');
+      return !isNaN(d) && Date.now()>d.getTime();
+    };
+    area.innerHTML = `
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Assigned report-card claims</div>
+          <span class="badge ${open.length?'badge-orange':'badge-green'}">${open.length} open</span>
+        </div>
+        ${open.length ? open.map(r=>{
+          const a = r.assignment || {};
+          const problem = r.category ? String(r.category).replace(/_/g,' ') : 'Report-card problem';
+          const due = a.dueDate || 'No due date';
+          const liveTeacherPhone = claimTeacherPhones[a.uid || myUid()] || claimTeacherPhones[myUid()] || '';
+          const teacherPhoneText = liveTeacherPhone ? '+' + liveTeacherPhone : (a.phone ? esc(a.phone) : 'No phone on file');
+          const digits = String(r.contact||'').replace(/\D/g,'');
+          let phone = digits; if(phone.startsWith('0')) phone='254'+phone.slice(1);
+          const waText = `Hello ${r.name||'parent'}, this is Kanyadet School about report ${String(r.id).slice(0,8)}. We are checking the report-card marks and will update you.`;
+          return `<div class="card" style="margin:10px 0;">
+            <div class="card-hdr">
+              <div style="display:flex;align-items:center;gap:10px;"><span data-claim-avatar="${esc(r.serial||'')}" style="display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:50%;background:var(--surface2);overflow:hidden;">🎓</span><span><strong>${esc(problem)}</strong><div style="font-size:11px;color:var(--text3);margin-top:3px;">Ref ${esc(String(r.id).slice(0,8))} · Due ${esc(due)}</div></span></div>
+              <span class="badge ${overdue(r)?'badge-red':(a.status==='checked'?'badge-green':'badge-orange')}">${overdue(r)?'Overdue':statusLabel(a.status)}</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--text3);margin:-2px 0 10px;">Assigned teacher: ${esc(a.name||me().name||'Teacher')} · Phone: ${teacherPhoneText}</div>
+            ${r.serial ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;margin-bottom:8px;"><strong>Card code:</strong> ${esc(r.serial)} <a class="btn btn-blue btn-sm" href="./verify.html?c=${encodeURIComponent(r.serial)}" target="_blank" rel="noopener">🔎 Open verification</a></div>`:''}
+            ${r.message ? `<div style="font-size:12.5px;color:var(--text2);white-space:pre-wrap;margin-bottom:10px;">${esc(r.message)}</div>`:''}
+            ${r.name ? `<div style="font-size:12px;margin-bottom:10px;"><strong>Reporter:</strong> ${esc(r.name)} ${r.contact?'· '+esc(r.contact):''}</div>`:''}
+            <div class="f-group"><label class="f-label">Mark sheet checked by</label><input class="f-input claim-checker" data-id="${esc(r.id)}" value="${esc(a.checkedBy||me().name||'')}" maxlength="60"></div>
+            <div class="f-group"><label class="f-label">Teacher finding / result</label><textarea class="f-textarea claim-finding" data-id="${esc(r.id)}" maxlength="500">${esc(a.teacherFinding||'')}</textarea></div>
+            <div class="f-row">
+              <button class="btn btn-outline btn-sm claim-action" data-id="${esc(r.id)}" data-action="checking">🔎 Start checking</button>
+              <button class="btn btn-blue btn-sm claim-action" data-id="${esc(r.id)}" data-action="checked">✅ Marks checked</button>
+              ${phone ? `<button class="btn btn-green btn-sm claim-wa" data-id="${esc(r.id)}" data-phone="${esc(phone)}" data-text="${esc(waText)}">💬 WhatsApp parent</button>`:''}
+            </div>
+          </div>`;
+        }).join('') : `<div class="empty-state"><div class="es-icon">✅</div><div class="es-title">No assigned claims</div><div class="es-sub">Report-card claims assigned to you will appear here.</div></div>`}
+      </div>`;
+    hydrateClaimAvatars(area);
+
+    area.querySelectorAll('.claim-action').forEach(btn=>btn.addEventListener('click', async()=>{
+      const id=btn.dataset.id;
+      const card=claimAssignments.find(x=>x.id===id);
+      const checker=area.querySelector(`.claim-checker[data-id="${CSS.escape(id)}"]`)?.value.trim().slice(0,60)||me().name||'';
+      const finding=area.querySelector(`.claim-finding[data-id="${CSS.escape(id)}"]`)?.value.trim().slice(0,500)||'';
+      if(!card) return;
+      const action=btn.dataset.action;
+      btn.disabled=true; btn.textContent='Saving…';
+      try{
+        await updateDoc(doc(fs,'cardReports',id),{
+          assignment:{...card.assignment,status:action,checkedBy:checker,teacherFinding:finding,updatedAt:fsServerTimestamp()},
+          status: action==='checked' ? 'reviewing' : (card.status||'received')
+        });
+        await updateDoc(doc(fs,'reportStatus',id),{
+          status:action==='checked'?'reviewing':(card.status||'received'),
+          note:finding,
+          updatedAt:fsServerTimestamp()
+        });
+        toast(action==='checked'?'Mark-sheet check saved. The admin can resolve the claim.':'Claim marked as checking.', 'success');
+        render();
+      }catch(e){ toast('Could not save: '+(e.message||e.code), 'error'); btn.disabled=false; }
+    }));
+    area.querySelectorAll('.claim-wa').forEach(btn=>btn.addEventListener('click',()=>{
+      window.open('https://wa.me/'+btn.dataset.phone+'?text='+encodeURIComponent(btn.dataset.text),'_blank','noopener');
+    }));
+  };
+  render();
+};
 const RESOURCES_PATH4 = RESOURCES_PATH, LEAVE_PATH4 = LEAVE_PATH, WELFARE_PATH4 = WELFARE_PATH;
 
 function esc4(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -6170,6 +6535,10 @@ async function renderNotifPop(){
         .forEach(f=>items.push({ icon:'✉️', title: `${f.userName||'A parent'} messaged you`, meta:`Parent Message · ${timeAgo(f.timestamp)}`, view:'parentmsg' }));
     }
   }catch(e){}
+  claimAssignments.slice(0,5).forEach(r=>{
+    const due = r.assignment?.dueDate ? ` · Due ${r.assignment.dueDate}` : '';
+    items.push({ icon:'📋', title:`Report-card claim: ${r.category||'Problem'}`, meta:`Mark sheet check${due}`, view:'claims' });
+  });
   upcomingCalEvents(7).slice(0,4).forEach(ev=>{
     const meta = CAL_TYPE_META[ev.type] || CAL_TYPE_META.event;
     items.push({ icon: meta.icon, title:`${ev.title} — ${ev.date}`, meta:`Calendar · ${meta.label}`, view:'calendar' });
