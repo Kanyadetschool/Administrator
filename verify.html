@@ -470,6 +470,14 @@ html[data-theme=dark] .hbar{background:#1d2d3c}
 .qrrow{display:grid;gap:6px;margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid #e6ecf0}
 .qrrow .b{justify-self:start}
 html[data-theme=dark] .qrrow{border-color:#24384a}
+
+/* ═════ learner photos in the inbox ═════ */
+.av{--s:40px;position:relative;display:inline-grid;place-items:center;flex:none;width:var(--s);height:var(--s);border-radius:50%;background:var(--navy);color:#fff;font:700 calc(var(--s) * .34) 'Poppins';border:2px solid #fff;box-shadow:0 2px 8px -2px rgba(20,64,95,.45)}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.av.none{background:#eef2f5;color:inherit;font-size:calc(var(--s) * .5);box-shadow:none;border-color:#dde6ee}
+.av .cb{position:absolute;right:-5px;bottom:-4px;display:grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);font:normal calc(var(--s) * .28)/1 sans-serif;font-style:normal}
+.cbox{grid-template-columns:62px 1fr auto}
+html[data-theme=dark] .av{border-color:#12202e}html[data-theme=dark] .av.none{background:#1d2d3c;border-color:#34495c}html[data-theme=dark] .av .cb{background:#1d2d3c}
 </style>
 </head>
 <body>
@@ -1787,6 +1795,41 @@ async function loadSettings() { try { const s = await getDoc(doc(db, 'publicConf
 async function loadAll() { await Promise.all([loadReports().catch(() => {}), loadLogs().catch(() => {}), loadSettings()]); }
 async function cardOf(serial) { if (!serial) return null; if (serial in cardCache) return cardCache[serial]; try { const s = await getDoc(doc(db, 'cardVerifications', serial)); cardCache[serial] = s.exists() ? s.data() : false; } catch (e) { cardCache[serial] = null; } return cardCache[serial]; }
 
+/* ── learner photos: the same student_images folders the Verify tab reads ── */
+const photoDone = {}, photoP = {};
+const initialsOf = n => (n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+function findPhoto(c) {
+  const g = c.photoGrade || '', n = c.photoName || c.name || '', eg = encodeURIComponent(g), en = encodeURIComponent(n);
+  const list = [`./Report-Cards/student_images/${g}/${n}.jpg`, `./Report-Cards/student_images/${eg}/${en}.jpg`, `./Report-Cards/student_images/${g}/${en}.jpg`, `./student_images/${g}/${n}.jpg`, `./student_images/${g}/${en}.jpg`];
+  return new Promise(res => { (function next(i) { if (i >= list.length) return res(null); const im = new Image(); im.onload = () => res(list[i]); im.onerror = () => next(i + 1); im.src = list[i]; })(0); });
+}
+function photoOf(serial) {
+  if (!serial) return Promise.resolve(null);
+  if (!photoP[serial]) photoP[serial] = cardOf(serial).then(c => c ? findPhoto(c) : null).then(u => (photoDone[serial] = u || null));
+  return photoP[serial];
+}
+function avatar(card, url, size, badge) {
+  const a = E('span', 'av'); a.style.setProperty('--s', size + 'px');
+  if (url) { const im = E('img'); im.src = url; im.alt = card && card.name ? 'Photo of ' + card.name : 'Learner photo'; im.onerror = () => { im.remove(); a.prepend(document.createTextNode(initialsOf(card && card.name))); }; a.append(im); }
+  else if (card && card.name) a.textContent = initialsOf(card.name);
+  else { a.classList.add('none'); a.textContent = badge || '❔'; }
+  if (badge && (url || (card && card.name))) a.append(E('i', 'cb', badge));
+  return a;
+}
+function reportAvatar(r, size) { const card = r.serial ? cardCache[r.serial] : null; return avatar(card && card.name ? card : null, r.serial ? photoDone[r.serial] : null, size, (CATS[r.category] || CATS.other)[0]); }
+
+/* ── details used internationally ── */
+const PRIORITY = { fake: ['P1', 'Critical'], notfound: ['P2', 'High'], marks: ['P2', 'High'], photo: ['P2', 'High'], details: ['P3', 'Medium'], lost: ['P3', 'Medium'], other: ['P4', 'Low'] };
+const isoNairobi = x => { const d = toDate(x); if (!d || isNaN(d)) return '—'; const p = {}; new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Nairobi', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(d).forEach(q => { p[q.type] = q.value; }); return p.year + '-' + p.month + '-' + p.day + 'T' + p.hour + ':' + p.minute + ':' + p.second + '+03:00'; };   // Kenya has no daylight saving: always UTC+03:00
+const isoUtc = x => { const d = toDate(x); return d && !isNaN(d) ? d.toISOString().replace(/\.\d{3}Z$/, 'Z') : '—'; };
+const e164 = v => { if (!v || /@/.test(v)) return ''; let d = String(v).replace(/[^\d+]/g, '').replace(/^\+/, ''); if (d.startsWith('00')) d = d.slice(2); if (/^0[17]\d{8}$/.test(d)) d = '254' + d.slice(1); else if (/^[17]\d{8}$/.test(d)) d = '254' + d; return /^\d{10,15}$/.test(d) ? '+' + d : ''; };
+const isced = g => { const m = String(g || '').match(/(\d+)/), n = m ? +m[1] : null; if (/^\s*PP/i.test(g || '')) return 'ISCED 02 · Pre-primary education'; if (n == null) return '—'; return n <= 6 ? 'ISCED 1 · Primary education' : n <= 9 ? 'ISCED 2 · Lower secondary education' : 'ISCED 3 · Upper secondary education'; };
+function intlRows(r, card) {
+  const [pc, pl] = PRIORITY[r.category] || PRIORITY.other, ph = e164(r.contact);
+  return [['Case ID', prettyRef(r.id)], ['Received (ISO 8601, EAT)', isoNairobi(r.at)], ['Received (UTC)', isoUtc(r.at)], ['Time zone', 'Africa/Nairobi · UTC+03:00'], ['Language (ISO 639-1)', r.lang === 'sw' ? 'sw · Swahili' : 'en · English'], ['Phone (E.164)', ph || (r.contact ? 'Not a phone number' : '—')], ['Country (ISO 3166-1)', 'KE · KEN · Kenya'], ['Learner level (ISCED 2011)', card ? isced(card.grade) : '—'], ['Learner ID (ULI, last digits)', card && card.uliTail ? '•••• ' + card.uliTail : '—'], ['Priority', pc + ' · ' + pl], ['Data classification', 'Confidential · personal data of a child']];
+}
+function intlBlock(r, card) { const d = E('details', 'acc'); d.append(E('summary', '', '🌍 International standard details')); const dl = E('dl', 'kv'); intlRows(r, card).forEach(([a, b]) => dl.append(E('dt', '', a), E('dd', '', b))); d.append(dl); return d; }
+
 /* ── live refresh: new-report toast + tab-title badge ── */
 const nNewOf = () => reports.filter(r => statusOf(r) === 'received').length;
 function updateTitle() { if (!$('pane-inbox').hidden) { const n = nNewOf(); document.title = (n ? '(' + n + ') ' : '') + 'Reports inbox · Kanyadet Primary & Junior School'; } }
@@ -1812,6 +1855,8 @@ function pdfCase(r, withNote, btn) {
     const card = r.serial ? await cardOf(r.serial) : null, stt = statusOf(r), lab = (CATS[r.category] || CATS.other)[1], others = r.serial ? reports.filter(x => x.serial === r.serial && x.id !== r.id).length : 0;
     const S = await PDFX.begin({ kind: 'Case File', no: prettyRef(r.id), noLabel: 'Reference', title: 'Case file ' + prettyRef(r.id), sub: 'Report received ' + fmt(r.at, true) + ' EAT', confidential: true });
     S.banner(TONE_OF[stt] || 'info', STATUS[stt] + (overdue(r) ? '  ·  overdue' : ''), lab + (r.name ? '  ·  reported by ' + r.name : '  ·  anonymous report'));
+    const purl = r.serial ? await photoOf(r.serial) : null, pph = purl ? await PDFX.image(purl, 'jpeg') : null;
+    if (card) { S.section('Learner concerned'); S.profile({ name: card.name, initials: initialsOf(card.name), photo: pph, tone: card.status === 'revoked' ? 'bad' : 'ok', tags: [[card.grade, card.cls].filter(Boolean).join(' · '), [card.term, card.year].filter(Boolean).join(' · '), isced(card.grade).split(' · ')[0]], code: pretty(r.serial), codeLabel: 'Card code', meta: card.uliTail ? 'ULI **** ' + card.uliTail : '' }); }
     S.section('Report');
     S.kv([['Problem', lab], ['Received', fmt(r.at, true)], ['Sent from', r.via === 'whatsapp' ? 'WhatsApp' : 'The report page'], ['Language', r.lang === 'sw' ? 'Kiswahili' : 'English'], ['Reporter', r.name || 'Anonymous'], ['Contact', r.contact || '-'], ['Card code', r.serial ? pretty(r.serial) : 'Not given'], ['Check receipt', r.receipt || '-'], ['Handled by', r.handledBy || '-'], ['Handled on', r.handledAt ? fmt(r.handledAt, true) : '-']], 2);
     S.note('Message from the reporter', r.message || '-', 'info');
@@ -1820,21 +1865,23 @@ function pdfCase(r, withNote, btn) {
     S.section('Response');
     S.note('Reply shown to the reporter', r.note || 'No reply yet.', r.note ? 'ok' : 'gray');
     if (withNote && r.internalNote) S.note('Private note (never shown to the reporter)', r.internalNote, 'warn');
+    S.section('International standard details'); S.kv(intlRows(r, card), 2);
     S.verifyBox({ title: r.serial ? 'Open this card in the register' : 'Open the reporter’s tracking page', lines: [r.serial ? 'Scan to see the card exactly as the public sees it.' : 'Scan to see what the reporter sees.'], url: r.serial ? baseUrl() + '?c=' + r.serial + (card && card.contentHash ? '&h=' + String(card.contentHash).slice(0, 8).toLowerCase() : '') : baseUrl() + '?v=report&ref=' + r.id, caption: 'SCAN TO OPEN' });
-    S.fine('Internal document for school administration. It contains the reporter’s contact details' + (withNote && r.internalNote ? ' and a private note' : '') + '. Do not share it outside the school.');
+    S.fine('Internal document for school administration. It contains personal data of a child and the reporter’s contact details' + (withNote && r.internalNote ? ', and a private note' : '') + '. Handle it under the school’s data protection policy (Kenya Data Protection Act, 2019) and do not share it outside the school.');
     S.finish('case-file-' + r.id + '.pdf');
   });
 }
 function pdfCardRecord(serial, card, btn) {
   return pdfBusy(btn, async () => {
     const wd = card.status === 'revoked', hits = logs.filter(l => l.serial === serial), cnt = x => hits.filter(l => l.result === x).length, rel = reports.filter(r => r.serial === serial);
+    const curl = await photoOf(serial), cph = curl ? await PDFX.image(curl, 'jpeg') : null;
     const S = await PDFX.begin({ kind: 'Card Record', no: pretty(serial), noLabel: 'Card code', title: 'Card record ' + pretty(serial), sub: 'Register entry as at ' + PDFX.nowStamp(), confidential: true });
     S.banner(wd ? 'bad' : 'ok', wd ? 'Card withdrawn' : 'Valid card, registered and not withdrawn', wd ? (card.statusReason ? 'Reason: ' + card.statusReason : 'Anyone who checks this card sees “Card withdrawn”.') : 'Anyone who checks this card sees it as genuine.');
     const pm = String(card.position || '').trim().match(/^(\d+)\s*(?:\/|of|out of)?\s*(\d+)?/i), ord = n => { const q = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (q[(v - 20) % 10] || q[v] || q[0]); };
-    S.profile({ name: card.name, initials: (card.name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase(), tone: wd ? 'bad' : 'ok', tags: [[card.grade, card.cls].filter(Boolean).join(' · '), [card.term, card.year].filter(Boolean).join(' · ')], code: pretty(serial), codeLabel: 'Card code', meta: 'Registered ' + fmt(card.issuedAt), medal: pm ? { main: ord(+pm[1]), sub: pm[2] ? 'of ' + pm[2] : 'in class' } : null });
+    S.profile({ name: card.name, initials: (card.name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase(), photo: cph, tone: wd ? 'bad' : 'ok', tags: [[card.grade, card.cls].filter(Boolean).join(' · '), [card.term, card.year].filter(Boolean).join(' · '), isced(card.grade).split(' · ')[0]], code: pretty(serial), codeLabel: 'Card code', meta: 'Registered ' + fmt(card.issuedAt), medal: pm ? { main: ord(+pm[1]), sub: pm[2] ? 'of ' + pm[2] : 'in class' } : null });
     const tiles = [{ label: 'Average', value: (Number(card.avg) || 0).toFixed(1) + '%', tone: 'info' }, { label: 'Level', value: card.level || '-', tone: 'ok' }]; if (card.maxPoints) tiles.push({ label: 'Points', value: (card.points || 0) + ' / ' + card.maxPoints, tone: 'warn' }); tiles.push({ label: 'Revision', value: String(card.rev || 1), tone: 'info' }); S.tiles(tiles);
     S.section('Register details');
-    S.kv([['First registered', fmt(card.issuedAt, true)], ['Last corrected', fmt(card.updatedAt, true)], ['Printed by', card.issuedBy || '-'], ['Status', wd ? 'Withdrawn' : 'Valid'], ['Status changed', card.statusChangedAt ? fmt(card.statusChangedAt, true) + (card.statusChangedBy ? ' by ' + card.statusChangedBy : '') : '-'], ['Fingerprint', (String(card.contentHash || '').slice(0, 16).toUpperCase().match(/.{1,4}/g) || ['-']).join(' · ')]], 2);
+    S.kv([['Learner level (ISCED 2011)', isced(card.grade)], ['Country (ISO 3166-1)', 'KE · KEN · Kenya'], ['First registered', fmt(card.issuedAt, true)], ['Last corrected', fmt(card.updatedAt, true)], ['Printed by', card.issuedBy || '-'], ['Status', wd ? 'Withdrawn' : 'Valid'], ['Status changed', card.statusChangedAt ? fmt(card.statusChangedAt, true) + (card.statusChangedBy ? ' by ' + card.statusChangedBy : '') : '-'], ['Fingerprint', (String(card.contentHash || '').slice(0, 16).toUpperCase().match(/.{1,4}/g) || ['-']).join(' · ')]], 2);
     S.section('Activity (latest 300 checks)');
     S.tiles([{ label: 'Genuine', value: String(cnt('ok')), tone: 'ok' }, { label: 'Superseded', value: String(cnt('superseded')), tone: 'warn' }, { label: 'Withdrawn', value: String(cnt('revoked')), tone: 'bad' }, { label: 'Reports', value: String(rel.length), tone: rel.length ? 'warn' : 'info' }]);
     if (rel.length) { S.section('Reports about this card'); S.table({ cols: [{ label: 'Reference', w: 24 }, { label: 'Problem', w: 38 }, { label: 'Received', w: 22 }, { label: 'Status', w: 16, align: 'center' }], rows: rel.slice(0, 20).map(r => { const st = statusOf(r), T2 = { received: ['#14405f', '#e3f0fa'], reviewing: ['#a85a0c', '#fdecd8'], resolved: ['#1b7a45', '#e9f8ef'], dismissed: ['#4a5a68', '#eef2f5'] }[st]; return [{ t: prettyRef(r.id), mono: true, bold: true, size: 8.4 }, { t: (CATS[r.category] || CATS.other)[1] }, { t: fmt(r.at) }, { t: STATUS[st], chip: { bg: T2[1], fg: T2[0] } }]; }) }); }
@@ -1897,16 +1944,18 @@ function shownReports() {
     if (filter !== 'all' && !(filter === 'done' ? ['resolved', 'dismissed'].includes(statusOf(r)) : statusOf(r) === filter)) return false;
     if (catF && r.category !== catF) return false;
     if (overdueOnly && !overdue(r)) return false;
-    if (s) { const hay = [r.id, prettyRef(r.id), r.name, r.contact, r.message, r.serial, pretty(r.serial), (CATS[r.category] || [])[1]].join(' ').toLowerCase(); if (!hay.includes(s)) return false; }
+    if (s) { const hay = [r.id, prettyRef(r.id), r.name, r.contact, r.message, r.serial, pretty(r.serial), (CATS[r.category] || [])[1], (cardCache[r.serial] || {}).name, (PRIORITY[r.category] || [])[0]].join(' ').toLowerCase(); if (!hay.includes(s)) return false; }
     return true;
   });
   const ts = r => +toDate(r.at) || 0;
-  const cmp = { new: (a, b) => ts(b) - ts(a), old: (a, b) => ts(a) - ts(b), status: (a, b) => (ORDER[statusOf(a)] - ORDER[statusOf(b)]) || ts(b) - ts(a) }[sortBy];
+  const cmp = { priority: (a, b) => (+(PRIORITY[a.category] || PRIORITY.other)[0].slice(1) - +(PRIORITY[b.category] || PRIORITY.other)[0].slice(1)) || ts(b) - ts(a), new: (a, b) => ts(b) - ts(a), old: (a, b) => ts(a) - ts(b), status: (a, b) => (ORDER[statusOf(a)] - ORDER[statusOf(b)]) || ts(b) - ts(a) }[sortBy];
   return l.sort(cmp);
 }
-function exportReports() {
-  const rows = [['Reference', 'Received', 'Status', 'Problem', 'Card code', 'Name', 'Contact', 'Language', 'Via', 'Message', 'Private note']];
-  shownReports().forEach(r => rows.push([prettyRef(r.id), fmt(r.at, true), STATUS[statusOf(r)], (CATS[r.category] || CATS.other)[1], r.serial ? pretty(r.serial) : '', r.name || '', r.contact || '', r.lang || '', r.via || '', r.message || '', r.internalNote || '']));
+async function exportReports() {
+  const list = shownReports(); toast('Preparing export…');
+  await Promise.all([...new Set(list.map(r => r.serial).filter(Boolean))].map(cardOf));
+  const rows = [['Case ID', 'Received (ISO 8601, EAT)', 'Received (UTC)', 'Status', 'Priority', 'Problem', 'Card code', 'Learner', 'Learner level (ISCED 2011)', 'Reporter', 'Phone (E.164)', 'Contact as given', 'Language (ISO 639-1)', 'Country (ISO 3166-1)', 'Sent from', 'Message', 'Private note']];
+  list.forEach(r => { const c = r.serial ? cardCache[r.serial] : null; rows.push([prettyRef(r.id), isoNairobi(r.at), isoUtc(r.at), STATUS[statusOf(r)], (PRIORITY[r.category] || PRIORITY.other)[0], (CATS[r.category] || CATS.other)[1], r.serial ? pretty(r.serial) : '', c ? c.name : '', c ? isced(c.grade) : '', r.name || '', e164(r.contact), r.contact || '', r.lang || '', 'KE', r.via || '', r.message || '', r.internalNote || '']); });
   download('reports-' + stamp() + '.csv', rows); toast('Exported ' + (rows.length - 1) + ' report(s).');
 }
 async function bulk(kind) {
@@ -1937,7 +1986,7 @@ function reportsView() {
   const si = E('input', 'in'); si.type = 'search'; si.placeholder = 'Search name, code, message…'; si.value = q; si.setAttribute('aria-label', 'Search reports'); si.oninput = () => { q = si.value; drawList(); };
   const two = E('div', 'two');
   const cs = E('select', 'in'); cs.setAttribute('aria-label', 'Problem type'); cs.append(new Option('All problems', '')); Object.entries(CATS).forEach(([k, [ic, l]]) => cs.append(new Option(ic + ' ' + l, k))); cs.value = catF; cs.onchange = () => { catF = cs.value; drawList(); };
-  const so = E('select', 'in'); so.setAttribute('aria-label', 'Sort'); [['new', 'Newest first'], ['old', 'Oldest first'], ['status', 'By status']].forEach(([k, l]) => so.append(new Option(l, k))); so.value = sortBy; so.onchange = () => { sortBy = so.value; drawList(); };
+  const so = E('select', 'in'); so.setAttribute('aria-label', 'Sort'); [['new', 'Newest first'], ['old', 'Oldest first'], ['priority', 'By priority'], ['status', 'By status']].forEach(([k, l]) => so.append(new Option(l, k))); so.value = sortBy; so.onchange = () => { sortBy = so.value; drawList(); };
   two.append(cs, so); tb.append(si, two); left.append(tb);
   const f = E('div', 'filters');
   [['all', 'All'], ['received', 'New'], ['reviewing', 'Reviewing'], ['done', 'Closed']].forEach(([k, l]) => { const b = E('button', 'fchip', l); b.type = 'button'; b.setAttribute('aria-pressed', String(filter === k)); b.onclick = () => { filter = k; render(); }; f.append(b); });
@@ -1960,15 +2009,19 @@ function reportsView() {
     const shown = shownReports(); listBox.replaceChildren(); drawBulk();
     listBox.append(E('p', 'count', shown.length + (shown.length === 1 ? ' report' : ' reports') + (shown.length !== reports.length ? ' of ' + reports.length : '')));
     if (!shown.length) listBox.append(E('div', 'iempty', reports.length ? 'Nothing matches these filters.' : 'No reports yet. 🎉'));
-    const list = E('div', 'list');
+    const list = E('div', 'list'), avs = {};
     shown.forEach(r => {
       const [ic, lab] = CATS[r.category] || CATS.other; const b = E('button', 'item'); b.type = 'button'; b.setAttribute('aria-current', String(!selMode && selected === r.id));
-      const mid = E('div'); mid.append(E('b', '', lab), E('small', '', (r.name || 'Anonymous') + ' · ' + (r.serial ? pretty(r.serial) : 'no code')), E('small', '', ago(r.at) + (overdue(r) ? ' · ⏰ overdue' : '')));
-      b.append(E('div', 'ic', selMode ? (sel.has(r.id) ? '☑️' : '⬜') : ic), mid, E('span', 'ist ' + statusOf(r), STATUS[statusOf(r)]));
+      const mid = E('div'); mid.append(E('b', '', lab), E('small', '', (r.name || 'Anonymous') + ' · ' + (r.serial ? pretty(r.serial) : 'no code')), E('small', '', ago(r.at) + ' · ' + (PRIORITY[r.category] || PRIORITY.other)[0] + (overdue(r) ? ' · ⏰ overdue' : '')));
+      const av = selMode ? E('div', 'ic', sel.has(r.id) ? '☑️' : '⬜') : reportAvatar(r, 40); avs[r.id] = av;
+      b.append(av, mid, E('span', 'ist ' + statusOf(r), STATUS[statusOf(r)]));
       b.onclick = () => { if (selMode) { sel.has(r.id) ? sel.delete(r.id) : sel.add(r.id); drawList(); } else { selected = r.id; render(); } };
       list.append(b);
     });
     listBox.append(list);
+    const todo = shown.filter(r => r.serial).slice(0, 60); let qi = 0;
+    const worker = async () => { while (qi < todo.length) { const r = todo[qi++]; if (!(r.serial in photoDone)) await photoOf(r.serial); const el = avs[r.id]; if (el && el.isConnected && !selMode) el.replaceWith(reportAvatar(r, 40)); } };
+    worker(); worker(); worker();
   }
   drawList();
   const right = E('div', 'detail'); const cur = selMode ? null : reports.find(r => r.id === selected);
@@ -1986,8 +2039,9 @@ function detailCard(r) {
   const slot = E('div'); c.append(slot);
   const prow = E('div', 'row2'); prow.style.marginTop = '10px'; const bpdf = E('button', 'b line', '📄 PDF case file'); bpdf.type = 'button';
   bpdf.onclick = () => { const withNote = r.internalNote ? confirm('Include your private note in the PDF?\n\nOK = include it\nCancel = leave it out') : false; pdfCase(r, withNote, bpdf); }; prow.append(bpdf); c.append(prow);
+  const slot2 = E('div'); c.append(slot2); if (!r.serial) slot2.append(intlBlock(r, null));
   if (r.serial) {
-    cardOf(r.serial).then(card => { slot.replaceChildren(cardBox(r, card)); });
+    cardOf(r.serial).then(card => { slot.replaceChildren(cardBox(r, card, photoDone[r.serial] || null)); slot2.replaceChildren(intlBlock(r, card)); if (card && !(r.serial in photoDone)) photoOf(r.serial).then(url => { if (slot.isConnected && url) slot.replaceChildren(cardBox(r, card, url)); }); });
     const n = reports.filter(x => x.serial === r.serial).length;
     if (n > 1) { const row = E('div', 'row2'); row.style.marginTop = '8px'; const b = E('button', 'b line sm', '📑 ' + n + ' reports about this card · show all'); b.type = 'button'; b.onclick = () => { q = r.serial; filter = 'all'; catF = ''; overdueOnly = false; selected = null; render(); }; row.append(b); c.append(row); }
   }
@@ -2019,11 +2073,11 @@ function detailCard(r) {
   }
   return c;
 }
-function cardBox(r, card) {
+function cardBox(r, card, url) {
   if (card === false || card === null) { const b = E('div', 'cbox bad'); b.append(E('div', 'ci', '❓'), (() => { const d = E('div'); d.append(E('b', '', card === false ? 'This code is not in the register' : 'Couldn’t load the card'), E('small', '', pretty(r.serial))); return d; })()); return b; }
   const b = E('div', 'cbox' + (card.status === 'revoked' ? ' bad' : '')); const mid = E('div');
   mid.append(E('b', '', card.name || '—'), E('small', '', [card.grade, [card.term, card.year].filter(Boolean).join(' '), Number(card.avg).toFixed(1) + '%', pretty(r.serial)].filter(Boolean).join(' · ')));
-  b.append(E('div', 'ci', '🎓'), mid, E('span', 'ist ' + (card.status || 'valid'), card.status === 'revoked' ? 'Withdrawn' : 'Valid'));
+  b.append(avatar(card, url === undefined ? photoDone[r.serial] : url, 56), mid, E('span', 'ist ' + (card.status || 'valid'), card.status === 'revoked' ? 'Withdrawn' : 'Valid'));
   const wrap = E('div'); wrap.append(b); if (card.status === 'revoked' && card.statusReason) { const p = E('p', 'foot', 'Reason: ' + card.statusReason); p.style.cssText = 'text-align:left;margin-top:6px'; wrap.append(p); }
   const row = E('div', 'row2'); row.style.marginTop = '8px';
   const v = E('a', 'b line', '🔎 Open verify page'); v.href = './verify.html?c=' + r.serial; v.target = '_blank'; v.rel = 'noopener'; row.append(v);
@@ -2084,7 +2138,7 @@ function insightsView() {
 /* ── card registry: look up, withdraw, reinstate ── */
 async function lookupCard(s) {
   tab = 'cards'; lk = { serial: s, card: undefined }; render();
-  try { const sn = await getDoc(doc(db, 'cardVerifications', s)); lk.card = sn.exists() ? sn.data() : false; if (lk.card) cardCache[s] = lk.card; } catch (e) { lk.card = null; }
+  try { const sn = await getDoc(doc(db, 'cardVerifications', s)); lk.card = sn.exists() ? sn.data() : false; if (lk.card) { cardCache[s] = lk.card; delete photoP[s]; delete photoDone[s]; photoOf(s).then(() => { if (tab === 'cards' && lk.serial === s) render(); }); } } catch (e) { lk.card = null; }
   if (tab === 'cards' && lk.serial === s) render();
 }
 function cardsView() {
@@ -2097,11 +2151,11 @@ function cardsView() {
     const res = E('div'); res.style.marginTop = '14px';
     if (lk.card === undefined) res.append(E('div', 'loading', 'Looking up…'));
     else {
-      res.append(cardBox({ serial: lk.serial }, lk.card));
+      res.append(cardBox({ serial: lk.serial }, lk.card, photoDone[lk.serial] || null));
       if (lk.card) { const pr = E('div', 'row2'); pr.style.marginTop = '8px'; const bp = E('button', 'b line', '📄 PDF card record'); bp.type = 'button'; bp.onclick = () => pdfCardRecord(lk.serial, lk.card, bp); pr.append(bp); res.append(pr); }
       if (lk.card) {
         const k = lk.card, kv = E('dl', 'kv');
-        [['Learner', k.name || '—'], ['Class', [k.grade, k.cls].filter(Boolean).join(' · ') || '—'], ['Term', [k.term, k.year].filter(Boolean).join(' ') || '—'], ['Average / level', (Number(k.avg) || 0).toFixed(1) + '% · ' + (k.level || '—')], ['Position', k.position || '—'], ['Revision', String(k.rev || 1)], ['First registered', fmt(k.issuedAt, true)], ['Last corrected', fmt(k.updatedAt, true)], ['Printed by', k.issuedBy || '—'], ['Fingerprint', String(k.contentHash || '').slice(0, 16).toUpperCase() || '—']].forEach(([a, b]) => kv.append(E('dt', '', a), E('dd', '', b)));
+        [['Learner', k.name || '—'], ['Class', [k.grade, k.cls].filter(Boolean).join(' · ') || '—'], ['Term', [k.term, k.year].filter(Boolean).join(' ') || '—'], ['Average / level', (Number(k.avg) || 0).toFixed(1) + '% · ' + (k.level || '—')], ['Position', k.position || '—'], ['Learner level (ISCED 2011)', isced(k.grade)], ['Learner ID (ULI, last digits)', k.uliTail ? '•••• ' + k.uliTail : '—'], ['Revision', String(k.rev || 1)], ['First registered', fmt(k.issuedAt, true)], ['Last corrected', fmt(k.updatedAt, true)], ['Printed by', k.issuedBy || '—'], ['Fingerprint', String(k.contentHash || '').slice(0, 16).toUpperCase() || '—']].forEach(([a, b]) => kv.append(E('dt', '', a), E('dd', '', b)));
         res.append(kv);
       }
       const rel = reports.filter(r => r.serial === lk.serial);
