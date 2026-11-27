@@ -179,6 +179,14 @@
     .nav-item.embed .nav-icon{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:14px;background:color-mix(in srgb,var(--ec) 18%,transparent);border:1px solid color-mix(in srgb,var(--ec) 30%,transparent)}
     .nav-item.embed::after{content:'⧉';margin-left:auto;font-size:12px;opacity:.3;transition:var(--transition)}
     .nav-item.embed:hover::after{opacity:.75}
+    .kbd-hint-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 12px 0;padding:9px 12px;border-radius:var(--radius-md);border:1px dashed var(--border);background:transparent;color:var(--text2);font:700 12px inherit;font-family:inherit;cursor:pointer;transition:var(--transition)}
+    .kbd-hint-btn:hover{background:rgba(41,128,185,.12);color:var(--text);border-style:solid}
+    @media (hover:none),(max-width:950px){.kbd-hint-btn{display:none}}
+    .nav-key{margin-left:auto;font:800 10px/1 'SFMono-Regular',Menlo,Consolas,monospace;letter-spacing:.3px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);opacity:.55;transition:var(--transition);flex-shrink:0}
+    .nav-key~.nav-badge{margin-left:6px}
+    .nav-item.embed:has(.nav-key)::after{margin-left:6px}
+    .nav-item:hover .nav-key,.nav-item.active .nav-key{opacity:1}
+    @media (max-width:950px){.nav-key{display:none}}
     .nav-item.embed:hover{background:color-mix(in srgb,var(--ec) 12%,transparent)}
     .nav-item.embed.active{background:color-mix(in srgb,var(--ec) 20%,transparent);border-color:color-mix(in srgb,var(--ec) 45%,transparent);color:var(--text);box-shadow:0 6px 18px color-mix(in srgb,var(--ec) 22%,transparent)}
     .nav-item.embed.active::after{opacity:.9;color:var(--ec)}
@@ -1047,6 +1055,8 @@
         <div class="nav-item" data-view="calendar"><span class="nav-icon">🗓️</span>Calendar <span class="nav-badge" id="nav-cal">0</span></div>
         <div class="nav-item" data-view="portals"><span class="nav-icon">🔗</span>Linked Portals</div>
       </div>
+
+      <button type="button" class="kbd-hint-btn" id="kbdHintBtn" title="Keyboard shortcuts (?)"><span>⌨️ Keyboard shortcuts</span><kbd>?</kbd></button>
 
       <div class="sidebar-footer">
         <div class="me-av" id="me-av">AA</div>
@@ -3627,7 +3637,6 @@
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => {
         navTo(item.dataset.view);
-        if(item.classList.contains('embed') && _desktopMQ.matches) setSidebarCollapsed(true, false, true);
       });
     });
     // Linked Portals cards open inside the dashboard (Portals & Tools embeds); ctrl/cmd/middle-click still opens a new tab
@@ -3636,7 +3645,6 @@
         if(e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
         e.preventDefault();
         navTo(card.dataset.embed);
-        if(_desktopMQ.matches) setSidebarCollapsed(true, false, true);
       });
     });
     document.querySelectorAll('[data-goto]').forEach(el => {
@@ -7835,7 +7843,6 @@
       const chip = e.target.closest('[data-ql]'), v = chip?.dataset.ql;
       if(v){
         navTo(v);
-        if(window.matchMedia('(min-width: 951px)').matches) setSidebarCollapsed(true, false, true);
       }
     });
 
@@ -7893,10 +7900,13 @@
     }
 
     /* 4) Keyboard shortcuts */
-    const G_MAP = { d:'dashboard', s:'students', t:'teachers', a:'attendance', r:'results', w:'welfare', l:'library', c:'calendar', m:'messages', i:'admissions', p:'portals' };
+    const G_MAP = { d:'dashboard', s:'students', t:'teachers', a:'attendance', r:'results', w:'welfare', l:'library', c:'calendar', m:'messages', i:'admissions', p:'portals',
+      o:'settings', u:'audit', f:'feedback', v:'liveview', e:'timetable', g:'graduation', k:'resultsportal', n:'teachersportal',
+      q:'studentsearch', b:'studentbiodata', j:'pStudentPortal', y:'pActiveDB', x:'pDeleted', z:'pParents', h:'pHome', '1':'pLunch', '2':'pFood', '3':'pLibrary', '4':'pLibAnalytics', '5':'pClassLib', '6':'pLibFines', '7':'pBookCond', '8':'pTextbook', '9':'pUpdater', '0':'pCleaner' };
+    const ALT_MAP = ['dashboard','students','admissions','teachers','attendance','results','welfare','library','settings'];
     function gHint(on){
       let h = $('gHint'); if(!h){ h = document.createElement('div'); h.id = 'gHint'; h.className = 'ghint'; document.body.appendChild(h); }
-      h.innerHTML = '<kbd>g</kbd> then <kbd>d</kbd> Dashboard · <kbd>s</kbd> Students · <kbd>t</kbd> Teachers · <kbd>a</kbd> Attendance · <kbd>r</kbd> Results · <kbd>w</kbd> Welfare · <kbd>l</kbd> Library · <kbd>c</kbd> Calendar · <kbd>i</kbd> Admissions';
+      h.innerHTML = '<kbd>g</kbd> then <kbd>d</kbd> Dashboard · <kbd>s</kbd> Students · <kbd>t</kbd> Teachers · <kbd>a</kbd> Attendance · <kbd>r</kbd> Results · <kbd>w</kbd> Welfare · <kbd>l</kbd> Library · <kbd>c</kbd> Calendar · <kbd>i</kbd> Admissions · <kbd>o</kbd> Settings · <kbd>u</kbd> Audit · <kbd>f</kbd> Feedback · <kbd>v</kbd> Live · <kbd>?</kbd> all shortcuts';
       h.classList.toggle('show', on);
     }
     function openKbd(){
@@ -7905,11 +7915,22 @@
       el.innerHTML = `<div class="kbd" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts"><h3>⌨️ Keyboard shortcuts <span class="kx-btns"><button type="button" data-a="x">✕</button></span></h3>
         <div class="kbd-grid"><div>
           ${row('<kbd>Ctrl</kbd> <kbd>K</kbd>', 'Search everything')}${row('<kbd>/</kbd>', 'Search everything')}${row('<kbd>?</kbd>', 'This cheat-sheet')}
-          ${row('<kbd>B</kbd>', 'Morning briefing')}${row('<kbd>P</kbd>', 'Pin / unpin this page')}${row('<kbd>[</kbd> or <kbd>Ctrl</kbd>+<kbd>B</kbd>', 'Show / hide sidebar')}${row('<kbd>Esc</kbd>', 'Close any pop-up')}
+          ${row('<kbd>B</kbd>', 'Morning briefing')}${row('<kbd>P</kbd>', 'Pin / unpin this page')}${row('<kbd>[</kbd> or <kbd>Ctrl</kbd>+<kbd>B</kbd>', 'Show / hide sidebar')}${row('<kbd>]</kbd>', 'Expand / collapse embedded portals')}${row('<kbd>Esc</kbd>', 'Close any pop-up')}
+          ${row('<kbd>S</kbd>', 'Focus this page\'s search box')}${row('<kbd>E</kbd>', 'Export this page (CSV)')}${row('<kbd>R</kbd>', 'Refresh data')}
+          ${row('<kbd>T</kbd>', 'Light / dark theme')}${row('<kbd>N</kbd>', 'Notifications')}${row('<kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>9</kbd>', 'Dashboard → Settings (sidebar order)')}
         </div><div>
           ${row('<kbd>g</kbd> <kbd>d</kbd>', 'Go to Dashboard')}${row('<kbd>g</kbd> <kbd>s</kbd>', 'Go to Students')}${row('<kbd>g</kbd> <kbd>t</kbd>', 'Go to Teachers')}
           ${row('<kbd>g</kbd> <kbd>a</kbd>', 'Go to Attendance')}${row('<kbd>g</kbd> <kbd>r</kbd>', 'Go to Results')}${row('<kbd>g</kbd> <kbd>w</kbd>', 'Go to Welfare')}
           ${row('<kbd>g</kbd> <kbd>l</kbd>', 'Go to Library')}${row('<kbd>g</kbd> <kbd>c</kbd>', 'Go to Calendar')}${row('<kbd>g</kbd> <kbd>i</kbd>', 'Go to Admissions')}
+          ${row('<kbd>g</kbd> <kbd>m</kbd>', 'Go to Announcements')}${row('<kbd>g</kbd> <kbd>f</kbd>', 'Go to Feedback')}${row('<kbd>g</kbd> <kbd>u</kbd>', 'Go to Audit Trail')}
+          ${row('<kbd>g</kbd> <kbd>o</kbd>', 'Go to Settings')}${row('<kbd>g</kbd> <kbd>p</kbd>', 'Go to Linked Portals')}${row('<kbd>g</kbd> <kbd>v</kbd>', 'Go to Live View')}
+          ${row('<kbd>g</kbd> <kbd>e</kbd>', 'Go to Exam Timetable')}${row('<kbd>g</kbd> <kbd>g</kbd>', 'Go to Graduation')}${row('<kbd>g</kbd> <kbd>k</kbd>', 'Go to Results Portal')}
+          ${row('<kbd>g</kbd> <kbd>n</kbd>', 'Go to Teachers Portal')}${row('<kbd>g</kbd> <kbd>q</kbd>', 'Go to Student Search')}${row('<kbd>g</kbd> <kbd>b</kbd>', 'Go to Student Biodata')}
+          ${row('<kbd>g</kbd> <kbd>j</kbd>', 'Go to Student Portal')}${row('<kbd>g</kbd> <kbd>y</kbd>', 'Go to Active Students DB')}${row('<kbd>g</kbd> <kbd>x</kbd>', 'Go to Deleted Students')}
+          ${row('<kbd>g</kbd> <kbd>z</kbd>', 'Go to Parents Portal')}${row('<kbd>g</kbd> <kbd>h</kbd>', 'Go to Home Page')}${row('<kbd>g</kbd> <kbd>1</kbd>', 'Go to Lunch Manager')}
+          ${row('<kbd>g</kbd> <kbd>2</kbd>', 'Go to Food Budget')}${row('<kbd>g</kbd> <kbd>3</kbd>', 'Go to Library admin')}${row('<kbd>g</kbd> <kbd>4</kbd>', 'Go to Library Analytics')}
+          ${row('<kbd>g</kbd> <kbd>5</kbd>', 'Go to Class Library')}${row('<kbd>g</kbd> <kbd>6</kbd>', 'Go to Library Fines')}${row('<kbd>g</kbd> <kbd>7</kbd>', 'Go to Book Condition')}
+          ${row('<kbd>g</kbd> <kbd>8</kbd>', 'Go to Textbook Portal')}${row('<kbd>g</kbd> <kbd>9</kbd>', 'Go to Bulk Updater')}${row('<kbd>g</kbd> <kbd>0</kbd>', 'Go to Cleaner Updater')}
         </div></div></div>`;
       el.onclick = e => { if(e.target.closest('[data-a="x"]')) el.classList.remove('open'); };
       el.classList.add('open');
@@ -7919,7 +7940,7 @@
       if((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'b'){ e.preventDefault(); $('burgerBtn').click(); return; }
       if(e.ctrlKey || e.metaKey || e.altKey) return;
       const t = e.target;
-      if(e.key === 'Escape'){ ['briefBack', 'kbdBack'].forEach(id => $(id)?.classList.remove('open')); return; }
+      if(e.key === 'Escape'){ ['briefBack', 'kbdBack', 'notifPop'].forEach(id => $(id)?.classList.remove('open')); $('sidebar')?.classList.remove('open'); $('sidebarBackdrop')?.classList.remove('show'); return; }
       if(t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
       if($('cmdkBackdrop').classList.contains('open')) return;
       if(_gPending){
@@ -7934,6 +7955,56 @@
       else if(k === '['){ $('burgerBtn').click(); }
       else if(k === 'b' || k === 'B'){ openBrief(); }
       else if(k === 'p' || k === 'P'){ togglePin(); }
+      else if(k === 't' || k === 'T'){ $('themeToggle').click(); }
+      else if(k === 'r' || k === 'R'){ $('refreshBtn').click(); }
+      else if(k === 'n' || k === 'N'){ $('notifBtn').click(); }
+      else if(k === 's' || k === 'S'){ const si = document.querySelector('.view.active input.search-input, .view.active input[type="search"]'); if(si){ e.preventDefault(); si.focus(); si.select(); } }
+      else if(k === 'e' || k === 'E'){ const eb = document.querySelector('.view.active [id$="-export-btn"]'); if(eb){ e.preventDefault(); eb.click(); } }
+    });
+    /* Alt+1…9 → main sidebar pages (works even while typing) */
+    document.addEventListener('keydown', e => {
+      if(!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      const m = /^Digit([1-9])$/.exec(e.code || ''); if(!m) return;
+      e.preventDefault(); navTo(ALT_MAP[Number(m[1]) - 1]);
+    });
+    /* Same shortcuts while focus is inside an embedded page (same-origin frames only) */
+    document.addEventListener('load', ev => {
+      const fr = ev.target; if(!fr || fr.tagName !== 'IFRAME') return;
+      try{
+        fr.contentDocument.addEventListener('keydown', ke => {
+          const t = ke.target;
+          if(ke.key !== 'Escape' && !ke.altKey && t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+          if(ke.key === 'Escape' || ke.altKey || ke.ctrlKey || ke.metaKey || ['?', '/', 'g', '[', 'b', 'B'].includes(ke.key) || _gPending){
+            if(!_gPending && ke.key === 'g' ) ke.preventDefault();
+            document.dispatchEvent(new KeyboardEvent('keydown', { key:ke.key, code:ke.code, ctrlKey:ke.ctrlKey, metaKey:ke.metaKey, altKey:ke.altKey, shiftKey:ke.shiftKey, bubbles:true, cancelable:true }));
+          }
+        });
+      }catch(err){ /* cross-origin frame — shortcuts work once focus returns to the page */ }
+    }, true);
+
+    $('kbdHintBtn')?.addEventListener('click', openKbd);
+    /* One-time tip so users discover shortcuts (desktop only) */
+    try{
+      if(!localStorage.getItem('kss-kbd-tip') && window.matchMedia('(min-width: 951px) and (hover:hover)').matches){
+        localStorage.setItem('kss-kbd-tip', '1');
+        setTimeout(() => toast('⌨️ New: keyboard shortcuts! Press ? to see them all.', 'info'), 4000);
+      }
+    }catch(e){}
+    /* Sidebar: show each page's shortcut beside it */
+    (function(){
+      const rev = {}; Object.keys(G_MAP).forEach(k => { if(!rev[G_MAP[k]]) rev[G_MAP[k]] = k; });
+      document.querySelectorAll('.sidebar .nav-item[data-view]').forEach(n => {
+        const v = n.dataset.view, k = rev[v]; if(!k) return;
+        const alt = ALT_MAP.indexOf(v), sp = document.createElement('span');
+        sp.className = 'nav-key'; sp.textContent = 'g ' + k;
+        sp.title = 'Shortcut: press g then ' + k + (alt > -1 ? '  ·  or Alt+' + (alt + 1) : '');
+        const bd = n.querySelector('.nav-badge'); bd ? n.insertBefore(sp, bd) : n.appendChild(sp);
+      });
+    })();
+    document.addEventListener('keydown', e => {   // ] expands / collapses the Embedded Portals group
+      if(e.key !== ']' || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target; if(t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+      setEmbedCollapsed(!$('embedGroup').classList.contains('collapsed'), true);
     });
 
     _kssReady = true; syncPinBtn(); renderQLinks(); renderAttention();
