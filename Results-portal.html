@@ -1583,7 +1583,7 @@ body::before{
 #settings-item-modal-body>.settings-section:first-child{margin-bottom:0;}
 #settings-item-modal-body .settings-section-title{display:none;}
 
-/* ── Control Center (formerly Settings): hero, search, grouped tiles ── */
+/* ── Settings: hero, search, grouped tiles ── */
 .cc-hero{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 22px;margin-bottom:14px;border-radius:var(--radius-lg);background:linear-gradient(135deg,var(--blue-dk),var(--blue) 62%,var(--teal,var(--blue-lt)));color:#fff;position:relative;overflow:hidden;}
 .cc-hero::after{content:'';position:absolute;right:-50px;top:-70px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none;}
 .cc-hero-text{position:relative;z-index:1;min-width:0;}
@@ -2719,6 +2719,46 @@ body, #login-screen{
 @media(min-width:901px){ .signin-card{background-image:none;} }
 
 </style>
+<style id="hc-styles">
+.hc-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.hc-stat{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;cursor:pointer;transition:var(--transition)}
+.hc-stat:hover{border-color:var(--blue)}
+.hc-stat.on{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-glow)}
+.hc-stat b{display:block;font-size:22px;color:var(--text)}
+.hc-stat span{font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.3px}
+.hc-compose{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:14px}
+.hc-compose textarea{width:100%;min-height:62px;margin-top:8px;padding:9px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box}
+.hc-bulk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--blue-glow);border:1px solid var(--blue);border-radius:var(--radius-md);padding:8px 12px;margin-bottom:10px;font-size:12px;font-weight:700;color:var(--text)}
+.hc-row{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:8px}
+.hc-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hc-who{flex:1 1 200px;min-width:160px}
+.hc-name{font-size:13px;font-weight:800;color:var(--text)}
+.hc-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.hc-main{flex:1 1 190px;min-width:150px;font-size:12px;color:var(--text2)}
+.hc-main b{color:var(--text);font-size:13px}
+.hc-acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.hc-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 9px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;cursor:pointer;text-decoration:none;font-family:inherit}
+.hc-btn:hover{border-color:var(--blue)}
+.hc-btn.call{background:rgba(41,128,185,.15)}
+.hc-btn.wa{background:rgba(39,174,96,.18)}
+.hc-btn.sms{background:rgba(243,156,18,.15)}
+.hc-btn.sm{height:28px;min-width:28px;font-size:12px;padding:0 7px}
+.hc-chip{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin:3px 4px 0 0;background:rgba(231,76,60,.15);color:var(--red)}
+.hc-chip.ok{background:rgba(39,174,96,.15);color:var(--green)}
+.hc-more{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.hc-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:12px;color:var(--text2)}
+.hc-card h5{margin:0 0 6px;font-size:11px;letter-spacing:.4px;color:var(--text3)}
+.hc-kv{display:flex;align-items:center;gap:6px;justify-content:space-between;margin-top:4px}
+.hc-kv code{font-size:12px;color:var(--text)}
+.hc-q{display:flex;align-items:center;gap:8px;padding:7px 9px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text)}
+.hc-q.done{opacity:.5}
+.hc-q .grow{flex:1;min-width:0}
+.hc-q small{color:var(--text3);display:block}
+.hc-ph{border-radius:12px;object-fit:cover;flex:0 0 auto;border:2px solid var(--border);cursor:pointer;background:var(--surface)}
+.hc-ph.ini{display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--blue);font-size:15px;cursor:default}
+.hc-chip.fam{background:rgba(142,68,173,.15);color:var(--purple);cursor:pointer}
+.hc-note{font-size:11px;color:var(--text2);margin-top:4px;font-style:italic}
+</style>
 </head>
 <body>
 
@@ -3134,6 +3174,9 @@ setInterval(_rotateAuthTip, 5000);
         <span class="nav-icon">👨‍🎓</span> Students Records
         <span class="nav-badge" id="nav-count">—</span>
       </div>
+      <div class="nav-item" id="nav-homecontacts" onclick="navTo('homecontacts',this)" data-label="Home Contacts" style="display:none">
+        <span class="nav-icon">🏠</span><span class="nav-label">Home Contacts</span>
+      </div>
 
 
 
@@ -3193,8 +3236,8 @@ setInterval(_rotateAuthTip, 5000);
       <div class="nav-item" onclick="navTo('profile',this)" data-label="My Profile" id="nav-profile">
         <span class="nav-icon">👤</span> My Profile
       </div>
-      <div class="nav-item" onclick="navTo('settings',this)" data-label="Control Center">
-        <span class="nav-icon">⚙️</span> Control Center
+      <div class="nav-item" onclick="navTo('settings',this)" data-label="Settings">
+        <span class="nav-icon">⚙️</span> Settings
       </div>
       <div class="nav-item" onclick="navTo('auditlog',this)" data-label="Audit Log">
         <span class="nav-icon">🗂️</span> Audit Log
@@ -3524,6 +3567,11 @@ setInterval(_rotateAuthTip, 5000);
             <button class="btn btn-green btn-sm" id="add-student-btn" onclick="openAddStudentModal()">➕ Add Student</button>
             <button class="btn btn-outline btn-sm" onclick="exportStudentsCSV()">📥 Export CSV</button>
             <button class="btn btn-outline btn-sm" id="missing-photo-btn" onclick="toggleMissingPhotoFilter()" title="Scan the directory for students without a photo on file">📷 Check Photos</button>
+            <span id="sc-toolbar" style="display:none;gap:6px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-outline btn-sm" onclick="scDownloadSheet()" title="Excel sheet of your learners' home contacts — fill in, then import">🏠 Contacts Sheet</button>
+              <button class="btn btn-outline btn-sm" onclick="document.getElementById('sc-import-input').click()" title="Import a filled Contacts Sheet (matched by Assessment No)">📤 Import Contacts</button>
+              <span id="sc-badge" style="font-size:11px;font-weight:700;color:var(--text3)"></span>
+            </span>
           </div>
         </div>
         <div class="filter-row">
@@ -4013,11 +4061,11 @@ setInterval(_rotateAuthTip, 5000);
 
       <!-- ══════ SETTINGS VIEW ══════ -->
       <div class="view" id="view-settings">
-        <!-- ══════ CONTROL CENTER (formerly "Settings") ══════ -->
+        <!-- ══════ SETTINGS ══════ -->
         <div class="cc-hero">
           <div class="cc-hero-text">
-            <span class="cc-eyebrow" id="cc-role">⚙️ Control Center</span>
-            <h2>Control Center</h2>
+            <span class="cc-eyebrow" id="cc-role">⚙️ Settings</span>
+            <h2>Settings</h2>
             <p>Everything that controls how the portal runs — database connection, term &amp; exam controls, staff accounts and sign-in access — in one place.</p>
           </div>
           <div class="cc-stats">
@@ -4276,7 +4324,7 @@ setInterval(_rotateAuthTip, 5000);
           </div>
           <div class="settings-section" id="access-attempts-section">
             <h3 class="settings-section-title">Access Attempts</h3>
-            <div class="setting-row"><div class="setting-info"><h4 id="ac-summary">Loading…</h4><p>Recorded when a signed-in user who isn’t an Advanced Admin opens the Control Center or tries an Advanced-only tool in it, and whenever the database rules refuse one of their reads or writes. Entries can’t be edited or deleted.</p></div><span style="display:flex;gap:6px;align-items:center"><select class="cc-in" id="ac-range" onchange="acRender()" style="width:auto"><option value="24">Last 24 h</option><option value="168">Last 7 days</option><option value="0">All loaded</option></select><button class="btn btn-outline btn-sm" onclick="acLoad()">↻ Refresh</button></span></div>
+            <div class="setting-row"><div class="setting-info"><h4 id="ac-summary">Loading…</h4><p>Recorded when a signed-in user who isn’t an Advanced Admin opens the Settings or tries an Advanced-only tool in it, and whenever the database rules refuse one of their reads or writes. Entries can’t be edited or deleted.</p></div><span style="display:flex;gap:6px;align-items:center"><select class="cc-in" id="ac-range" onchange="acRender()" style="width:auto"><option value="24">Last 24 h</option><option value="168">Last 7 days</option><option value="0">All loaded</option></select><button class="btn btn-outline btn-sm" onclick="acLoad()">↻ Refresh</button></span></div>
             <div id="ac-list"></div>
           </div>
           <div class="settings-section" id="sessions-section">
@@ -4463,7 +4511,7 @@ setInterval(_rotateAuthTip, 5000);
             </p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
               <button class="btn btn-blue btn-sm" onclick="scanMissingGender()">🔍 Scan for Missing Gender</button>
-              <button class="btn btn-green btn-sm" id="fix-gender-apply-btn" style="display:none" onclick="applyMissingGenderFixes()">.Apply Fixes</button>
+              <button class="btn btn-green btn-sm" id="fix-gender-apply-btn" style="display:none" onclick="applyMissingGenderFixes()">✅ Apply Fixes</button>
             </div>
             <div id="fix-gender-results">
               <p style="font-size:12px;color:var(--text3)">Click "Scan" to check every record for a missing Gender value.</p>
@@ -4482,7 +4530,7 @@ setInterval(_rotateAuthTip, 5000);
       <!-- ══════ UNIVERSAL SETTINGS MODAL ══════ -->
       <div class="modal-overlay" id="settings-item-modal" onclick="if(event.target===this)closeSettingsModal()">
         <div class="modal-box modal-wide">
-          <div class="modal-hdr"><h3 id="settings-item-modal-title">Control Center</h3><button class="modal-close" onclick="closeSettingsModal()">✕</button></div>
+          <div class="modal-hdr"><h3 id="settings-item-modal-title">Settings</h3><button class="modal-close" onclick="closeSettingsModal()">✕</button></div>
           <div class="modal-body" id="settings-item-modal-body"></div>
         </div>
       </div>
@@ -4938,6 +4986,98 @@ setInterval(_rotateAuthTip, 5000);
       </div>
 
     <!-- ══════ PROGRESS RECORDS VIEW (every teacher — subject/class-scoped) ══════ -->
+    <div class="view" id="view-homecontacts">
+      <div class="sec-hdr">
+        <h2>🏠 Home Contacts</h2>
+        <div class="actions-row">
+          <button class="btn btn-green btn-sm" onclick="hcOpenBroadcast()" title="Send a personalised WhatsApp message to selected (or all filtered) learners' parents">💬 WhatsApp Broadcast</button>
+          <button class="btn btn-outline btn-sm" onclick="hcCopyNumbers()" title="Copy numbers of selected / filtered learners">📋 Copy Numbers</button>
+          <button class="btn btn-outline btn-sm" onclick="hcDownloadVcf()" title="Save parents to your phone contacts (.vcf)">📇 Save to Phone</button>
+          <button class="btn btn-outline btn-sm" onclick="hcDownloadPdf()" title="Download a class contact list PDF in the report card format (no ID numbers)">📄 Download PDF</button>
+          <button class="btn btn-outline btn-sm" onclick="scDownloadSheet()">⬇️ Excel Sheet</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('sc-import-input').click()">📤 Import</button>
+        </div>
+      </div>
+      <div class="hc-stats" id="hc-stats"></div>
+      <div id="hc-followups"></div>
+      <div class="hc-compose">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div class="s-label" style="margin:0">✍️ WhatsApp / SMS message (used by the 💬 and ✉️ buttons)</div>
+          <select class="sel" id="hc-tpl" onchange="hcApplyTemplate()"></select>
+        </div>
+        <textarea id="hc-msg" placeholder="Type a message… use {parent} {learner} {grade} {school}"></textarea>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">{parent} · {learner} · {grade} · {school} &nbsp;|&nbsp; results: {mean} · {level} · {position} · {total} · {term} <b>(🔒 results are sensitive — sent per learner, flagged numbers skipped, every send is audit-logged)</b></div>
+      </div>
+      <div class="filter-row">
+        <div class="search-input-wrap">
+          <input class="search-input" id="hc-search" placeholder="Search learner, assessment no, parent name or phone…" oninput="hcFilterDebounced()">
+        </div>
+        <select class="sel" id="hc-grade" onchange="hcRender()"><option value="">All Classes</option></select>
+        <select class="sel" id="hc-status" onchange="hcStatusChanged()">
+          <option value="">All learners</option>
+          <option value="hasphone">Has a phone number</option>
+          <option value="nophone">No phone number</option>
+          <option value="nodata">No contacts at all</option>
+          <option value="nobc">Missing birth cert no</option>
+          <option value="noid">Missing parent/guardian ID</option>
+          <option value="nocontact">Not contacted yet</option>
+          <option value="due">⏰ Follow-up due</option>
+        </select>
+      </div>
+      <div class="hc-bulk" id="hc-bulkbar" style="display:none"></div>
+      <div id="hc-list"><div style="padding:30px;text-align:center;color:var(--text3);font-size:13px">Loading…</div></div>
+    </div>
+
+    <!-- Log a contact / set a follow-up -->
+    <div class="modal-overlay" id="hc-log-modal" onclick="if(event.target===this)hcLogClose()">
+      <div class="modal-box" style="max-width:480px">
+        <div class="modal-hdr"><h3 id="hcl-title">📝 Log contact</h3><button class="modal-close" onclick="hcLogClose()">✕</button></div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group"><label>HOW</label><select id="hcl-via"><option>Call</option><option>WhatsApp</option><option>SMS</option><option>Visited school</option><option>Home visit</option></select></div>
+            <div class="form-group"><label>NUMBER USED</label><select id="hcl-num"></select></div>
+            <div class="form-group form-full"><label>OUTCOME</label>
+              <select id="hcl-out" onchange="hcLogOutcomeChanged()"><option>Reached</option><option>No answer</option><option>Wrong number</option><option>Phone off / unreachable</option><option>Promised to visit</option><option>Will respond later</option><option>Other</option></select></div>
+            <div class="form-group form-full"><label>NOTE</label><textarea id="hcl-note" rows="2" maxlength="300" style="width:100%;padding:9px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;resize:vertical"></textarea></div>
+            <div class="form-group form-full"><label>FOLLOW-UP DATE (optional)</label><input type="date" id="hcl-date"></div>
+          </div>
+          <label style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--text2);margin-top:8px"><input type="checkbox" id="hcl-bad"> 🚫 Mark this number as wrong / unreachable (skipped in broadcasts)</label>
+          <label id="hcl-clear-wrap" style="display:none;gap:8px;align-items:center;font-size:12px;color:var(--text2);margin-top:6px"><input type="checkbox" id="hcl-clear" checked> ✓ Close the existing follow-up</label>
+        </div>
+        <div class="modal-footer"><button class="btn btn-outline btn-sm" onclick="hcLogClose()">Cancel</button><button class="btn btn-green btn-sm" onclick="hcLogSave()">💾 Save</button></div>
+      </div>
+    </div>
+
+    <!-- WhatsApp broadcast queue -->
+    <div class="modal-overlay" id="hc-bc-modal" onclick="if(event.target===this)hcCloseBroadcast()">
+      <div class="modal-box" style="max-width:640px">
+        <div class="modal-hdr"><h3>💬 WhatsApp Broadcast</h3><button class="modal-close" onclick="hcCloseBroadcast()">✕</button></div>
+        <div class="modal-body">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+            <div class="s-label" style="margin:0">Send to</div>
+            <select class="sel" id="hc-bc-mode" onchange="hcBuildQueue()">
+              <option value="primary">Primary contact only</option>
+              <option value="father">Father</option>
+              <option value="mother">Mother</option>
+              <option value="guardian">Guardian</option>
+              <option value="all">Every number on file</option>
+            </select>
+            <label style="font-size:12px;color:var(--text2);display:flex;gap:6px;align-items:center"><input type="checkbox" id="hc-bc-dedupe" checked onchange="hcBuildQueue(true)"> One message per family</label>
+            <div id="hc-bc-count" style="font-size:12px;font-weight:700;color:var(--text2)"></div>
+          </div>
+          <textarea id="hc-bc-msg" oninput="document.getElementById('hc-msg').value=this.value;hcBuildQueue(true)" style="width:100%;min-height:80px;padding:9px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:12px;font-family:inherit;box-sizing:border-box"></textarea>
+          <div id="hc-bc-warn" style="display:none;font-size:11px;line-height:1.5;margin:6px 0;padding:8px 10px;border-radius:8px;border:1px solid var(--orange);background:rgba(230,126,34,.12);color:var(--text)"></div>
+          <div style="font-size:11px;color:var(--text3);margin:6px 0 10px;line-height:1.5">WhatsApp only lets one chat open per tap, so tap <b>Send</b> on each row (or <b>Next ▶</b>) — the message opens pre-filled and personalised; press send in WhatsApp, then come back here.</div>
+          <div id="hc-bc-list" style="max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:10px"></div>
+          <div id="hc-bc-skip" style="font-size:11px;color:var(--text3);margin-top:8px"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline btn-sm" onclick="hcCloseBroadcast()">Close</button>
+          <button class="btn btn-green btn-sm" onclick="hcBcNext()">Next ▶</button>
+        </div>
+      </div>
+    </div>
+
     <div class="view" id="view-progressrecords">
       <div class="sec-hdr"><h2>📊 Student Progress Records</h2></div>
       <div class="card" style="margin-bottom:16px">
@@ -4998,6 +5138,42 @@ setInterval(_rotateAuthTip, 5000);
 </div><!-- /app-shell -->
 
 <!-- STUDENT DETAIL MODAL -->
+<!-- HOME CONTACTS MODAL (class teacher / Advanced Admin only) — stored in studentContacts/{AssessmentNo}, never on term records, never printed on report cards -->
+<div class="modal-overlay" id="contacts-modal" onclick="if(event.target===this)scCloseModal()">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-hdr">
+      <h3 id="sc-title">🏠 Home Contacts</h3>
+      <button class="modal-close" onclick="scCloseModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Entered once per learner — carries over every term. <strong>Not shown on report cards or results.</strong> Visible to the class teacher and Advanced Admins only.</div>
+      <img id="sc-photo" alt="" style="display:none;width:72px;height:84px;object-fit:cover;border-radius:10px;border:2px solid var(--border);margin-bottom:12px">
+      <div class="form-grid">
+        <div class="form-group"><label>LEARNER BIRTH CERT NO</label><input type="text" id="sc-bc" autocomplete="off"></div>
+        <div class="form-group"><label>HOME CONTACT (PHONE)</label><input type="tel" id="sc-home" placeholder="e.g. 0712 345 678" autocomplete="off"></div>
+        <div class="form-group form-full"><label>FATHER — NAME</label><input type="text" id="sc-fn" autocomplete="off"></div>
+        <div class="form-group"><label>FATHER — NATIONAL ID NO</label><input type="text" id="sc-fid" autocomplete="off"></div>
+        <div class="form-group"><label>FATHER — PHONE</label><input type="tel" id="sc-fp" autocomplete="off"></div>
+        <div class="form-group form-full"><label>MOTHER — NAME</label><input type="text" id="sc-mn" autocomplete="off"></div>
+        <div class="form-group"><label>MOTHER — NATIONAL ID NO</label><input type="text" id="sc-mid" autocomplete="off"></div>
+        <div class="form-group"><label>MOTHER — PHONE</label><input type="tel" id="sc-mp" autocomplete="off"></div>
+        <div class="form-group form-full"><label>GUARDIAN — NAME (if not a parent)</label><input type="text" id="sc-gn" autocomplete="off"></div>
+        <div class="form-group"><label>GUARDIAN — NATIONAL ID NO</label><input type="text" id="sc-gid" autocomplete="off"></div>
+        <div class="form-group"><label>GUARDIAN — PHONE</label><input type="tel" id="sc-gp" autocomplete="off"></div>
+        <div class="form-group form-full"><label>PRIMARY CONTACT</label>
+          <select id="sc-primary"><option value="">Select</option><option value="Father">Father</option><option value="Mother">Mother</option><option value="Guardian">Guardian</option><option value="Home">Home contact</option></select>
+        </div>
+        <div class="form-group form-full"><label>NOTES (e.g. best time to call, alternative contact)</label><textarea id="sc-note" rows="2" maxlength="300" style="width:100%;padding:9px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;resize:vertical"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="scCloseModal()">Cancel</button>
+      <button class="btn btn-green btn-sm" id="sc-save-btn" onclick="scSave()">💾 Save Contacts</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="sc-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="scImportFile(this.files[0]);this.value=''">
+
 <div class="modal-overlay" id="student-modal" onclick="if(event.target===this)closeStudentModal()">
   <div class="modal-box">
     <div class="modal-hdr">
@@ -5007,6 +5183,7 @@ setInterval(_rotateAuthTip, 5000);
     <div class="modal-body" id="student-modal-body"></div>
     <div class="modal-footer">
       <button class="btn btn-outline btn-sm" onclick="closeStudentModal()">Close</button>
+      <button class="btn btn-outline btn-sm" id="modal-contacts-btn" style="display:none">🏠 Home Contacts</button>
       <button class="btn btn-blue btn-sm" id="modal-pdf-btn">📄 Download Report</button>
     </div>
   </div>
@@ -5634,8 +5811,8 @@ body.lem-on .tr-chip{top:calc(var(--tr-top,calc(env(safe-area-inset-top,0px) + 1
             Update your own display name/photo, and change your password here.
           </div></div>
         </div>
-        <div class="help-item" data-kw="control center settings firebase database config term lock freeze admin account theme teacher access deadline">
-          <div class="help-item-hdr" onclick="toggleHelpItem(this)"><span class="hi-icon">⚙️</span><span class="hi-title">Control Center</span><span class="hi-chev">▾</span></div>
+        <div class="help-item" data-kw="settings firebase database config term lock freeze admin account theme teacher access deadline">
+          <div class="help-item-hdr" onclick="toggleHelpItem(this)"><span class="hi-icon">⚙️</span><span class="hi-title">Settings</span><span class="hi-chev">▾</span></div>
           <div class="help-item-body"><div class="help-item-body-inner">
             Admin controls, grouped by purpose — use the search box or the filter chips to find one fast:
             <ul>
@@ -14039,7 +14216,7 @@ window.auditRestoreEdit=async function(i){
 window.auditRestoreDeleted=async function(i){
   const a=_auditEntryAt(i);
   if(!a||!a.before||!a.targetId){notify('Nothing to restore for this entry.','error');return;}
-  if(isTermLocked(a.before)){notify('🔒 This record belongs to a locked term. Unlock it in Control Center first.','error',6000);return;}
+  if(isTermLocked(a.before)){notify('🔒 This record belongs to a locked term. Unlock it in Settings first.','error',6000);return;}
   const ok=await showConfirm(
     '♻️ Restore Deleted Record',
     `Recreate the record for <strong>${a.targetName||a.targetId}</strong> using its last known data?`,
@@ -14067,7 +14244,7 @@ window.auditUndoAdd=async function(i){
   if(!a||!a.targetId){notify('Nothing to undo for this entry.','error');return;}
   const rec=allData.find(r=>r.id===a.targetId);
   if(!rec){notify('Record no longer exists.','warn');return;}
-  if(isTermLocked(rec)){notify('🔒 This record belongs to a locked term. Unlock it in Control Center first.','error',6000);return;}
+  if(isTermLocked(rec)){notify('🔒 This record belongs to a locked term. Unlock it in Settings first.','error',6000);return;}
   const ok=await showConfirm(
     '↶ Undo Add',
     `Remove the record created for <strong>${a.targetName||rec['Official Student Name']||a.targetId}</strong>? This cannot be undone.`,
@@ -14616,7 +14793,7 @@ function renderStudentsTable(){
         <div style="display:flex;gap:5px;align-items:center">
           <span id="rec-lockicon-${r.id}" title="Term is locked" style="font-size:13px;${isTermLocked(r)?'':'display:none'}">🔒</span>
           <button class="btn btn-blue btn-xs" id="rec-view-${r.id}" onclick="viewStudent('${r.id}')">👁 View</button>
-          <button class="btn btn-outline btn-xs" id="rec-edit-${r.id}" onclick="editStudent('${r.id}')" ${isTermLocked(r)?'disabled title="Term locked — go to Control Center to unlock" style=\"opacity:.4;cursor:not-allowed\"':''}>✏️</button>
+          <button class="btn btn-outline btn-xs" id="rec-edit-${r.id}" onclick="editStudent('${r.id}')" ${isTermLocked(r)?'disabled title="Term locked — go to Settings to unlock" style=\"opacity:.4;cursor:not-allowed\"':''}>✏️</button>
           <button class="btn btn-red btn-xs" id="rec-del-${r.id}" onclick="deleteStudent('${r.id}')" ${!_isClassTeacherOfGrade(r['Grade'])?`disabled title="🔒 Only the Class Teacher of ${r['Grade']||'this grade'} (or an Advanced Admin) can delete" style=\"opacity:.4;cursor:not-allowed\"`:(isTermLocked(r)?'disabled title="Term locked" style=\"opacity:.4;cursor:not-allowed\"':'')}>🗑</button>
         </div>
       </td>
@@ -14729,6 +14906,7 @@ function viewStudent(id){
     </div>`:''}
   `;
   document.getElementById('modal-pdf-btn').onclick=()=>dlStudentPDF(id);
+  scAttachToProfile(rec);
   document.getElementById('student-modal').classList.add('on');
   injectPhoto(_modalAvId, rec['Official Student Name']||'', rec['Grade']||'', rec.id||'');
   // Click the photo to view it large (once loaded); click the name to copy
@@ -14783,7 +14961,7 @@ function switchStudentRecord(masterId, idx){
   if(editBtn){
     editBtn.setAttribute('onclick', `editStudent('${rec.id}')`);
     editBtn.disabled = locked;
-    editBtn.title = locked ? 'Term locked — go to Control Center to unlock' : '';
+    editBtn.title = locked ? 'Term locked — go to Settings to unlock' : '';
     editBtn.style.opacity = locked ? '.4' : '';
     editBtn.style.cursor = locked ? 'not-allowed' : '';
   }
@@ -14915,7 +15093,7 @@ function editStudent(id){
   if(!rec) return;
   // ── Lock guard — blocks ALL entry points (row button, records modal, switched record), not just the row UI state ──
   if(isTermLocked(rec)){
-    notify(`🔒 "${_termLockLabel(rec)}" is locked. Ask an Advanced Admin to unlock it in Control Center before editing.`,'error',5000);
+    notify(`🔒 "${_termLockLabel(rec)}" is locked. Ask an Advanced Admin to unlock it in Settings before editing.`,'error',5000);
     return;
   }
   editingKey=id;
@@ -14968,7 +15146,7 @@ async function saveStudentRecord(){
   if(editingKey){
     const rec=allData.find(r=>r.id===editingKey);
     if(rec && isTermLocked(rec)){
-      notify(`🔒 "${_termLockLabel(rec)}" is locked. Unlock it in Control Center first.`,'error',5000);
+      notify(`🔒 "${_termLockLabel(rec)}" is locked. Unlock it in Settings first.`,'error',5000);
       return;
     }
   } else {
@@ -15058,7 +15236,7 @@ async function deleteStudent(id){
   }
   // ── Lock guard ────────────────────────────────────────────────────────────
   if(isTermLocked(rec)){
-    notify(`🔒 "${_termLockLabel(rec)}" is locked. Unlock it in Control Center to delete records.`,'error',5000);
+    notify(`🔒 "${_termLockLabel(rec)}" is locked. Unlock it in Settings to delete records.`,'error',5000);
     return;
   }
   // ─────────────────────────────────────────────────────────────────────────
@@ -16968,7 +17146,7 @@ async function remindPendingExamTeachers(key){
   }
 
   if(!teachers.length){
-    notify(`⚠️ ${unassignedSubjects.length} subject(s) still have missing scores for ${grade}, but no teacher is assigned to them. Check subject assignments in Control Center.`,'warn',6000);
+    notify(`⚠️ ${unassignedSubjects.length} subject(s) still have missing scores for ${grade}, but no teacher is assigned to them. Check subject assignments in Settings.`,'warn',6000);
   }
 
   const deadlineMs = pe.deadline || null;
@@ -17025,7 +17203,7 @@ async function remindPendingExamTeachers(key){
           <div class="prm-stat dl"><b>${dlInfo?`<span class="pe-countdown-badge" data-deadline="${deadlineMs}" style="color:${dlInfo.color}">${dlInfo.text}</span>`:'No deadline'}</b><span>${deadlineMs?E(new Date(deadlineMs).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'})):'Deadline'}</span></div>
         </div>
         ${unassignedSubjects.length ? `<div class="prm-warn">
-          ⚠️ <strong>${unassignedSubjects.length} subject(s) have missing scores but no assigned teacher</strong> — nobody is pinged for these until you assign a teacher in Control Center:
+          ⚠️ <strong>${unassignedSubjects.length} subject(s) have missing scores but no assigned teacher</strong> — nobody is pinged for these until you assign a teacher in Settings:
           <ul>${unassignedSubjects.map(x=>`<li>${E(x)} — ${missingBySubject[x].length} student(s) missing</li>`).join('')}</ul>
         </div>` : ''}
         <div class="prm-link">
@@ -17286,7 +17464,7 @@ async function applyMissingGenderFixes(){
     // this path need to allow writing 'Gender'.
     notify('❌ Error applying fixes: '+e.message,'error',8000);
   }finally{
-    if(btn){ btn.disabled = false; btn.textContent = '.Apply Fixes'; }
+    if(btn){ btn.disabled = false; btn.textContent = '✅ Apply Fixes'; }
   }
 }
 window.applyMissingGenderFixes = applyMissingGenderFixes;
@@ -17354,7 +17532,7 @@ async function deleteExtraSubject(key, subject, grade){
   const affectedRecords = allData.filter(r => gShort(r['Grade'])===grade && getSubjects(r).includes(subject));
   const hasRealData = affectedRecords.length > 0;
   const _lockedAff = affectedRecords.filter(r => isTermLocked(r));
-  if(_lockedAff.length){ notify(`🔒 "${subject}" has scores in ${_lockedAff.length} locked record(s) for ${grade}. Unlock those terms in Control Center first.`,'error',7000); return; }
+  if(_lockedAff.length){ notify(`🔒 "${subject}" has scores in ${_lockedAff.length} locked record(s) for ${grade}. Unlock those terms in Settings first.`,'error',7000); return; }
 
   const ok = await showConfirm(
     hasRealData ? '⚠️ Permanently Delete Subject Data?' : '🗑️ Remove Extra Subject',
@@ -17432,6 +17610,8 @@ function openSettingsModal(elId, title){
   if(elId==='restore-section') bkReset();
   if(elId==='grade-scale-section') gsRender();
   if(elId==='admin-account-section' && typeof maRender==='function') maRender();
+  var _st=document.getElementById('settings-content-store');
+  if(_st) Array.prototype.slice.call(body.children).forEach(function(c){ if(c!==el) _st.appendChild(c); });
   body.appendChild(el);
   el.style.display = '';
   document.getElementById('settings-item-modal').classList.add('on');
@@ -17448,7 +17628,7 @@ function closeSettingsModal(){
 window.closeSettingsModal = closeSettingsModal;
 
 /* ══════════════════════════════════════════
-   CONTROL CENTER (formerly "Settings")
+   SETTINGS
    Search + category filter + live counts + recently used.
    Purely presentational: every tile id, panel id and handler is unchanged;
    role gating still works by other code toggling tile.style.display.
@@ -17511,7 +17691,7 @@ function ccRefresh(){
 window.ccRefresh=ccRefresh; window.ccSetChip=ccSetChip; window.ccTrackUse=ccTrackUse;
 
 /* ══════════════════════════════════════════
-   CONTROL CENTER — Data Backup, Maintenance Mode, Bulk Permissions
+   SETTINGS — Data Backup, Maintenance Mode, Bulk Permissions
    Uses existing helpers only: firestoreDb, db/DB_PATH, window._fb, showConfirm, notify, logActivity.
 ══════════════════════════════════════════ */
 function _ccAdv(){ return typeof isAdvancedAdmin!=='undefined' && isAdvancedAdmin===true; }
@@ -17524,7 +17704,8 @@ function _ccGateTiles(){
 setInterval(_ccGateTiles,2000);
 /* ── Data Backup ── */
 async function ccBackupNow(){
-  if(!_ccAdv()) return;
+  if(!_ccAdv()) return false;
+  var _bkOk=false;
   var btn=document.getElementById('bk-btn'); btn.disabled=true; btn.textContent='Preparing…';
   try{
     var F=window._fb, out={app:'Kanyadet Results Portal',createdAt:new Date().toISOString(),createdBy:currentAdminName||'Admin'};
@@ -17541,8 +17722,10 @@ async function ccBackupNow(){
     document.getElementById('bk-last').textContent=stamp;
     notify('Backup downloaded ('+Object.keys(out.students).length+' student records, '+out.users.length+' staff accounts).','success',6000);
     logActivity('Data backup downloaded','act-blue',currentAdminName,{category:'system'});
+    _bkOk=true;
   }catch(e){ notify('Backup failed: '+e.message,'error'); }
   btn.disabled=false; btn.textContent='⬇️ Backup now';
+  return _bkOk;
 }
 window.ccBackupNow=ccBackupNow;
 /* ── Maintenance Mode ──
@@ -17559,7 +17742,7 @@ function _ccBar(id,bg,txt,click){
   if(!el){ el=document.createElement('div'); el.id=id; el.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99998;padding:7px 12px;text-align:center;font-size:12px;font-weight:800;color:#fff;background:'+bg+(click?';cursor:pointer':''); if(click) el.onclick=click; document.body.appendChild(el); }
   el.textContent=txt;
 }
-function _ccOpenMaint(){ try{ navTo('settings',document.querySelector('.nav-item[data-label="Control Center"]')); openSettingsModal('maint-section','🚧 Maintenance Mode'); }catch(e){} }
+function _ccOpenMaint(){ try{ navTo('settings',document.querySelector('.nav-item[data-label="Settings"]')); openSettingsModal('maint-section','🚧 Maintenance Mode'); }catch(e){} }
 function _ccMaintRender(){
   var act=_ccMaintActive(), pend=_ccMaintPending(), signed=!!(window._currentUser&&window._currentUser.uid), adv=_ccAdv();
   var tg=document.getElementById('maint-toggle'), st=document.getElementById('maint-status');
@@ -17577,6 +17760,7 @@ function _ccMaintRender(){
   if(pend&&signed&&!adv){ var mins=Math.max(1,Math.ceil((_ccMaint.from-Date.now())/60000)); _ccBar('cc-maint-warn','#d68910','🚧 Maintenance starts in '+(mins>=60?Math.floor(mins/60)+' h '+(mins%60)+' min':mins+' min')+' ('+_ccFmt(_ccMaint.from)+'). Please finish and save your work now.'); } else _ccBar('cc-maint-warn','',null);
   if(signed&&adv&&(act||pend)) _ccBar('cc-maint-bar',act?'#e67e22':'#d68910',act?'🚧 Maintenance Mode is ON — staff are locked out. Click to manage.':'🚧 Maintenance scheduled for '+_ccFmt(_ccMaint.from)+'. Click to manage.',_ccOpenMaint); else _ccBar('cc-maint-bar','',null);
 }
+function _ccUnsub(r,h){ try{ if(typeof h==='function') h(); else window._fb.off(r,'value',h); }catch(e){} }
 function _ccMaintStart(){
   if(_ccMaintOff||typeof db==='undefined'||!db||!window._fb||!window._fb.onValue) return;
   try{ var r=window._fb.ref(db,'maintenance'), loc=function(ms){ return ms?new Date(ms-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16):''; };
@@ -17585,7 +17769,7 @@ function _ccMaintStart(){
         var f=document.getElementById('maint-from'); if(f&&document.activeElement!==f) f.value=loc(_ccMaint.from);
         var u=document.getElementById('maint-until'); if(u&&document.activeElement!==u) u.value=loc(_ccMaint.until);
         _ccMaintRender(); },function(){ _ccMaintOff=null; });
-    _ccMaintOff=function(){ try{ window._fb.off(r,'value',h); }catch(e){} };
+    _ccMaintOff=function(){ _ccUnsub(r,h); };
   }catch(e){ _ccMaintOff=null; }
 }
 setInterval(function(){ _ccMaintStart(); _ccMaintRender(); },2500);
@@ -17637,7 +17821,7 @@ async function ccBulkImport(allow){
 window.ccBulkAll=ccBulkAll; window.ccBulkImport=ccBulkImport;
 
 /* ══════════════════════════════════════════
-   CONTROL CENTER — Term Setup Wizard, Term Automations, Temporary Access
+   SETTINGS — Term Setup Wizard, Term Automations, Temporary Access
    Automation state: Firestore config/termAutomation {reminders:{on,daysBefore}, locks:[], nudged:[]}
 ══════════════════════════════════════════ */
 function _ccFv(id){ var e=document.getElementById(id); return e?e.value:''; }
@@ -17646,7 +17830,7 @@ function _ccFmt(ms){ return new Date(ms).toLocaleString('en-KE',{dateStyle:'medi
 async function _ccAutoUpdate(fn){
   var F=window._fb, r=F.doc(firestoreDb,'config','termAutomation'), sn=await F.getDoc(r), d=sn.exists()?sn.data():{};
   d.reminders=d.reminders||{on:true,daysBefore:2}; d.locks=d.locks||[]; d.nudged=d.nudged||[];
-  await fn(d); await F.setDoc(r,d); return d;
+  var _before=JSON.stringify(d); await fn(d); if(JSON.stringify(d)!==_before) await F.setDoc(r,d); return d;
 }
 async function _ccAnnounce(title,body){
   var F=window._fb; await F.set(F.push(F.ref(db,ANNOUNCEMENTS_PATH)),{title:title,body:body,type:'warn',createdBy:currentAdminName||'Admin',createdByUid:(window._currentUser&&window._currentUser.uid)||'',createdAt:Date.now()});
@@ -17754,7 +17938,7 @@ async function txGrant(){
 window.twPreview=twPreview; window.twCreate=twCreate; window.taToggleRem=taToggleRem; window.taSaveRem=taSaveRem; window.taAddLock=taAddLock; window.ccAutoSweep=ccAutoSweep; window.txGrant=txGrant;
 
 /* ══════════════════════════════════════════
-   CONTROL CENTER — Staff Security Status + Active Sessions
+   SETTINGS — Staff Security Status + Active Sessions
    Firestore: sessions/{uid}_{deviceId} {uid,name,email,deviceId,device,startedAt,lastSeen,revoked}
               users/{uid}.passkeyDevices.{deviceId} = {at,label}  (mirrored when a passkey is set up / seen on sign-in)
 ══════════════════════════════════════════ */
@@ -17870,7 +18054,7 @@ function acRender(){
     row.innerHTML='<div class="setting-info"><h4></h4><p></p></div><span class="bdg red"></span>';
     row.querySelector('h4').textContent=(r.name||r.email||r.uid||'Unknown');
     row.querySelector('p').textContent=(r.email||'')+' · '+(r.device||'')+' · '+new Date(r.ts).toLocaleString('en-KE',{dateStyle:'medium',timeStyle:'short'});
-    row.querySelector('.bdg').textContent=r.op==='open-control-centre'?'Opened Control Center':r.op==='control-centre-open'?'Tried: '+r.path:r.op==='db-write-denied'?'Write blocked: '+r.path:r.op==='db-read-denied'?'Read blocked: '+r.path:r.op+': '+r.path; box.appendChild(row); });
+    row.querySelector('.bdg').textContent=r.op==='open-control-centre'?'Opened Settings':r.op==='control-centre-open'?'Tried: '+r.path:r.op==='db-write-denied'?'Write blocked: '+r.path:r.op==='db-read-denied'?'Read blocked: '+r.path:r.op+': '+r.path; box.appendChild(row); });
 }
 window.acLoad=acLoad; window.acRender=acRender;
 /* Staff Security Status panel */
@@ -17911,7 +18095,7 @@ window.secRender=secRender; window.secRemindAll=secRemindAll;
 
 
 /* ══════════════════════════════════════════
-   CONTROL CENTER — Backup Restore, Grading Scale
+   SETTINGS — Backup Restore, Grading Scale
 ══════════════════════════════════════════ */
 function _ccStable(o){ if(o===null||typeof o!=='object') return JSON.stringify(o); if(Array.isArray(o)) return '['+o.map(_ccStable).join(',')+']'; return '{'+Object.keys(o).sort().map(function(k){return JSON.stringify(k)+':'+_ccStable(o[k]);}).join(',')+'}'; }
 function _ccCompound(grade,y,t,st,type){ var L=(typeof _TERM_LETTER!=='undefined'&&_TERM_LETTER[t])||'A', lab=/\bterm\b/i.test(type)?type.replace(/\s+Term\b/i,'-Term')+' '+t:type+' Term '+t; return grade+'-'+y+'-'+L+st+'-'+lab; }
@@ -17942,7 +18126,7 @@ async function bkApply(){
   if(!_bk||!_bk.plan||!_ccAdv()) return; var pl=_bk.plan, n=pl.add.length+pl.chg.length+pl.ext.length; if(!n) return;
   var ok=await showConfirm('Restore from backup','This will change '+n+' record(s)'+(pl.ext.length?', including DELETING '+pl.ext.length:'')+'. A safety backup of the current data downloads first. Continue?','♻️','Restore','btn-red'); if(!ok) return;
   var btn=document.getElementById('bk-apply'); btn.disabled=true; btn.textContent='⏳ Restoring…';
-  try{ await ccBackupNow();
+  try{ if(!(await ccBackupNow())) throw new Error('the safety backup could not be created, so no records were changed');
     var u={}; pl.add.concat(pl.chg).forEach(function(id){ u[DB_PATH+'/'+id]=_bk.students[id]; }); pl.ext.forEach(function(id){ u[DB_PATH+'/'+id]=null; });
     var done=await _ccBatchUpdate(u); logActivity('Backup restored: '+done+' record(s) changed','act-orange',currentAdminName,{category:'system'});
     notify(done+' record(s) restored.','success',7000); setTimeout(refreshData,1000); bkReset();
@@ -17957,7 +18141,7 @@ function _gsApply(m){ m.forEach(function(v,i){ GRADE_SCALE[i].min=v; GRADE_SCALE
 function _gsStart(){
   if(_gsOff||typeof db==='undefined'||!db||!window._fb||!window._fb.onValue) return;
   try{ var r=window._fb.ref(db,'gradingScale'), h=window._fb.onValue(r,function(sn){ var d=sn.val(); _gsApply(d&&_gsValid(d.mins)?d.mins:_gsDefault); try{ if(typeof renderAll==='function') renderAll(); }catch(e){} var l=document.getElementById('gs-list'); if(l&&l.offsetParent) gsRender(); },function(){ _gsOff=null; });
-    _gsOff=function(){ try{ window._fb.off(r,'value',h); }catch(e){} }; }catch(e){ _gsOff=null; }
+    _gsOff=function(){ _ccUnsub(r,h); }; }catch(e){ _gsOff=null; }
 }
 setInterval(_gsStart,3000);
 function gsRender(){ var l=document.getElementById('gs-list'); if(!l) return; l.innerHTML='';
@@ -17979,7 +18163,7 @@ async function gsReset(){ if(!_ccAdv()) return; var ok=await showConfirm('Reset 
 window.gsRender=gsRender; window.gsPreview=gsPreview; window.gsSave=gsSave; window.gsReset=gsReset;
 
 /* ══════════════════════════════════════════
-   CONTROL CENTER — fixes: photos toggle, live DB status, persisted auto-refresh,
+   SETTINGS — fixes: photos toggle, live DB status, persisted auto-refresh,
    mid-session import expiry, live whitelist sign-out
 ══════════════════════════════════════════ */
 window._showStudentPhotos = (function(){ try{ return localStorage.getItem('kps_show_photos')!=='0'; }catch(e){ return true; } })();
@@ -18000,7 +18184,7 @@ function ccDbStatus(){
   rc.textContent=(typeof allData!=='undefined'&&allData.length!=null)?allData.length+' records loaded':'—'; rc.className='bdg blue';
   try{ if(window._ccConnOff) window._ccConnOff();
     var r=window._fb.ref(db,'.info/connected'), h=window._fb.onValue(r,function(sn){ var on=sn.val()===true; st.textContent=on?'Connected':'Offline'; st.className='bdg '+(on?'green':'red'); });
-    window._ccConnOff=function(){ try{ window._fb.off(r,'value',h); }catch(e){} };
+    window._ccConnOff=function(){ _ccUnsub(r,h); };
   }catch(e){ st.textContent='Unknown'; st.className='bdg'; }
 }
 window.ccDbStatus=ccDbStatus;
@@ -18077,7 +18261,7 @@ function navTo(view,el){
     view = 'dashboard';
     el = document.querySelector('.nav-item[data-label="Dashboard"]');
   }
-  // Monitor: anyone who isn't an Advanced Admin reaching the Control Center is recorded (see Access Attempts).
+  // Monitor: anyone who isn't an Advanced Admin reaching the Settings is recorded (see Access Attempts).
   if(view==='settings' && !isAdvancedAdmin){ try{ _ccLogAttempt('open-control-centre','settings'); }catch(e){} }
   // ───────────────────────────────────────────────────────────────────────
 
@@ -18089,13 +18273,13 @@ function navTo(view,el){
   if(viewEl)viewEl.classList.add('active');
   if(el)el.classList.add('active');
   const crumbs={dashboard:'Overview & Analytics',students:'Student Directory',results:'Results & Grades',analytics:'Charts & Insights',duplicates:'Same name or ULI across records',reports:'Report Cards & Export',import:'CSV / Excel Import',announcements:'School Notices',messages:'Chat with teachers & staff',settings:'Portal Configuration',auditlog:'Full Admin Audit Trail',profile:'Edit Your Profile & Password',progressrecords:'Download score history by subject & class'};
-  const titles={dashboard:'Dashboard',students:'Students',results:'Results',analytics:'Analytics',duplicates:'Duplicates',reports:'Report Cards',import:'Import Data',announcements:'Announcements',messages:'Messages',settings:'Control Center',auditlog:'Audit Log',profile:'My Profile',progressrecords:'Progress Records'};
+  const titles={dashboard:'Dashboard',students:'Students',results:'Results',analytics:'Analytics',duplicates:'Duplicates',reports:'Report Cards',import:'Import Data',announcements:'Announcements',messages:'Messages',settings:'Settings',auditlog:'Audit Log',profile:'My Profile',progressrecords:'Progress Records'};
   if(document.getElementById('topbar-title'))document.getElementById('topbar-title').textContent=titles[view]||view;
   if(view==='profile') profLoadInfo();
   if(document.getElementById('topbar-crumb'))document.getElementById('topbar-crumb').textContent=crumbs[view]||'';
   if(el) el.classList.add('active');
   document.getElementById('topbar-title').textContent=el?.querySelector('span+*')?.textContent||view.charAt(0).toUpperCase()+view.slice(1);
-  if(view==='settings') document.getElementById('topbar-title').textContent='Control Center';
+  if(view==='settings') document.getElementById('topbar-title').textContent='Settings';
   document.getElementById('topbar-crumb').textContent=views[view]||'';
   if(view==='auditlog') renderAuditView();
   if(view==='announcements' && typeof renderAnnouncements==='function') renderAnnouncements();
@@ -19769,7 +19953,7 @@ function renderRecordContent(allRecs, idx){
   _modalEditBtn.setAttribute('data-id', rec.id);
   const _locked = isTermLocked(rec);
   _modalEditBtn.disabled = _locked;
-  _modalEditBtn.title = _locked ? 'Term locked — go to Control Center to unlock' : '';
+  _modalEditBtn.title = _locked ? 'Term locked — go to Settings to unlock' : '';
   _modalEditBtn.style.opacity = _locked ? '.4' : '';
   _modalEditBtn.style.cursor = _locked ? 'not-allowed' : '';
 
@@ -20076,7 +20260,7 @@ const TOUR_STEPS=[
   {sel:'.nav-item[data-label="Announcements"]', icon:'📢', title:'Announcements', desc:'Post school-wide notices that every staff member sees when they log in.', view:'announcements'},
   {sel:'.nav-item[data-label="Messages"]', icon:'💬', title:'Messages', desc:'Direct real-time chat with other teachers and admins on the platform.', view:'messages'},
   {sel:'.nav-item[data-label="My Profile"]', icon:'👤', title:'My Profile', desc:'Update your name, photo, and change your password here.', view:'profile'},
-  {sel:'.nav-item[data-label="Control Center"]', icon:'⚙️', title:'Control Center', desc:'Where admin controls live — database connection, Term Lock (freeze a past term), exam deadlines, teacher accounts and sign-in access. Use the search box to jump straight to a control.', view:'settings'},
+  {sel:'.nav-item[data-label="Settings"]', icon:'⚙️', title:'Settings', desc:'Where admin controls live — database connection, Term Lock (freeze a past term), exam deadlines, teacher accounts and sign-in access. Use the search box to jump straight to a control.', view:'settings'},
   {sel:'.nav-item[data-label="Audit Log"]', icon:'🗂️', title:'Audit Log', desc:'A running history of important actions — who signed in, edited a record, or imported data.', view:'auditlog'},
   {sel:'[onclick="openSmartSearch()"]', icon:'🔍', title:'Smart Search', desc:'Press Ctrl+K anytime to jump straight to any student or page without navigating manually.', view:null},
   {sel:'.theme-toggle', icon:'🌙', title:'Dark / Light Mode', desc:'Switch themes here. Your choice is remembered next time you log in.', view:null},
@@ -20248,6 +20432,7 @@ document.addEventListener('keydown',function(e){
 
   if(e.key==='Escape'){
     document.querySelectorAll('.modal-overlay.on').forEach(m=>m.classList.remove('on'));
+    try{ closeSettingsModal(); }catch(_e){}
     closeConfirm();
     if(document.body.classList.contains('print-mode'))togglePrintMode();
     return;
@@ -23198,7 +23383,7 @@ async function loadQuickEntry(){
             which is now <strong>${_peDlInfo.text.replace('⚠️ ','')}</strong> in the past. This exam is locked and can no longer be opened for score entry.
           </div>
           <div style="font-size:12px;color:var(--text3);margin-top:10px">
-            If you still need to submit or correct scores, ask an Advanced Admin to extend the deadline (Control Center → Score Entry Deadlines) or open this exam for you.
+            If you still need to submit or correct scores, ask an Advanced Admin to extend the deadline (Settings → Score Entry Deadlines) or open this exam for you.
           </div>
         </div>`;
     }
@@ -23387,7 +23572,7 @@ async function loadQuickEntry(){
   // tell them plainly what's going on and who can fix it, instead of
   // leaving them staring at an empty table.
   if(!_qeIsFullAccessForGrade && _qeAllGradeSubjects.length && !_qeSubjects.length){
-    notify(`🔒 You don't have any subject assigned for ${pendingGrade} yet — ask an Advanced Admin to assign one in Control Center → Grade Assignments.`,'warn',8000);
+    notify(`🔒 You don't have any subject assigned for ${pendingGrade} yet — ask an Advanced Admin to assign one in Settings → Grade Assignments.`,'warn',8000);
   }
 
   // ── Pull in any scores already submitted to the database for this exam ────
@@ -25274,7 +25459,7 @@ function renderEntryBoard(){
     const covered = new Set(); teachers.forEach(t=>t.items.forEach(i=>covered.add(i.exam.key+'||'+i.subject)));
     const orphan = [];
     _ep.exams.forEach(e=>e.subs.forEach(s=>{ if(s.missing && !covered.has(e.key+'||'+s.subject)) orphan.push(`${e.grade} · ${s.subject} (${s.missing})`); }));
-    body.innerHTML = (orphan.length?`<div class="ep-warn">⚠️ No teacher assigned for: ${orphan.map(_gavgEsc).join(' · ')}. Check subject assignments in Control Center.</div>`:'')
+    body.innerHTML = (orphan.length?`<div class="ep-warn">⚠️ No teacher assigned for: ${orphan.map(_gavgEsc).join(' · ')}. Check subject assignments in Settings.</div>`:'')
     + teachers.map(t=>{
       const p = t.total ? Math.round((t.total-t.missing)/t.total*1000)/10 : 100;
       const phone = _waNormalizePhone(t.phone);
@@ -26165,14 +26350,14 @@ function toggleAutoRefresh(){
   else{ clearInterval(autoRefreshTimer); notify('Auto-refresh disabled.','info'); }
 }
 function saveSettings(){
-  const name=document.getElementById('setting-admin-name').value.trim();
+  const name=((document.getElementById('setting-admin-name')||{}).value||'').trim();
   const newPass=document.getElementById('setting-new-pass')?.value||'';
   const confPass=document.getElementById('setting-confirm-pass')?.value||'';
   if(newPass&&newPass!==confPass){notify('❌ Passwords do not match.','error');return;}
   if(newPass&&newPass.length<6){notify('❌ Password must be at least 6 characters.','error');return;}
   if(name) document.getElementById('admin-name').textContent=name;
   if(name) currentAdminName=name;
-  notify('.Settings saved!','success');
+  notify('Settings saved!','success');
   logActivity('⚙️ Updated portal settings','act-blue',currentAdminName);
 }
 window.saveSettings=saveSettings;
@@ -26210,9 +26395,10 @@ function maRender(){
     }).join('');
   }
 
+  var _maImp=(typeof _canImportNow==='function')?_canImportNow():(adm||canImportData===true);
   var perms=[
     ['Enter &amp; edit scores',                 adm || grades.length>0, adm?'Every grade':'Your assigned grades only'],
-    ['Import Data',                             canImportData===true,   canImportData?'Allowed':'Not allowed for your account'],
+    ['Import Data',                             _maImp,                 _maImp?(adm?'Every grade':'Allowed'):'Not allowed for your account'],
     ['Report Cards',                            adm || isCT,            'Class Teachers &amp; Advanced Admins'],
     ['Add / delete students',                   adm || isCT,            'Class Teachers &amp; Advanced Admins'],
     ['Audit log &amp; admin tools',             adm,                    'Advanced Admins only']
@@ -26237,6 +26423,792 @@ function maRender(){
       +'<button class="btn btn-outline btn-sm" onclick="closeSettingsModal();navTo(\'profile\',document.getElementById(\'nav-profile\'))">Edit my profile</button></div>';
 }
 window.maRender=maRender;
+
+/* ══════════════════════════════════════════════════════════════════════════
+   STUDENT HOME CONTACTS
+   Stored ONCE per learner at studentContacts/{AssessmentNo} (not on per-term
+   result records) so it never needs re-entry and can never reach report
+   cards, result exports, progress records or mark sheets — those only read
+   allData. Access: class teacher of the learner's grade + Advanced Admins.
+   Audit log records WHO edited WHOM, never the ID/birth-cert values.
+   ══════════════════════════════════════════════════════════════════════════ */
+const SC_PATH = 'studentContacts';
+const SC_FIELDS = ['bc','home','fn','fid','fp','mn','mid','mp','gn','gid','gp','primary','note'];
+let _scMap = null, _scLoading = null, _scCur = null;
+
+function _scKey(asm){ return String(asm||'').trim().replace(/[.#$\/\[\]\s]/g,'_'); }
+function _scLatestRec(rec){ return getLatestStudentRecord(rec['Official Student Name'], rec.id) || rec; }
+function _scCan(rec){ return !!rec && _isClassTeacherOfGrade(gShort((_scLatestRec(rec))['Grade']||'')); }
+function _scAnyAccess(){ return isAdvancedAdmin || (currentClassTeacherGrades||[]).length > 0; }
+
+async function _scLoadAll(force){
+  if(_scMap && !force) return _scMap;
+  if(_scLoading) return _scLoading;
+  _scLoading = (async()=>{
+    try{
+      const { ref, get } = window._fb;
+      const s = await get(ref(db, SC_PATH));
+      _scMap = s.exists() ? s.val() : {};
+    } finally { _scLoading = null; }
+    return _scMap;
+  })();
+  return _scLoading;
+}
+
+/** One entry per learner (by Assessment No), taken from their most recent record, limited to what this user may access. */
+function _scScope(){
+  const best = new Map();
+  (allData||[]).forEach(r=>{
+    const asm = String(r['Assessment No']||'').trim();
+    if(!asm) return;
+    const cur = best.get(asm);
+    if(!cur || _qeCompoundOrderKey(getRecordTerm(r)).localeCompare(_qeCompoundOrderKey(getRecordTerm(cur))) > 0) best.set(asm, r);
+  });
+  return [...best.values()].filter(r => _isClassTeacherOfGrade(gShort(r['Grade']||'')));
+}
+
+function _scHasAny(c){ return !!c && SC_FIELDS.some(k => k!=='primary' && k!=='note' && String(c[k]||'').trim()); }
+function _scNormPhone(v){
+  let s = String(v==null?'':v).trim().replace(/[\s\-()]/g,'');
+  if(/^[71]\d{8}$/.test(s)) s = '0'+s;            // Excel dropped the leading zero
+  if(/^\+?254[71]\d{8}$/.test(s)) s = '0'+s.replace(/^\+?254/,'');
+  return s;
+}
+function _scValid(c){
+  for(const k of ['fid','mid','gid','bc']){
+    const v = String(c[k]||'').trim();
+    if(v && !/^[A-Za-z0-9\/\-]{4,20}$/.test(v)) return k;
+  }
+  for(const k of ['home','fp','mp','gp']){
+    const v = String(c[k]||'').trim();
+    if(v && !/^\+?\d{9,13}$/.test(v)) return k;
+  }
+  return null;
+}
+const _SC_LABEL = {bc:'Birth Cert No',home:'Home Contact',fn:'Father name',fid:'Father ID',fp:'Father phone',mn:'Mother name',mid:'Mother ID',mp:'Mother phone',gn:'Guardian name',gid:'Guardian ID',gp:'Guardian phone'};
+
+function scAttachToProfile(rec){
+  const btn = document.getElementById('modal-contacts-btn');
+  if(!btn) return;
+  if(!rec || !rec['Assessment No'] || !_scCan(rec)){ btn.style.display='none'; return; }
+  btn.style.display='';
+  btn.onclick = ()=>scOpenModal(rec);
+}
+
+async function scOpenModal(rec){
+  if(!_scCan(rec)){ notify('🔒 Only the class teacher or an Advanced Admin can open home contacts.','error',5000); return; }
+  const asm = String(rec['Assessment No']||'').trim();
+  if(!asm){ notify('This learner has no Assessment No — add it first.','error',5000); return; }
+  _scCur = { asm, name: rec['Official Student Name']||'' };
+  document.getElementById('sc-title').textContent = '🏠 Home Contacts — ' + _scCur.name;
+  SC_FIELDS.forEach(k=>{ const el=document.getElementById(k==='primary'?'sc-primary':'sc-'+k); if(el) el.value=''; });
+  document.getElementById('contacts-modal').classList.add('on');
+  _scLoadPhoto(rec);
+  try{
+    const { ref, get } = window._fb;
+    const s = await get(ref(db, SC_PATH+'/'+_scKey(asm)));
+    const c = s.exists() ? s.val() : {};
+    SC_FIELDS.forEach(k=>{ const el=document.getElementById(k==='primary'?'sc-primary':'sc-'+k); if(el) el.value = c[k]||''; });
+  }catch(e){
+    notify('⚠️ Could not load contacts: '+(e&&e.message||e)+' — check the studentContacts database rule.','error',7000);
+  }
+}
+function scCloseModal(){ document.getElementById('contacts-modal').classList.remove('on'); _scCur=null; }
+
+async function scSave(){
+  if(!_scCur) return;
+  const c = {};
+  SC_FIELDS.forEach(k=>{ const el=document.getElementById(k==='primary'?'sc-primary':'sc-'+k); c[k]=String(el.value||'').trim(); });
+  ['home','fp','mp','gp'].forEach(k=>{ c[k]=_scNormPhone(c[k]); document.getElementById('sc-'+k).value=c[k]; });
+  const bad = _scValid(c);
+  if(bad){ notify('⚠️ Check '+_SC_LABEL[bad]+' — it does not look valid.','error',5000); return; }
+  const btn = document.getElementById('sc-save-btn'); btn.disabled = true;
+  try{
+    const { ref, update } = window._fb;
+    c.updatedAt = Date.now();
+    c.updatedBy = (window._currentUser && window._currentUser.uid) || '';
+    c.updatedByName = currentAdminName || '';
+    await update(ref(db, SC_PATH+'/'+_scKey(_scCur.asm)), c);
+    if(_scMap) _scMap[_scKey(_scCur.asm)] = Object.assign({}, _scMap[_scKey(_scCur.asm)]||{}, c);
+    logActivity('🏠 Updated home contacts — '+_scCur.name, 'act-blue', currentAdminName, { category:'edit', targetId:_scCur.asm, targetName:_scCur.name, extra:'Home contacts (values not logged)' });
+    notify('✅ Home contacts saved','success',3000);
+    scCloseModal();
+    _scRefreshBadge();
+  }catch(e){
+    notify('❌ Could not save: '+(e&&e.message||e),'error',7000);
+  }finally{ btn.disabled = false; }
+}
+
+const _SC_HEAD = ['Assessment No','Student Name','Grade','Birth Cert No','Home Contact','Father Name','Father ID No','Father Phone','Mother Name','Mother ID No','Mother Phone','Guardian Name','Guardian ID No','Guardian Phone','Primary Contact','Notes'];
+const _SC_COLS = [null,null,null,'bc','home','fn','fid','fp','mn','mid','mp','gn','gid','gp','primary','note'];
+
+async function scDownloadSheet(){
+  if(!_scAnyAccess()){ notify('🔒 Class teachers and Advanced Admins only.','error',4000); return; }
+  if(!window.XLSX){ notify('Excel library not loaded yet — try again.','error',4000); return; }
+  try{ await _scLoadAll(); }catch(e){ notify('⚠️ Could not read contacts: '+(e&&e.message||e),'error',6000); return; }
+  const scope = _scScope().sort((a,b)=> gShort(a['Grade']||'').localeCompare(gShort(b['Grade']||''),undefined,{numeric:true}) || String(a['Official Student Name']||'').localeCompare(String(b['Official Student Name']||'')));
+  if(!scope.length){ notify('No learners found in your class.','info',4000); return; }
+  const rows = scope.map(r=>{
+    const c = _scMap[_scKey(r['Assessment No'])] || {};
+    return _SC_COLS.map((k,i)=> i===0 ? String(r['Assessment No']).trim() : i===1 ? (r['Official Student Name']||'') : i===2 ? gShort(r['Grade']||'') : String(c[k]||''));
+  });
+  const ws = window.XLSX.utils.aoa_to_sheet([_SC_HEAD, ...rows]);
+  ws['!cols'] = _SC_HEAD.map((h,i)=>({wch: i===1?28:i<3?14:16}));
+  const wb = window.XLSX.utils.book_new();
+  window.XLSX.utils.book_append_sheet(wb, ws, 'Home Contacts');
+  const grades = [...new Set(scope.map(r=>gShort(r['Grade']||'')))];
+  window.XLSX.writeFile(wb, 'Home_Contacts_'+(grades.length===1?grades[0].replace(/\s+/g,'_'):'All')+'.xlsx');
+  logActivity('📤 Exported home contacts sheet ('+scope.length+' learners)','act-blue',currentAdminName,{category:'export'});
+}
+
+async function scImportFile(file){
+  if(!file) return;
+  if(!_scAnyAccess()){ notify('🔒 Class teachers and Advanced Admins only.','error',4000); return; }
+  if(!window.XLSX){ notify('Excel library not loaded yet — try again.','error',4000); return; }
+  try{
+    const wb = window.XLSX.read(await file.arrayBuffer(), {type:'array'});
+    const raw = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:'', raw:false});
+    const norm = s=>String(s).toLowerCase().replace(/[^a-z0-9]/g,'');
+    const headMap = {assessmentno:'asm',birthcertno:'bc',birthcertificateno:'bc',homecontact:'home',homephone:'home',fathername:'fn',fatheridno:'fid',fatherid:'fid',fatherphone:'fp',mothername:'mn',motheridno:'mid',motherid:'mid',motherphone:'mp',guardianname:'gn',guardianidno:'gid',guardianid:'gid',guardianphone:'gp',primarycontact:'primary',notes:'note',note:'note'};
+    await _scLoadAll();
+    const scope = new Map(_scScope().map(r=>[String(r['Assessment No']).trim(), r]));
+    const updates = {}; let changed=0, skippedScope=0, invalid=[], unchanged=0;
+    raw.forEach((row,i)=>{
+      const o = {};
+      Object.keys(row).forEach(h=>{ const k=headMap[norm(h)]; if(k) o[k]=String(row[h]==null?'':row[h]).trim(); });
+      if(!o.asm) return;
+      const rec = scope.get(o.asm);
+      if(!rec){ skippedScope++; return; }
+      ['home','fp','mp','gp'].forEach(k=>{ if(o[k]) o[k]=_scNormPhone(o[k]); });
+      if(o.primary){ const m = {father:'Father',mother:'Mother',guardian:'Guardian',home:'Home','home contact':'Home'}[o.primary.toLowerCase()]; o.primary = m||''; }
+      const key = _scKey(o.asm);
+      const existing = _scMap[key] || {};
+      const merged = Object.assign({}, existing);
+      let diff = false;
+      SC_FIELDS.forEach(k=>{ if(o[k] && o[k]!==String(existing[k]||'')){ merged[k]=o[k]; diff=true; } });   // blank cells never erase
+      if(!diff){ unchanged++; return; }
+      const bad = _scValid(merged);
+      if(bad){ invalid.push((rec['Official Student Name']||o.asm)+' ('+_SC_LABEL[bad]+')'); return; }
+      merged.updatedAt = Date.now(); merged.updatedBy = (window._currentUser&&window._currentUser.uid)||''; merged.updatedByName = currentAdminName||'';
+      updates[key] = merged; changed++;
+    });
+    if(changed){
+      const { ref, update } = window._fb;
+      const keys = Object.keys(updates);
+      for(let i=0;i<keys.length;i+=200){
+        const chunk = {}; keys.slice(i,i+200).forEach(k=>chunk[k]=updates[k]);
+        await update(ref(db, SC_PATH), chunk);
+      }
+      Object.assign(_scMap, updates);
+      logActivity('📥 Imported home contacts ('+changed+' learners)','act-blue',currentAdminName,{category:'import', extra:changed+' learners updated (values not logged)'});
+    }
+    _scRefreshBadge();
+    let msg = '✅ '+changed+' updated · '+unchanged+' unchanged';
+    if(skippedScope) msg += ' · '+skippedScope+' skipped (not in your class / unknown Assessment No)';
+    if(invalid.length) msg += ' · ⚠️ '+invalid.length+' not saved: '+invalid.slice(0,3).join(', ')+(invalid.length>3?'…':'');
+    notify(msg, invalid.length?'warn':'success', 9000);
+  }catch(e){
+    notify('❌ Import failed: '+(e&&e.message||e),'error',7000);
+  }
+}
+
+async function _scRefreshBadge(){
+  const bar = document.getElementById('sc-toolbar'), badge = document.getElementById('sc-badge');
+  if(!bar || !badge) return;
+  if(!_scAnyAccess()){ bar.style.display='none'; return; }
+  bar.style.display='inline-flex';
+  try{
+    await _scLoadAll();
+    const scope = _scScope();
+    const missing = scope.filter(r=>!_scHasAny(_scMap[_scKey(r['Assessment No'])])).length;
+    badge.textContent = scope.length ? (missing ? '⚠️ '+missing+' of '+scope.length+' missing contacts' : '✅ All '+scope.length+' have contacts') : '';
+    badge.style.color = missing ? 'var(--orange,#e07826)' : 'var(--green,#2e7d32)';
+    if(document.getElementById('view-homecontacts')?.classList.contains('active')) hcRender();
+  }catch(e){ badge.textContent = ''; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HOME CONTACTS VIEW (sidebar) — call, WhatsApp, SMS, broadcast, vCard, print.
+   Data: studentContacts/{AssessmentNo} (see STUDENT HOME CONTACTS above).
+   Scope: learners of the user's class(es); Advanced Admins see all.
+   ══════════════════════════════════════════════════════════════════════════ */
+const HC_SCHOOL = 'Kanyadet Primary & Junior School';
+const HC_TEMPLATES = {
+  general:{label:'General message', text:'Dear {parent}, greetings from {school}. Regarding {learner} ({grade}): '},
+  meeting:{label:"Parents meeting", text:"Dear {parent}, you are invited to a parents' meeting at {school} concerning {learner} ({grade}). Date: ____  Time: ____. Your attendance is important. Thank you."},
+  absent:{label:'Learner absent today', text:'Dear {parent}, {learner} ({grade}) was absent from school today. Kindly let the class teacher know the reason. Thank you. — {school}'},
+  results:{label:'Results ready (collect report)', text:"Dear {parent}, {learner}'s ({grade}) results are ready. Kindly collect the report card at school. Thank you. — {school}"},
+  resultsScore:{label:'📊 Results with scores', text:'Dear {parent}, {learner} ({grade}) — {term}: Mean {mean}% ({level}), Position {position}. Kindly collect the full report card at school. — {school}'},
+  general_sw:{label:'🇰🇪 Kiswahili: Ujumbe wa jumla', text:'Habari {parent}, salamu kutoka {school}. Kuhusu {learner} ({grade}): '},
+  meeting_sw:{label:'🇰🇪 Kiswahili: Mkutano wa wazazi', text:'Mzazi/Mlezi {parent}, unaalikwa kwenye mkutano wa wazazi katika {school} kuhusu {learner} ({grade}). Tarehe: ____  Saa: ____. Uwepo wako ni muhimu. Asante.'},
+  absent_sw:{label:'🇰🇪 Kiswahili: Mwanafunzi hakuhudhuria', text:'Habari {parent}, {learner} ({grade}) hakuhudhuria shule leo. Tafadhali mjulishe mwalimu wa darasa sababu. Asante. — {school}'},
+  results_sw:{label:'🇰🇪 Kiswahili: Matokeo tayari', text:'Habari {parent}, matokeo ya {learner} ({grade}) yako tayari. Tafadhali chukua kadi ya ripoti shuleni. Asante. — {school}'},
+  resultsScore_sw:{label:'🇰🇪 Kiswahili: Matokeo na alama', text:'Habari {parent}, matokeo ya {learner} ({grade}) — {term}: Wastani {mean}% ({level}), Nafasi {position}. Tafadhali chukua kadi kamili ya ripoti shuleni. — {school}'},
+  custom:{label:'Custom (blank)', text:''}
+};
+let _hcRows = [], _hcView = [], _hcByDk = {}, _hcSel = new Set(), _hcOpen = new Set(), _hcShowIds = new Set(), _hcLimit = 60, _hcQueue = [], _hcLogged = new Set(), _hcT = null;
+
+const _hcEsc = v => String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function _hcIntl(p){
+  let s = String(p||'').replace(/[^\d+]/g,'').replace(/^\+/,'');
+  if(/^0[71]\d{8}$/.test(s)) s = '254'+s.slice(1);
+  else if(/^[71]\d{8}$/.test(s)) s = '254'+s;
+  return s;
+}
+function _hcMask(v){ v=String(v||''); return v.length>3 ? '•'.repeat(Math.min(v.length-3,8))+v.slice(-3) : v; }
+function _hcNums(c, goodOnly){
+  const L = [], bad = (c && c.bad) || {};
+  const add = (k,label,icon,name,phone)=>{ if(phone){ const b=!!bad[k]; if(!(goodOnly && b)) L.push({k,label,icon,name,phone,bad:b}); } };
+  add('father','Father','👨',c.fn||'',c.fp);
+  add('mother','Mother','👩',c.mn||'',c.mp);
+  add('guardian','Guardian','🧑',c.gn||'',c.gp);
+  add('home','Home','🏠','',c.home);
+  return L;
+}
+function _hcPrimary(c){
+  const n = _hcNums(c,true);
+  const pk = {Father:'father',Mother:'mother',Guardian:'guardian',Home:'home'}[c.primary];
+  return n.find(x=>x.k===pk) || n[0] || null;
+}
+function _hcHasResultTokens(s){ return /\{(mean|level|position|total|term)\}/.test(String(s||'')); }
+function _hcResultInfo(row){
+  const rec = row && row.rec;
+  const na = {mean:'N/A',level:'N/A',position:'N/A',total:'N/A',term:''};
+  if(!rec) return na;
+  let st={}, pos='N/A', term='';
+  try{ st = calcStats(rec); }catch(e){}
+  try{ pos = getComputedPosition(rec); }catch(e){}
+  try{ term = getRecordTerm(rec); }catch(e){}
+  const m = String(pos).match(/^(\d+)\s*\/\s*(\d+)$/);
+  const g = String(rec['Grade']||'').split('-')[0];
+  if(g && term.indexOf(g+'-')===0) term = term.slice(g.length+1);   // "Grade 9-2026-B2-End-Term 2" -> "2026-B2-End-Term 2"
+  return { mean: st.avg||'N/A', level: st.label||'N/A', position: m ? m[1]+' out of '+m[2] : (pos||'N/A'), total: st.total||'N/A', term };
+}
+function _hcFill(tpl, row, num){
+  let s = String(tpl||'');
+  if(_hcHasResultTokens(s)){
+    const ri=_hcResultInfo(row);
+    s = s.replace(/\{mean\}/g,ri.mean).replace(/\{level\}/g,ri.level).replace(/\{position\}/g,/Nafasi|Wastani|Habari/.test(s)?ri.position.replace(' out of ',' kati ya '):ri.position).replace(/\{total\}/g,ri.total).replace(/\{term\}/g,ri.term);
+  }
+  return s
+    .replace(/\{parent\}/g, (num && num.name) ? num.name : 'Parent/Guardian')
+    .replace(/\{learner\}/g, row.name)
+    .replace(/\{grade\}/g, row.grade)
+    .replace(/\{school\}/g, HC_SCHOOL);
+}
+function _hcMsgText(){ const el=document.getElementById('hc-msg'); return el ? el.value : ''; }
+
+async function hcRender(){
+  const list = document.getElementById('hc-list'); if(!list) return;
+  if(!_scAnyAccess()){ list.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3)">🔒 Class teachers and Advanced Admins only.</div>'; return; }
+  const sel = document.getElementById('hc-tpl');
+  if(sel && !sel.options.length){
+    sel.innerHTML = Object.keys(HC_TEMPLATES).map(k=>'<option value="'+k+'">'+HC_TEMPLATES[k].label+'</option>').join('');
+    document.getElementById('hc-msg').value = HC_TEMPLATES.general.text;
+  }
+  try{ await _scLoadAll(); }catch(e){ list.innerHTML = '<div style="padding:30px;text-align:center;color:var(--red)">⚠️ Could not load contacts: '+_hcEsc(e&&e.message||e)+'<br><small>Check the studentContacts database rule.</small></div>'; return; }
+  _hcRows = _scScope().map(r=>{
+    const asm = String(r['Assessment No']).trim();
+    const c = _scMap[_scKey(asm)] || {};
+    return { asm, dk:_scKey(asm).replace(/[^\w\-]/g,'_'), rec:r, name:r['Official Student Name']||'', grade:gShort(r['Grade']||''), c };
+  }).sort((a,b)=> a.grade.localeCompare(b.grade,undefined,{numeric:true}) || a.name.localeCompare(b.name));
+  _hcByDk = {}; _hcRows.forEach(r=>_hcByDk[r.dk]=r);
+  _hcBuildFamilies();
+
+  // grade filter options (keep selection)
+  const gs = document.getElementById('hc-grade'), cur = gs.value;
+  const grades = [...new Set(_hcRows.map(r=>r.grade))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  gs.innerHTML = '<option value="">All Classes</option>' + grades.map(g=>'<option value="'+_hcEsc(g)+'">'+_hcEsc(g)+'</option>').join('');
+  gs.value = grades.includes(cur) ? cur : '';
+
+  // filter
+  const q = (document.getElementById('hc-search').value||'').trim().toLowerCase();
+  const qd = q.replace(/[\s\-+]/g,'');
+  const st = document.getElementById('hc-status').value;
+  const g = gs.value;
+  _hcView = _hcRows.filter(r=>{
+    if(g && r.grade!==g) return false;
+    const c = r.c, n = _hcNums(c,true);
+    if(st==='hasphone' && !n.length) return false;
+    if(st==='nophone' && n.length) return false;
+    if(st==='nodata' && _scHasAny(c)) return false;
+    if(st==='nobc' && c.bc) return false;
+    if(st==='noid' && (c.fid||c.mid||c.gid)) return false;
+    if(st==='nocontact' && c.lastContact) return false;
+    if(st==='due' && !(c.followUp && c.followUp.date && c.followUp.date<=_hcToday())) return false;
+    if(q){
+      const hay = (r.name+' '+r.asm+' '+(c.fn||'')+' '+(c.mn||'')+' '+(c.gn||'')).toLowerCase();
+      const ph = [c.home,c.fp,c.mp,c.gp].map(x=>String(x||'').replace(/[\s\-+]/g,'')).join(' ');
+      if(!hay.includes(q) && !(qd && /\d/.test(qd) && ph.includes(qd))) return false;
+    }
+    return true;
+  });
+  _hcRenderStats(); _hcRenderBulk(); _hcRenderFollowUps();
+  if(!_hcRows.length){ list.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3)">No learners found in your class.</div>'; return; }
+  if(!_hcView.length){ list.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3)">No learners match this filter.</div>'; return; }
+  const shown = _hcView.slice(0,_hcLimit);
+  list.innerHTML = shown.map(_hcRowHtml).join('') +
+    (_hcView.length>_hcLimit ? '<div style="text-align:center;margin:10px"><button class="btn btn-outline btn-sm" onclick="_hcLimit+=60;hcRender()">Show more ('+(_hcView.length-_hcLimit)+' left)</button></div>' : '');
+  _hcLoadPhotos(shown);
+}
+let _hcDeb; function hcFilterDebounced(){ clearTimeout(_hcDeb); _hcDeb=setTimeout(()=>{_hcLimit=60;hcRender();},200); }
+function hcStatusChanged(){ _hcLimit=60; hcRender(); }
+function hcApplyTemplate(){ const k=document.getElementById('hc-tpl').value; if(k!=='custom') document.getElementById('hc-msg').value = HC_TEMPLATES[k].text; else document.getElementById('hc-msg').value=''; }
+
+function _hcRenderStats(){
+  const rows=_hcRows, n=rows.length;
+  const cnt = f=>rows.filter(f).length;
+  const cards = [
+    ['', n, 'LEARNERS'],
+    ['hasphone', cnt(r=>_hcNums(r.c,true).length), 'REACHABLE BY PHONE'],
+    ['nophone', cnt(r=>!_hcNums(r.c,true).length), 'NO PHONE'],
+    ['nobc', cnt(r=>!r.c.bc), 'NO BIRTH CERT'],
+    ['noid', cnt(r=>!(r.c.fid||r.c.mid||r.c.gid)), 'NO PARENT ID'],
+    ['due', cnt(r=>r.c.followUp&&r.c.followUp.date&&r.c.followUp.date<=_hcToday()), 'FOLLOW-UPS DUE']
+  ];
+  const cur = document.getElementById('hc-status').value;
+  document.getElementById('hc-stats').innerHTML = cards.map(c=>'<div class="hc-stat'+(cur===c[0]?' on':'')+'" onclick="hcSetStatus(\''+c[0]+'\')"><b>'+c[1]+'</b><span>'+c[2]+'</span></div>').join('');
+}
+function hcSetStatus(v){ document.getElementById('hc-status').value=v; _hcLimit=60; hcRender(); }
+
+function _hcRenderBulk(){
+  const b = document.getElementById('hc-bulkbar');
+  const k = _hcSel.size;
+  b.style.display = '';
+  b.innerHTML = '<span>'+(k? k+' selected' : _hcView.length+' shown')+'</span>'+
+    '<button class="btn btn-outline btn-sm" onclick="hcSelectAll()">☑️ Select all shown</button>'+
+    (k?'<button class="btn btn-outline btn-sm" onclick="hcClearSel()">✖ Clear</button>':'')+
+    '<span style="font-weight:500;color:var(--text2)">Broadcast, copy, save-to-phone and PDF download use the '+(k?'selection':'shown learners')+'.</span>';
+}
+function hcSelectAll(){ _hcView.forEach(r=>_hcSel.add(r.dk)); hcRender(); }
+function hcClearSel(){ _hcSel.clear(); hcRender(); }
+function hcToggleSel(dk,on){ on?_hcSel.add(dk):_hcSel.delete(dk); _hcRenderBulk(); }
+function _hcTarget(){ return _hcSel.size ? _hcRows.filter(r=>_hcSel.has(r.dk)) : _hcView; }
+
+function _hcRowHtml(r){
+  const c=r.c, nums=_hcNums(c,true), badN=_hcNums(c).filter(x=>x.bad), pr=_hcPrimary(c), open=_hcOpen.has(r.dk), dk=r.dk;
+  const chips = [];
+  if(!nums.length) chips.push('<span class="hc-chip">'+(badN.length?'All numbers flagged wrong':'No phone')+'</span>');
+  else if(badN.length) chips.push('<span class="hc-chip">🚫 '+badN.length+' wrong no.</span>');
+  if(!c.bc) chips.push('<span class="hc-chip">No birth cert</span>');
+  if(!(c.fid||c.mid||c.gid)) chips.push('<span class="hc-chip">No parent ID</span>');
+  if(!chips.length) chips.push('<span class="hc-chip ok">Complete</span>');
+  if(c.followUp && c.followUp.date){ const due=c.followUp.date<=_hcToday(); chips.push('<span class="hc-chip'+(due?'':' fam')+'" title="'+_hcEsc(c.followUp.note||'')+'">⏰ Follow-up '+_hcEsc(c.followUp.date)+(due?' (due)':'')+'</span>'); }
+  const fam = _hcFamOf(r);
+  if(fam.length) chips.push('<span class="hc-chip fam" title="Shares a number with: '+_hcEsc(fam.map(x=>x.name).join(', '))+' — tap to see the family" onclick="hcFamily(\''+dk+'\')">👪 +'+fam.length+(fam.length>1?' siblings':' sibling')+'</span>');
+  let main = badN.length ? '<span style="color:var(--red)">🚫 Number flagged wrong — please update</span>' : '<span style="color:var(--text3)">No number saved</span>', acts = '';
+  if(pr){
+    const intl = _hcIntl(pr.phone);
+    main = pr.icon+' <b>'+_hcEsc(pr.name||pr.label)+'</b> <span style="color:var(--text3)">('+pr.label+(c.primary&&_hcPrimary(c)===pr&&nums.length>1?' · primary':'')+')</span><br>'+_hcEsc(pr.phone);
+    acts += '<a class="hc-btn call" href="tel:+'+intl+'" title="Call" onclick="_hcStamp(\''+dk+'\',\'Call\')">📞</a>'+
+            '<button class="hc-btn wa" title="WhatsApp" onclick="hcWA(\''+dk+'\',\''+pr.k+'\')">💬</button>'+
+            '<button class="hc-btn sms" title="SMS" onclick="hcSMS(\''+dk+'\',\''+pr.k+'\')">✉️</button>';
+  }
+  acts += '<button class="hc-btn" title="Log contact / set follow-up" onclick="hcLogOpen(\''+dk+'\')">📝</button>'+
+          '<button class="hc-btn" title="Details" onclick="hcToggleOpen(\''+dk+'\')">'+(open?'▴':'▾')+'</button>'+
+          '<button class="hc-btn" title="Edit contacts" onclick="hcEdit(\''+dk+'\')">✏️</button>';
+  let more = '';
+  if(open){
+    const show = _hcShowIds.has(dk);
+    const kv = (lab,val,sens)=> val ? '<div class="hc-kv"><span>'+lab+'</span><span><code>'+_hcEsc(sens&&!show?_hcMask(val):val)+'</code> <button class="hc-btn sm" title="Copy" onclick="hcCopy(this,\''+dk+'\',\''+(sens?'s':'p')+'\',\''+_hcEsc(lab)+'\')">📋</button></span></div>' : '<div class="hc-kv"><span>'+lab+'</span><span style="color:var(--text3)">—</span></div>';
+    const person = (key,label,icon,nm,id,ph)=>{
+      const intl=_hcIntl(ph);
+      return '<div class="hc-card"><h5>'+icon+' '+label.toUpperCase()+'</h5><div style="font-weight:700;color:var(--text)">'+_hcEsc(nm||'—')+'</div>'+
+        kv('Phone',ph,false)+kv('National ID',id,true)+
+        (c.bad&&c.bad[key]?'<div style="color:var(--red);font-size:11px;font-weight:700;margin-top:4px">🚫 Flagged wrong / unreachable</div>':'')+
+        (ph?'<div style="display:flex;gap:6px;margin-top:8px"><a class="hc-btn sm call" href="tel:+'+intl+'" onclick="_hcStamp(\''+dk+'\',\'Call\')">📞 Call</a><button class="hc-btn sm wa" onclick="hcWA(\''+dk+'\',\''+key+'\')">💬 WhatsApp</button><button class="hc-btn sm sms" onclick="hcSMS(\''+dk+'\',\''+key+'\')">✉️</button><button class="hc-btn sm" onclick="hcToggleBad(\''+dk+'\',\''+key+'\')">'+(c.bad&&c.bad[key]?'✅ Restore':'🚫 Wrong no.')+'</button></div>':'')+'</div>';
+    };
+    more = '<div class="hc-more">'+
+      person('father','Father','👨',c.fn,c.fid,c.fp)+person('mother','Mother','👩',c.mn,c.mid,c.mp)+person('guardian','Guardian','🧑',c.gn,c.gid,c.gp)+
+      '<div class="hc-card"><h5>🏠 LEARNER / HOME</h5>'+kv('Birth Cert No',c.bc,true)+kv('Home contact',c.home,false)+
+        (c.home?'<div style="display:flex;gap:6px;margin-top:8px"><a class="hc-btn sm call" href="tel:+'+_hcIntl(c.home)+'" onclick="_hcStamp(\''+dk+'\',\'Call\')">📞 Call</a><button class="hc-btn sm wa" onclick="hcWA(\''+dk+'\',\'home\')">💬 WhatsApp</button><button class="hc-btn sm" onclick="hcToggleBad(\''+dk+'\',\'home\')">'+(c.bad&&c.bad.home?'✅ Restore':'🚫 Wrong no.')+'</button></div>':'')+
+        '<div style="margin-top:10px"><button class="hc-btn sm" onclick="hcToggleIds(\''+dk+'\')">'+(show?'🙈 Hide IDs':'👁 Show IDs')+'</button></div>'+
+        (c.updatedAt?'<div style="font-size:10px;color:var(--text3);margin-top:8px">Updated '+new Date(c.updatedAt).toLocaleDateString()+(c.updatedByName?' by '+_hcEsc(c.updatedByName):'')+'</div>':'')+
+      '</div>'+
+      _hcHistCard(c)+(fam.length?'<div class="hc-card"><h5>👪 FAMILY (SHARED NUMBER)</h5>'+fam.map(x=>'<div class="hc-kv"><span>'+_hcEsc(x.name)+'</span><span style="color:var(--text3)">'+_hcEsc(x.grade)+'</span></div>').join('')+'</div>':'')+
+      '</div>';
+  }
+  return '<div class="hc-row"><div class="hc-line">'+
+    '<input type="checkbox" '+(_hcSel.has(dk)?'checked':'')+' onchange="hcToggleSel(\''+dk+'\',this.checked)" style="width:17px;height:17px">'+
+    _hcAv(r,54)+
+    '<div class="hc-who"><div class="hc-name">'+_hcEsc(r.name)+'</div><div class="hc-sub">Adm/Assess. '+_hcEsc(r.asm)+' · '+_hcEsc(r.grade)+'</div>'+
+      '<div class="hc-sub hc-last-'+dk+'">'+_hcLastTxt(c)+'</div><div>'+chips.join('')+'</div>'+
+      (c.note?'<div class="hc-note">📝 '+_hcEsc(String(c.note).slice(0,90))+(String(c.note).length>90?'…':'')+'</div>':'')+'</div>'+
+    '<div class="hc-main">'+main+'</div><div class="hc-acts">'+acts+'</div></div>'+more+'</div>';
+}
+function hcToggleOpen(dk){ _hcOpen.has(dk)?_hcOpen.delete(dk):_hcOpen.add(dk); hcRender(); }
+function hcToggleIds(dk){
+  if(_hcShowIds.has(dk)) _hcShowIds.delete(dk);
+  else{
+    _hcShowIds.add(dk);
+    if(!_hcLogged.has(dk)){ _hcLogged.add(dk); const r=_hcByDk[dk]; if(r) logActivity('👁 Viewed home-contact ID details — '+r.name,'act-blue',currentAdminName,{category:'system',targetId:r.asm,targetName:r.name}); }
+  }
+  hcRender();
+}
+function hcEdit(dk){ const r=_hcByDk[dk]; if(r) scOpenModal(r.rec); }
+
+function _hcNumFor(row,key){ return _hcNums(row.c).find(x=>x.k===key) || null; }
+function hcWA(dk,key){
+  const r=_hcByDk[dk]; if(!r) return; const n=_hcNumFor(r,key); if(!n) return;
+  const txt=_hcFill(_hcMsgText(), r, n);
+  if(_hcHasResultTokens(_hcMsgText())) logActivity('📊 Results sent via WhatsApp — '+r.name,'act-blue',currentAdminName,{category:'system',targetId:r.asm,targetName:r.name,extra:'Learner results included (message text not logged)'});
+  window.open('https://wa.me/'+_hcIntl(n.phone)+(txt?'?text='+encodeURIComponent(txt):''),'_blank','noopener');
+  _hcStamp(dk,'WhatsApp');
+}
+function hcSMS(dk,key){
+  const r=_hcByDk[dk]; if(!r) return; const n=_hcNumFor(r,key); if(!n) return;
+  const txt=_hcFill(_hcMsgText(), r, n);
+  _hcStamp(dk,'SMS');
+  location.href = 'sms:+'+_hcIntl(n.phone)+(txt?'?body='+encodeURIComponent(txt):'');
+}
+async function hcCopy(btn,dk,kind,label){
+  const r=_hcByDk[dk]; if(!r) return; const c=r.c;
+  const map={'Phone':null,'National ID':null};
+  let val='';
+  // resolve by label + card context: look for the value nearest to the pressed row
+  const lab=String(label);
+  const el=btn && btn.closest('.hc-card');
+  const who = el ? (el.querySelector('h5')||{}).textContent||'' : '';
+  if(lab==='Birth Cert No') val=c.bc; else if(lab==='Home contact') val=c.home;
+  else if(/FATHER/.test(who)) val = lab==='Phone'?c.fp:c.fid;
+  else if(/MOTHER/.test(who)) val = lab==='Phone'?c.mp:c.mid;
+  else if(/GUARDIAN/.test(who)) val = lab==='Phone'?c.gp:c.gid;
+  if(!val){ notify('Nothing to copy','info',2000); return; }
+  try{ await navigator.clipboard.writeText(String(val)); notify('📋 Copied','success',1500); }catch(e){ notify('Could not copy','error',2500); }
+}
+
+async function hcCopyNumbers(){
+  const rows=_hcTarget(); const out=[];
+  rows.forEach(r=>_hcNums(r.c,true).forEach(n=>out.push(r.name+' ('+r.grade+') — '+(n.name?n.name+' ':'')+n.label+': '+n.phone)));
+  if(!out.length){ notify('No numbers to copy','info',3000); return; }
+  try{ await navigator.clipboard.writeText(out.join('\n')); notify('📋 Copied '+out.length+' numbers','success',2500); }catch(e){ notify('Could not copy','error',2500); }
+}
+function hcDownloadVcf(){
+  const rows=_hcTarget(); let cards='', n=0;
+  rows.forEach(r=>_hcNums(r.c,true).forEach(x=>{
+    const fn = (x.name?x.name+' – ':'')+x.label+' of '+r.name+' ('+r.grade+')';
+    cards += 'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:'+fn.replace(/[,;\r\n]/g,' ')+'\r\nN:;'+fn.replace(/[,;\r\n]/g,' ')+';;;\r\nTEL;TYPE=CELL:+'+_hcIntl(x.phone)+'\r\nORG:'+HC_SCHOOL.replace(/[,;]/g,' ')+'\r\nEND:VCARD\r\n'; n++;
+  }));
+  if(!n){ notify('No numbers to save','info',3000); return; }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([cards],{type:'text/vcard'}));
+  a.download='Parents_Contacts_'+Date.now()+'.vcf'; document.body.appendChild(a); a.click(); a.remove();
+  logActivity('📇 Exported parent contacts to vCard ('+n+' numbers)','act-blue',currentAdminName,{category:'export'});
+}
+async function hcDownloadPdf(){
+  const rows=_hcTarget(); if(!rows.length){ notify('Nothing to download','info',3000); return; }
+  if(!window.jspdf){ notify('PDF library not loaded. Please refresh the page.','error'); return; }
+  notify('📷 Preparing photos & PDF…','info',3000);
+  try{ await _hcLoadPhotos(rows); }catch(e){}
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('portrait');
+  const pw = doc.internal.pageSize.width, ph = doc.internal.pageSize.height;
+  let logo = { loaded:false };
+  try{ logo = await loadLogo(); }catch(e){}
+  const year = new Date().getFullYear();
+  const byGrade = {}; rows.forEach(r=>(byGrade[r.grade]=byGrade[r.grade]||[]).push(r));
+  const grades = Object.keys(byGrade).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  grades.forEach((g,gi)=>{
+    if(gi>0) doc.addPage();
+    const list = byGrade[g];
+    const header = ()=>{
+      doc.setFillColor(41,128,185); doc.rect(0,0,pw,35,'F');
+      if(logo.loaded){ try{ doc.addImage(logo.img,'PNG',15,5,25,25); }catch(e){} }
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(18); doc.setFont(undefined,'bold');
+      doc.text('KANYADET PRI & JUNIOR SCHOOL', pw/2, 10, {align:'center'});
+      doc.setFontSize(12);
+      doc.text('P O BOX 45 40139 AKALA,KENYA', pw/2, 16, {align:'center'});
+      doc.text('HOME CONTACT LIST', pw/2, 22, {align:'center'});
+      doc.setFontSize(9); doc.setFont(undefined,'normal');
+      doc.text(g+'  |  Academic Year: '+year, pw/2, 30, {align:'center'});
+      doc.setTextColor(0,0,0);
+    };
+    const withPhone = list.filter(r=>_hcNums(r.c,true).length).length;
+    doc.setTextColor(0,0,0); doc.setFillColor(240,240,240); doc.rect(15,45,pw-30,28,'F');
+    doc.setFontSize(10); doc.setFont(undefined,'bold'); doc.text('CLASS INFORMATION',20,53);
+    doc.setFont(undefined,'normal'); doc.setFontSize(9);
+    doc.text('Class: '+g, 20, 61);              doc.text('Learners: '+list.length, pw/2+5, 61);
+    doc.text('Generated: '+new Date().toLocaleDateString(), 20, 68); doc.text('With a phone number: '+withPhone, pw/2+5, 68);
+    doc.setFont(undefined,'bold'); doc.setFontSize(11); doc.text('PARENT / GUARDIAN CONTACTS',20,84);
+    const body = list.map((r,i)=>{
+      const nums=_hcNums(r.c);
+      return [ String(i+1), {content:'', styles:{minCellHeight:17}}, r.name, r.asm,
+        nums.length ? nums.map(n=>(n.name? n.name+' ('+n.label+')' : n.label+' contact')).join('\n') : '—',
+        nums.length ? nums.map(n=>n.phone+(n.bad?' [flagged]':'')).join('\n') : '—' ];
+    });
+    doc.autoTable({
+      head:[['#','Photo','Learner','Assessment No','Parent / Guardian','Phone']], body,
+      startY: 88,
+      margin:{ top:42, left:15, right:15, bottom:18 },
+      styles:{ fontSize:9, cellPadding:2, valign:'middle' },
+      headStyles:{ fillColor:[41,128,185], textColor:[255,255,255], fontStyle:'bold' },
+      alternateRowStyles:{ fillColor:[245,245,245] },
+      columnStyles:{ 0:{cellWidth:8}, 1:{cellWidth:17}, 2:{cellWidth:42}, 3:{cellWidth:26}, 4:{cellWidth:46}, 5:{cellWidth:'auto'} },
+      didDrawCell: d=>{
+        if(d.section==='body' && d.column.index===1){
+          const r = list[d.row.index], im = r && _hcPhImg[r.dk];
+          if(im){ try{ doc.addImage(im,'JPEG',d.cell.x+1.5,d.cell.y+1,13,15); }catch(e){} }
+        }
+      },
+      didDrawPage: header
+    });
+  });
+  const pages = doc.getNumberOfPages();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    doc.setFontSize(8); doc.setFont(undefined,'normal'); doc.setTextColor(120,120,120);
+    doc.text('CONFIDENTIAL — for school use only', 15, ph-8);
+    doc.text('Page '+i+' of '+pages, pw-15, ph-8, {align:'right'});
+    doc.setTextColor(0,0,0);
+    try{ await addMinistryWatermark(doc); }catch(e){}
+  }
+  const fname = 'Home_Contacts_'+(grades.length===1 ? grades[0].replace(/\s+/g,'_') : 'All_Classes')+'.pdf';
+  doc.save(fname);
+  notify('📄 Downloaded '+fname,'success',3000);
+  logActivity('📄 Downloaded home contact list PDF ('+rows.length+' learners)','act-blue',currentAdminName,{category:'export',extra:'No ID numbers included'});
+}
+
+/* ── WhatsApp broadcast queue ── */
+function hcOpenBroadcast(){
+  const rows=_hcTarget(); if(!rows.length){ notify('No learners to message','info',3000); return; }
+  document.getElementById('hc-bc-msg').value = _hcMsgText();
+  document.getElementById('hc-bc-modal').classList.add('on');
+  hcBuildQueue();
+}
+function hcCloseBroadcast(){ document.getElementById('hc-bc-modal').classList.remove('on'); }
+function _hcJoin(a){ a=[...new Set(a)]; return a.length<2 ? (a[0]||'') : a.slice(0,-1).join(', ')+' & '+a[a.length-1]; }
+function hcBuildQueue(keepSent){
+  const mode=document.getElementById('hc-bc-mode').value;
+  const _tpl=document.getElementById('hc-bc-msg').value, hasRes=_hcHasResultTokens(_tpl);
+  const _dd=document.getElementById('hc-bc-dedupe'); _dd.disabled=hasRes;
+  const dedupe=_dd.checked && !hasRes;
+  const _w=document.getElementById('hc-bc-warn'); _w.style.display=hasRes?'':'none';
+  if(hasRes) _w.innerHTML='🔒 <b>This message contains learner results.</b> It is sent one learner at a time (no family merging); numbers flagged wrong are skipped. Only send to numbers you trust belong to the parent. Every send is audit-logged.';
+  const old = keepSent ? new Set(_hcQueue.filter(q=>q.done).map(q=>q.sig)) : new Set();
+  _hcQueue=[]; const skipped=[], seen={};
+  _hcTarget().forEach(r=>{
+    const nums=_hcNums(r.c,true); let pick=[];
+    if(mode==='all') pick=nums; else if(mode==='primary'){ const p=_hcPrimary(r.c); if(p) pick=[p]; } else { const p=nums.find(x=>x.k===mode); if(p) pick=[p]; }
+    if(!pick.length) skipped.push(r.name);
+    pick.forEach(n=>{
+      const intl=_hcIntl(n.phone);
+      if(dedupe && seen[intl]){ seen[intl].rows.push(r); return; }
+      const it={ sig: dedupe ? intl : r.dk+'|'+n.k, rows:[r], num:n };
+      it.done = old.has(it.sig);
+      if(dedupe) seen[intl]=it;
+      _hcQueue.push(it);
+    });
+  });
+  _hcLoadPhotos(_hcQueue.map(q=>q.rows[0]));
+  document.getElementById('hc-bc-list').innerHTML = _hcQueue.length ? _hcQueue.map((q,i)=>{
+    const names=_hcJoin(q.rows.map(x=>x.name)), grades=_hcJoin(q.rows.map(x=>x.grade));
+    return '<div class="hc-q'+(q.done?' done':'')+'" id="hc-q-'+i+'">'+_hcAv(q.rows[0],34)+'<div class="grow"><b>'+_hcEsc(names)+'</b> <small>'+_hcEsc(grades)+' · '+q.num.icon+' '+_hcEsc((q.num.name||q.num.label))+' · '+_hcEsc(q.num.phone)+(q.rows.length>1?' · 👪 family':'')+'</small></div>'+
+    '<button class="hc-btn sm wa" onclick="hcBcSend('+i+')">'+(q.done?'✓ Sent':'💬 Send')+'</button></div>';
+  }).join('')
+    : '<div style="padding:18px;text-align:center;color:var(--text3);font-size:12px">No numbers on file for this selection.</div>';
+  document.getElementById('hc-bc-count').textContent = _hcQueue.filter(q=>q.done).length+' / '+_hcQueue.length+' sent';
+  document.getElementById('hc-bc-skip').textContent = skipped.length ? '⚠️ '+skipped.length+' without a number for this option: '+skipped.slice(0,6).join(', ')+(skipped.length>6?'…':'') : '';
+}
+function hcBcSend(i){
+  const q=_hcQueue[i]; if(!q) return;
+  const grp={ name:_hcJoin(q.rows.map(x=>x.name)), grade:_hcJoin(q.rows.map(x=>x.grade)) };
+  const _msg=document.getElementById('hc-bc-msg').value;
+  const txt=_hcFill(_msg, q.rows.length===1 ? q.rows[0] : grp, q.num);
+  if(_hcHasResultTokens(_msg)) q.rows.forEach(x=>logActivity('📊 Results sent via WhatsApp — '+x.name,'act-blue',currentAdminName,{category:'system',targetId:x.asm,targetName:x.name,extra:'Learner results included (message text not logged)'}));
+  window.open('https://wa.me/'+_hcIntl(q.num.phone)+(txt?'?text='+encodeURIComponent(txt):''),'_blank','noopener');
+  q.rows.forEach(x=>_hcStamp(x.dk,'WhatsApp'));
+  if(!q.done){ q.done=true; const el=document.getElementById('hc-q-'+i); if(el){ el.classList.add('done'); el.querySelector('button').textContent='✓ Sent'; } }
+  document.getElementById('hc-bc-count').textContent = _hcQueue.filter(x=>x.done).length+' / '+_hcQueue.length+' sent';
+  if(_hcQueue.every(x=>x.done)) logActivity('💬 WhatsApp broadcast opened for '+_hcQueue.length+' contacts','act-blue',currentAdminName,{category:'system',extra:'Message text not logged'});
+}
+function hcBcNext(){
+  const i=_hcQueue.findIndex(q=>!q.done);
+  if(i<0){ notify('✅ All messages opened','success',2500); return; }
+  const el=document.getElementById('hc-q-'+i); if(el) el.scrollIntoView({block:'nearest'});
+  hcBcSend(i);
+}
+
+
+/* ── photos, families, last-contact ── */
+let _hcPh = {}, _hcPhImg = {}, _hcFam = {};
+function _hcInitials(n){ return String(n||'').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase(); }
+function _hcAv(r,size){
+  size = size||44; const st='width:'+size+'px;height:'+(Math.round(size*1.12))+'px';
+  const src=_hcPh[r.dk];
+  return src ? '<img class="hc-ph" data-pdk="'+r.dk+'" data-sz="'+size+'" src="'+src+'" style="'+st+'" onclick="hcShowPhoto(\''+r.dk+'\')" alt="">'
+             : '<div class="hc-ph ini" data-pdk="'+r.dk+'" data-sz="'+size+'" style="'+st+'">'+_hcEsc(_hcInitials(r.name))+'</div>';
+}
+async function _hcFetchPhoto(r){
+  if(r.dk in _hcPh) return;
+  try{
+    const res = await loadStudentImage(r.name, r.rec['Grade'], r.rec.id||'');
+    if(res && res.loaded && res.img){ _hcPh[r.dk]=res.img.src; _hcPhImg[r.dk]=res.img; } else _hcPh[r.dk]='';
+  }catch(e){ _hcPh[r.dk]=''; }
+}
+function _hcPaintPhoto(dk){
+  const r=_hcByDk[dk]; if(!r) return;
+  document.querySelectorAll('[data-pdk="'+dk+'"]').forEach(el=>{ el.outerHTML=_hcAv(r,parseInt(el.dataset.sz)||44); });
+}
+async function _hcLoadPhotos(rows){
+  const todo=rows.filter(r=>r && !(r.dk in _hcPh)); let i=0;
+  const worker=async()=>{ while(i<todo.length){ const r=todo[i++]; await _hcFetchPhoto(r); _hcPaintPhoto(r.dk); } };
+  await Promise.all([worker(),worker(),worker(),worker(),worker()]);
+}
+function hcShowPhoto(dk){
+  const r=_hcByDk[dk]; if(!r||!_hcPh[dk]) return;
+  const o=document.createElement('div');
+  o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;cursor:pointer;padding:20px;text-align:center';
+  const pr=_hcPrimary(r.c);
+  o.innerHTML='<img src="'+_hcPh[dk]+'" style="max-width:88vw;max-height:68vh;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6)">'+
+    '<div style="color:#fff;font-weight:800;font-size:17px">'+_hcEsc(r.name)+'</div>'+
+    '<div style="color:#ddd;font-size:12px">'+_hcEsc(r.grade)+' · Assessment No '+_hcEsc(r.asm)+(pr?' · '+_hcEsc(pr.name||pr.label)+' '+_hcEsc(pr.phone):'')+'</div>';
+  o.onclick=()=>o.remove(); document.body.appendChild(o);
+}
+function _scLoadPhoto(rec){
+  const img=document.getElementById('sc-photo'); if(!img) return;
+  img.style.display='none'; const asm=_scCur&&_scCur.asm;
+  loadStudentImage(rec['Official Student Name'], rec['Grade'], rec.id||'').then(res=>{
+    if(res && res.loaded && _scCur && _scCur.asm===asm){ img.src=res.img.src; img.style.display=''; }
+  }).catch(()=>{});
+}
+function _hcBuildFamilies(){
+  _hcFam = {};
+  _hcRows.forEach(r=>[r.c.fp,r.c.mp,r.c.gp].forEach(ph=>{ const k=_hcIntl(ph); if(k.length>=9) (_hcFam[k]=_hcFam[k]||new Set()).add(r.dk); }));
+}
+function _hcFamOf(r){
+  const out=new Set();
+  [r.c.fp,r.c.mp,r.c.gp].forEach(ph=>{ const s=_hcFam[_hcIntl(ph)]; if(s) s.forEach(d=>{ if(d!==r.dk) out.add(d); }); });
+  return [...out].map(d=>_hcByDk[d]).filter(Boolean);
+}
+function hcFamily(dk){
+  const r=_hcByDk[dk]; if(!r) return;
+  const ph=[r.c.fp,r.c.mp,r.c.gp].find(p=>{ const s=_hcFam[_hcIntl(p)]; return s && s.size>1; });
+  if(!ph) return;
+  document.getElementById('hc-search').value=ph; document.getElementById('hc-grade').value=''; document.getElementById('hc-status').value='';
+  _hcLimit=60; hcRender();
+}
+function _hcLastTxt(c){
+  const l=c&&c.lastContact; if(!l||!l.at) return '🕘 Not contacted yet';
+  return '🕘 Last contact '+new Date(l.at).toLocaleDateString(undefined,{day:'numeric',month:'short'})+' · '+_hcEsc(l.via||'')+(l.outcome?' · '+_hcEsc(l.outcome):'')+(l.by?' · '+_hcEsc(l.by):'');
+}
+function _hcToday(){ return new Date().toLocaleDateString('en-CA'); }
+async function _hcDbPatch(dk, patch){
+  const r=_hcByDk[dk]; if(!r) return false;
+  const key=_scKey(r.asm);
+  const { ref, update } = window._fb;
+  await update(ref(db, SC_PATH+'/'+key), patch);
+  const apply=(obj,path,val)=>{ const parts=path.split('/'); let o=obj; for(let i=0;i<parts.length-1;i++){ o=o[parts[i]]=o[parts[i]]||{}; } const last=parts[parts.length-1]; if(val===null) delete o[last]; else o[last]=val; };
+  if(!_scMap) _scMap={};
+  _scMap[key]=_scMap[key]||{};
+  Object.keys(patch).forEach(pth=>{ apply(_scMap[key],pth,patch[pth]); if(r.c!==_scMap[key]) apply(r.c,pth,patch[pth]); });
+  return true;
+}
+async function _hcStamp(dk,via){
+  const r=_hcByDk[dk]; if(!r) return;
+  const lc={ at:Date.now(), via, by:currentAdminName||'' };
+  r.c.lastContact=lc;
+  document.querySelectorAll('.hc-last-'+dk).forEach(el=>{ el.innerHTML=_hcLastTxt(r.c); });
+  try{ await _hcDbPatch(dk,{lastContact:lc}); }catch(e){ console.warn('Last-contact not saved:', e); }
+}
+function _hcHistCard(c){
+  const h=Object.values((c&&c.history)||{}).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,6);
+  if(!h.length) return '';
+  return '<div class="hc-card"><h5>🕘 CONTACT HISTORY</h5>'+h.map(x=>'<div class="hc-kv" style="align-items:flex-start"><span>'+new Date(x.at).toLocaleDateString(undefined,{day:'numeric',month:'short'})+' · '+_hcEsc(x.via||'')+' · <b>'+_hcEsc(x.outcome||'')+'</b>'+(x.note?'<br><span style="color:var(--text3)">'+_hcEsc(x.note)+'</span>':'')+'</span><span style="color:var(--text3);font-size:10px;text-align:right">'+_hcEsc(x.by||'')+'</span></div>').join('')+'</div>';
+}
+
+/* ── log contact modal ── */
+let _hcLogDk = null;
+function hcLogOpen(dk, via){
+  const r=_hcByDk[dk]; if(!r) return; _hcLogDk=dk;
+  const nums=_hcNums(r.c), pr=_hcPrimary(r.c);
+  document.getElementById('hcl-title').textContent='📝 Log contact — '+r.name;
+  document.getElementById('hcl-via').value=via||'Call';
+  document.getElementById('hcl-num').innerHTML = nums.length ? nums.map(n=>'<option value="'+n.k+'">'+_hcEsc(n.icon+' '+(n.name||n.label)+' — '+n.phone+(n.bad?' (flagged)':''))+'</option>').join('') : '<option value="">No number on file</option>';
+  if(pr) document.getElementById('hcl-num').value=pr.k;
+  document.getElementById('hcl-out').value='Reached';
+  document.getElementById('hcl-note').value=''; document.getElementById('hcl-date').value=''; document.getElementById('hcl-date').min=_hcToday();
+  document.getElementById('hcl-bad').checked=false;
+  const hasF=!!(r.c.followUp&&r.c.followUp.date);
+  document.getElementById('hcl-clear-wrap').style.display=hasF?'flex':'none'; document.getElementById('hcl-clear').checked=true;
+  document.getElementById('hc-log-modal').classList.add('on');
+}
+function hcLogClose(){ document.getElementById('hc-log-modal').classList.remove('on'); _hcLogDk=null; }
+function hcLogOutcomeChanged(){ document.getElementById('hcl-bad').checked = document.getElementById('hcl-out').value==='Wrong number'; }
+async function hcLogSave(){
+  const dk=_hcLogDk, r=_hcByDk[dk]; if(!r) return;
+  const via=document.getElementById('hcl-via').value, out=document.getElementById('hcl-out').value;
+  const k=document.getElementById('hcl-num').value, note=document.getElementById('hcl-note').value.trim().slice(0,300);
+  const date=document.getElementById('hcl-date').value, now=Date.now(), by=currentAdminName||'';
+  const patch={};
+  patch['history/t'+now]={ at:now, via, outcome:out, num:k, note, by };
+  patch.lastContact={ at:now, via, outcome:out, by };
+  if(date) patch.followUp={ date, note: note.slice(0,120) };
+  else if(r.c.followUp && document.getElementById('hcl-clear').checked) patch.followUp=null;
+  if(document.getElementById('hcl-bad').checked && k) patch['bad/'+k]={ at:now, by, reason:out };
+  try{
+    await _hcDbPatch(dk,patch);
+    logActivity('📝 Logged contact — '+r.name+' ('+via+': '+out+')','act-blue',currentAdminName,{category:'edit',targetId:r.asm,targetName:r.name,extra:'Contact note (text not logged)'});
+    notify('✅ Contact logged','success',2500);
+    hcLogClose(); hcRender();
+  }catch(e){ notify('❌ Could not save: '+(e&&e.message||e),'error',6000); }
+}
+async function hcToggleBad(dk,k){
+  const r=_hcByDk[dk]; if(!r) return;
+  const wasBad=!!(r.c.bad&&r.c.bad[k]);
+  try{
+    await _hcDbPatch(dk,{['bad/'+k]: wasBad ? null : { at:Date.now(), by:currentAdminName||'', reason:'Marked wrong' }});
+    logActivity((wasBad?'✅ Restored a number — ':'🚫 Flagged a number as wrong — ')+r.name,'act-blue',currentAdminName,{category:'edit',targetId:r.asm,targetName:r.name,extra:'Number value not logged'});
+    notify(wasBad?'✅ Number restored':'🚫 Number flagged — skipped in broadcasts','success',2500);
+    hcRender();
+  }catch(e){ notify('❌ Could not save: '+(e&&e.message||e),'error',6000); }
+}
+async function hcFollowDone(dk){
+  try{ await _hcDbPatch(dk,{followUp:null}); notify('✓ Follow-up closed','success',2000); hcRender(); }
+  catch(e){ notify('❌ '+(e&&e.message||e),'error',5000); }
+}
+function _hcRenderFollowUps(){
+  const box=document.getElementById('hc-followups'); if(!box) return;
+  const today=_hcToday();
+  const due=_hcRows.filter(r=>r.c.followUp&&r.c.followUp.date&&r.c.followUp.date<=today).sort((a,b)=>a.c.followUp.date.localeCompare(b.c.followUp.date));
+  if(!due.length){ box.innerHTML=''; return; }
+  const shown=due.slice(0,8);
+  box.innerHTML='<div class="hc-compose" style="border-color:var(--orange)"><div class="s-label" style="margin:0 0 8px">⏰ FOLLOW-UPS DUE ('+due.length+')</div>'+
+    shown.map(r=>{
+      const pr=_hcPrimary(r.c), dk=r.dk;
+      return '<div class="hc-q">'+_hcAv(r,34)+'<div class="grow"><b>'+_hcEsc(r.name)+'</b> <small>'+_hcEsc(r.grade)+' · due '+_hcEsc(r.c.followUp.date)+(r.c.followUp.note?' · '+_hcEsc(r.c.followUp.note):'')+'</small></div>'+
+        (pr?'<a class="hc-btn sm call" href="tel:+'+_hcIntl(pr.phone)+'" onclick="_hcStamp(\''+dk+'\',\'Call\')">📞</a><button class="hc-btn sm wa" onclick="hcWA(\''+dk+'\',\''+pr.k+'\')">💬</button>':'')+
+        '<button class="hc-btn sm" title="Log contact" onclick="hcLogOpen(\''+dk+'\')">📝</button><button class="hc-btn sm" title="Mark done" onclick="hcFollowDone(\''+dk+'\')">✓</button></div>';
+    }).join('')+(due.length>8?'<div style="font-size:11px;color:var(--text3);margin-top:6px">+ '+(due.length-8)+' more — use the "Follow-up due" filter</div>':'')+'</div>';
+  _hcLoadPhotos(shown);
+}
+
+/* ── sidebar visibility ── */
+function _scApplyNav(){
+  const el=document.getElementById('nav-homecontacts'); if(!el) return;
+  const ok=_scAnyAccess(); const want = ok ? '' : 'none';
+  if(el.style.display!==want) el.style.display=want;
+}
+setInterval(_scApplyNav, 1500);
+
+// Refresh the badge whenever the Students view is opened
+(function(){
+  const _origNav = navTo;
+  navTo = function(view, el){
+    if(view === 'homecontacts' && !_scAnyAccess()){
+      notify('⛔ Home Contacts is for class teachers and Advanced Admins only.','error',5000);
+      view = 'dashboard'; el = document.querySelector('.nav-item[data-label="Dashboard"]');
+    }
+    const r = _origNav.apply(this, [view, el]);
+    if(view === 'students') setTimeout(_scRefreshBadge, 300);
+    if(view === 'homecontacts'){
+      const cr = document.getElementById('topbar-crumb'); if(cr) cr.textContent = 'Call, WhatsApp & manage parent / guardian details';
+      hcRender();
+    }
+    _scApplyNav();
+    return r;
+  };
+})();
 </script>
 <!-- ══ REPORT CARD ENGINE (Termly-ReportsRmks) ══ -->
 <script>
